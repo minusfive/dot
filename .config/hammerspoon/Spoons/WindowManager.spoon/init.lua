@@ -216,12 +216,16 @@ function WindowManager:moveR() return WindowManager:cycleHorizontalPosition(">")
 -- Cycle window position to the left
 function WindowManager:moveL() return WindowManager:cycleHorizontalPosition("<") end
 
+-- Shrink window horizontally
 function WindowManager:shrinkX() return WindowManager:resizeWindowWidthInSteps("-") end
 
+-- Grow window horizontally
 function WindowManager:growX() return WindowManager:resizeWindowWidthInSteps("+") end
 
+-- Shrink window vertically
 function WindowManager:shrinkY() return WindowManager:resizeWindowHeightInSteps("-") end
 
+-- Grow window vertically
 function WindowManager:growY() return WindowManager:resizeWindowHeightInSteps("+") end
 
 -- Position mouse in center of focused windows whenever focus changes
@@ -259,17 +263,23 @@ local function browserNewWindowWatcher(window)
 
   if app == "Safari" then pos = { default = WindowManager.layout.left50, above5125 = WindowManager.layout.left33 } end
 
-  local desiredPosition = pos.default
-  if window:screen():fullFrame().w >= 5120 then desiredPosition = pos.above5125 end
-  window:moveToUnit(desiredPosition, 0)
+  window:moveToUnit((window:screen():fullFrame().w >= 5120) and pos.above5125 or pos.default, 0)
 end
 
 --- Initialize WindowManager
 function WindowManager:init()
-  local focusedWindowFilter =
-    hs.window.filter.new():setOverrideFilter({ visible = true, focused = true, activeApplication = true })
-  local weztermWindowFilter = hs.window.filter.new({ "Terminal", "WezTerm", "Ghostty", "Kitty" })
-  local browserWindowFilter = hs.window.filter.new({ "Safari", "Google Chrome", "Firefox", "Brave" })
+  local focusedWindowFilter = hs.window.filter.new():setOverrideFilter({
+    visible = true,
+    focused = true,
+    activeApplication = true,
+    allowRoles = "AXStandardWindow",
+  })
+  local weztermWindowFilter = hs.window.filter
+    .new({ "Terminal", "WezTerm", "Ghostty", "Kitty" })
+    :setOverrideFilter({ visible = true, allowRoles = "AXStandardWindow" })
+  local browserWindowFilter = hs.window.filter
+    .new({ "Safari", "Google Chrome", "Firefox", "Brave" })
+    :setOverrideFilter({ visible = true, allowRoles = "AXStandardWindow" })
 
   --- Starts the WindowManager watchers
   function WindowManager:start()
