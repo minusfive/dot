@@ -1,26 +1,28 @@
+---Generates indexed keymaps from 1 to 0 (0 being the 10th index)
 ---@param idx number
 local function get_keymap_for_idx(idx)
   -- Only show for the first 10 items
   if idx > 10 then return end
-  return "M-" .. (idx % 10)
+  return "A-" .. (idx % 10)
 end
 
-local function get_indexed_keymap()
+---Generates the indexed keymap hint text
+---@param ctx blink.cmp.DrawItemContext
+local function keymap_index_text(ctx) return get_keymap_for_idx(ctx.idx) end
+
+---Generates a keymap with indexed `accept` actions from 1 to 0 (0 being the 10th index)
+local indexed_keymap = (function()
   ---@type blink.cmp.KeymapConfig
   local keymap = { preset = "super-tab", ["<C-S-y>"] = { "select_and_accept" } }
 
-  -- Add indexed selection keymaps
   for i = 1, 10 do
-    local idx_keymap = get_keymap_for_idx(i)
-    if not idx_keymap then break end
-
-    keymap["<" .. idx_keymap .. ">"] = {
-      function(cmp) cmp.accept({ index = i }) end,
-    }
+    local idx_map = get_keymap_for_idx(i)
+    if not idx_map then break end
+    keymap["<" .. idx_map .. ">"] = { function(cmp) cmp.accept({ index = i }) end }
   end
 
   return keymap
-end
+end)()
 
 return {
   -- Copilot Broken: https://github.com/zbirenbaum/copilot.lua/issues/408#issuecomment-2758411881
@@ -47,7 +49,7 @@ return {
             components = {
               -- Add indexed selection keymaps hints
               item_idx = {
-                text = function(ctx) return get_keymap_for_idx(ctx.idx) end,
+                text = keymap_index_text,
                 highlight = "BlinkCmpItemIdx",
               },
             },
@@ -55,14 +57,14 @@ return {
         },
       },
 
-      keymap = get_indexed_keymap(),
+      keymap = indexed_keymap,
 
       -- signature = { enabled = true },
 
       -- TODO: Explore other ways of reverting overrides?
       -- Force enable commandline completion
       cmdline = vim.tbl_deep_extend("force", {}, require("blink.cmp.config").cmdline, {
-        keymap = get_indexed_keymap(),
+        keymap = indexed_keymap,
         completion = {
           menu = { auto_show = true },
           ghost_text = { enabled = true },
@@ -77,13 +79,5 @@ return {
         },
       },
     },
-  },
-
-  -- Use <tab> for completion and snippets (supertab)
-  -- first: disable default <tab> and <s-tab> behavior in LuaSnip
-  {
-    "L3MON4D3/LuaSnip",
-    optional = true,
-    keys = function() return {} end,
   },
 }
