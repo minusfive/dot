@@ -138,13 +138,13 @@ local directionMap = {
   Up = "Top",
 }
 
----@class ActivateOrSplitPaneOpts
+---@class DirectionalKeybinding
 ---@field direction "Up" | "Down" | "Left" | "Right"
 ---@field key? string
 ---@field mods? string
 
 ---Tries to activate a pane in the given direction, or splits the current pane in that direction.
----@param opts ActivateOrSplitPaneOpts
+---@param opts DirectionalKeybinding
 local function activateOrSplitPane(opts)
   return {
     key = opts.key or (opts.direction .. "Arrow"),
@@ -162,22 +162,32 @@ local function activateOrSplitPane(opts)
   }
 end
 
+---Resizes pane in the given direction.
+---@param opts DirectionalKeybinding
+local function resizePane(opts)
+  return {
+    key = opts.key or (opts.direction .. "Arrow"),
+    mods = opts.mods,
+    action = act.AdjustPaneSize({ opts.direction, 2 }),
+  }
+end
+
 config.keys = {
   activateOrSplitPane({ mods = "CMD", direction = "Right" }),
   activateOrSplitPane({ mods = "CMD", direction = "Left" }),
   activateOrSplitPane({ mods = "CMD", direction = "Down" }),
   activateOrSplitPane({ mods = "CMD", direction = "Up" }),
 
-  { mods = "SHIFT", key = "RightArrow", action = act.AdjustPaneSize({ "Right", 2 }) },
-  { mods = "SHIFT", key = "LeftArrow", action = act.AdjustPaneSize({ "Left", 2 }) },
-  { mods = "SHIFT", key = "DownArrow", action = act.AdjustPaneSize({ "Down", 2 }) },
-  { mods = "SHIFT", key = "UpArrow", action = act.AdjustPaneSize({ "Up", 2 }) },
+  resizePane({ mods = "SHIFT", direction = "Right" }),
+  resizePane({ mods = "SHIFT", direction = "Left" }),
+  resizePane({ mods = "SHIFT", direction = "Down" }),
+  resizePane({ mods = "SHIFT", direction = "Up" }),
 
   { mods = "LEADER", key = "c", action = act.ActivateCopyMode },
   { mods = "LEADER", key = "s", action = act.QuickSelect },
 
   { mods = "OPT", key = "s", action = act.PaneSelect },
-  { mods = "OPT", key = "S", action = act.PaneSelect({ mode = "SwapWithActive" }) },
+  { mods = "OPT|SHIFT", key = "s", action = act.PaneSelect({ mode = "SwapWithActive" }) },
 
   { mods = "CMD", key = "z", action = act.TogglePaneZoomState },
 
@@ -186,7 +196,7 @@ config.keys = {
   { mods = "CMD|OPT", key = "t", action = act.ShowTabNavigator },
 
   { mods = "CMD", key = "w", action = act.CloseCurrentPane({ confirm = true }) },
-  { mods = "CMD", key = "W", action = act.CloseCurrentTab({ confirm = true }) },
+  { mods = "CMD|SHIFT", key = "w", action = act.CloseCurrentTab({ confirm = true }) },
 
   { mods = "CMD", key = "l", action = act.ShowLauncherArgs({ flags = "LAUNCH_MENU_ITEMS|TABS|WORKSPACES" }) },
 }
