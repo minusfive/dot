@@ -104,6 +104,7 @@ config.bold_brightens_ansi_colors = true
 config.underline_position = -8
 
 -- Keys
+config.use_ime = false -- Send keycodes as they are
 config.enable_kitty_keyboard = true
 config.enable_csi_u_key_encoding = false
 
