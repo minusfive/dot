@@ -1,10 +1,9 @@
 return {
   {
     "stevearc/conform.nvim",
-    optional = true,
     opts = {
       formatters_by_ft = {
-        json = { "biome", "prettierd", "prettierd", stop_after_first = true },
+        markdown = { "prettierd", "prettier", stop_after_first = true },
       },
     },
   },
@@ -12,7 +11,7 @@ return {
     "williamboman/mason.nvim",
     optional = true,
     opts = {
-      ensure_installed = { "biome", "prettierd", "prettier" },
+      ensure_installed = { "prettierd", "prettier" },
     },
   },
 }

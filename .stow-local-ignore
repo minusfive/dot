@@ -34,7 +34,10 @@ _darcs
 ^/tests
 ^/flake.nix
 ^/flake.lock
+^/biome.json
 ^/\.mise.local.toml
+^/\.prettierrc.json
+^/\.markdownlint-cli2.jsonc
 ^/\.mise.toml
 \.luarc.json
 \.ruby-lsp
