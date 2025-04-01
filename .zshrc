@@ -6,14 +6,14 @@ export XDG_CACHE_HOME="$HOME/.cache"
 
 # wezterm shell integration
 if [[ "$TERM" == "wezterm" && -f $XDG_CONFIG_HOME/wezterm/shell-integration.sh ]]; then
-  source $XDG_CONFIG_HOME/wezterm/shell-integration.sh
+    source $XDG_CONFIG_HOME/wezterm/shell-integration.sh
 fi
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "$XDG_CACHE_HOME/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "$XDG_CACHE_HOME/p10k-instant-prompt-${(%):-%n}.zsh"
+    source "$XDG_CACHE_HOME/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 # Path to your oh-my-zsh installation.
@@ -95,7 +95,7 @@ HIST_STAMPS="yyyy-mm-dd"
 
 # zsh-vi-mode config
 if [[ -f $XDG_CONFIG_HOME/zsh/plugins/zsh-vi-mode/config.zsh ]]; then
-  source $XDG_CONFIG_HOME/zsh/plugins/zsh-vi-mode/config.zsh
+    source $XDG_CONFIG_HOME/zsh/plugins/zsh-vi-mode/config.zsh
 fi
 
 # Which plugins would you like to load?
@@ -104,23 +104,23 @@ fi
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-  # vi-mode
-  zsh-vi-mode
-  colored-man-pages
-  docker
-  fast-syntax-highlighting
-  git
-  terraform
-  virtualenv
-  # yarn # Keyboard commands conflict with Yazi's CLI
-  zoxide
-  # zsh-autocomplete # Too noisy
-  zsh-autosuggestions
-  # per-directory-history # Not used to this yet
-  fzf
-  fzf-tab
-  fzf-tab-source
-  ohmyzsh-full-autoupdate
+    # vi-mode
+    zsh-vi-mode
+    colored-man-pages
+    docker
+    fast-syntax-highlighting
+    git
+    terraform
+    virtualenv
+    # yarn # Keyboard commands conflict with Yazi's CLI
+    zoxide
+    # zsh-autocomplete # Too noisy
+    zsh-autosuggestions
+    # per-directory-history # Not used to this yet
+    fzf
+    fzf-tab
+    fzf-tab-source
+    ohmyzsh-full-autoupdate
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -140,32 +140,32 @@ typeset -U manpath
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'
+    export EDITOR='vim'
 else
-  export EDITOR='nvim'
+    export EDITOR='nvim'
 fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
 path=(
-  # Coreutils
-  $(brew --prefix coreutils)/libexec/gnubin
+    # Coreutils
+    $(brew --prefix coreutils)/libexec/gnubin
 
-  # git diff-highlight
-  $(brew --prefix git)/share/git-core/contrib/diff-highlight
+    # git diff-highlight
+    $(brew --prefix git)/share/git-core/contrib/diff-highlight
 
-  # yarn
-  $HOME/.yarn/bin
-  $XDG_CONFIG_HOME/yarn/global/node_modules/.bin
+    # yarn
+    $HOME/.yarn/bin
+    $XDG_CONFIG_HOME/yarn/global/node_modules/.bin
 
-  # local
-  /usr/local/bin
-  /usr/local/sbin
-  $HOME/.local/bin
+    # local
+    /usr/local/bin
+    /usr/local/sbin
+    $HOME/.local/bin
 
-  # default
-  $path
+    # default
+    $path
 )
 
 export PATH
@@ -179,7 +179,7 @@ export MANPATH
 
 # Load Aliases File
 if [[ -f ~/.aliases ]]; then
-  source ~/.aliases
+    source ~/.aliases
 fi
 
 
@@ -188,12 +188,12 @@ fi
 # Configure Powerlevel10k
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 if [[ -f ~/.p10k.zsh ]]; then
-  source ~/.p10k.zsh
+    source ~/.p10k.zsh
 fi
 
 # Wezterm CLI auto-complete
 if [[ -f $XDG_CONFIG_HOME/wezterm/shell-completion.zsh ]]; then
-  source $XDG_CONFIG_HOME/wezterm/shell-completion.zsh
+    source $XDG_CONFIG_HOME/wezterm/shell-completion.zsh
 fi
 
 # Multiplexers
@@ -210,32 +210,32 @@ export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/.ripgreprc"
 
 # wrapped in immediately executed anonymous function to contain var scope
 function {
-  # Eza + Fzf: preview directories contents with eza when completing cd and zoxide
-  local __eza_fzf_cmd='eza --tree --level=2 --color=always --icons=auto --classify=auto --group-directories-first --header --time-style=long-iso';
-  export FZF_COMPLETION_DIR_OPTS="--preview='$__eza_fzf_cmd {}'"
-  export FZF_DEFAULT_OPTS_FILE="$XDG_CONFIG_HOME/fzf/fzf.conf"
-  export FZF_CTRL_R_OPTS="--no-preview --layout=reverse"
-  export FZF_ALT_C_OPTS="$FZF_COMPLETION_DIR_OPTS"
+    # Eza + Fzf: preview directories contents with eza when completing cd and zoxide
+    local __eza_fzf_cmd='eza --tree --level=2 --color=always --icons=auto --classify=auto --group-directories-first --header --time-style=long-iso';
+    export FZF_COMPLETION_DIR_OPTS="--preview='$__eza_fzf_cmd {}'"
+    export FZF_DEFAULT_OPTS_FILE="$XDG_CONFIG_HOME/fzf/fzf.conf"
+    export FZF_CTRL_R_OPTS="--no-preview --layout=reverse"
+    export FZF_ALT_C_OPTS="$FZF_COMPLETION_DIR_OPTS"
 
-  # fzf-tab
-  # set list-colors to enable filename colorizing
-  zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-  # force zsh not to show completion menu, which allows fzf-tab to capture the unambiguous prefix
-  zstyle ':completion:*' menu no
-  # switch group using `<` and `>`
-  zstyle ':fzf-tab:*' switch-group '<' '>'
-  # custom fzf flags
-  # NOTE: fzf-tab does not follow FZF_DEFAULT_OPTS by default
-  zstyle ':fzf-tab:*' fzf-flags --bind=tab:accept
-  # To make fzf-tab follow FZF_DEFAULT_OPTS.
-  # NOTE: This may lead to unexpected behavior since some flags break this plugin. See Aloxaf/fzf-tab#455.
-  zstyle ':fzf-tab:*' use-fzf-default-opts yes
-  enable-fzf-tab
+    # fzf-tab
+    # set list-colors to enable filename colorizing
+    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+    # force zsh not to show completion menu, which allows fzf-tab to capture the unambiguous prefix
+    zstyle ':completion:*' menu no
+    # switch group using `<` and `>`
+    zstyle ':fzf-tab:*' switch-group '<' '>'
+    # custom fzf flags
+    # NOTE: fzf-tab does not follow FZF_DEFAULT_OPTS by default
+    zstyle ':fzf-tab:*' fzf-flags --bind=tab:accept
+    # To make fzf-tab follow FZF_DEFAULT_OPTS.
+    # NOTE: This may lead to unexpected behavior since some flags break this plugin. See Aloxaf/fzf-tab#455.
+    zstyle ':fzf-tab:*' use-fzf-default-opts yes
+    enable-fzf-tab
 
-  # Eza + fzf-tab
-  zstyle ':fzf-tab:complete:cd:*' fzf-preview "$__eza_fzf_cmd \$realpath"
-  zstyle ':fzf-tab:complete:z:*' fzf-preview "$__eza_fzf_cmd \$realpath"
-  zstyle ':fzf-tab:complete:zoxide:*' fzf-preview "$__eza_fzf_cmd \$realpath"
+    # Eza + fzf-tab
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview "$__eza_fzf_cmd \$realpath"
+    zstyle ':fzf-tab:complete:z:*' fzf-preview "$__eza_fzf_cmd \$realpath"
+    zstyle ':fzf-tab:complete:zoxide:*' fzf-preview "$__eza_fzf_cmd \$realpath"
 
 }
 
@@ -244,12 +244,12 @@ export LS_COLORS="$(vivid generate catppuccin-mocha)"
 
 # Yazi - Change directory when exiting
 function y() {
-  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
-  yazi "$@" --cwd-file="$tmp"
-  if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-    builtin cd -- "$cwd"
-  fi
-  rm -f -- "$tmp" > /dev/null
+    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+    yazi "$@" --cwd-file="$tmp"
+    if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+        builtin cd -- "$cwd"
+    fi
+    rm -f -- "$tmp" > /dev/null
 }
 
 # zsh-autosuggestions
@@ -283,3 +283,4 @@ export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agen
 
 # mise
 eval "$(mise activate zsh)"
+
