@@ -128,13 +128,13 @@ local modeAppLauncherSticky = {
 ---@type hs.hotkey.KeySpec[]
 local windowModeSpecs = {
   -- Resize
-  { hk.mods.shift, "m", "Maximize", wm.maximixe },
-  { hk.mods.shift, "f", "Full Screen", wm.toggleFullScreen },
-  { hk.mods.shift, "c", "Center", wm.center },
+  { {}, "m", "Maximize", wm.maximixe },
+  { {}, "f", "Full Screen", wm.toggleFullScreen },
+  { {}, "c", "Center", wm.center },
 
   -- Move
-  { hk.mods.shift, "left", "Prev Screen", wm.screenPrev },
-  { hk.mods.shift, "right", "Next Screen", wm.screenNext },
+  { {}, "left", "Prev Screen", wm.screenPrev },
+  { {}, "right", "Next Screen", wm.screenNext },
 }
 
 ---@type Hotkeys.ModalSpec
