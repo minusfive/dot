@@ -16,6 +16,7 @@ uv = "latest"
 
 [tasks.postinstall]
 run = ['pip install --upgrade pip', 'pip install --upgrade pipx pynvim']
+hide = true
 
 [hooks]
 postinstall = 'mise run postinstall'
