@@ -240,9 +240,46 @@ local function mouseFollowsFocus(window)
   if not currentMousePosition:inside(frame) then hs.mouse.absolutePosition(frame.center) end
 end
 
+---@type string | nil
+local lastAppFocused = nil
+
+---Restores focus to most recently created window of specific apps on activation
+---@param window hs.window
+---@param appName string
+local function focusMostRecentAppWindow(window, appName)
+  if appName == lastAppFocused then return end
+  lastAppFocused = appName
+
+  if appName == "Microsoft Teams" then
+    ---@type hs.application | nil
+    local app = window:application()
+    if not app then return end
+
+    ---@type hs.window[] | nil
+    local appWindows = app:visibleWindows()
+    if not appWindows or #appWindows == 0 then return end
+
+    ---@type number[] | nil
+    local appWinIds = hs.fnutils.imap(appWindows, function(win) return win:id() end)
+    if not appWinIds or #appWinIds == 0 then return end
+
+    local maxWinId = math.max(table.unpack(appWinIds))
+
+    ---@type hs.window | nil
+    local mostRecentWin = hs.fnutils.find(appWindows, function(win) return win:id() == maxWinId end)
+    if not mostRecentWin then return end
+
+    mostRecentWin:becomeMain():focus()
+  end
+end
+
 -- Watch for focused window changes and trigger some actions
 ---@param window hs.window
-local function focusedWindowWatcher(window) mouseFollowsFocus(window) end
+---@param appName string
+local function focusedWindowWatcher(window, appName)
+  mouseFollowsFocus(window)
+  focusMostRecentAppWindow(window, appName)
+end
 
 -- Ensure all terminal windows open on specific positions depending on screen size
 ---@param window hs.window
@@ -274,9 +311,11 @@ function WindowManager:init()
     activeApplication = true,
     allowRoles = "AXStandardWindow",
   })
-  local weztermWindowFilter = hs.window.filter
+
+  local terminalWindowFilter = hs.window.filter
     .new({ "Terminal", "WezTerm", "Ghostty", "Kitty" })
     :setOverrideFilter({ visible = true, allowRoles = "AXStandardWindow" })
+
   local browserWindowFilter = hs.window.filter
     .new({ "Safari", "Google Chrome", "Firefox", "Brave" })
     :setOverrideFilter({ visible = true, allowRoles = "AXStandardWindow" })
@@ -284,7 +323,7 @@ function WindowManager:init()
   --- Starts the WindowManager watchers
   function WindowManager:start()
     focusedWindowFilter:subscribe(hs.window.filter.windowFocused, focusedWindowWatcher)
-    weztermWindowFilter:subscribe(hs.window.filter.windowCreated, terminalNewWindowWatcher)
+    terminalWindowFilter:subscribe(hs.window.filter.windowCreated, terminalNewWindowWatcher)
     browserWindowFilter:subscribe(hs.window.filter.windowCreated, browserNewWindowWatcher)
 
     if WindowManager.options.enableFocusedWindowHighlight then hs.window.highlight.start() end
@@ -293,7 +332,7 @@ function WindowManager:init()
   --- Stops the WindowManager watchers
   function WindowManager:stop()
     focusedWindowFilter:unsubscribe(hs.window.filter.windowFocused, focusedWindowWatcher)
-    weztermWindowFilter:unsubscribe(hs.window.filter.windowCreated, terminalNewWindowWatcher)
+    terminalWindowFilter:unsubscribe(hs.window.filter.windowCreated, terminalNewWindowWatcher)
     browserWindowFilter:unsubscribe(hs.window.filter.windowCreated, browserNewWindowWatcher)
 
     hs.window.highlight.stop()
