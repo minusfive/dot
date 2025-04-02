@@ -27,14 +27,26 @@ local wo = {
 
 local function responsiveLayout() return vim.o.columns >= 120 and "lg" or "sm" end
 
+--- Show which-key help for local window keymaps
+local function showWhichKeyLocal()
+  if package.loaded["which-key"] then require("which-key").show({ global = false }) end
+end
+
+--- Keymaps shared by all picker windows
 local pickerWinCommonKeymaps = {
-  ["<c-/>"] = {
-    function()
-      if package.loaded["which-key"] then require("which-key").show({ global = false }) end
-    end,
-    desc = "Show which-key",
-    mode = { "n", "i", "v" },
-  },
+  -- these interfere with which-key scrolling
+  ["<c-d>"] = false,
+  ["<c-u>"] = false,
+
+  -- use which-key for help
+  ["<c-/>"] = { showWhichKeyLocal, desc = "Help", mode = { "n", "i", "v" } },
+  ["?"] = { showWhichKeyLocal, desc = "Help", mode = { "n", "v" } },
+
+  -- scroll with PageUp/Down
+  ["<PageDown>"] = { "preview_scroll_down", desc = "Preview Scroll Down", mode = { "n", "i", "v" } },
+  ["<PageUp>"] = { "preview_scroll_up", desc = "Preview Scroll Up", mode = { "n", "i", "v" } },
+  ["<A-PageDown>"] = { "list_scroll_down", desc = "List Scroll Down", mode = { "n", "i", "v" } },
+  ["<A-PageUp>"] = { "list_scroll_up", desc = "List Scroll Up", mode = { "n", "i", "v" } },
 }
 
 return {
