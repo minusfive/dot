@@ -7,9 +7,13 @@ local WindowManager = {
   license = "MIT - https://opensource.org/licenses/MIT",
 
   ---@class WindowManagerOptions
-  ---@field enableFocusedWindowHighlight? boolean
   options = {
     enableFocusedWindowHighlight = false,
+    appNamesForFilters = {
+      toFocusMostRecentWindow = { "Microsoft Teams" },
+      terminals = { "Terminal", "WezTerm", "Ghostty", "Kitty" },
+      browsers = { "Safari", "Google Chrome", "Firefox", "Brave" },
+    },
   },
 }
 
@@ -250,27 +254,28 @@ local function focusMostRecentAppWindow(window, appName)
   if appName == lastAppFocused then return end
   lastAppFocused = appName
 
-  if appName == "Microsoft Teams" then
-    ---@type hs.application | nil
-    local app = window:application()
-    if not app then return end
+  -- Only focus most recent window for specific apps
+  if not hs.fnutils.contains(WindowManager.options.appNamesForFilters.toFocusMostRecentWindow, appName) then return end
 
-    ---@type hs.window[] | nil
-    local appWindows = app:visibleWindows()
-    if not appWindows or #appWindows == 0 then return end
+  ---@type hs.application | nil
+  local app = window:application()
+  if not app then return end
 
-    ---@type number[] | nil
-    local appWinIds = hs.fnutils.imap(appWindows, function(win) return win:id() end)
-    if not appWinIds or #appWinIds == 0 then return end
+  ---@type hs.window[] | nil
+  local appWindows = app:visibleWindows()
+  if not appWindows or #appWindows == 0 then return end
 
-    local maxWinId = math.max(table.unpack(appWinIds))
+  ---@type number[] | nil
+  local appWinIds = hs.fnutils.imap(appWindows, function(win) return win:id() end)
+  if not appWinIds or #appWinIds == 0 then return end
 
-    ---@type hs.window | nil
-    local mostRecentWin = hs.fnutils.find(appWindows, function(win) return win:id() == maxWinId end)
-    if not mostRecentWin then return end
+  local maxWinId = math.max(table.unpack(appWinIds))
 
-    mostRecentWin:becomeMain():focus()
-  end
+  ---@type hs.window | nil
+  local mostRecentWin = hs.fnutils.find(appWindows, function(win) return win:id() == maxWinId end)
+  if not mostRecentWin then return end
+
+  mostRecentWin:becomeMain():focus()
 end
 
 -- Watch for focused window changes and trigger some actions
@@ -313,11 +318,11 @@ function WindowManager:init()
   })
 
   local terminalWindowFilter = hs.window.filter
-    .new({ "Terminal", "WezTerm", "Ghostty", "Kitty" })
+    .new(WindowManager.options.appNamesForFilters.terminals)
     :setOverrideFilter({ visible = true, allowRoles = "AXStandardWindow" })
 
   local browserWindowFilter = hs.window.filter
-    .new({ "Safari", "Google Chrome", "Firefox", "Brave" })
+    .new(WindowManager.options.appNamesForFilters.browsers)
     :setOverrideFilter({ visible = true, allowRoles = "AXStandardWindow" })
 
   --- Starts the WindowManager watchers
