@@ -40,7 +40,7 @@ local ctp = wezterm.color.get_builtin_schemes()["Catppuccin Mocha"]
 config.use_fancy_tab_bar = false -- Use retro tab bar
 config.hide_tab_bar_if_only_one_tab = true
 config.show_new_tab_button_in_tab_bar = false
-config.tab_max_width = 30
+config.tab_max_width = 32
 ctp.tab_bar.active_tab.intensity = "Bold"
 ctp.tab_bar.inactive_tab.bg_color = catppuccin.colors.mocha.crust
 ctp.tab_bar.inactive_tab.fg_color = catppuccin.colors.mocha.overlay2
@@ -53,7 +53,7 @@ wezterm.on("format-tab-title", function(tab)
   if (not title) or #title <= 0 then title = tab.active_pane.title end
 
   return {
-    { Text = "  " .. title .. " " },
+    { Text = "  " .. (tab.tab_index + 1) .. "- " .. title .. " " },
     { Foreground = { Color = catppuccin.colors.mocha.base } },
     { Text = "🮇" },
   }
