@@ -15,7 +15,7 @@ function {
     function _v::log::info() { print -P "$(_v::color::fg blue 󰬐  " $1")" }
     function _v::log::ok() { print -P "$(_v::color::fg green 󰄲  " $1")" }
     function _v::log::warn() { print -P "$(_v::color::fg yellow 󰀩  " $1")" }
-    function _v::q() { print -P "$(_v::color::fg magenta   " $1?") $(_v::color::fg green "(y/N)") " }
+    function _v::q() { print -P "  $1? ($(_v::color::fg green y)/$(_v::color::fg red N)) $(_v::color::fg green %B⟩%b) " }
 
     # From https://github.com/ohmyzsh/ohmyzsh/blob/d82669199b5d900b50fd06dd3518c277f0def869/lib/cli.zsh#L668-L676
     function _v::reload {
