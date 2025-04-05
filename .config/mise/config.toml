@@ -2,7 +2,9 @@
 aws-cli = "latest"
 go = "latest"
 lua = "5.1"
+python = { version = "latest", postinstall = 'pip install --upgrade pip; pip install --upgrade pipx pynvim;' }
 rust = "latest"
+uv = "latest"
 vault = "latest"
 
 node = "lts"
@@ -11,15 +13,6 @@ node = "lts"
 ruby = "latest"
 "gem:neovim" = "latest"
 
-python = "latest"
-uv = "latest"
-
-[tasks.postinstall]
-run = ['pip install --upgrade pip', 'pip install --upgrade pipx pynvim']
-hide = true
-
-[hooks]
-postinstall = 'mise run postinstall'
 
 [settings]
 # paranoid = true
