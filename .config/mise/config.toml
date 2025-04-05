@@ -2,19 +2,19 @@
 aws-cli = "latest"
 go = "latest"
 lua = "5.1"
-python = { version = "latest", postinstall = 'pip install --upgrade pip; pip install --upgrade pipx pynvim;' }
+node = "lts"
+python = "latest"
+ruby = "latest"
 rust = "latest"
 uv = "latest"
 vault = "latest"
 
-node = "lts"
-"npm:neovim" = "latest"
-
-ruby = "latest"
-"gem:neovim" = "latest"
-
+[env]
+MISE_NODE_DEFAULT_PACKAGES_FILE = "{{ env.XDG_CONFIG_HOME }}/mise/default_packages_node"
+MISE_PYTHON_DEFAULT_PACKAGES_FILE = "{{ env.XDG_CONFIG_HOME }}/mise/default_packages_python"
+MISE_RUBY_DEFAULT_PACKAGES_FILE = "{{ env.XDG_CONFIG_HOME }}/mise/default_packages_ruby"
 
 [settings]
-# paranoid = true
-experimental = true
 env_file = ".env"
+experimental = true
+# paranoid = true
