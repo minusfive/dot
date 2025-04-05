@@ -58,3 +58,6 @@ local _tools = { "node", "lua", "luarocks", "ruby", "python" }
 for _, _t in ipairs(_tools) do
   vim.env.PATH = vim.env.HOME .. "/.local/share/mise/installs/" .. _t .. "/latest/bin:" .. vim.env.PATH
 end
+
+-- Use prettier only when .prettierrc is found in project
+vim.g.lazyvim_prettier_needs_config = true
