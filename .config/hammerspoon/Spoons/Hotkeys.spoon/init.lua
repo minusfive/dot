@@ -14,32 +14,34 @@
 ---@field isOneShot? boolean
 
 ---@class Hotkeys
----@field mods {meh: string[], hyper: string[]}
 ---@field activeMode? Hotkeys.ActiveMode
 ---@field keyListener? hs.eventtap
 ---@field menuBarItem? hs.menubar
 local Hotkeys = {
   name = "Hotkeys",
-  version = "1.0",
+  version = "0.1",
   author = "http://github.com/minusfive",
   license = "MIT - https://opensource.org/licenses/MIT",
-
-  mods = {
-    meh = { "ctrl", "alt", "shift" },
-    hyper = { "ctrl", "alt", "shift", "cmd" },
-  },
   activeMode = nil,
   keyListener = nil,
   menuBarItem = nil,
+}
+
+-- Modifier keys
+Hotkeys.mods = {
+  alt = { "alt" },
+  cmd = { "cmd" },
+  ctrl = { "ctrl" },
+  hyper = { "ctrl", "alt", "shift", "cmd" },
+  meh = { "ctrl", "alt", "shift" },
+  shift = { "shift" },
 }
 
 -- Setup modal hotkeys environments
 ---@param modalSpec Hotkeys.ModalSpec
 ---@return nil
 local function configureModal(modalSpec)
-  if not modalSpec.specs or not #modalSpec.specs then
-    return
-  end
+  if not modalSpec.specs or not #modalSpec.specs then return end
 
   local modal = hs.hotkey.modal.new(table.unpack(modalSpec.trigger))
   local specs = modalSpec.specs
@@ -58,9 +60,7 @@ local function configureModal(modalSpec)
       isOneShot = modalSpec.isOneShot,
     }
 
-    if Hotkeys.keyListener then
-      Hotkeys.keyListener:start()
-    end
+    if Hotkeys.keyListener then Hotkeys.keyListener:start() end
 
     if Hotkeys.menuBarItem then
       Hotkeys.menuBarItem:returnToMenuBar()
@@ -76,13 +76,9 @@ local function configureModal(modalSpec)
   function modal:exited()
     Hotkeys.activeMode = nil
 
-    if Hotkeys.keyListener then
-      Hotkeys.keyListener:stop()
-    end
+    if Hotkeys.keyListener then Hotkeys.keyListener:stop() end
 
-    if Hotkeys.menuBarItem then
-      Hotkeys.menuBarItem:removeFromMenuBar()
-    end
+    if Hotkeys.menuBarItem then Hotkeys.menuBarItem:removeFromMenuBar() end
 
     hs.notify.new({ title = "Normal", subTitle = "Hotkeys Mode" }):send()
   end
@@ -92,9 +88,7 @@ end
 ---@param event hs.eventtap.event
 local function keyListenerFn(event)
   -- Noop if no active mode specs found
-  if not Hotkeys.activeMode or not Hotkeys.activeMode.specs or not #Hotkeys.activeMode.specs then
-    return false
-  end
+  if not Hotkeys.activeMode or not Hotkeys.activeMode.specs or not #Hotkeys.activeMode.specs then return false end
 
   local eventMods = event:getFlags()
   local eventKey = hs.keycodes.map[event:getKeyCode()]
@@ -106,9 +100,7 @@ local function keyListenerFn(event)
       -- If it's a one-shot mode, execute the action and exit
       if Hotkeys.activeMode.isOneShot then
         Hotkeys.activeMode.modal:exit()
-        if type(spec[4]) == "function" then
-          spec[4]()
-        end
+        if type(spec[4]) == "function" then spec[4]() end
         -- Block the event so it doesn't propagate to the application
         return true
       end
@@ -123,9 +115,7 @@ end
 
 -- Allows exiting the currently active modal state
 function Hotkeys:activeModeExit()
-  if Hotkeys.activeMode then
-    Hotkeys.activeMode.modal:exit()
-  end
+  if Hotkeys.activeMode then Hotkeys.activeMode.modal:exit() end
 end
 
 ---@class Hotkeys.Config
@@ -144,9 +134,7 @@ function Hotkeys:bindHotkeys(config)
 
   -- Modal hotkeys
   if config.modes then
-    if not self.menuBarItem then
-      self.menuBarItem = hs.menubar.new(false, "hs.minusfive.hotkeys.mode")
-    end
+    if not self.menuBarItem then self.menuBarItem = hs.menubar.new(false, "hs.minusfive.hotkeys.mode") end
 
     if not self.keyListener then
       self.keyListener = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, keyListenerFn)

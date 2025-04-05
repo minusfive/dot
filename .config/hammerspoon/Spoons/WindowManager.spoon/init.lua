@@ -2,14 +2,18 @@
 ---@class WindowManager
 local WindowManager = {
   name = "WindowManager",
-  version = "1.0",
+  version = "0.1",
   author = "http://github.com/minusfive",
   license = "MIT - https://opensource.org/licenses/MIT",
 
   ---@class WindowManagerOptions
-  ---@field enableFocusedWindowHighlight? boolean
   options = {
     enableFocusedWindowHighlight = false,
+    appNamesForFilters = {
+      toFocusMostRecentWindow = { "Microsoft Teams" },
+      terminals = { "Terminal", "WezTerm", "Ghostty", "Kitty" },
+      browsers = { "Safari", "Google Chrome", "Firefox", "Brave" },
+    },
   },
 }
 
@@ -58,9 +62,7 @@ WindowManager.layout = {
 ---@param fn function():`T`
 ---@return T
 local function __optimizeFrame(fn)
-  if not WindowManager.options.enableFocusedWindowHighlight then
-    return fn()
-  end
+  if not WindowManager.options.enableFocusedWindowHighlight then return fn() end
 
   hs.window.highlight.stop()
   local result = fn()
@@ -72,77 +74,70 @@ end
 ---@param unit hs.geometry.rect
 function WindowManager:move(unit)
   return function()
-    __optimizeFrame(function()
-      hs.window.focusedWindow():move(unit, nil, true)
-    end)
+    __optimizeFrame(function() hs.window.focusedWindow():move(unit, nil, true) end)
   end
 end
 
 -- Toggle window "Full Screen" state
 function WindowManager:toggleFullScreen()
-  __optimizeFrame(function()
-    hs.window.focusedWindow():toggleFullScreen()
-  end)
+  __optimizeFrame(function() hs.window.focusedWindow():toggleFullScreen() end)
 end
 
 -- Maximize window
 function WindowManager:maximixe()
-  __optimizeFrame(function()
-    hs.window.focusedWindow():maximize()
-  end)
+  __optimizeFrame(function() hs.window.focusedWindow():maximize() end)
 end
 
 -- Center window on screen
 function WindowManager:center()
-  __optimizeFrame(function()
-    hs.window.focusedWindow():centerOnScreen(nil, true, 0)
-  end)
+  __optimizeFrame(function() hs.window.focusedWindow():centerOnScreen(nil, true, 0) end)
 end
 
 -- Move window to next screen
 function WindowManager:screenNext()
-  __optimizeFrame(function()
-    hs.window.focusedWindow():moveToScreen(hs.window.focusedWindow():screen():next(), false, true)
-  end)
+  __optimizeFrame(
+    function() hs.window.focusedWindow():moveToScreen(hs.window.focusedWindow():screen():next(), false, true) end
+  )
 end
 
 -- Move window to previous screen
 function WindowManager:screenPrev()
-  __optimizeFrame(function()
-    hs.window.focusedWindow():moveToScreen(hs.window.focusedWindow():screen():previous(), false, true)
-  end)
+  __optimizeFrame(
+    function() hs.window.focusedWindow():moveToScreen(hs.window.focusedWindow():screen():previous(), false, true) end
+  )
 end
 
 -- Places window in a specific location within current screen bounds
+---@param window hs.window
 ---@param rect hs.geometry.rect
 ---@param duration? number
 ---@return hs.window
-local function __setFrameInScreenBounds(rect, duration)
-  local win = hs.window.focusedWindow()
-  __optimizeFrame(function()
-    win:setFrameInScreenBounds(rect, duration)
-  end)
-  return win
+local function __setFrameInScreenBounds(window, rect, duration)
+  __optimizeFrame(function() window:setFrameInScreenBounds(rect, duration) end)
+  return window
 end
 
 -- Cycle window position to next available of equal size
 ---@param direction "<" | ">"
 function WindowManager:cycleHorizontalPosition(direction)
   local screen = hs.window.focusedWindow():screen():frame()
-  local window = hs.window.focusedWindow():frame()
-  local x = window.x
-  local w = window.w
-  local sw = screen.w
-  local newX = x
+  local window = hs.window.focusedWindow()
+  local windowFrame = window:frame()
+  local oldWindowFrame = windowFrame:copy()
+  local neighbor = nil
 
   if direction == "<" then
-    newX = x >= w and x - w or sw - w
+    windowFrame.x = windowFrame.x >= windowFrame.w and windowFrame.x - windowFrame.w or screen.w - windowFrame.w
+    neighbor = window:windowsToWest(nil, true, true)[1]
   elseif direction == ">" then
-    newX = x + w
-    newX = newX <= (sw - w) and newX or 0
+    windowFrame.x = windowFrame.x + windowFrame.w
+    windowFrame.x = windowFrame.x <= (screen.w - windowFrame.w) and windowFrame.x or 0
+    neighbor = window:windowsToEast(nil, true, true)[1]
   end
 
-  __setFrameInScreenBounds({ x = newX, y = window.y, w = w, h = window.h })
+  -- Swap with neighbor
+  if neighbor then __setFrameInScreenBounds(neighbor, oldWindowFrame) end
+  __setFrameInScreenBounds(window, windowFrame)
 end
 
 -- Increase or decrease window width in steps
@@ -155,32 +150,29 @@ function WindowManager:resizeWindowWidthInSteps(direction, step, minWidth)
   minWidth = minWidth or 200
 
   local screen = hs.window.focusedWindow():screen():frame()
-  local window = hs.window.focusedWindow():frame()
-  local newW = window.w
-  local newX = window.x
-  local isCentered = math.abs(window.x - (screen.x2 - window.x2)) < 4
+  local window = hs.window.focusedWindow()
+  local windowFrame = window:frame()
+  local isCentered = math.abs(windowFrame.x - (screen.x2 - windowFrame.x2)) < 4
 
-  if isCentered then
-    step = step / 2
-  end
+  if isCentered then step = step / 2 end
 
   if direction == "+" then
-    newW = window.w + step
-    newW = newW > screen.w and screen.w or newW
+    windowFrame.w = windowFrame.w + step
+    windowFrame.w = windowFrame.w > screen.w and screen.w or windowFrame.w
   elseif direction == "-" then
-    newW = window.w - step
-    newW = newW < minWidth and minWidth or newW
+    windowFrame.w = windowFrame.w - step
+    windowFrame.w = windowFrame.w < minWidth and minWidth or windowFrame.w
   end
 
-  if window.x <= screen.x then
-    newX = screen.x
-  elseif window.x2 >= screen.x2 then
-    newX = screen.w - newW
+  if windowFrame.x <= screen.x then
+    windowFrame.x = screen.x
+  elseif windowFrame.x2 >= screen.x2 then
+    windowFrame.x = screen.w - windowFrame.w
   elseif isCentered then
-    newX = math.max(0, math.floor((screen.w - newW) / 2))
+    windowFrame.x = math.max(0, math.floor((screen.w - windowFrame.w) / 2))
   end
 
-  __setFrameInScreenBounds({ x = newX, y = window.y, w = newW, h = window.h })
+  __setFrameInScreenBounds(window, windowFrame)
 end
 
 -- Resize window height in steps
@@ -193,85 +185,112 @@ function WindowManager:resizeWindowHeightInSteps(direction, step, minHeight)
   minHeight = minHeight or 200
 
   local screen = hs.window.focusedWindow():screen():frame()
-  local window = hs.window.focusedWindow():frame()
-  local newH = window.h
-  local newY = window.y
-  local isCentered = math.abs(window.y - (screen.y2 - window.y2)) < (screen.y + 4)
+  local window = hs.window.focusedWindow()
+  local windowFrame = window:frame()
+  local isCentered = math.abs(windowFrame.y - (screen.y2 - windowFrame.y2)) < (screen.y + 4)
 
   if direction == "+" then
-    newH = window.h + step
-    newH = newH > screen.h and screen.h or newH
+    windowFrame.h = windowFrame.h + step
+    windowFrame.h = windowFrame.h > screen.h and screen.h or windowFrame.h
   elseif direction == "-" then
-    newH = window.h - step
-    newH = newH < minHeight and minHeight or newH
+    windowFrame.h = windowFrame.h - step
+    windowFrame.h = windowFrame.h < minHeight and minHeight or windowFrame.h
   end
 
-  if window.y <= screen.y then
-    newY = screen.y
-  elseif window.y2 >= screen.y2 then
-    newY = screen.h - newH
+  if windowFrame.y <= screen.y then
+    windowFrame.y = screen.y
+  elseif windowFrame.y2 >= screen.y2 then
+    windowFrame.y = screen.h - windowFrame.h
   elseif isCentered then
-    newY = math.max(0, math.floor((screen.h - newH) / 2))
+    windowFrame.y = math.max(0, math.floor((screen.h - windowFrame.h) / 2))
   end
 
-  __setFrameInScreenBounds({ x = window.x, y = newY, w = window.w, h = newH })
+  __setFrameInScreenBounds(window, windowFrame)
 end
+
+-- Focus window to the left
+function WindowManager:focusL() hs.window.focusedWindow():focusWindowWest(nil, true, true) end
+
+-- Focus window to the right
+function WindowManager:focusR() hs.window.focusedWindow():focusWindowEast(nil, true, true) end
 
 -- Cycle window position to the right
-function WindowManager:moveR()
-  return WindowManager:cycleHorizontalPosition(">")
-end
+function WindowManager:moveR() return WindowManager:cycleHorizontalPosition(">") end
 
 -- Cycle window position to the left
-function WindowManager:moveL()
-  return WindowManager:cycleHorizontalPosition("<")
-end
+function WindowManager:moveL() return WindowManager:cycleHorizontalPosition("<") end
 
-function WindowManager:shrinkX()
-  return WindowManager:resizeWindowWidthInSteps("-")
-end
+-- Shrink window horizontally
+function WindowManager:shrinkX() return WindowManager:resizeWindowWidthInSteps("-") end
 
-function WindowManager:growX()
-  return WindowManager:resizeWindowWidthInSteps("+")
-end
+-- Grow window horizontally
+function WindowManager:growX() return WindowManager:resizeWindowWidthInSteps("+") end
 
-function WindowManager:shrinkY()
-  return WindowManager:resizeWindowHeightInSteps("-")
-end
+-- Shrink window vertically
+function WindowManager:shrinkY() return WindowManager:resizeWindowHeightInSteps("-") end
 
-function WindowManager:growY()
-  return WindowManager:resizeWindowHeightInSteps("+")
-end
+-- Grow window vertically
+function WindowManager:growY() return WindowManager:resizeWindowHeightInSteps("+") end
 
 -- Position mouse in center of focused windows whenever focus changes
 ---@param window hs.window
 local function mouseFollowsFocus(window)
   -- Only update mouse if mouse buttons are not pressed (e.g. focus wasn't changed by mouse)
-  if #hs.mouse.getButtons() ~= 0 then
-    return
-  end
+  if #hs.mouse.getButtons() ~= 0 then return end
 
   -- Position mouse in center of focused window if it's not already within its frame
   local currentMousePosition = hs.geometry(hs.mouse.absolutePosition())
   local frame = window:frame()
-  if not currentMousePosition:inside(frame) then
-    hs.mouse.absolutePosition(frame.center)
-  end
+  if not currentMousePosition:inside(frame) then hs.mouse.absolutePosition(frame.center) end
+end
+
+---@type string | nil
+local lastAppFocused = nil
+
+---Restores focus to most recently created window of specific apps on activation
+---@param window hs.window
+---@param appName string
+local function focusMostRecentAppWindow(window, appName)
+  if appName == lastAppFocused then return end
+  lastAppFocused = appName
+
+  -- Only focus most recent window for specific apps
+  if not hs.fnutils.contains(WindowManager.options.appNamesForFilters.toFocusMostRecentWindow, appName) then return end
+
+  ---@type hs.application | nil
+  local app = window:application()
+  if not app then return end
+
+  ---@type hs.window[] | nil
+  local appWindows = app:visibleWindows()
+  if not appWindows or #appWindows == 0 then return end
+
+  ---@type number[] | nil
+  local appWinIds = hs.fnutils.imap(appWindows, function(win) return win:id() end)
+  if not appWinIds or #appWinIds == 0 then return end
+
+  local maxWinId = math.max(table.unpack(appWinIds))
+
+  ---@type hs.window | nil
+  local mostRecentWin = hs.fnutils.find(appWindows, function(win) return win:id() == maxWinId end)
+  if not mostRecentWin then return end
+
+  mostRecentWin:becomeMain():focus()
 end
 
 -- Watch for focused window changes and trigger some actions
 ---@param window hs.window
-local function focusedWindowWatcher(window)
+---@param appName string
+local function focusedWindowWatcher(window, appName)
   mouseFollowsFocus(window)
+  focusMostRecentAppWindow(window, appName)
 end
 
 -- Ensure all terminal windows open on specific positions depending on screen size
 ---@param window hs.window
 local function terminalNewWindowWatcher(window)
   local desiredPosition = WindowManager.layout.right50
-  if window:screen():fullFrame().w >= 5120 then
-    desiredPosition = WindowManager.layout.center33
-  end
+  if window:screen():fullFrame().w >= 5120 then desiredPosition = WindowManager.layout.center33 end
   window:moveToUnit(desiredPosition, 0)
 end
 
@@ -284,39 +303,41 @@ local function browserNewWindowWatcher(window)
 
   local pos = { default = WindowManager.layout.right50, above5125 = WindowManager.layout.right33 }
 
-  if app == "Safari" then
-    pos = { default = WindowManager.layout.left50, above5125 = WindowManager.layout.left33 }
-  end
+  if app == "Safari" then pos = { default = WindowManager.layout.left50, above5125 = WindowManager.layout.left33 } end
 
-  local desiredPosition = pos.default
-  if window:screen():fullFrame().w >= 5120 then
-    desiredPosition = pos.above5125
-  end
-  window:moveToUnit(desiredPosition, 0)
+  window:moveToUnit((window:screen():fullFrame().w >= 5120) and pos.above5125 or pos.default, 0)
 end
 
 --- Initialize WindowManager
 function WindowManager:init()
-  local focusedWindowFilter = hs.window.filter.new()
-  focusedWindowFilter:setOverrideFilter({ visible = true, focused = true, activeApplication = true })
-  local weztermWindowFilter = hs.window.filter.new({ "Terminal", "WezTerm" })
-  local browserWindowFilter = hs.window.filter.new({ "Safari", "Google Chrome", "Firefox", "Brave" })
+  local focusedWindowFilter = hs.window.filter.new():setOverrideFilter({
+    visible = true,
+    focused = true,
+    activeApplication = true,
+    allowRoles = "AXStandardWindow",
+  })
+
+  local terminalWindowFilter = hs.window.filter
+    .new(WindowManager.options.appNamesForFilters.terminals)
+    :setOverrideFilter({ visible = true, allowRoles = "AXStandardWindow" })
+
+  local browserWindowFilter = hs.window.filter
+    .new(WindowManager.options.appNamesForFilters.browsers)
+    :setOverrideFilter({ visible = true, allowRoles = "AXStandardWindow" })
 
   --- Starts the WindowManager watchers
   function WindowManager:start()
     focusedWindowFilter:subscribe(hs.window.filter.windowFocused, focusedWindowWatcher)
-    weztermWindowFilter:subscribe(hs.window.filter.windowCreated, terminalNewWindowWatcher)
+    terminalWindowFilter:subscribe(hs.window.filter.windowCreated, terminalNewWindowWatcher)
     browserWindowFilter:subscribe(hs.window.filter.windowCreated, browserNewWindowWatcher)
 
-    if WindowManager.options.enableFocusedWindowHighlight then
-      hs.window.highlight.start()
-    end
+    if WindowManager.options.enableFocusedWindowHighlight then hs.window.highlight.start() end
   end
 
   --- Stops the WindowManager watchers
   function WindowManager:stop()
     focusedWindowFilter:unsubscribe(hs.window.filter.windowFocused, focusedWindowWatcher)
-    weztermWindowFilter:unsubscribe(hs.window.filter.windowCreated, terminalNewWindowWatcher)
+    terminalWindowFilter:unsubscribe(hs.window.filter.windowCreated, terminalNewWindowWatcher)
     browserWindowFilter:unsubscribe(hs.window.filter.windowCreated, browserNewWindowWatcher)
 
     hs.window.highlight.stop()
