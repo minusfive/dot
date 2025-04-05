@@ -54,7 +54,10 @@ vim.filetype.add({
 -- vim.g.lazyvim_blink_main = true
 
 -- Use global mise tools, skipping local
-vim.env.PATH = vim.env.HOME .. "/.local/share/mise/installs/node/22.14.0/bin:" .. vim.env.PATH
-vim.env.PATH = vim.env.HOME .. "/.local/share/mise/installs/lua/5.1/bin:" .. vim.env.PATH
-vim.env.PATH = vim.env.HOME .. "/.local/share/mise/installs/ruby/3.4.2/bin:" .. vim.env.PATH
-vim.env.PATH = vim.env.HOME .. "/.local/share/mise/installs/python/3.13.2/bin:" .. vim.env.PATH
+local _tools = { "node", "lua", "luarocks", "ruby", "python" }
+for _, _t in ipairs(_tools) do
+  vim.env.PATH = vim.env.HOME .. "/.local/share/mise/installs/" .. _t .. "/latest/bin:" .. vim.env.PATH
+end
+
+-- Use prettier only when .prettierrc is found in project
+vim.g.lazyvim_prettier_needs_config = true

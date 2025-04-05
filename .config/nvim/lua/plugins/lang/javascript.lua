@@ -6,9 +6,9 @@ return {
       ---@module 'lspconfig'
       ---@type {[string]: lspconfig.Config|{}}
       servers = {
-        denols = {
-          filetypes = { "typescript", "typescriptreact" },
-        },
+        -- denols = {
+        --   filetypes = { "typescript", "typescriptreact" },
+        -- },
         vtsls = {
           settings = {
             javascript = {

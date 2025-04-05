@@ -1,5 +1,5 @@
 --- Keymap Group: Lazy
-local kmg_lazy = "<leader><c-l>"
+local kmg_lazy = "<leader>L"
 
 return {
   -- Text manipulation
@@ -50,15 +50,11 @@ return {
       },
     },
     keys = {
-      {
-        kmg_lazy .. "c",
-        function() LazyVim.news.changelog() end,
-        desc = "LazyVim Changelog",
-      },
-      { kmg_lazy .. "d", "<cmd>:LazyDev<cr>", desc = "LazyDev" },
-      { kmg_lazy .. "e", "<cmd>:LazyExtras<cr>", desc = "Lazy Extras" },
-      { kmg_lazy .. "h", "<cmd>:LazyHealth<cr>", desc = "LazyHealth" },
-      { kmg_lazy .. "l", "<cmd>:Lazy<cr>", desc = "Lazy" },
+      { kmg_lazy .. "c", LazyVim.news.changelog, desc = "Changelog" },
+      { kmg_lazy .. "d", "<cmd>:LazyDev<cr>", desc = "Dev" },
+      { kmg_lazy .. "h", "<cmd>:LazyHealth<cr>", desc = "Health" },
+      { kmg_lazy .. "u", "<cmd>:Lazy<cr>", desc = "UI" },
+      { kmg_lazy .. "x", "<cmd>:LazyExtras<cr>", desc = "Extras" },
     },
   },
 
