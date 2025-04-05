@@ -66,8 +66,6 @@ return {
             SnacksDashboardTitle = { fg = colors.surface1, style = { "underline" } },
 
             -- Picker
-            -- SnacksPicker = { link = "FloatNormal" },
-            -- SnacksPickerBorder = { fg = colors.crust },
             SnacksPickerTitle = { link = "Search" },
             SnacksPickerCursorLine = { bg = colors.surface0 },
             SnacksPickerListCursorLine = { link = "SnacksPickerCursorLine" },
@@ -102,9 +100,15 @@ return {
             -- FzfLuaFzfPointer = { fg = colors.peach },
             -- FzfLuaFzfHeader = { fg = colors.overlay0 },
 
-            -- Completon
+            -- Completion
             BlinkCmpItemIdx = { fg = colors.surface2 },
             BlinkCmpLabelMatch = { fg = colors.yellow },
+
+            -- LSP (e.g. reference highlighting like Snacks.words, vim-illuminate, etc.)
+            LspReferenceText = { bg = colors.surface0 },
+            LspReferenceRead = { bg = colors.surface0 },
+            LspReferenceWrite = { bg = colors.surface0 },
+            LspReferenceTarget = { bg = colors.surface0 },
           }
         end,
       },
