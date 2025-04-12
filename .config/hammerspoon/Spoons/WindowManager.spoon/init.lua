@@ -41,7 +41,9 @@ WindowManager.layout = {
 
   --- 1/3
   left33 = { x = 0, y = 0, w = 0.3333, h = 1 },
+  leftCenter33 = { x = 0.1666, y = 0, w = 0.3333, h = 1 }, --- Left of Center
   center33 = { x = 0.3333, y = 0, w = 0.3333, h = 1 },
+  rightCenter33 = { x = 0.50, y = 0, w = 0.3333, h = 1 }, --- Right of Center
   right33 = { x = 0.6666, y = 0, w = 0.3333, h = 1 },
 
   --- 1/4
