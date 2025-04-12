@@ -7,15 +7,22 @@
 
 -- blinking cursor
 vim.opt.guicursor = {
-  "n-v-r-cr:block-blinkwait175-blinkoff150-blinkon175",
+  --- Shape
   "i-c-ci-ve:ver50",
-  "r-cr:MCursorReplace/lMCursorReplace",
-  "o:hor50-MCursorCommand/lMCursorCommand",
-  "c-ci:MCursorCommand/lMCursorCommand",
-  "i:blinkwait700-blinkoff400-blinkon250-MCursorInsert/lMCursorInsert",
-  "n:MCursorNormal/lMCursorNormal",
-  "v:MCursorVisual/lMCursorVisual",
-  "sm:block-blinkwait175-blinkoff150-blinkon175",
+  "n-v-sm:block",
+  "o-r-cr:hor50",
+
+  --- Blink rate
+  "n-v-r-cr-sm:blinkwait175-blinkoff150-blinkon175",
+  "i:blinkwait700-blinkoff400-blinkon250",
+
+  --- Highlights
+  "c-ci:MCursorCommand/lCursorCommand",
+  "i:MCursorInsert/lCursorInsert",
+  "n:MCursorNormal/lCursorNormal",
+  "o:MCursorCommand/lCursorCommand",
+  "r-cr:MCursorReplace/lCursorReplace",
+  "v:MCursorVisual/lCursorVisual",
 }
 
 -- don't hide stuff from me
