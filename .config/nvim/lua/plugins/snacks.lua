@@ -122,6 +122,11 @@ return {
         },
       },
 
+      -- Notifications
+      notifier = {
+        top_down = false,
+      },
+
       -- Picker
       picker = {
         layout = {
@@ -129,6 +134,7 @@ return {
           preset = responsiveLayout,
         },
 
+        ---@type snacks.picker.icons.Config|{}
         icons = {
           ui = {
             hidden = "󰘓 ",
@@ -202,7 +208,7 @@ return {
 
         formatters = {
           file = {
-            filename_first = true,
+            -- filename_first = true,
           },
         },
 
