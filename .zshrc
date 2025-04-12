@@ -155,6 +155,9 @@ path=(
     # git diff-highlight
     $(brew --prefix git)/share/git-core/contrib/diff-highlight
 
+    # curl
+    $(brew --prefix curl)/bin
+
     # yarn
     $HOME/.yarn/bin
     $XDG_CONFIG_HOME/yarn/global/node_modules/.bin
