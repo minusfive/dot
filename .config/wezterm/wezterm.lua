@@ -36,6 +36,13 @@ config.default_cwd = wezterm.home_dir .. "/dev"
 -- Get theme for customization
 local ctp = wezterm.color.get_builtin_schemes()["Catppuccin Mocha"]
 
+-- Colors
+config.colors = {
+  split = catppuccin.colors.mocha.surface0,
+  selection_fg = catppuccin.colors.mocha.crust,
+  selection_bg = catppuccin.colors.mocha.mauve,
+}
+
 -- Tab bar
 config.use_fancy_tab_bar = false -- Use retro tab bar
 config.hide_tab_bar_if_only_one_tab = true
@@ -45,16 +52,24 @@ ctp.tab_bar.active_tab.intensity = "Bold"
 ctp.tab_bar.inactive_tab.bg_color = catppuccin.colors.mocha.crust
 ctp.tab_bar.inactive_tab.fg_color = catppuccin.colors.mocha.overlay2
 ctp.tab_bar.inactive_tab.intensity = "Half"
-ctp.tab_bar.inactive_tab_hover.fg_color = ctp.tab_bar.inactive_tab.fg_color
-ctp.tab_bar.inactive_tab_hover.intensity = "Normal"
-wezterm.on("format-tab-title", function(tab)
+ctp.tab_bar.inactive_tab_hover.fg_color = catppuccin.colors.mocha.subtext1
+ctp.tab_bar.inactive_tab_hover.intensity = "Bold"
+wezterm.on("format-tab-title", function(tab, _, _, cfg, hover)
   local title = tab.tab_title
-
   if (not title) or #title <= 0 then title = tab.active_pane.title end
 
+  local theme_cfg = tab.is_active and ctp.tab_bar.active_tab
+    or (hover and ctp.tab_bar.inactive_tab_hover or ctp.tab_bar.inactive_tab)
+  local idx_color = tab.is_active and catppuccin.colors.mocha.surface2 or catppuccin.colors.mocha.overlay0
+
   return {
-    { Text = "  " .. (tab.tab_index + 1) .. "- " .. title .. " " },
-    { Foreground = { Color = catppuccin.colors.mocha.base } },
+    { Attribute = { Intensity = "Half" } },
+    { Foreground = { Color = idx_color } },
+    { Text = " " .. (tab.tab_index + 1) .. " " },
+    { Foreground = { Color = theme_cfg.fg_color } },
+    { Attribute = { Intensity = theme_cfg.intensity } },
+    { Text = title .. " " },
+    { Foreground = { Color = cfg.colors.split } },
     { Text = "🮇" },
   }
 end)
