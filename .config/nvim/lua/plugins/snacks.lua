@@ -261,6 +261,16 @@ return {
         function() Snacks.picker.smart() end,
         desc = "Find Files (Root Dir)",
       },
+      {
+        "<leader>fe",
+        function() Snacks.explorer() end,
+        desc = "Explorer Snacks (cwd)",
+      },
+      {
+        "<leader>fE",
+        function() Snacks.explorer({ cwd = LazyVim.root() }) end,
+        desc = "Explorer Snacks (root dir)",
+      },
     },
   },
 }
