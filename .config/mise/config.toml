@@ -1,6 +1,7 @@
 [tools]
 aws-cli = "latest"
 go = "latest"
+grpcurl = "latest"  # Kulala dependency
 lua = "5.1"
 node = "lts"
 python = "latest"
@@ -8,6 +9,7 @@ ruby = "latest"
 rust = "latest"
 uv = "latest"
 vault = "latest"
+websocat = "latest" # Kulala dependency
 
 [env]
 MISE_NODE_DEFAULT_PACKAGES_FILE = "{{ env.XDG_CONFIG_HOME }}/mise/default_packages_node"
