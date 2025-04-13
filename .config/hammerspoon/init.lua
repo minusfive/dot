@@ -110,6 +110,7 @@ local normalSpecs = {
 local appLauncherSpecs = {
   { {}, "d", "Discord", al:openApp("Discord") },
   { {}, "m", "Messages", al:openApp("Messages") },
+  { {}, "p", "Preview", al:openApp("Preview") },
   { {}, "w", "WhatsApp", al:openApp("WhatsApp") },
 }
 
