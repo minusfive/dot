@@ -35,10 +35,10 @@ _darcs
 ^/flake.nix
 ^/flake.lock
 ^/biome.json
-^/\.mise.local.toml
+^/mise.toml
 ^/\.prettierrc.json
 ^/\.markdownlint-cli2.jsonc
-^/\.mise.toml
+mise.local.toml
 \.luarc.json
 \.ruby-lsp
 \.repro
