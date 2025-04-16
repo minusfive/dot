@@ -17,7 +17,7 @@ if [[ -r "$XDG_CACHE_HOME/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
 fi
 
 # Path to your oh-my-zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+export ZSH="$XDG_CONFIG_HOME/oh-my-zsh"
 
 # Oh My Zsh cache
 export ZSH_CACHE_DIR="$XDG_CACHE_HOME/omz"

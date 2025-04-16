@@ -6,6 +6,11 @@ set -euo pipefail
 # Immediately invoked anonymous function with the script's path as its only argument
 # used to contain variables and functions in a local scope
 function {
+    export XDG_CONFIG_HOME="$HOME/.config"
+    export XDG_DATA_HOME="$HOME/.local/share"
+    export XDG_STATE_HOME="$HOME/.local/state"
+    export XDG_CACHE_HOME="$HOME/.cache"
+
     local __dotfiles_scripts_dir="$(realpath "$(dirname "$ZSH_ARGZERO")")"
     local __dotfiles_dir="$(dirname "$__dotfiles_scripts_dir")"
 
@@ -62,21 +67,6 @@ function {
     echo "\n"
 
 
-    # Configure OS settings
-    vared -p "$(_v::q "Configure $(_v::fmt::u OS settings)")" -c REPLY
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        _v::log::info "Configuring $(_v::fmt::u OS settings)"
-        source "$__dotfiles_scripts_dir/os.zsh"
-    elif [[ $REPLY == "" || $REPLY =~ ^[Nn]$ ]]; then
-        _v::log::warn "Skipping $(_v::fmt::u OS settings) configuration"
-    else
-        _v::log::error "Invalid input"
-        exit 1
-    fi
-    unset REPLY
-    echo "\n"
-
-
     # Install Zsh theme + plugins
     vared -p "$(_v::q "Install $(_v::fmt::u Zsh theme + plugins)")" -c REPLY
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -99,6 +89,21 @@ function {
         source "$__dotfiles_scripts_dir/mise.zsh"
     elif [[ $REPLY == "" || $REPLY =~ ^[Nn]$ ]]; then
         _v::log::warn "Skipping $(_v::fmt::u mise dev tools) installation"
+    else
+        _v::log::error "Invalid input"
+        exit 1
+    fi
+    unset REPLY
+    echo "\n"
+
+
+    # Configure OS settings
+    vared -p "$(_v::q "Configure $(_v::fmt::u OS settings)")" -c REPLY
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        _v::log::info "Configuring $(_v::fmt::u OS settings)"
+        source "$__dotfiles_scripts_dir/os.zsh"
+    elif [[ $REPLY == "" || $REPLY =~ ^[Nn]$ ]]; then
+        _v::log::warn "Skipping $(_v::fmt::u OS settings) configuration"
     else
         _v::log::error "Invalid input"
         exit 1
