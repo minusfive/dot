@@ -20,6 +20,12 @@ return {
     "neovim/nvim-lspconfig",
     ---@type PluginLspOpts
     opts = {
+      diagnostics = {
+        virtual_text = {
+          prefix = "",
+          spacing = 1,
+        },
+      },
       inlay_hints = { enabled = false },
       ---@module 'lspconfig'
       ---@type {[string]: lspconfig.Config|{}}
