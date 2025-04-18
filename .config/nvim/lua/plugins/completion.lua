@@ -40,6 +40,7 @@ return {
 
       completion = {
         accept = { auto_brackets = { enabled = false } },
+        documentation = { window = { border = "solid" } },
         menu = {
           draw = {
             align_to = "label",
