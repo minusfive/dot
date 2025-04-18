@@ -64,7 +64,12 @@ return {
     "nvim-lualine/lualine.nvim",
     optional = true,
     opts = function(_, opts)
+      -- Theme
       local colors = require("catppuccin.palettes").get_palette("mocha")
+      local cst = require("catppuccin.utils.lualine")("mocha")
+      cst.normal.b.bg = colors.base
+      cst.normal.c.bg = colors.base
+      opts.options.theme = cst
 
       -- local icons = require("lazyvim.config").icons
       local c = opts.sections.lualine_c
@@ -79,8 +84,6 @@ return {
       local diff = table.remove(x)
 
       cmd.color = "Command"
-      file_type_icon.color = file_type_icon.color or {}
-      file_type_icon.color.bg = colors.mantle
 
       opts.options.component_separators = { "", "" }
       opts.options.section_separators = { "", "" }
@@ -103,12 +106,10 @@ return {
           {
             "bo:modified",
             fmt = function(output) return output == "true" and "󱇧" or nil end,
-            color = { bg = colors.yellow },
           },
           {
             "bo:readonly",
             fmt = function(output) return output == "true" and "󰈡" or nil end,
-            color = { bg = colors.red },
           },
           {
             "mode",
@@ -118,7 +119,7 @@ return {
 
         lualine_b = {
           file_type_icon,
-          { "filename", file_status = false, path = 1, color = { bg = colors.mantle } },
+          { "filename", file_status = false, path = 1 },
         },
         lualine_c = { symbols },
         lualine_x = {

@@ -8,24 +8,25 @@ return {
     ---@module 'catppuccin'
     ---@type CatppuccinOptions
     opts = {
-      transparent_background = true,
-      -- dim_inactive = {
-      --   enabled = true,
-      --   percentage = 0.05,
-      -- },
+      transparent_background = false,
+      dim_inactive = {
+        enabled = true,
+        percentage = 0.05,
+      },
 
       highlight_overrides = {
         all = function(colors)
           local search_hl = { bg = colors.peach, fg = colors.mantle }
+
           return {
             -- Base
-            Normal = { bg = colors.mantle },
-            CursorLine = { bg = colors.base },
+            Normal = { bg = colors.base },
+            CursorLine = { bg = colors.mantle },
             CursorLineNr = { link = "CursorLine", fg = colors.text, style = { "bold" } },
             CursorLineSign = { link = "CursorLine" },
-            GitSignsAddCul = { bg = colors.base, fg = colors.green },
-            GitSignsChangeCul = { bg = colors.base, fg = colors.yellow },
-            GitSignsDeleteCul = { bg = colors.base, fg = colors.red },
+            GitSignsAddCul = { bg = colors.mantle, fg = colors.green },
+            GitSignsChangeCul = { bg = colors.mantle, fg = colors.yellow },
+            GitSignsDeleteCul = { bg = colors.mantle, fg = colors.red },
 
             -- Visual selections with inverted colors matching lualine mode bg
             Visual = { bg = colors.mauve, fg = colors.mantle, style = { "bold" } },
@@ -37,7 +38,7 @@ return {
             FloatBorder = { fg = colors.surface0, bg = colors.base },
             FloatShadow = { bg = 0, blend = 80, ctermbg = 0 },
             FloatShadowThrough = { bg = 0, blend = 100, ctermbg = 0 },
-            Pmenu = { link = "NormalFloat" },
+            Pmenu = { bg = colors.mantle },
             PmenuSel = { bg = colors.surface0 },
             PmenuSbar = { link = "PmenuSel" },
             PmenuThumb = { bg = colors.surface1 },
@@ -69,7 +70,7 @@ return {
 
             -- Picker
             SnacksPickerTitle = { link = "Search" },
-            SnacksPickerCursorLine = { bg = colors.surface0 },
+            SnacksPickerCursorLine = { link = "CursorLine" },
             SnacksPickerListCursorLine = { link = "SnacksPickerCursorLine" },
             SnacksPickerListItemSign = { fg = colors.base },
             SnacksPickerListItemSignCursorLine = { bg = colors.mantle, fg = colors.peach },
@@ -105,6 +106,9 @@ return {
             -- Completion
             BlinkCmpItemIdx = { fg = colors.surface2 },
             BlinkCmpLabelMatch = { fg = colors.yellow },
+            BlinkCmpDoc = { link = "Pmenu" },
+            BlinkCmpDocBorder = { link = "BlinkCmpDoc" },
+            BlinkCmpDocSeparator = { link = "BlinkCmpDoc" },
 
             -- LSP (e.g. reference highlighting like Snacks.words, vim-illuminate, etc.)
             LspReferenceText = { bg = colors.surface0 },
