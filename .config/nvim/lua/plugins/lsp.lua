@@ -21,9 +21,14 @@ return {
     ---@type PluginLspOpts
     opts = {
       diagnostics = {
-        virtual_text = {
+        virtual_text = false,
+        float = {
+          focusable = false,
+          style = "minimal",
+          border = "solid",
+          source = "always",
+          header = "",
           prefix = "",
-          spacing = 1,
         },
       },
       inlay_hints = { enabled = false },

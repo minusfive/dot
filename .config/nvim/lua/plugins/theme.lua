@@ -35,6 +35,8 @@ return {
             NormalFloat = { bg = colors.base },
             FloatTitle = { link = "NormalFloat" },
             FloatBorder = { fg = colors.surface0, bg = colors.base },
+            FloatShadow = { bg = 0, blend = 80, ctermbg = 0 },
+            FloatShadowThrough = { bg = 0, blend = 100, ctermbg = 0 },
             Pmenu = { link = "NormalFloat" },
             PmenuSel = { bg = colors.surface0 },
             PmenuSbar = { link = "PmenuSel" },
