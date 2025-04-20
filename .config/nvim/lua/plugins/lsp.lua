@@ -23,7 +23,6 @@ return {
       diagnostics = {
         virtual_text = false,
         float = {
-          focusable = false,
           style = "minimal",
           border = "solid",
           source = "always",
