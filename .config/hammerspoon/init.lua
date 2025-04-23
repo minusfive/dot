@@ -76,7 +76,7 @@ local normalSpecs = {
   { hk.mods.meh, "7", "1/3 1/6 Left", wm:move(wm.layout.leftCenter33) },
   { hk.mods.meh, "8", "1/3 Center", wm:move(wm.layout.center33) },
   { hk.mods.meh, "9", "1/3 1/6 Right", wm:move(wm.layout.rightCenter33) },
-  { hk.mods.meh, "0", "1/3 Bottom", wm:move(wm.layout.bottom50) },
+  { hk.mods.meh, "0", "1/3 Right", wm:move(wm.layout.right33) },
 
   { hk.mods.meh, "1", "1/4 1", wm:move(wm.layout.first25) },
   { hk.mods.meh, "2", "1/4 2", wm:move(wm.layout.second25) },
