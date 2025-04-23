@@ -106,10 +106,12 @@ return {
           {
             "bo:modified",
             fmt = function(output) return output == "true" and "󱇧" or nil end,
+            color = { bg = colors.yellow },
           },
           {
             "bo:readonly",
             fmt = function(output) return output == "true" and "󰈡" or nil end,
+            color = { bg = colors.red },
           },
           {
             "mode",
