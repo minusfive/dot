@@ -25,8 +25,18 @@ local indexed_keymap = (function()
 end)()
 
 return {
-  -- Copilot Broken: https://github.com/zbirenbaum/copilot.lua/issues/408#issuecomment-2758411881
-  -- { "zbirenbaum/copilot.lua", commit = "99654fe9ad6cb2500c66b178a03326f75c95f176" },
+  {
+    "zbirenbaum/copilot.lua",
+    optional = true,
+
+    ---@module 'copilot'
+    ---@type CopilotConfig|{}
+    opts = {
+      server = {
+        type = "binary",
+      },
+    },
+  },
 
   {
     "saghen/blink.cmp",
