@@ -97,10 +97,6 @@ config.inactive_pane_hsb = {
   saturation = 0.9,
 }
 
--- Use Colemak-DH for quick select, prioritizing inward rolls
-config.launcher_alphabet = "arstgqwfpbzxcdvoienmyuljhkARSTGQWFPBZXCDVOIENMYULJHK1234567890"
-config.quick_select_alphabet = config.launcher_alphabet
-
 -- Cursor
 config.cursor_blink_rate = 333
 config.default_cursor_style = "BlinkingBlock"
