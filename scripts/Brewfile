@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# TODO: lima
+
 tap 'buo/cask-upgrade' # auto-upgrade casks
 
 brew 'bat' # `cat` replacement

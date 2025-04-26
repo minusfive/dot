@@ -7,6 +7,8 @@
 # - https://ss64.com/mac/syntax-defaults.html
 # - https://github.com/ryuichi1208/homecmd/blob/master/conf/macos.sh
 
+# FIX: Safari: developer menu
+
 # Exit immediately if a command fails and treat unset vars as error
 set -euo pipefail
 
