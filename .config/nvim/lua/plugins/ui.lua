@@ -7,6 +7,8 @@ local nui_options = {
   },
 }
 
+local function getcwd() return vim.fn.fnamemodify(vim.fn.getcwd(), ":t") end
+
 return {
   -- Disable defaults
   { "lukas-reineke/indent-blankline.nvim", enabled = false }, -- Replaced by Snacks.indent
@@ -89,9 +91,9 @@ return {
       opts.options.section_separators = { "", "" }
 
       opts.sections.lualine_a = {}
-      opts.sections.lualine_b = { { "%p%% %c" } }
+      opts.sections.lualine_b = { "%l:%c", "%p%%" }
       opts.sections.lualine_c = { cmd }
-      opts.sections.lualine_y = { "branch" }
+      opts.sections.lualine_y = { getcwd, "branch" }
       opts.sections.lualine_z = {}
 
       vim.list_extend(
