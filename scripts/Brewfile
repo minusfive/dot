@@ -10,6 +10,7 @@ brew 'curl' # CLI for transferring data
 brew 'eza' # `ls` replacement
 brew 'fd' # `find` replacement
 brew 'fzf' # Fuzzy finder
+brew 'gh' # GitHub CLI
 brew 'git' # Version control
 brew 'gum' # Go based interactive shell script generator
 brew 'htop' # `top` replacement
