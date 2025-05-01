@@ -1,9 +1,3 @@
-# use standard XDG directories
-export XDG_CONFIG_HOME="$HOME/.config"
-export XDG_DATA_HOME="$HOME/.local/share"
-export XDG_STATE_HOME="$HOME/.local/state"
-export XDG_CACHE_HOME="$HOME/.cache"
-
 # wezterm shell integration
 if [[ "$TERM" == "wezterm" && -f $XDG_CONFIG_HOME/wezterm/shell-integration.sh ]]; then
     source $XDG_CONFIG_HOME/wezterm/shell-integration.sh
@@ -181,22 +175,22 @@ export MANPATH
 # For a full list of active aliases, run `alias`.
 
 # Load Aliases File
-if [[ -f ~/.aliases ]]; then
-    source ~/.aliases
+if [[ -f "$ZDOTDIR/.aliases" ]]; then
+    source "$ZDOTDIR/.aliases"
 fi
 
 
-[[ -f $HOME/.docker/init-zsh.sh ]] && source $HOME/.docker/init-zsh.sh || true # Added by Docker Desktop
+[[ -f "$HOME/.docker/init-zsh.sh" ]] && source "$HOME/.docker/init-zsh.sh" || true # Added by Docker Desktop
 
 # Configure Powerlevel10k
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-if [[ -f ~/.p10k.zsh ]]; then
-    source ~/.p10k.zsh
+if [[ -f "$ZDOTDIR/.p10k.zsh" ]]; then
+    source "$ZDOTDIR/.p10k.zsh"
 fi
 
 # Wezterm CLI auto-complete
-if [[ -f $XDG_CONFIG_HOME/wezterm/shell-completion.zsh ]]; then
-    source $XDG_CONFIG_HOME/wezterm/shell-completion.zsh
+if [[ -f "$XDG_CONFIG_HOME/wezterm/shell-completion.zsh" ]]; then
+    source "$XDG_CONFIG_HOME/wezterm/shell-completion.zsh"
 fi
 
 # Multiplexers
@@ -239,7 +233,6 @@ function {
     zstyle ':fzf-tab:complete:cd:*' fzf-preview "$__eza_fzf_cmd \$realpath"
     zstyle ':fzf-tab:complete:z:*' fzf-preview "$__eza_fzf_cmd \$realpath"
     zstyle ':fzf-tab:complete:zoxide:*' fzf-preview "$__eza_fzf_cmd \$realpath"
-
 }
 
 # Colorize LS
@@ -260,26 +253,6 @@ ZSH_AUTOSUGGEST_STRATEGY=(history)
 # Fix https://github.com/romkatv/powerlevel10k/issues/1554
 unset ZSH_AUTOSUGGEST_USE_ASYNC
 bindkey '^y' autosuggest-accept
-
-# Autoload python venv
-# python_venv() {
-#   local __dir_venv=./.venv
-#   if [[ -d $__dir_venv ]]; then
-#     # when you cd into a folder that contains $__dir_venv
-#     source $__dir_venv/bin/activate > /dev/null 2>&1
-#   else
-#     # when you cd into a folder that doesn't
-#     deactivate > /dev/null 2>&1
-#   fi
-# }
-# autoload -U add-zsh-hook
-# add-zsh-hook chpwd python_venv
-#
-# python_venv
-
-# Disable Next.js telemetry
-# https://nextjs.org/telemetry
-export NEXT_TELEMETRY_DISABLED=1
 
 # Use 1Password SSH agent
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
