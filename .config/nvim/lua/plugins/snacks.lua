@@ -122,6 +122,19 @@ return {
         },
       },
 
+      -- LazyVim integration
+      lazygit = {
+        ---@type snacks.lazygit.Theme|{}
+        theme = {
+          selectedLineBgColor = { bg = "PmenuSel" },
+        },
+        win = {
+          height = 0,
+          width = 0,
+          backdrop = false,
+        },
+      },
+
       -- Notifications
       notifier = {
         top_down = false,
