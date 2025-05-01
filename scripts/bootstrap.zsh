@@ -6,11 +6,6 @@ set -euo pipefail
 # Immediately invoked anonymous function with the script's path as its only argument
 # used to contain variables and functions in a local scope
 function {
-    export XDG_CONFIG_HOME="$HOME/.config"
-    export XDG_DATA_HOME="$HOME/.local/share"
-    export XDG_STATE_HOME="$HOME/.local/state"
-    export XDG_CACHE_HOME="$HOME/.cache"
-
     local __dotfiles_scripts_dir="$(realpath "$(dirname "$ZSH_ARGZERO")")"
     local __dotfiles_dir="$(dirname "$__dotfiles_scripts_dir")"
 
@@ -21,6 +16,9 @@ function {
     function _v::log::ok() { print -P "$(_v::color::fg green 󰄲  " $1")" }
     function _v::log::warn() { print -P "$(_v::color::fg yellow 󰀩  " $1")" }
     function _v::q() { print -P "  $1? ($(_v::color::fg green y)/$(_v::color::fg red N)) $(_v::color::fg green %B⟩%b) " }
+
+    # Load important environment variables
+    source "$__dotfiles_dir/.zshenv"
 
     # From https://github.com/ohmyzsh/ohmyzsh/blob/d82669199b5d900b50fd06dd3518c277f0def869/lib/cli.zsh#L668-L676
     function _v::reload {
