@@ -19,4 +19,5 @@ MISE_RUBY_DEFAULT_PACKAGES_FILE = "{{ env.XDG_CONFIG_HOME }}/mise/default_packag
 [settings]
 env_file = ".env"
 experimental = true
+idiomatic_version_file_enable_tools = ["node"]
 # paranoid = true
