@@ -70,10 +70,10 @@ return {
 
             -- Picker
             SnacksPickerTitle = { link = "Search" },
-            SnacksPickerCursorLine = { link = "CursorLine" },
+            SnacksPickerCursorLine = { link = "PmenuSel" },
             SnacksPickerListCursorLine = { link = "SnacksPickerCursorLine" },
             SnacksPickerListItemSign = { fg = colors.base },
-            SnacksPickerListItemSignCursorLine = { bg = colors.mantle, fg = colors.peach },
+            SnacksPickerListItemSignCursorLine = { bg = colors.surface0, fg = colors.peach },
             SnacksPickerMatch = { bg = nil, fg = nil, style = { "underline" } },
             SnacksPickerPreviewCursorLine = { link = "SnacksPickerCursorLine" },
             SnacksPickerPreviewTitle = { bg = colors.sapphire, fg = colors.base },
