@@ -72,6 +72,7 @@ local normalSpecs = {
   -- { hk.mods.meh, "5", "1/2 Top", wm:move(wm.layout.top50) },
   -- { hk.mods.meh, "0", "1/2 Bottom", wm:move(wm.layout.bottom50) },
 
+  { hk.mods.meh, "5", "1/3 Top-Left 1/2", wm:move(wm.layout.topRight33) },
   { hk.mods.meh, "6", "1/3 Left", wm:move(wm.layout.left33) },
   { hk.mods.meh, "7", "1/3 1/6 Left", wm:move(wm.layout.leftCenter33) },
   { hk.mods.meh, "8", "1/3 Center", wm:move(wm.layout.center33) },
@@ -85,9 +86,9 @@ local normalSpecs = {
 
   -- Corners
   { hk.mods.hyper, "1", "1/4 Top-Left", wm:move(wm.layout.topLeft25) },
-  { hk.mods.hyper, "5", "1/4 Top-Right", wm:move(wm.layout.topRigh25) },
+  { hk.mods.hyper, "5", "1/4 Top-Right", wm:move(wm.layout.topRight25) },
   { hk.mods.hyper, "6", "1/4 Bottom-Left", wm:move(wm.layout.bottomLeft25) },
-  { hk.mods.hyper, "0", "1/4 Bottom-Right", wm:move(wm.layout.bottomRigh25) },
+  { hk.mods.hyper, "0", "1/4 Bottom-Right", wm:move(wm.layout.bottomRight25) },
 
   -- Focus
   { hk.mods.meh, "[", "Focus Window Left", wm.focusL },
@@ -162,6 +163,7 @@ local modeSystem = {
     { {}, "a", "Activity Monitor", al:openApp("Activity Monitor") },
     { {}, "c", "Caffeine", cf.toggle },
     { {}, "h", "Hammerspoon", al:openApp("Hammerspoon") },
+    { {}, "i", "Insta360 Link Controller", al:openApp("Insta360 Link Controller") },
     {
       {},
       "r",

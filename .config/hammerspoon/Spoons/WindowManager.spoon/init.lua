@@ -46,6 +46,9 @@ WindowManager.layout = {
   rightCenter33 = { x = 0.50, y = 0, w = 0.3333, h = 1 }, --- Right of Center
   right33 = { x = 0.6666, y = 0, w = 0.3333, h = 1 },
 
+  topLeft33 = { x = 0, y = 0, w = 0.3333, h = 0.50 },
+  topRight33 = { x = 0.6666, y = 0, w = 0.3333, h = 0.50 },
+
   --- 1/4
   first25 = { x = 0, y = 0, w = 0.25, h = 1 },
   second25 = { x = 0.25, y = 0, w = 0.25, h = 1 },
@@ -53,9 +56,9 @@ WindowManager.layout = {
   fourth25 = { x = 0.75, y = 0, w = 0.25, h = 1 },
 
   topLeft25 = { x = 0, y = 0, w = 0.50, h = 0.50 },
-  topRigh25 = { x = 0.50, y = 0, w = 0.50, h = 0.50 },
+  topRight25 = { x = 0.50, y = 0, w = 0.50, h = 0.50 },
   bottomLeft25 = { x = 0, y = 0.50, w = 0.50, h = 0.50 },
-  bottomRigh25 = { x = 0.50, y = 0.50, w = 0.50, h = 0.50 },
+  bottomRight25 = { x = 0.50, y = 0.50, w = 0.50, h = 0.50 },
 }
 
 -- Wrapper to perform certain operations before and after window movement
