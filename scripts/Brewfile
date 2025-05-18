@@ -43,5 +43,7 @@ cask 'insomnium' # HTTP Client
 cask 'obsidian' # Note-taking
 cask 'wezterm@nightly' # Terminal emulator
 
-# mas 'WhatsApp Messenger', id: 310_633_997
 mas '1Password for Safari', id: 1_569_813_296
+
+# Personal profile
+mas 'WhatsApp Messenger', id: 310_633_997 if ENV['HOMEBREW_PROFILE'] == 'personal'
