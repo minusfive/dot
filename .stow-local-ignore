@@ -30,16 +30,16 @@ mise.local.toml
 
 # Project
 .stowrc       # This should be used for this repo, not globally
+\.luarc.json
+\.repro
+\.ruby-lsp
+\.stylua.*
+^/\.markdownlint-cli2.jsonc
+^/\.prettierrc.json
 ^/assets
+^/biome.json
+^/flake.lock
+^/flake.nix
 ^/nix
 ^/scripts
 ^/tests
-^/flake.nix
-^/flake.lock
-^/biome.json
-^/\.prettierrc.json
-^/\.markdownlint-cli2.jsonc
-\.luarc.json
-\.ruby-lsp
-\.repro
-\.stylua.*
