@@ -38,6 +38,7 @@ function {
     vared -p "$(_v::q "Install $(_v::fmt::u Homebrew and Homebrew apps)")" -c REPLY
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         _v::log::info "Installing $(_v::fmt::u "Homebrew and Homebrew apps")"
+        unset REPLY
         source "$__dotfiles_scripts_dir/brew.zsh"
     elif [[ $REPLY == "" || $REPLY =~ ^[Nn]$ ]]; then
         _v::log::warn "Skipping $(_v::fmt::u "Homebrew and Homebrew apps") installation"
@@ -53,7 +54,7 @@ function {
     vared -p "$(_v::q "Symlink $(_v::fmt::u dotfiles)")" -c REPLY
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         _v::log::info "Symlinking $(_v::fmt::u dotfiles)"
-        # Symlink dotfiles
+        unset REPLY
         source "$__dotfiles_scripts_dir/symlink.zsh"
     elif [[ $REPLY == "" || $REPLY =~ ^[Nn]$ ]]; then
         _v::log::warn "Skipping $(_v::fmt::u dotfiles) symlinking"
@@ -69,6 +70,7 @@ function {
     vared -p "$(_v::q "Install $(_v::fmt::u Zsh theme + plugins)")" -c REPLY
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         _v::log::info "Installing $(_v::fmt::u Zsh theme + plugins)"
+        unset REPLY
         source "$__dotfiles_scripts_dir/zsh.zsh"
     elif [[ $REPLY == "" || $REPLY =~ ^[Nn]$ ]]; then
         _v::log::warn "Skipping $(_v::fmt::u Zsh theme + plugins) installation"
@@ -84,6 +86,7 @@ function {
     vared -p "$(_v::q "Install $(_v::fmt::u mise dev tools)")" -c REPLY
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         _v::log::info "Installing $(_v::fmt::u mise dev tools)"
+        unset REPLY
         source "$__dotfiles_scripts_dir/mise.zsh"
     elif [[ $REPLY == "" || $REPLY =~ ^[Nn]$ ]]; then
         _v::log::warn "Skipping $(_v::fmt::u mise dev tools) installation"
@@ -99,6 +102,7 @@ function {
     vared -p "$(_v::q "Configure $(_v::fmt::u OS settings)")" -c REPLY
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         _v::log::info "Configuring $(_v::fmt::u OS settings)"
+        unset REPLY
         source "$__dotfiles_scripts_dir/os.zsh"
     elif [[ $REPLY == "" || $REPLY =~ ^[Nn]$ ]]; then
         _v::log::warn "Skipping $(_v::fmt::u OS settings) configuration"
@@ -115,6 +119,7 @@ function {
         vared -p "$(_v::q "Update $(_v::fmt::u bat) theme")" -c REPLY
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             _v::log::info "Updating $(_v::fmt::u bat) theme"
+            unset REPLY
             wget -O "$(bat --config-dir)/themes/Catppuccin Mocha.tmTheme" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Mocha.tmTheme
 
             if [[ $? == 0 ]]; then
