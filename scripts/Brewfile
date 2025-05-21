@@ -41,7 +41,7 @@ cask 'hammerspoon' # macOS automation
 cask 'imageoptim' # Image optimizer
 cask 'insomnium' # HTTP Client
 cask 'obsidian' # Note-taking
-cask 'wezterm@nightly' # Terminal emulator
+cask 'wezterm@nightly', args: { no_quarantine: true, greedy_latest: true } # Terminal emulator
 
 mas '1Password for Safari', id: 1_569_813_296
 
