@@ -23,5 +23,5 @@ end
 vim.keymap.del("n", "<leader>L")
 vim.keymap.del("n", "<leader>l")
 
--- save file
-map({ "i", "x", "n", "s" }, "<D-s>", "<cmd>w<cr><esc>", { desc = "Save File" })
+-- Save all files with `󰘳  + s`
+map({ "i", "x", "n", "s" }, "<D-s>", "<cmd>wall<cr><esc>", { desc = "Save All Files" })
