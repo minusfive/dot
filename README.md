@@ -1,15 +1,8 @@
-# Personal System Config
+# Personal System Config (without [Nix](https://nixos.org/))
 
-To setup a new machine or update a current one, run:
+This branch uses [Homebrew](https://brew.sh), [mise-en-place](https://mise.jdx.dev), [GNU Stow](https://www.gnu.org/software/stow/), and custom [Zsh](https://www.zsh.org/) scripts to configure macOS on machines I'm not allowed to use of [Nix](https://nixos.org/) on.
 
-```sh
-git clone git@github.com:minusfive/dotfiles.git ~/.dotfiles
-cd ~/.dotfiles
-./scripts/bootstrap.zsh
-```
-
-> [!WARNING]
-> This will modify system settings and install software. You should read and understand [the bootstrap script](./scripts/bootstrap.zsh) and [Nix Flake](./flake.nix) before proceeding.
+I try my best to keep this and [my Nix-based configuration](https://github.com/minusfive/tree/main) synchronized, but there are some inherent differences in the way things are configured and managed, and depending on which type of machine I'm working with more regularly, I may prioritize one configuration over the other.
 
 > [!NOTE]
 > This configuration includes several keyboard shortcuts (for app launching, window management, text editing, etc.), optimized to work with [my custom keyboard layout](https://github.com/minusfive/zmk-config) and workflow. To customize you'll likely want to primarily look at the following configurations:
@@ -18,12 +11,31 @@ cd ~/.dotfiles
 > - [Wezterm](./.config/wezterm/)
 > - [NeoVim](./.config/nvim/)
 
+## Setup
+
+> [!WARNING]
+> This will modify system settings, install and configure software. You should read and understand [the init script](./scripts/init.zsh) and the [other scripts it calls](./scripts/) before proceeding.
+
+To setup a new machine or update a current one, run:
+
+```sh
+git clone git@github.com:minusfive/dot.git ~/dev/dot
+cd ~/dev/dot
+./scripts/init.zsh
+```
+
 ## Programs
 
-OS configuration and software installation + management is handled by [Nix](https://nixos.org/), using the [nix-darwin](https://github.com/LnL7/nix-darwin) (macOS) and [Home Manager](https://github.com/nix-community/home-manager) (user configuration) modules, with some help from [Homebrew](https://brew.sh) (for macOS GUI apps) and [GNU Stow](https://www.gnu.org/software/stow/) (for management of mutable symlinks).
+- Most of the programs I use are installed via [Homebrew](https://brew.sh) using my [Brewfile](./scripts/Brewfile)
+- Some are installed and managed by [mise-en-place](https://mise.jdx.dev), as defined in the following files:
 
-These are the [programs](./nix/programs/) currently installed by Nix and Homebrew on my machine:
+  - [~/.config/mise/config.toml](./.config/mise/config.toml)
+  - [~/.config/mise/default_packages_node](./.config/mise/default_packages_node)
+  - [~/.config/mise/default_packages_python](./.config/mise/default_packages_python)
+  - [~/.config/mise/default_packages_ruby](./.config/mise/default_packages_ruby)
 
-<https://github.com/minusfive/dotfiles/blob/0ef25b1edbebf4ca703c31045c08a31ed0da6adc/nix/users/minusfive/aarch64-darwin.nix#L3-L42>
+- Others are directly installed through the [Zsh scripts](./scripts/)
+
+---
 
 <img alt="Workspace" src="./assets/workspace.png" width="100%"/>

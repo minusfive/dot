@@ -104,6 +104,8 @@ function {
         _v::log::info "Configuring $(_v::fmt::u OS settings)"
         unset REPLY
         source "$__dotfiles_scripts_dir/os.zsh"
+        echo "\n"
+        _v::log::warn "$(_v::fmt::u "You should log out to fully apply all changes")"
     elif [[ $REPLY == "" || $REPLY =~ ^[Nn]$ ]]; then
         _v::log::warn "Skipping $(_v::fmt::u OS settings) configuration"
     else
