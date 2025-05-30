@@ -297,9 +297,6 @@ function {
 
 
     # Dock
-    # TODO: Explore dockutil
-    # TODO: Explore adding folders with script https://gist.github.com/kamui545/c810eccf6281b33a53e094484247f5e8
-    # TODO: Perhaps https://developer.apple.com/documentation/devicemanagement/dock/staticitem/tile-data-data.dictionary
     _v::log::info "Set $(_v::fmt::u Dock) icon size to ${__dock_icon_size_px}px"
     defaults write com.apple.dock tilesize -int $__dock_icon_size_px
     _v::log::ok "$(_v::fmt::u Dock) icon size set to ${__dock_icon_size_px}px"
@@ -313,14 +310,26 @@ function {
     defaults write com.apple.dock autohide -bool true
     _v::log::ok "$(_v::fmt::u Dock) set to autohide"
 
-    _v::log::info "Set $(_v::fmt::u Dock) to show only running apps"
-    defaults write com.apple.dock "static-only" -bool true
-    _v::log::ok "$(_v::fmt::u Dock) set to show only running apps"
+    # Enabling this will prevent folders from being displayed in the Dock
+    # _v::log::info "Set $(_v::fmt::u Dock) to show only running apps"
+    # defaults write com.apple.dock "static-only" -bool true
+    # _v::log::ok "$(_v::fmt::u Dock) set to show only running apps"
 
     _v::log::info "Set $(_v::fmt::u Dock) to spring load items"
     defaults write com.apple.dock "enable-spring-load-actions-on-all-items" -bool true
     _v::log::ok "$(_v::fmt::u Dock) set to spring load items"
 
+    _v::log::info "Empty $(_v::fmt::u Dock)"
+    dockutil --remove all --no-restart
+    _v::log::ok "$(_v::fmt::u Dock) emptied"
+
+    _v::log::info "Add Screenshots directory to $(_v::fmt::u Dock)"
+    dockutil --add "$__screenshots_dir" --label "Screenshots" --replacing "Screenshots" --section "others" --view "fan" --display "stack" --sort "dateadded" --no-restart
+    _v::log::ok "Screenshots directory added to $(_v::fmt::u Dock)"
+
+    _v::log::info "Add Downloads directory to $(_v::fmt::u Dock)"
+    dockutil --add "$HOME/Downloads" --label "Downloads" --replacing "Downloads" --after "Screenshots" --section "others" --view "fan" --display "stack" --sort "dateadded"
+    _v::log::ok "Downloads directory added to $(_v::fmt::u Dock)"
 
     # Mission Control
     _v::log::info "Set $(_v::fmt::u Dock) to group app windows in Mission Control"
