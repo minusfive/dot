@@ -145,6 +145,27 @@ function {
         echo "\n"
     fi
 
+
+    if [[ $(command -v btop) != "" ]]; then
+        vared -p "$(_v::q "Update $(_v::fmt::u btop) theme")" -c REPLY
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            _v::log::info "Updating $(_v::fmt::u btop) theme"
+            unset REPLY
+            wget -O "$XDG_CONFIG_HOME/btop/themes/catppuccin_mocha.theme" https://github.com/catppuccin/btop/raw/main/themes/catppuccin_mocha.theme
+
+            if [[ $? == 0 ]]; then
+                _v::log::ok "$(_v::fmt::u btop) theme updated"
+            fi
+        elif [[ $REPLY == "" || $REPLY =~ ^[Nn]$ ]]; then
+            _v::log::warn "Skipping $(_v::fmt::u btop) theme update"
+        else
+            _v::log::error "Invalid input"
+            exit 1
+        fi
+        unset REPLY
+        echo "\n"
+    fi
+
     _v::log::ok "Bootstrap complete"
     _v::reload
 }

@@ -5,6 +5,7 @@
 tap 'buo/cask-upgrade' # auto-upgrade casks
 
 brew 'bat' # `cat` replacement
+brew 'btop' # `htop` replacement
 brew 'coreutils' # GNU core utilities
 brew 'curl' # CLI for transferring data
 brew 'dockutil' # CLI for MacOS Dock management
