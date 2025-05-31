@@ -194,22 +194,25 @@ config.keys = {
   resizePane({ mods = "SHIFT", direction = "Down" }),
   resizePane({ mods = "SHIFT", direction = "Up" }),
 
-  { mods = "LEADER", key = "c", action = act.ActivateCopyMode },
-  { mods = "LEADER", key = "s", action = act.QuickSelect },
+  { key = "c", mods = "LEADER", action = act.ActivateCopyMode },
+  { key = "s", mods = "LEADER", action = act.QuickSelect },
 
-  { mods = "OPT", key = "s", action = act.PaneSelect },
-  { mods = "OPT|SHIFT", key = "s", action = act.PaneSelect({ mode = "SwapWithActive" }) },
+  { key = "s", mods = "OPT", action = act.PaneSelect },
+  { key = "s", mods = "OPT|SHIFT", action = act.PaneSelect({ mode = "SwapWithActive" }) },
 
-  { mods = "CMD", key = "z", action = act.TogglePaneZoomState },
+  { key = "z", mods = "CMD", action = act.TogglePaneZoomState },
 
-  { mods = "CMD", key = "p", action = act.ActivateCommandPalette },
+  { key = "p", mods = "CMD", action = act.ActivateCommandPalette },
 
-  { mods = "CMD|OPT", key = "t", action = act.ShowTabNavigator },
+  { key = "t", mods = "CMD|OPT", action = act.ShowTabNavigator },
 
-  { mods = "CMD", key = "w", action = act.CloseCurrentPane({ confirm = true }) },
-  { mods = "CMD|SHIFT", key = "w", action = act.CloseCurrentTab({ confirm = true }) },
+  { key = "w", mods = "CMD", action = act.CloseCurrentPane({ confirm = true }) },
+  { key = "w", mods = "CMD|SHIFT", action = act.CloseCurrentTab({ confirm = true }) },
 
-  { mods = "CMD", key = "l", action = act.ShowLauncherArgs({ flags = "LAUNCH_MENU_ITEMS|TABS|WORKSPACES" }) },
+  { key = "l", mods = "CMD", action = act.ShowLauncherArgs({ flags = "LAUNCH_MENU_ITEMS|TABS|WORKSPACES" }) },
+
+  { key = "PageUp", mods = "SHIFT", action = act.ScrollByPage(-0.5) },
+  { key = "PageDown", mods = "SHIFT", action = act.ScrollByPage(0.5) },
 }
 
 -- folke/zen-mode.nvim
