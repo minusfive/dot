@@ -23,6 +23,8 @@
 [merge]
   tool = nvim
   summary = true
+[rebase]
+  autoStash = true
 [diff]
   tool = nvim
 [alias]
