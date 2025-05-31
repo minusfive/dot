@@ -310,10 +310,10 @@ function {
     defaults write com.apple.dock autohide -bool true
     _v::log::ok "$(_v::fmt::u Dock) set to autohide"
 
-    # Enabling this will prevent folders from being displayed in the Dock
-    # _v::log::info "Set $(_v::fmt::u Dock) to show only running apps"
-    # defaults write com.apple.dock "static-only" -bool true
-    # _v::log::ok "$(_v::fmt::u Dock) set to show only running apps"
+    _v::log::info "Ensure $(_v::fmt::u Dock) is NOT set to show only running apps"
+    # WARN: Enabling this will prevent folders from being displayed in the Dock
+    defaults write com.apple.dock "static-only" -bool false
+    _v::log::ok "$(_v::fmt::u Dock) NOT set to show only running apps"
 
     _v::log::info "Set $(_v::fmt::u Dock) to spring load items"
     defaults write com.apple.dock "enable-spring-load-actions-on-all-items" -bool true
