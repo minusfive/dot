@@ -34,7 +34,6 @@ brew 'zsh' # Shell
 cask '1password' # Password manager
 cask '1password-cli' # 1Password CLI
 cask 'betterdisplay' # Display configuration manager
-cask 'discord' # Chat app
 cask 'docker' # Containerization
 cask 'google-chrome' # Browser
 cask 'gpg-suite' # GPG keychain
@@ -47,4 +46,7 @@ cask 'wezterm@nightly', args: { no_quarantine: true, greedy_latest: true } # Ter
 mas '1Password for Safari', id: 1_569_813_296
 
 # Personal profile
-mas 'WhatsApp Messenger', id: 310_633_997 if ENV['HOMEBREW_PROFILE'] == 'personal'
+if ENV['HOMEBREW_PROFILE'] == 'personal'
+  cask 'discord' # Chat
+  cask 'whatsapp' # Messenger
+end
