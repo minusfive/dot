@@ -17,6 +17,16 @@ local cf = spoon.Caffeine
 ---@type Hotkeys
 local hk = spoon.Hotkeys
 
+---Send macOS system notifications
+---@param title string
+---@param message? string
+local function notify(title, message)
+  ---@type hs.notify|nil
+  local notification = hs.notify.new({ title = title, subTitle = message or "" })
+  if not notification then return end
+  notification:send()
+end
+
 -- Set default settings
 hs.hotkey.alertDuration = 0.3
 hs.alert.defaultStyle = {
@@ -171,7 +181,7 @@ local modeSystem = {
       "r",
       "Reload Config",
       function()
-        hs.notify.new({ title = "Reloading Configuration", subTitle = "This may take a few seconds" }):send()
+        notify("Reloading Configuration", "This may take a few seconds")
         hs.reload()
       end,
     },
@@ -210,4 +220,4 @@ al:start()
 require("hs.ipc")
 
 -- Notify on config [re]load
-hs.notify.new({ title = "Configuration Loaded", subTitle = "Settings applied" }):send()
+notify("Configuration Loaded", "Settings applied")
