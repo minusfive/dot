@@ -5,39 +5,37 @@
 set -euo pipefail
 
 function {
-    export HOMEBREW_BUNDLE_FILE_GLOBAL="$__dotfiles_scripts_dir/Brewfile"
+    echo "\n"
+    local __context="BREW"
+    local __proceed="$__brew"
 
-    function _v::pq() { print -P "  $1? ($(_v::color::fg red p)ersonal / $(_v::color::fg blue W)ork) $(_v::color::fg green %B⟩%b) " }
-
-    # Ask to choose which $HOMEBREW_PROFILE to use: "personal" or "work"
-    if [[ -z ${HOMEBREW_PROFILE:-} ]]; then
-        vared -p "$(_v::pq "Which $(_v::fmt::u HOMEBREW_PROFILE) would you like to use")" -c REPLY
-        if [[ $REPLY =~ ^[Pp]$ ]]; then
-            export HOMEBREW_PROFILE="personal"
-            _v::log::info "\$HOMEBREW_PROFILE set to \"$(_v::color::fg red personal)\""
-        elif [[ $REPLY == "" || $REPLY =~ ^[Ww]$ ]]; then
-            export HOMEBREW_PROFILE="work"
-            _v::log::info "\$HOMEBREW_PROFILE set to \"$(_v::color::fg blue work)\""
-        else
-            _v::log::error "Invalid input"
-            exit 1
-        fi
-        unset REPLY
-        echo "\n"
+    if [[ "$__proceed" == true ]]; then
+        _v_log_info $__context "Installing $(_v_fmt_u Homebrew) and managed software..."
+        _v_confirm_proceed
     fi
 
+    if [[ "$__proceed" == false ]]; then
+        _v_log_warn $__context "Skipping $(_v_fmt_u Homebrew) and managed software installation"
+        return 0
+    fi
+
+    export HOMEBREW_PROFILE="$__profile"
+    export HOMEBREW_BUNDLE_FILE_GLOBAL="$__dotfiles_dir/.config/brew/Brewfile"
+
+    _v_log_info $__context "$(_v_fmt_u HOMEBREW_PROFILE)=$(_v_fmt_s " $HOMEBREW_PROFILE ")"
+    _v_log_info $__context "$(_v_fmt_u HOMEBREW_BUNDLE_FILE_GLOBAL)=$(_v_fmt_s " $HOMEBREW_BUNDLE_FILE_GLOBAL ")"
 
     # Install Homebrew
     if [[ $(command -v brew) == "" ]]; then
-        _v::log::info "$(_v::fmt::u Homebrew) not installed. Attempting install..."
+        _v_log_info $__context "$(_v_fmt_u Homebrew) not installed. Attempting install..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
         if [[ $? == 0 ]]; then
-            _v::log::ok "$(_v::fmt::u Homebrew) installed, adding to path..."
+            _v_log_ok $__context "$(_v_fmt_u Homebrew) installed, adding to path..."
             eval "$(/opt/homebrew/bin/brew shellenv)"
         fi
     else
-        _v::log::ok "$(_v::fmt::u Homebrew) installed at $(which brew)"
+        _v_log_ok $__context "$(_v_fmt_u Homebrew) installed at $(which brew)"
     fi
     echo "\n"
 
@@ -45,22 +43,22 @@ function {
     # Install Homebrew packages and apps
     if [[ $(command -v brew) != "" ]]; then
         if [[ ! -f $HOMEBREW_BUNDLE_FILE_GLOBAL ]]; then
-            _v::log::error "$(_v::fmt::u Brewfile) not found"
+            _v_log_error $__context "$(_v_fmt_u Brewfile) not found"
             exit 1
         fi
 
-        _v::log::info "Installing $(_v::fmt::u Homebrew bundle)"
+        _v_log_info $__context "Installing $(_v_fmt_u Homebrew bundle)"
         brew bundle -v --global --cleanup --zap
 
         if [[ $? == 0 ]]; then
-            _v::log::ok "$(_v::fmt::u Homebrew bundle) installed"
+            _v_log_ok $__context "$(_v_fmt_u Homebrew bundle) installed"
         fi
 
-        _v::log::info "Upgrading $(_v::fmt::u Homebrew bundle)"
+        _v_log_info $__context "Upgrading $(_v_fmt_u Homebrew bundle)"
         brew cu
 
         if [[ $? == 0 ]]; then
-            _v::log::ok "$(_v::fmt::u Homebrew bundle) upgraded"
+            _v_log_ok $__context "$(_v_fmt_u Homebrew bundle) upgraded"
         fi
     fi
 }

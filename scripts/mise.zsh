@@ -8,17 +8,30 @@ set -euo pipefail
 # Immediately invoked anonymous function with the script's path as its only argument
 # used to contain variables and functions in a local scope
 function {
-  if [[ $(command -v mise) != "" ]]; then
-    _v::log::info "Installing $(_v::fmt::u mise dev tools)"
-    mise install
-    mise prune
+    echo "\n"
+    local __context="MISE"
+    local __proceed="$__install_mise_dev_tools"
 
-    if [[ $? = 0 ]]; then
-      _v::log::ok "$(_v::fmt::u mise dev tools) installed and pruned"
+    if [[ "$__proceed" == true ]]; then
+        _v_log_info $__context "Installing $(_v_fmt_u mise) dev tools..."
+        _v_confirm_proceed
     fi
-  else
-    _v::log::error "$(_v::fmt::u mise) not found"
-    exit 1
-  fi
+
+    if [[ "$__proceed" == false ]]; then
+        _v_log_warn $__context "Skipping $(_v_fmt_u mise) dev tools installation"
+        return 0
+    fi
+
+    if [[ $(command -v mise) != "" ]]; then
+        mise install
+        mise prune
+
+        if [[ $? = 0 ]]; then
+            _v_log_ok $__context "$(_v_fmt_u mise) dev tools installed and pruned"
+        fi
+    else
+        _v_log_error $__context "$(_v_fmt_u mise) not found"
+        exit 1
+    fi
 }
 
