@@ -325,7 +325,7 @@ function {
     _v_log_ok $__context "$(_v_fmt_u Dock) set to autohide"
 
     _v_log_info $__context "Ensure $(_v_fmt_u Dock) is NOT set to show only running apps"
-    # WARN: Enabling this will prevent folders from being displayed in the Dock
+    # WARN: Setting this to `true` will prevent some Dock settings from applying correctly
     defaults write com.apple.dock "static-only" -bool false
     _v_log_ok $__context "$(_v_fmt_u Dock) NOT set to show only running apps"
 
@@ -385,5 +385,9 @@ function {
         open --background -a Safari
         _v_log_ok $__context "$(_v_fmt_u Safari) restarted"
     fi
+
+    # Logout user to ensure all settings are applied
+    _v_log_info $__context "Logging out user to apply all changes..."
+    osascript -e 'tell application "System Events" to log out'
 }
 
