@@ -26,7 +26,7 @@ cd ~/dev/dot
 
 ## Programs
 
-- Most of the programs I use are installed via [Homebrew](https://brew.sh) using my [Brewfile](./scripts/Brewfile)
+- Most of the programs I use are installed via [Homebrew](https://brew.sh) using my [Brewfile](./.config/brew/Brewfile)
 - Some are installed and managed by [mise-en-place](https://mise.jdx.dev), as defined in the following files:
 
   - [~/.config/mise/config.toml](./.config/mise/config.toml)
