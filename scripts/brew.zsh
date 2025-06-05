@@ -9,8 +9,14 @@ function {
     local __context="BREW"
     local __proceed="$__brew"
 
+    export HOMEBREW_PROFILE="$__profile"
+    export HOMEBREW_BUNDLE_FILE_GLOBAL="$__dotfiles_dir/.config/brew/Brewfile"
+
     if [[ "$__proceed" == true ]]; then
         _v_log_info $__context "Installing $(_v_fmt_u Homebrew) and managed software..."
+        _v_log_info $__context "$(_v_color_fg green HOMEBREW_PROFILE)=$(_v_color_fg yellow "'$HOMEBREW_PROFILE'")"
+        _v_log_info $__context "$(_v_color_fg green HOMEBREW_BUNDLE_FILE_GLOBAL)=$(_v_color_fg yellow "'$HOMEBREW_BUNDLE_FILE_GLOBAL'")"
+
         _v_confirm_proceed
     fi
 
@@ -18,12 +24,6 @@ function {
         _v_log_warn $__context "Skipping $(_v_fmt_u Homebrew) and managed software installation"
         return 0
     fi
-
-    export HOMEBREW_PROFILE="$__profile"
-    export HOMEBREW_BUNDLE_FILE_GLOBAL="$__dotfiles_dir/.config/brew/Brewfile"
-
-    _v_log_info $__context "$(_v_fmt_u HOMEBREW_PROFILE)=$(_v_fmt_s " $HOMEBREW_PROFILE ")"
-    _v_log_info $__context "$(_v_fmt_u HOMEBREW_BUNDLE_FILE_GLOBAL)=$(_v_fmt_s " $HOMEBREW_BUNDLE_FILE_GLOBAL ")"
 
     # Install Homebrew
     if [[ $(command -v brew) == "" ]]; then

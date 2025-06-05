@@ -11,30 +11,28 @@ function _v_log_error { print -P "$(_v_color_fg red "$(_v_fmt_s "   $1 ") $2"
 function _v_log_info { print -P "$(_v_color_fg blue "$(_v_fmt_s "   $1 ") $2")" }
 function _v_log_ok { print -P "$(_v_color_fg green "$(_v_fmt_s "   $1 ") $2")" }
 function _v_log_warn { print -P "$(_v_color_fg yellow "$(_v_fmt_s "   $1 ") $2")" }
-function _v_log_q { print -P "$(_v_color_fg magenta "$(_v_fmt_s "   $1 ") $2")" }
-
-function _v_q { print -P "  $1? $(_v_color_fg green y) / $(_v_color_fg red N) $(_v_color_fg green $(_v_fmt_b ⟩)) " }
+function _v_log_q { print -P "$(_v_color_fg white "$(_v_fmt_s "   $1 ") $2")" }
 
 function _v_confirm_proceed {
     local __reply
-    vared -p "$(print -P "$(_v_log_q $__context "Proceed?") $(_v_color_fg green y)es | $(_v_color_fg yellow N)o | $(_v_color_fg red q)uit $(_v_color_fg green $(_v_fmt_b ⟩)) "
+    vared -p "$(print -P "$(_v_log_q $__context "Proceed?") $(_v_color_fg green $(_v_fmt_u y))es | $(_v_color_fg yellow $(_v_fmt_u N))o | $(_v_color_fg red $(_v_fmt_u q))uit $(_v_color_fg green $(_v_fmt_b ⟩)) "
     )" -c __reply
     if [[ $__reply =~ ^[Yy]$ ]]; then
         __proceed=true
     elif [[ $__reply == "" || $__reply =~ ^[Nn]$ ]]; then
         __proceed=false
     elif [[ $__reply =~ ^[Qq]$ ]]; then
-        _v_log_error "QUIT" "Exiting..."
+        _v_log_error "QUIT" "Bye  "
         exit 0
     else
-        _v_log_error "ERROR" "Invalid input. Exiting..."
+        _v_log_error "ERROR" "Invalid input. Bye  "
         exit 1
     fi
 }
 
 # From https://github.com/ohmyzsh/ohmyzsh/blob/d82669199b5d900b50fd06dd3518c277f0def869/lib/cli.zsh#L668-L676
 function _v_reload {
-    _v_log_warn " ZSH" "Reloading Zsh..."
+    _v_log_warn " ZSH" "Reloading Zsh. Bye  "
     # Delete current completion cache
     (command rm -f $_comp_dumpfile $ZSH_COMPDUMP) 2> /dev/null
 
