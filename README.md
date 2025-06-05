@@ -19,7 +19,7 @@ I try my best to keep this and [my Nix-based configuration](https://github.com/m
 To setup a new machine or update a current one, run:
 
 ```sh
-git clone git@github.com:minusfive/dot.git ~/dev/dot
+git clone --single-branch --branch nixless git@github.com:minusfive/dot.git ~/dev/dot
 cd ~/dev/dot
 ./scripts/init.zsh
 ```
