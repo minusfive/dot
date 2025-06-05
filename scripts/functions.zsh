@@ -50,18 +50,14 @@ function _v_print_help {
         printf "$(_v_color_fg green $1), $(_v_color_fg green $2)"
     }
 
-    _v_log_info "HELP" ""
-    printf "\nBootstraps a macOS machine with minusfive's configuration and software.\nRead more: https://github.com/minusfive/dot\n"
-    printf "\nUsage: $(_v_color_fg green "$ZSH_ARGZERO [-p|--profile <work|personal>] [options]")\n"
+    _v_log_info " HELP" "Bootstraps macOS with minusfive's configuration and software (https://github.com/minusfive/dot)"
+    printf "\nUsage: $(_v_color_fg green "$ZSH_ARGZERO [options]")\n"
     printf "\nOptions:\n"
-    printf " $(_v_arg "-b" "--brew")        Install Homebrew and Homebrew apps\n"
+    printf " $(_v_arg "-b" "--brew")        Install Homebrew and managed software\n"
     printf " $(_v_arg "-h" "--help")        Show this help message\n"
     printf " $(_v_arg "-l" "--link")        Symlink dotfiles\n"
     printf " $(_v_arg "-m" "--mise")        Install mise dev tools\n"
     printf " $(_v_arg "-o" "--os")          Configure OS settings\n"
-    printf " $(_v_arg "-p" "--profile")     Valid profiles:\n"
-    printf "                   - work          (default, safest)\n"
-    printf "                   - personal\n"
-    printf "                   e.g. \`$(_v_color_fg green "$ZSH_ARGZERO -p personal")\`\n"
+    printf " $(_v_arg "-p" "--profile")     Valid profiles: $(_v_color_fg yellow "'work'") (default, safest), or $(_v_color_fg yellow "'personal'"). e.g. \`$(_v_color_fg green "$ZSH_ARGZERO -p personal")\`\n"
     printf " $(_v_arg "-z" "--zsh")         Install Zsh plugins and themes\n"
 }

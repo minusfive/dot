@@ -16,7 +16,7 @@ function {
         _v_confirm_proceed
     fi
 
-    if [[ "$__proceed" == false ]]; then
+    if [[ "$__proceed" != true ]]; then
         _v_log_warn $__context "Skipping $(_v_fmt_u Zsh) plugins and themes installation"
         return 0
     fi

@@ -14,7 +14,7 @@ function {
         _v_confirm_proceed
     fi
 
-    if [[ "$__proceed" == false ]]; then
+    if [[ "$__proceed" != true ]]; then
         _v_log_warn $__context "Skipping $(_v_fmt_u Homebrew) and managed software installation"
         return 0
     fi

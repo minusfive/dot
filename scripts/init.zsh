@@ -5,16 +5,17 @@ set -euo pipefail
 
 # Immediately invoked anonymous function used to contain variables and functions scope
 function {
-    # Defaults
-    local __profile="work" # work or personal; work = safest
-    local __brew=false
-    local __symlink_dotfiles=false
-    local __install_zsh_theme_plugins=false
-    local __install_mise_dev_tools=false
-    local __configure_os_settings=false
-
+    local __options
     local __dotfiles_scripts_dir="$(realpath "$(dirname "$ZSH_ARGZERO")")"
     local __dotfiles_dir="$(dirname "$__dotfiles_scripts_dir")"
+
+    # Defaults
+    local __brew=false
+    local __configure_os_settings=false
+    local __install_mise_dev_tools=false
+    local __install_zsh_theme_plugins=false
+    local __profile="work" # work or personal; work = safest
+    local __symlink_dotfiles=false
 
     # Load important environment variables
     source "$__dotfiles_dir/.zshenv"
@@ -22,28 +23,35 @@ function {
     # Load functions
     source "$__dotfiles_scripts_dir/functions.zsh"
 
-    if [[ $# -eq 0 ]]; then
-        _v_log_error "ERROR" "No options provided.\n"
+    # Parse parameters and or display help and exit
+    zmodload zsh/zutil
+    zparseopts -D -E -F -A __options - \
+        b -brew \
+        h -help \
+        l -link \
+        m -mise \
+        o -os \
+        p: -profile: \
+        z -zsh ||
+    (_v_log_error "ERROR" "Invalid options provided\n" && _v_print_help && exit 1)
+
+    if [[ $#__options -eq 0 ]]; then
+        _v_log_error "ERROR" "No options provided\n"
         _v_print_help
         exit 1
     fi
 
-    if [[ $# -eq 1 && ( $1 == "-h" || $1 == "--help" ) ]]; then
-        _v_print_help
-        return 1
-    fi
-
-    # Parse parameters and or display help and exit
-    while [ $# -gt 0 ]; do
-        case "$1" in
+    for opt arg in "${(kv@)__options}"; do
+        case "$opt" in
             -b|--brew)
                 __brew=true
                 ;;
+            -h|--help)
+                _v_print_help
+                exit 0
+                ;;
             -l|--link)
                 __symlink_dotfiles=true
-                ;;
-            -z|--zsh)
-                __install_zsh_theme_plugins=true
                 ;;
             -m|--mise)
                 __install_mise_dev_tools=true
@@ -52,21 +60,18 @@ function {
                 __configure_os_settings=true
                 ;;
             -p|--profile)
-                if [[ -n "$2" && "$2" != -* ]]; then
-                    __profile="$2"
-                    shift 1
+                if [[ "$arg" == "work" || "$arg" == "personal" ]]; then
+                    __profile="$arg"
                 else
-                    _v_log_error "PROFILE" "Profile name is required after -p/--profile"
+                    _v_log_error "ERROR" "Valid profile name is required for the \`$opt\` option. Use 'work' or 'personal'. Received: '$arg'"
+                    _v_print_help
                     exit 1
                 fi
                 ;;
-            *)
-                _v_log_error "ERROR" "Unknown option: $1"
-                _v_print_help
-                return 1
+            -z|--zsh)
+                __install_zsh_theme_plugins=true
                 ;;
         esac
-        shift 1
     done
 
     # Homebrew and Homebrew packages installation
