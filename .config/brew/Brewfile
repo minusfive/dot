@@ -27,6 +27,7 @@ brew 'neovim' # Preferred text editor
 brew 'ripgrep' # `grep` replacement
 brew 'stow' # Symlink manager
 brew 'vivid' # `LS_COLORS` generator
+brew 'wallpaper' # macOS wallpaper manager
 brew 'wget' # GNU Wget
 brew 'yazi' # File manager in terminal
 brew 'zoxide' # `cd` replacement

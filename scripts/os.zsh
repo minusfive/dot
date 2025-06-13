@@ -33,6 +33,18 @@ function {
     local __screenshots_dir="$HOME/Pictures/screenshots"
     local __dock_icon_size_px=64
     local __dock_icon_magnified_size_px=72
+    local __wallpaper_file="$__dotfiles_dir/assets/wallpaper.png"
+    local __wallpaper_color="11111b"
+
+
+    # Wallpaper
+    if [[ $(command -v wallpaper) == "" ]]; then
+        _v_log_warn $__context "$(_v_fmt_u wallpaper) command not found. Skipping setting wallpaper."
+    else
+        _v_log_info $__context "Setting $(_v_fmt_u wallpaper) to $__wallpaper_file"
+        wallpaper set "$__wallpaper_file" --fill-color "$__wallpaper_color"
+    fi
+
 
     # Screenshots
     # Create screenshots dir if it doesn't exist
@@ -382,6 +394,7 @@ function {
     if [[ $(pgrep -x "Safari") ]]; then
         _v_log_ok $__context "Restarting $(_v_fmt_u Safari) to apply changes"
         killall -q Safari 2>/dev/null || true
+        sleep 2
         open --background -a Safari
         _v_log_ok $__context "$(_v_fmt_u Safari) restarted"
     fi
