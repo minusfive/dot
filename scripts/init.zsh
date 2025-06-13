@@ -16,6 +16,7 @@ function {
     local __install_zsh_theme_plugins=false
     local __profile="work" # work or personal; work = safest
     local __symlink_dotfiles=false
+    local __noop=false
 
     # Load important environment variables
     source "$__dotfiles_dir/.zshenv"
@@ -36,9 +37,9 @@ function {
     (_v_log_error "ERROR" "Invalid options provided\n" && _v_print_help && exit 1)
 
     if [[ $#__options -eq 0 ]]; then
-        _v_log_error "ERROR" "No options provided\n"
+        _v_log_warn "WARN" "No options provided\n"
         _v_print_help
-        exit 1
+        __noop=true
     fi
 
     for opt arg in "${(kv@)__options}"; do
@@ -88,6 +89,13 @@ function {
 
     # Configure OS settings
     source "$__dotfiles_scripts_dir/os.zsh"
+
+    # Exit if no options were provided
+    if $__noop; then
+        echo "\n"
+        _v_log_warn "WARN" "Nothing to do. Bye  "
+        exit 0
+    fi
 
     # Finish
     echo "\n"
