@@ -57,7 +57,7 @@ function {
         fi
 
         _v_log_info $__context "Upgrading $(_v_fmt_u Homebrew bundle)"
-        brew cu
+        brew cu -f
 
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u Homebrew bundle) upgraded"
