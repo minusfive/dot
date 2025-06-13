@@ -18,7 +18,8 @@ local WindowManager = {
 }
 
 -- Global settings
-hs.window.animationDuration = 0.1
+local defaultAnimationDuration = 0.1
+hs.window.animationDuration = defaultAnimationDuration
 hs.window.highlight.ui.overlay = true
 hs.window.highlight.ui.overlayColor = { hex = "#11111b", alpha = 0.000001 }
 hs.window.highlight.ui.isolateColor = { hex = "#11111b", alpha = 0.9 }
@@ -61,17 +62,43 @@ WindowManager.layout = {
   bottomRight25 = { x = 0.50, y = 0.50, w = 0.50, h = 0.50 },
 }
 
--- Wrapper to perform certain operations before and after window movement
+-- Wrapper to perform certain optimizations before and after window movement
 -- to reduce artifacts
+---@see https://github.com/Hammerspoon/hammerspoon/issues/3731
 ---@generic T
----@param fn function():`T`
----@return T
-local function __optimizeFrame(fn)
-  if not WindowManager.options.enableFocusedWindowHighlight then return fn() end
+---@param window? hs.window
+---@param fn fun(window: hs.window):`T` | nil
+---@return T | nil
+local function __optimize(window, fn)
+  if not window then return end
 
-  hs.window.highlight.stop()
-  local result = fn()
-  hs.timer.doAfter(hs.window.animationDuration + 0.02, hs.window.highlight.start)
+  local app = window:application()
+  local ax_app = hs.axuielement.applicationElement(app)
+  local was_enhanced = false
+
+  -- original axuielement enhanced UI setting
+  if ax_app then was_enhanced = ax_app.AXEnhancedUserInterface end
+
+  if ax_app and was_enhanced then
+    -- turn off enhanced UI to prevent artifacts
+    ax_app.AXEnhancedUserInterface = false
+    hs.window.animationDuration = 0
+  end
+
+  if WindowManager.options.enableFocusedWindowHighlight then hs.window.highlight.stop() end
+
+  local result = fn(window)
+
+  if WindowManager.options.enableFocusedWindowHighlight then
+    hs.timer.doAfter(hs.window.animationDuration + 0.02, hs.window.highlight.start)
+  end
+
+  if ax_app and was_enhanced then
+    -- restore original settings
+    hs.window.animationDuration = defaultAnimationDuration
+    ax_app.AXEnhancedUserInterface = was_enhanced
+  end
+
   return result
 end
 
@@ -79,36 +106,35 @@ end
 ---@param unit hs.geometry.rect
 function WindowManager:move(unit)
   return function()
-    __optimizeFrame(function() hs.window.focusedWindow():move(unit, nil, true) end)
+    __optimize(hs.window.focusedWindow(), function(window) window:move(unit, nil, true) end)
   end
 end
 
 -- Toggle window "Full Screen" state
 function WindowManager:toggleFullScreen()
-  __optimizeFrame(function() hs.window.focusedWindow():toggleFullScreen() end)
+  __optimize(hs.window.focusedWindow(), function(window) window:toggleFullScreen() end)
 end
 
 -- Maximize window
 function WindowManager:maximixe()
-  __optimizeFrame(function() hs.window.focusedWindow():maximize() end)
+  __optimize(hs.window.focusedWindow(), function(window) window:maximize() end)
 end
 
 -- Center window on screen
 function WindowManager:center()
-  __optimizeFrame(function() hs.window.focusedWindow():centerOnScreen(nil, true, 0) end)
+  __optimize(hs.window.focusedWindow(), function(window) window:centerOnScreen(nil, true, 0) end)
 end
 
 -- Move window to next screen
 function WindowManager:screenNext()
-  __optimizeFrame(
-    function() hs.window.focusedWindow():moveToScreen(hs.window.focusedWindow():screen():next(), false, true) end
-  )
+  __optimize(hs.window.focusedWindow(), function(window) window:moveToScreen(window:screen():next(), false, true) end)
 end
 
 -- Move window to previous screen
 function WindowManager:screenPrev()
-  __optimizeFrame(
-    function() hs.window.focusedWindow():moveToScreen(hs.window.focusedWindow():screen():previous(), false, true) end
+  __optimize(
+    hs.window.focusedWindow(),
+    function(window) window:moveToScreen(window:screen():previous(), false, true) end
   )
 end
 
@@ -118,7 +144,7 @@ end
 ---@param duration? number
 ---@return hs.window
 local function __setFrameInScreenBounds(window, rect, duration)
-  __optimizeFrame(function() window:setFrameInScreenBounds(rect, duration) end)
+  __optimize(window, function(w) w:setFrameInScreenBounds(rect, duration) end)
   return window
 end
 
