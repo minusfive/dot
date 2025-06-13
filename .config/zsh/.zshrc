@@ -143,8 +143,8 @@ fi
 # export ARCHFLAGS="-arch x86_64"
 
 path=(
-    # Coreutils
-    $(brew --prefix coreutils)/libexec/gnubin
+    # UUtils
+    $(brew --prefix uutils-coreutils)/libexec/uubin
 
     # git diff-highlight
     $(brew --prefix git)/share/git-core/contrib/diff-highlight
