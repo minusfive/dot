@@ -28,9 +28,9 @@ local function __getMenuIcon(isActive) return isActive and "0.0" or "-.-" end
 ---@param isActive? boolean
 local function __getMenuTooltip(isActive) return isActive and "Caffeinated" or "Sleepy" end
 
--- Sends a system notification whenever an app is activated
+-- Sends a system notification whenever caffeination state changes
 ---@param isActive? boolean
-local function __sendAppActivationNotification(isActive)
+local function __sendCaffeineStateNotification(isActive)
   if not Caffeine.options.notifyOnStateChange then return end
 
   local notification = hs.notify.new(nil, {
@@ -70,7 +70,7 @@ function Caffeine.toggle(shouldActivate)
 
   __persistState(isActive)
   __toggleMenuBarItem(isActive)
-  __sendAppActivationNotification(isActive)
+  __sendCaffeineStateNotification(isActive)
 end
 
 function Caffeine:start()
