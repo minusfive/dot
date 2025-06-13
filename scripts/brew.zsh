@@ -4,6 +4,8 @@
 # Exit immediately if a command fails and treat unset vars as error
 set -euo pipefail
 
+# Immediately invoked anonymous function with the script's path as its only argument
+# used to contain variables and functions in a local scope
 function {
     echo "\n"
     local __context="BREW"
