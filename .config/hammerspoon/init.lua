@@ -119,6 +119,7 @@ local normalSpecs = {
 -- AppLauncher mode
 ---@type hs.hotkey.KeySpec[]
 local appLauncherSpecs = {
+  { {}, "a", "App Store", al:openApp("App Store") },
   { {}, "d", "Discord", al:openApp("Discord") },
   { {}, "m", "Messages", al:openApp("Messages") },
   { {}, "p", "Preview", al:openApp("Preview") },
