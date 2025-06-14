@@ -53,7 +53,7 @@ return {
       { kmg_lazy .. "c", LazyVim.news.changelog, desc = "Changelog" },
       { kmg_lazy .. "d", "<cmd>:LazyDev<cr>", desc = "Dev" },
       { kmg_lazy .. "h", "<cmd>:LazyHealth<cr>", desc = "Health" },
-      { kmg_lazy .. "u", "<cmd>:Lazy<cr>", desc = "UI" },
+      { kmg_lazy .. "l", "<cmd>:Lazy<cr>", desc = "Lazy" },
       { kmg_lazy .. "x", "<cmd>:LazyExtras<cr>", desc = "Extras" },
     },
   },
