@@ -38,6 +38,7 @@ mise.local.toml
 ^/\.prettierrc.json
 ^/assets
 ^/biome.json
+^/codecompanion-workspace.json
 ^/flake.lock
 ^/flake.nix
 ^/nix

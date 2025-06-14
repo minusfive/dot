@@ -1,0 +1,119 @@
+{
+  "name": "System Configuration",
+  "version": "0.0.1",
+  "system_prompt": "You are an expert in system configuration and dotfiles management. Use the provided context to answer questions or assist with modifications.",
+  "groups": [
+    {
+      "name": "Bootstrap & Setup Scripts",
+      "system_prompt": "Focus on the scripts used to bootstrap and set up a new machine. These scripts automate installation and configuration tasks.",
+      "data": ["scripts_init_zsh", "scripts_all"]
+    },
+    {
+      "name": "Shell & Environment Configuration",
+      "system_prompt": "Focus on files and directories that configure the shell environment and related tools.",
+      "data": ["zshenv", "config_zsh", "config_fzf", "config_mise", "config_git"]
+    },
+    {
+      "name": "Application Configurations",
+      "system_prompt": "Focus on configuration files for user applications.",
+      "data": ["config_nvim", "config_hammerspoon", "config_lazygit", "config_wezterm"]
+    },
+    {
+      "name": "SSH Configuration",
+      "system_prompt": "Focus on SSH configuration and related files.",
+      "data": ["ssh_config", "ssh_all"]
+    },
+    {
+      "name": "Symlink Management",
+      "system_prompt": "Focus on files and scripts related to managing symlinks with GNU Stow.",
+      "data": ["stowrc", "stow_local_ignore", "scripts_setup_symlinks"]
+    }
+  ],
+  "data": {
+    "scripts_init_zsh": {
+      "type": "file",
+      "path": "scripts/init.zsh",
+      "description": "Main interactive script for bootstrapping a new machine."
+    },
+    "scripts_all": {
+      "type": "symbols",
+      "path": "scripts/",
+      "description": "All scripts used for setup and automation, excluding init.zsh."
+    },
+    "scripts_setup_symlinks": {
+      "type": "file",
+      "path": "scripts/symlink.zsh",
+      "description": "Script to automate symlink creation using GNU Stow."
+    },
+    "scripts_configure_macos": {
+      "type": "file",
+      "path": "scripts/os/zsh",
+      "description": "Script to configure macOS settings and preferences."
+    },
+    "zshenv": {
+      "type": "file",
+      "path": ".zshenv",
+      "description": "Base environment file for Zsh, symlinked to ~/.zshenv."
+    },
+    "config_zsh": {
+      "type": "symbols",
+      "path": ".config/zsh/",
+      "description": "Zsh configuration files."
+    },
+    "config_fzf": {
+      "type": "symbols",
+      "path": ".config/fzf/",
+      "description": "fzf configuration files."
+    },
+    "config_mise": {
+      "type": "symbols",
+      "path": ".config/mise/",
+      "description": "mise configuration files."
+    },
+    "config_git": {
+      "type": "symbols",
+      "path": ".config/git/",
+      "description": "git configuration files."
+    },
+    "config_nvim": {
+      "type": "symbols",
+      "path": ".config/nvim/",
+      "description": "Neovim configuration files."
+    },
+    "config_hammerspoon": {
+      "type": "symbols",
+      "path": ".config/hammerspoon/",
+      "description": "Hammerspoon configuration files."
+    },
+    "config_lazygit": {
+      "type": "symbols",
+      "path": ".config/lazygit/",
+      "description": "Lazygit configuration files."
+    },
+    "config_wezterm": {
+      "type": "symbols",
+      "path": ".config/wezterm/",
+      "description": "WezTerm configuration files."
+    },
+    "ssh_config": {
+      "type": "file",
+      "path": ".ssh/config",
+      "description": "Main SSH configuration file."
+    },
+    "ssh_all": {
+      "type": "symbols",
+      "path": ".ssh/",
+      "description": "All SSH configuration files."
+    },
+    "stowrc": {
+      "type": "file",
+      "path": ".stowrc",
+      "description": "GNU Stow configuration file."
+    },
+    "stow_local_ignore": {
+      "type": "file",
+      "path": ".stow-local-ignore",
+      "description": "Files and directories ignored by GNU Stow."
+    }
+  }
+}

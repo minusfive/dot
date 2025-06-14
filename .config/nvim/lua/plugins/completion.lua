@@ -26,19 +26,6 @@ end)()
 
 return {
   {
-    "zbirenbaum/copilot.lua",
-    optional = true,
-
-    ---@module 'copilot'
-    ---@type CopilotConfig|{}
-    opts = {
-      server = {
-        type = "binary",
-      },
-    },
-  },
-
-  {
     "saghen/blink.cmp",
     optional = true,
     -- dev = true,
@@ -90,14 +77,6 @@ return {
           ghost_text = { enabled = true },
         },
       }),
-
-      sources = {
-        providers = {
-          copilot = {
-            score_offset = 0,
-          },
-        },
-      },
     },
   },
 
