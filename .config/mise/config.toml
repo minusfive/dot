@@ -1,23 +1,32 @@
-[tools]
-aws-cli = "latest"
-go = "latest"
-grpcurl = "latest"  # Kulala dependency
-lua = "5.1"
-node = "lts"
-python = "latest"
-ruby = "latest"
-rust = "latest"
-uv = "latest"
-vault = "latest"
-websocat = "latest" # Kulala dependency
-
-[env]
-MISE_NODE_DEFAULT_PACKAGES_FILE = "{{ env.XDG_CONFIG_HOME }}/mise/default_packages_node"
-MISE_PYTHON_DEFAULT_PACKAGES_FILE = "{{ env.XDG_CONFIG_HOME }}/mise/default_packages_python"
-MISE_RUBY_DEFAULT_PACKAGES_FILE = "{{ env.XDG_CONFIG_HOME }}/mise/default_packages_ruby"
-
 [settings]
 env_file = ".env"
 experimental = true
 idiomatic_version_file_enable_tools = ["node"]
 # paranoid = true
+npm.bun = true
+pipx.uvx = true
+python.uv_venv_auto = true
+python.uv_venv_create_args = ["--seed"]
+
+[tools]
+aws-cli = "latest"
+bun = "latest"
+go = "latest"
+lua = "5.1"
+node = "latest"
+python = "latest"
+ruby = "latest"
+rust = "latest"
+uv = "latest"
+vault = "latest"
+"gem:neovim" = "latest"
+
+[hooks]
+postinstall = [
+  "npm i -g npm",
+  "npm i -g neovim",
+  "python -m ensurepip",
+  "pip install --upgrade pip",
+  "pip install --upgrade pipx pynvim",
+  "uv tool install vectorcode[lsp,mcp]",
+]

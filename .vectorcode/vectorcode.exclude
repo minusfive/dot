@@ -1,0 +1,5 @@
+.vectorcode/
+.github/
+.ruby-lsp/
+**/EmmyLua.spoon/annotations/**
+

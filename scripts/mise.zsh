@@ -24,8 +24,9 @@ function {
 
     if [[ $(command -v mise) != "" ]]; then
         mise install
-        mise prune
         mise upgrade
+        mise prune
+        mise reshim -vf
 
         if [[ $? = 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u mise) dev tools installed, updated and pruned"

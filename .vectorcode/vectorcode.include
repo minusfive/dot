@@ -1,0 +1,17 @@
+.config/**
+.ssh/**
+assets/**
+scripts/**
+tests/**
+.editorconfig
+.markdownlint-cli2.jsonc
+.prettierrc.json
+.stow-local-ignore
+.stowrc
+.stylua.toml
+.zshenv
+README.md
+biome.json
+combose.yaml
+mise.toml
+otel-collector-config.yaml

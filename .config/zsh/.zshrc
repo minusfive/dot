@@ -115,6 +115,8 @@ plugins=(
     fzf-tab
     fzf-tab-source
     ohmyzsh-full-autoupdate
+    mise
+    bun
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -256,7 +258,4 @@ bindkey '^y' autosuggest-accept
 
 # Use 1Password SSH agent
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
-
-# mise
-eval "$(mise activate zsh)"
 

@@ -92,7 +92,19 @@ return {
 
       opts.sections.lualine_a = {}
       opts.sections.lualine_b = { "%l:%c", "%p%%" }
-      opts.sections.lualine_c = { cmd }
+      opts.sections.lualine_c = {
+        cmd,
+        {
+          function() return require("vectorcode.integrations").lualine({ show_job_count = true })[1]() end,
+          cond = function()
+            if package.loaded["vectorcode"] == nil then
+              return false
+            else
+              return require("vectorcode.integrations").lualine({ show_job_count = true }).cond()
+            end
+          end,
+        },
+      }
       opts.sections.lualine_y = { getcwd, "branch" }
       opts.sections.lualine_z = {}
 
