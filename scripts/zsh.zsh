@@ -36,8 +36,6 @@ function {
 
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u OhMyZsh) installed"
-
-            _v_log_info $__context "Removing generated .zshrc"
         fi
     fi
     echo "\n"

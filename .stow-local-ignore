@@ -36,11 +36,14 @@ mise.local.toml
 \.stylua.*
 ^/\.markdownlint-cli2.jsonc
 ^/\.prettierrc.json
+^/\.vectorcode
 ^/assets
 ^/biome.json
 ^/codecompanion-workspace.json
+^/compose.yaml
 ^/flake.lock
 ^/flake.nix
 ^/nix
+^/otel-collector-config.yaml
 ^/scripts
 ^/tests

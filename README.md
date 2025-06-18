@@ -39,3 +39,27 @@ cd ~/dev/dot
 ---
 
 <img alt="Workspace" src="./assets/workspace.png" width="100%"/>
+
+---
+
+## Development
+
+### AI
+
+- Ensure the [Lima](https://lima-vm.org/) + [Podman](https://podman.io) VM is running:
+
+```sh
+limactl start podman
+```
+
+- Then start the AI Services;
+
+```sh
+podman compose up --build -d
+```
+
+- Index / vectorize the files:
+
+```sh
+vectorcode vectorize
+```

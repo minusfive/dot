@@ -19,10 +19,13 @@ brew 'jq' # JSON processor
 brew 'just' # Command runner
 brew 'lazygit' # Git Terminal UI
 brew 'libyaml' # dependency for ruby
+brew 'lima' # Linux virtual machine manager
 brew 'luarocks' # dependency for nvim
 brew 'mas' # Mac App Store
 brew 'mise' # version, environment manager
 brew 'neovim' # Preferred text editor
+brew 'podman' # Container management CLI
+brew 'podman-compose' # Compose for Podman
 brew 'ripgrep' # `grep` replacement
 brew 'stow' # Symlink manager
 brew 'uutils-coreutils' # GNU core utilities Rust replacement
@@ -43,6 +46,7 @@ cask 'hammerspoon' # macOS automation
 cask 'imageoptim' # Image optimizer
 cask 'insomnium' # HTTP Client
 cask 'obsidian' # Note-taking
+cask 'podman-desktop' # Container management GUI
 cask 'wezterm@nightly', args: { no_quarantine: true, greedy_latest: true } # Terminal emulator
 
 mas '1Password for Safari', id: 1_569_813_296

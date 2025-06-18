@@ -1,0 +1,39 @@
+name: aiServices
+
+services:
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    depends_on: [otel-collector]
+    networks:
+      - internal
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.111.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ${PWD}/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    networks:
+      - internal
+
+  server:
+    image: chromadb/chroma:0.6.3
+    volumes:
+      - chroma_data:/data
+    ports:
+      - "8000:8000"
+    networks:
+      - internal
+    environment:
+      - CHROMA_OPEN_TELEMETRY__ENDPOINT=http://otel-collector:4317/
+      - CHROMA_OPEN_TELEMETRY__SERVICE_NAME=chroma
+    depends_on:
+      - otel-collector
+      - zipkin
+
+networks:
+  internal:
+
+volumes:
+  chroma_data:
