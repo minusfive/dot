@@ -23,7 +23,7 @@ require("lazy").setup({
     {
       "LazyVim/LazyVim",
       import = "lazyvim.plugins",
-      -- dev = true, -- Use local
+      dev = true, -- Use local
     },
 
     -- import/override with your plugins
