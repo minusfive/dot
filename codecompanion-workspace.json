@@ -1,7 +1,7 @@
 {
   "name": "macOS System Configuration",
   "version": "0.0.1",
-  "system_prompt": "You are an expert in macOS system configuration and dotfiles management. Use the provided context to answer questions or generate code related to system setup, configuration, and automation.",
+  "system_prompt": "You are an expert in macOS system configuration, neovim configuration, hammerspoon configuration, wezterm configuration, zsh scripting, lua scripting, and dotfiles management. Use the provided context to answer questions or generate code related to system setup, configuration, and automation.",
   "groups": [
     {
       "name": "Setup Scripts",

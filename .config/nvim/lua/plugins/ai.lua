@@ -87,46 +87,29 @@ return {
               show_result_in_chat = true,
             },
           },
-          -- vectorcode = {
-          --   opts = {
-          --     add_tool = true,
-          --     add_slash_command = true,
-          --     ---@module "vectorcode"
-          --     ---@type VectorCode.CodeCompanion.ToolOpts
-          --     tool_opts = {
-          --       max_num = { chunk = -1, document = -1 },
-          --       default_num = { chunk = 50, document = 200 },
-          --       include_stderr = true,
-          --       use_lsp = true,
-          --       auto_submit = { ls = false, query = false },
-          --       ls_on_start = true,
-          --       no_duplicate = true,
-          --       chunk_mode = false,
-          --     },
-          --   },
-          -- },
+          vectorcode = {
+            opts = {
+              add_tool = true,
+              add_slash_command = true,
+              ---@module "vectorcode"
+              ---@type VectorCode.CodeCompanion.ToolOpts
+              tool_opts = {
+                max_num = { chunk = -1, document = -1 },
+                default_num = { chunk = 50, document = 200 },
+                include_stderr = true,
+                use_lsp = true,
+                auto_submit = { ls = false, query = false },
+                ls_on_start = true,
+                no_duplicate = true,
+                chunk_mode = false,
+              },
+            },
+          },
         },
         strategies = {
           chat = {
             adapter = "copilot",
             model = "claude-3-7-sonnet",
-            -- tools = {
-            --   ["next_edit_suggestion"] = {
-            --     opts = {
-            --       --- the default is to open in a new tab, and reuse existing tabs
-            --       --- where possible
-            --       ---@type string|fun(path: string):integer?
-            --       jump_action = "tabnew",
-            --     },
-            --   },
-            -- },
-            -- variables = {
-            --   ["buffer"] = {
-            --     opts = {
-            --       default_params = "watch", -- or 'pin'
-            --     },
-            --   },
-            -- },
             keymaps = {
               close = {
                 modes = {
@@ -208,36 +191,38 @@ return {
     },
   },
 
-  -- {
-  --   "Davidyz/VectorCode",
-  --   version = "*", -- optional, depending on whether you're on nightly or release
-  --   build = "uv tool upgrade vectorcode", -- optional but recommended. This keeps your CLI up-to-date.
-  --   dependencies = { "nvim-lua/plenary.nvim" },
-  --   ---@module "vectorcode"
-  --   ---@type VectorCode.Opts|{}
-  --   opts = {
-  --     on_setup = {
-  --       update = true, -- whether to update the CLI on setup
-  --       lsp = false, -- whether to setup the LSP server
-  --     },
-  --   },
-  --   keys = {
-  --     {
-  --       "<leader>au",
-  --       function() return require("vectorcode").update() end,
-  --       desc = "Update (VectorCode)",
-  --       mode = { "n", "v" },
-  --     },
-  --   },
-  -- },
+  {
+    "Davidyz/VectorCode",
+    version = "*", -- optional, depending on whether you're on nightly or release
+    build = "uv tool upgrade vectorcode", -- optional but recommended. This keeps your CLI up-to-date.
+    dependencies = { "nvim-lua/plenary.nvim" },
+    ---@module "vectorcode"
+    ---@param opts VectorCode.Opts|{}
+    opts = function(_, opts)
+      return {
+        on_setup = {
+          update = true, -- whether to update the CLI on setup
+          lsp = false, -- whether to setup the LSP server
+        },
+      }
+    end,
+    keys = {
+      {
+        "<leader>au",
+        function() return require("vectorcode").update() end,
+        desc = "Update (VectorCode)",
+        mode = { "n", "v" },
+      },
+    },
+  },
 
-  -- {
-  --   "neovim/nvim-lspconfig",
-  --   ---@class PluginLspOpts
-  --   opts = {
-  --     ---@module 'lspconfig'
-  --     ---@type {[string]: lspconfig.Config|{}}
-  --     servers = { vectorcode_server = {} },
-  --   },
-  -- },
+  {
+    "neovim/nvim-lspconfig",
+    ---@class PluginLspOpts
+    opts = {
+      ---@module 'lspconfig'
+      ---@type {[string]: lspconfig.Config|{}}
+      servers = { vectorcode_server = {} },
+    },
+  },
 }

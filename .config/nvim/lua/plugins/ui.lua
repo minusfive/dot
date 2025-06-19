@@ -9,6 +9,17 @@ local nui_options = {
 
 local function getcwd() return vim.fn.fnamemodify(vim.fn.getcwd(), ":t") end
 
+local lualine_vectorcode = {
+  function() return require("vectorcode.integrations").lualine({ show_job_count = true })[1]() end,
+  cond = function()
+    if package.loaded["vectorcode"] == nil then
+      return false
+    else
+      return require("vectorcode.integrations").lualine({ show_job_count = true }).cond()
+    end
+  end,
+}
+
 return {
   -- Disable defaults
   { "lukas-reineke/indent-blankline.nvim", enabled = false }, -- Replaced by Snacks.indent
@@ -65,6 +76,7 @@ return {
   {
     "nvim-lualine/lualine.nvim",
     optional = true,
+
     opts = function(_, opts)
       -- Theme
       local colors = require("catppuccin.palettes").get_palette("mocha")
@@ -92,21 +104,11 @@ return {
 
       opts.sections.lualine_a = {}
       opts.sections.lualine_b = { "%l:%c", "%p%%" }
-      opts.sections.lualine_c = {
-        cmd,
-        {
-          function() return require("vectorcode.integrations").lualine({ show_job_count = true })[1]() end,
-          cond = function()
-            if package.loaded["vectorcode"] == nil then
-              return false
-            else
-              return require("vectorcode.integrations").lualine({ show_job_count = true }).cond()
-            end
-          end,
-        },
-      }
+      opts.sections.lualine_c = { cmd }
       opts.sections.lualine_y = { getcwd, "branch" }
       opts.sections.lualine_z = {}
+
+      if LazyVim.has("vectorcode") then table.insert(opts.sections.lualine_c, lualine_vectorcode) end
 
       vim.list_extend(
         opts.options.disabled_filetypes.statusline,

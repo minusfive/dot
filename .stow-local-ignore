@@ -10,6 +10,7 @@ _darcs
 \.hg
 
 \.git
+\.github
 \.gitignore
 \.gitmodules
 
@@ -34,6 +35,7 @@ mise.local.toml
 \.repro
 \.ruby-lsp
 \.stylua.*
+^/\.ai
 ^/\.markdownlint-cli2.jsonc
 ^/\.prettierrc.json
 ^/\.vectorcode
