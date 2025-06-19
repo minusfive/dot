@@ -1,13 +1,11 @@
 {
+  "nativeMCPServers": [],
   "mcpServers": {
     "github.com/modelcontextprotocol/servers/tree/main/src/filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "${HOME}/dev/minusfive/dot",
-        "${HOME}/dev/minusfive/resume"
-      ]
+      "disabled": false,
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${HOME}/dev"],
+      "command": "npx"
     }
   }
 }
+
