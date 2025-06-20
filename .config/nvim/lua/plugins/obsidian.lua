@@ -179,6 +179,11 @@ return {
         --   return string.format("![%s](%s)", path.name, path)
         -- end,
       },
+
+      ---@type obsidian.config.StatuslineOpts|{}
+      statusline = {
+        format = "props: {{properties}}  backlinks: {{backlinks}}  w: {{words}}  ch: {{chars}}",
+      },
     },
   },
 
@@ -249,7 +254,7 @@ return {
             "<ESC><cmd>'<,'>Obsidian link<cr>",
             desc = "Link Picker",
             mode = { "v" },
-            cond = function() require("obsidian").get_client():vault_name() end,
+            cond = function() return not not require("obsidian").get_client():vault_name() end,
             icon = { icon = "󱅷 ", color = "purple" },
           },
           {

@@ -20,6 +20,17 @@ local lualine_vectorcode = {
   end,
 }
 
+local lualine_obsidian_vault = {
+  function() return "Vault: " .. require("obsidian").get_client():vault_name() end,
+  cond = function()
+    if package.loaded["obsidian"] == nil then
+      return false
+    else
+      return not not require("obsidian").get_client():vault_name()
+    end
+  end,
+}
+
 return {
   -- Disable defaults
   { "lukas-reineke/indent-blankline.nvim", enabled = false }, -- Replaced by Snacks.indent
@@ -103,12 +114,10 @@ return {
       opts.options.section_separators = { "", "" }
 
       opts.sections.lualine_a = {}
-      opts.sections.lualine_b = { "%l:%c", "%p%%" }
+      opts.sections.lualine_b = { "%l:%c", "%p%%", lualine_obsidian_vault, "g:obsidian" }
       opts.sections.lualine_c = { cmd }
-      opts.sections.lualine_y = { getcwd, "branch" }
+      opts.sections.lualine_y = { lualine_vectorcode, getcwd, "branch" }
       opts.sections.lualine_z = {}
-
-      if LazyVim.has("vectorcode") then table.insert(opts.sections.lualine_c, lualine_vectorcode) end
 
       vim.list_extend(
         opts.options.disabled_filetypes.statusline,
