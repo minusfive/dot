@@ -16,7 +16,7 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
   dev = {
-    path = "~/dev/minusfive/nvim-plugins",
+    path = "~/dev/personal/nvim-plugins",
   },
   spec = {
     -- add LazyVim and import its plugins

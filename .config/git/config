@@ -2,10 +2,14 @@
   format = ssh
 [gpg "ssh"]
   program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
-[includeif "gitdir:~/dev/adsk/"]
-  path = ~/dev/adsk/.gitconfig
-[includeif "gitdir:~/dev/minusfive/"]
-  path = ~/dev/minusfive/.gitconfig
+[includeif "gitdir:~/dev/work/"]
+  path = ~/dev/work/.gitconfig
+[includeif "gitdir:~/Notes/Work/"]
+  path = ~/dev/work/.gitconfig
+[includeif "gitdir:~/dev/personal/"]
+  path = ~/dev/personal/.gitconfig
+[includeif "gitdir:~/Notes/Personal/"]
+  path = ~/dev/personal/.gitconfig
 [pull]
   rebase = true
 [push]
