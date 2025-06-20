@@ -1,62 +1,73 @@
-local vault_name = "Personal"
-local vault_path = "~/Notes/" .. vault_name
-local vault_path_absolute = vim.fn.expand(vault_path)
+local vaults = { personal = "Personal", work = "Work" }
+local vaults_dir = vim.fn.expand("~/Notes/")
+local date_format = "%Y-%m-%d"
+local time_format = "%H-%M-%S"
+local day_format = "%w"
+local section_separator = "--"
 
+---Replicates Obsidian's default unique note id generation.
 ---@param title string|?
 ---@return string
 local title_id = function(title)
-  local new_title = ""
+  -- Prefix new title with the current date and time.
+  local new_title = tostring(os.date(date_format .. section_separator .. time_format)) .. section_separator
+
   if title ~= nil then
     -- If title is given, transform it into valid file name.
-    new_title = title:gsub("[^A-Za-z0-9-]", "")
+    new_title = new_title .. (title:gsub("%W", "-"))
   else
     -- If title is nil, just add 4 random uppercase letters to the suffix.
     for _ = 1, 4 do
       new_title = new_title .. string.char(math.random(65, 90))
     end
   end
+
   return new_title
 end
 
 return {
   {
-    "epwalsh/obsidian.nvim",
+    "obsidian-nvim/obsidian.nvim",
     version = "*", -- recommended, use latest release instead of latest commit
     -- optional = true,
     lazy = true,
 
-    --- ---
     -- Enable only for markdown files, or (see lines below)...
     -- ft = "markdown",
+
     -- ...only load for markdown files in vault:
-    event = {
-      -- if you want to use the home shortcut '~' here you need to call 'vim.fn.expand'.
-      -- e.g. "bufreadpre " .. vim.fn.expand "~" .. "/my-vault/**.md"
-      "bufreadpre "
-        .. vault_path_absolute
-        .. "/**.md",
-      "bufnewfile " .. vault_path_absolute .. "/**.md",
-    },
-    --- ---
+    -- event = {
+    --   -- if you want to use the home shortcut '~' here you need to call 'vim.fn.expand'.
+    --   -- e.g. "bufreadpre " .. vim.fn.expand "~" .. "/my-vault/**.md"
+    --   "bufreadpre "
+    --     .. vaults_dir
+    --     .. "**/**.md",
+    --   "bufnewfile " .. vaults_dir .. "**/**.md",
+    -- },
 
     dependencies = {
       -- required.
       "nvim-lua/plenary.nvim",
     },
-    keys = {
-      { "<leader>fN", "<cmd>ObsidianQuickSwitch<cr>", desc = "New Note (Obsidian)", remap = true },
-    },
+    keys = {},
+
+    ---@module 'obsidian'
+    ---@type obsidian.config.ClientOpts|{}
     opts = {
       -- either 'wiki' or 'markdown'.
-      preferred_link_style = "wiki",
+      preferred_link_style = "markdown",
 
       -- optional, completion of wiki links, local markdown links, and tags using nvim-cmp.
+      ---@type obsidian.config.CompletionOpts|{}
       completion = {
-        -- FIXME: Switch to using blink.cmp, potentially with blink.compat
-        -- set to false to disable completion.
-        -- nvim_cmp = true,
-        -- trigger completion at 2 chars.
-        min_chars = 2,
+        nvim_cmp = false,
+        blink = true,
+      },
+
+      -- optional, set preferred picker
+      ---@type obsidian.config.PickerOpts|{}
+      picker = {
+        name = "snacks.pick", -- or 'fzf' or 'builtin'
       },
 
       -- a list of workspace names, paths, and configuration overrides.
@@ -67,28 +78,36 @@ return {
       -- current markdown file being edited.
       workspaces = {
         {
-          name = vault_name,
-          path = vault_path,
+          name = vaults.personal,
+          path = vaults_dir .. vaults.personal,
+        },
+        {
+          name = vaults.work,
+          path = vaults_dir .. vaults.work,
         },
       },
 
+      ---@type obsidian.config.DailyNotesOpts|{}
       daily_notes = {
         -- optional, if you keep daily notes in a separate directory.
-        folder = "Journal",
+        folder = nil,
         -- optional, if you want to change the date format for the id of daily notes.
-        date_format = "%y-%m-%d",
+        date_format = date_format .. section_separator .. day_format,
         -- optional, if you want to change the date format of the default alias of daily notes.
         -- alias_format = "%b %-d, %y",
         -- optional, default tags to add to each new daily note created.
-        -- default_tags = { "daily-notes" },
+        default_tags = { "daily-notes" },
         -- optional, if you want to automatically insert a template from your template directory like 'daily.md'
-        template = "note template.md",
+        template = "Note.md",
+        -- Optional, if you want `Obsidian yesterday` to return the last work day or `Obsidian tomorrow` to return the next work day.
+        workdays_only = false,
       },
       -- optional, for templates (see below).
+      ---@type obsidian.config.TemplateOpts|{}
       templates = {
-        folder = "templates",
-        date_format = "%y-%m-%d",
-        time_format = "%h:%m",
+        folder = "Templates",
+        date_format = date_format,
+        time_format = time_format,
         -- a map for custom variables, the key should be the variable and the value a function
         substitutions = {},
       },
@@ -100,6 +119,7 @@ return {
         update_debounce = 200, -- update delay after a text change (in milliseconds)
         max_file_length = 5000, -- disable ui features for files with more than this many lines
         -- define how various check-boxes are displayed
+        ---@type table<string, obsidian.config.CheckboxSpec|{}>
         checkboxes = {
           -- NOTE: the 'char' value has to be a single character, and the highlight groups are defined below.
           [" "] = { char = "󰄱", hl_group = "ObsidianTodo" },
@@ -142,6 +162,7 @@ return {
       note_id_func = title_id,
 
       -- Specify how to handle attachments.
+      ---@type obsidian.config.AttachmentsOpts|{}
       attachments = {
         -- The default folder to place images in via `:ObsidianPasteImg`.
         -- If this is a relative path it will be interpreted as relative to the vault root.
@@ -157,6 +178,135 @@ return {
         --   path = client:vault_relative_path(path) or path
         --   return string.format("![%s](%s)", path.name, path)
         -- end,
+      },
+    },
+  },
+
+  {
+    "folke/snacks.nvim",
+    optional = true,
+    opts = {
+      ---@type snacks.picker.Config
+      picker = {
+        sources = {
+          grep = {
+            need_search = false,
+            exclude = { ".obsidian" },
+          },
+          files = {
+            exclude = { ".obsidian" },
+          },
+        },
+      },
+    },
+  },
+
+  {
+    "folke/which-key.nvim",
+    ---@module "which-key"
+    ---@type wk.Config|{}
+    opts = {
+      -- Add Obsidian specific keybindings to the which-key menu.
+      spec = {
+        {
+          "<leader>o",
+          group = "Obsidian",
+          mode = { "n", "v" },
+          icon = { icon = "󱇧 ", color = "purple" },
+          cond = function() return LazyVim.has("obsidian.nvim") end,
+          {
+            "<leader>od",
+            group = "Daily",
+            mode = { "n", "v" },
+            icon = { icon = "󰸗 ", color = "purple" },
+            {
+              "<leader>odd",
+              "<cmd>Obsidian today<cr>",
+              desc = "Today",
+              icon = { icon = "󰧓 ", color = "purple" },
+            },
+            {
+              "<leader>odt",
+              "<cmd>Obsidian tomorrow<cr>",
+              desc = "Tomorrow",
+              icon = { icon = "󱄵 ", color = "purple" },
+            },
+            {
+              "<leader>ody",
+              "<cmd>Obsidian yesterday<cr>",
+              desc = "Yesterday",
+              icon = { icon = "󱄴 ", color = "purple" },
+            },
+          },
+          {
+            "<leader>of",
+            "<cmd>Obsidian quick_switch<cr>",
+            desc = "Find Note",
+            icon = { icon = "󰱼 ", color = "purple" },
+          },
+          {
+            "<leader>ol",
+            "<ESC><cmd>'<,'>Obsidian link<cr>",
+            desc = "Link Picker",
+            mode = { "v" },
+            cond = function() require("obsidian").get_client():vault_name() end,
+            icon = { icon = "󱅷 ", color = "purple" },
+          },
+          {
+            "<leader>on",
+            "<cmd>Obsidian new<cr>",
+            desc = "New Note",
+            icon = { icon = "󰝒 ", color = "purple" },
+          },
+          {
+            "<leader>oN",
+            "<cmd>Obsidian new_from_template<cr>",
+            desc = "New Note from Template",
+            icon = { icon = "󱪝 ", color = "purple" },
+          },
+          {
+            "<leader>oo",
+            "<cmd>Obsidian open<cr>",
+            desc = "Open in Obsidian",
+            icon = { icon = "󰏋 ", color = "purple" },
+          },
+          {
+            "<leader>os",
+            "<cmd>Obsidian search<cr>",
+            desc = "Search Text",
+            icon = { icon = "󰱽 ", color = "purple" },
+          },
+          {
+            "<leader>ot",
+            "<cmd>Obsidian template<cr>",
+            desc = "Template Picker",
+            icon = { icon = "󰱽 ", color = "purple" },
+          },
+          {
+            "<leader>ow",
+            group = "Workspace",
+            desc = "Workspace Picker",
+            icon = { icon = "󰴕 ", color = "purple" },
+            {
+              "<leader>owf",
+              "<cmd>Obsidian workspace<cr>",
+              desc = "Find",
+              icon = { icon = "󰴕 ", color = "purple" },
+            },
+            {
+              "<leader>owp",
+              "<cmd>Obsidian workspace Personal<cr>",
+              desc = "Personal",
+              icon = { icon = "󰋜 ", color = "purple" },
+            },
+            {
+              "<leader>oww",
+              "<cmd>Obsidian workspace Work<cr>",
+              desc = "Work",
+              icon = { icon = "󰦑 ", color = "purple" },
+            },
+          },
+        },
       },
     },
   },
