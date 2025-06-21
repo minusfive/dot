@@ -5,24 +5,71 @@ local time_format = "%H-%M-%S"
 local day_format = "%w"
 local section_separator = "--"
 
----Replicates Obsidian's default unique note id generation.
+-- Cleans up the title by removing unwanted characters.
+local clean_title = function(title)
+  return title:gsub("'", ""):gsub("%W", " "):gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+-- Returns formatted date and time. If no time is given, it defaults to the current time.
+---@param time integer|?
+---@return string
+local get_timestamp = function(time)
+  -- Returns the current date and time in the format YYYY-MM-DD--HH-MM-SS.
+  return tostring(os.date(date_format .. section_separator .. time_format, time))
+end
+
+-- Prepends timestamp and cleans up title
 ---@param title string|?
 ---@return string
-local title_id = function(title)
-  -- Prefix new title with the current date and time.
-  local new_title = tostring(os.date(date_format .. section_separator .. time_format)) .. section_separator
+local get_note_id = function(title)
+  local id = ""
 
   if title ~= nil then
-    -- If title is given, transform it into valid file name.
-    new_title = new_title .. (title:gsub("%W", "-"))
+    -- If title is given, clean it and replace whitespace with dashes.
+    id = id .. clean_title(title):gsub("%W", "-")
   else
     -- If title is nil, just add 4 random uppercase letters to the suffix.
     for _ = 1, 4 do
-      new_title = new_title .. string.char(math.random(65, 90))
+      id = id .. string.char(math.random(65, 90))
     end
   end
 
-  return new_title
+  -- Prefix new title with the current date and time.
+  return get_timestamp() .. section_separator .. id
+end
+
+-- Uses the title (cleaned up), or id if title is not found
+---@param spec { id: string, dir: obsidian.Path, title: string|? }
+---@return string|obsidian.Path path The full path to the new note.
+local get_note_path = function(spec)
+  local path = ""
+  if spec.title then
+    path = clean_title(spec.title)
+  else
+    path = tostring(spec.id)
+  end
+  path = spec.dir / path
+  return path:with_suffix(".md")
+end
+
+-- Removes `id`
+---@param note obsidian.Note
+---@return table
+local get_note_frontmatter = function(note)
+  -- Add the title of the note as an alias.
+  if note.title then note:add_alias(note.title) end
+
+  local out = { aliases = note.aliases, tags = note.tags }
+
+  -- `note.metadata` contains any manually added fields in the frontmatter.
+  -- So here we just make sure those fields are kept in the frontmatter.
+  if note.metadata ~= nil and not vim.tbl_isempty(note.metadata) then
+    for k, v in pairs(note.metadata) do
+      out[k] = v
+    end
+  end
+
+  return out
 end
 
 return {
@@ -158,8 +205,27 @@ return {
         -- },
       },
 
-      -- optional, customize how note ids are generated given an optional title.
-      note_id_func = title_id,
+      -- customize how note ids are generated given an optional title.
+      note_id_func = get_note_id,
+
+      -- customize how note file names are generated given the ID, target directory, and title.
+      note_path_func = get_note_path,
+
+      -- customize how the frontmatter of a note is generated.
+      note_frontmatter_func = get_note_frontmatter,
+
+      ---@type obsidian.config.CallbackConfig|{}
+      callbacks = {
+        -- Automatically switch to the correct workspace based on the current working directory.
+        post_setup = function(client)
+          local cwd = vim.fn.getcwd()
+          if string.find(cwd, "/dev/work/") then
+            client:switch_workspace(vaults.work)
+          elseif string.find(cwd, "/dev/personal/") then
+            client:switch_workspace(vaults.personal)
+          end
+        end,
+      },
 
       -- Specify how to handle attachments.
       ---@type obsidian.config.AttachmentsOpts|{}
@@ -182,7 +248,7 @@ return {
 
       ---@type obsidian.config.StatuslineOpts|{}
       statusline = {
-        format = "props: {{properties}}  backlinks: {{backlinks}}  w: {{words}}  ch: {{chars}}",
+        format = "words: {{words}}  ch: {{chars}}  props: {{properties}}  backlinks: {{backlinks}}",
       },
     },
   },
@@ -217,7 +283,7 @@ return {
           "<leader>o",
           group = "Obsidian",
           mode = { "n", "v" },
-          icon = { icon = "󱇧 ", color = "purple" },
+          icon = { icon = "󱞁 ", color = "purple" },
           cond = function() return LazyVim.has("obsidian.nvim") end,
           {
             "<leader>od",
@@ -247,7 +313,7 @@ return {
             "<leader>of",
             "<cmd>Obsidian quick_switch<cr>",
             desc = "Find Note",
-            icon = { icon = "󰱼 ", color = "purple" },
+            icon = { icon = "󱙓 ", color = "purple" },
           },
           {
             "<leader>ol",
@@ -261,7 +327,7 @@ return {
               desc = "Find",
               mode = { "v" },
               cond = function() return not not require("obsidian").get_client():vault_name() end,
-              icon = { icon = "󰱼 ", color = "purple" },
+              icon = { icon = "󱙓 ", color = "purple" },
             },
             {
               "<leader>oln",
@@ -275,25 +341,25 @@ return {
           {
             "<leader>on",
             group = "New",
-            icon = { icon = "󰝒 ", color = "purple" },
+            icon = { icon = "󰎜 ", color = "purple" },
             {
               "<leader>one",
               "<ESC><cmd>'<,'>Obsidian extract_note<cr>",
               desc = "Extract Selection",
               mode = { "v" },
-              icon = { icon = "󱪝 ", color = "purple" },
+              icon = { icon = "󰚸 ", color = "purple" },
             },
             {
               "<leader>onn",
               "<cmd>Obsidian new<cr>",
               desc = "Note",
-              icon = { icon = "󰻭 ", color = "purple" },
+              icon = { icon = "󰎜 ", color = "purple" },
             },
             {
               "<leader>ont",
               "<cmd>Obsidian new_from_template<cr>",
               desc = "Note from Template",
-              icon = { icon = "󰝒 ", color = "purple" },
+              icon = { icon = "󰚹 ", color = "purple" },
             },
           },
           {
@@ -306,20 +372,20 @@ return {
             "<leader>or",
             "<cmd>Obsidian rename<cr>",
             desc = "Rename",
-            icon = { icon = "󰷉 ", color = "purple" },
+            icon = { icon = "󰑕 ", color = "purple" },
             cond = function() return not not require("obsidian").get_client():vault_name() end,
           },
           {
             "<leader>os",
             "<cmd>Obsidian search<cr>",
             desc = "Search Text",
-            icon = { icon = "󰱽 ", color = "purple" },
+            icon = { icon = "󱩾 ", color = "purple" },
           },
           {
             "<leader>ot",
             "<cmd>Obsidian template<cr>",
             desc = "Template Picker",
-            icon = { icon = "󰱽 ", color = "purple" },
+            icon = { icon = "󱙔 ", color = "purple" },
           },
           {
             "<leader>ow",

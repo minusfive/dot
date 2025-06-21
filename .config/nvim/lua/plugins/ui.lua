@@ -21,7 +21,7 @@ local lualine_vectorcode = {
 }
 
 local lualine_obsidian_vault = {
-  function() return "vault: " .. require("obsidian").get_client():vault_name() end,
+  function() return "󱞁 " .. require("obsidian").get_client():vault_name() end,
   cond = function()
     if package.loaded["obsidian"] == nil then
       return false
@@ -114,10 +114,10 @@ return {
       opts.options.section_separators = { "", "" }
 
       opts.sections.lualine_a = {}
-      opts.sections.lualine_b = { "%l:%c", "%p%%", lualine_obsidian_vault, "g:obsidian" }
+      opts.sections.lualine_b = { "%l:%c", "%p%%", "g:obsidian" }
       opts.sections.lualine_c = { cmd }
       opts.sections.lualine_y = { lualine_vectorcode, getcwd, "branch" }
-      opts.sections.lualine_z = {}
+      opts.sections.lualine_z = { lualine_obsidian_vault }
 
       vim.list_extend(
         opts.options.disabled_filetypes.statusline,
