@@ -1,9 +1,10 @@
 local vaults = { personal = "Personal", work = "Work" }
 local vaults_dir = vim.fn.expand("~/Notes/")
 local date_format = "%Y-%m-%d"
-local time_format = "%H-%M-%S"
-local day_format = "%w"
-local section_separator = "--"
+local time_format = "%H:%M:%S"
+local time_format_for_path = "%H-%M-%S" -- Used for file names to avoid colons.
+local day_format = "%A"
+local section_separator = " - "
 
 -- Cleans up the title by removing unwanted characters.
 local clean_title = function(title)
@@ -13,9 +14,9 @@ end
 -- Returns formatted date and time. If no time is given, it defaults to the current time.
 ---@param time integer|?
 ---@return string
-local get_timestamp = function(time)
+local get_timestamp_for_path = function(time)
   -- Returns the current date and time in the format YYYY-MM-DD--HH-MM-SS.
-  return tostring(os.date(date_format .. section_separator .. time_format, time))
+  return tostring(os.date(date_format .. section_separator .. time_format_for_path, time))
 end
 
 -- Prepends timestamp and cleans up title
@@ -35,7 +36,7 @@ local get_note_id = function(title)
   end
 
   -- Prefix new title with the current date and time.
-  return get_timestamp() .. section_separator .. id
+  return get_timestamp_for_path() .. section_separator .. id
 end
 
 -- Uses the title (cleaned up), or id if title is not found
@@ -139,7 +140,7 @@ return {
         -- optional, if you keep daily notes in a separate directory.
         folder = nil,
         -- optional, if you want to change the date format for the id of daily notes.
-        date_format = date_format .. section_separator .. day_format,
+        date_format = date_format .. " - " .. day_format,
         -- optional, if you want to change the date format of the default alias of daily notes.
         -- alias_format = "%b %-d, %y",
         -- optional, default tags to add to each new daily note created.
@@ -156,7 +157,9 @@ return {
         date_format = date_format,
         time_format = time_format,
         -- a map for custom variables, the key should be the variable and the value a function
-        substitutions = {},
+        substitutions = {
+          ["date:dddd"] = function() return os.date(day_format) end,
+        },
       },
 
       -- optional, configure additional syntax highlighting / extmarks.
