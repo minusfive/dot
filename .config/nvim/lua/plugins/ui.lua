@@ -21,7 +21,7 @@ local lualine_vectorcode = {
 }
 
 local lualine_obsidian_vault = {
-  function() return "󱞁 " .. require("obsidian").get_client():vault_name() end,
+  function() return "󰎞  " .. require("obsidian").get_client():vault_name() end,
   cond = function()
     if package.loaded["obsidian"] == nil then
       return false
