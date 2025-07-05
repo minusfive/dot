@@ -171,11 +171,11 @@ local modeSystem = {
   trigger = { hk.mods.meh, ",", "System" }, -- `cmd + ,` is the standard shortcut for preferences on macOS
   isOneShot = true,
   specs = {
-    { {}, "a", "Activity Monitor", al:openApp("Activity Monitor") },
     { {}, "c", "Caffeine", cf.toggle },
     { {}, "h", "Hammerspoon", al:openApp("Hammerspoon") },
     { {}, "i", "Insta360 Link Controller", al:openApp("Insta360 Link Controller") },
     { {}, "l", "Lock", hs.caffeinate.lockScreen },
+    { {}, "m", "Activity Monitor", al:openApp("Activity Monitor") },
     { {}, "o", "Logout", hs.caffeinate.logOut },
     {
       {},
