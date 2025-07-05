@@ -39,6 +39,9 @@ return {
   {
     "folke/noice.nvim",
     optional = true,
+
+    ---@module 'noice'
+    ---@type NoiceConfig
     opts = {
       cmdline = {
         view = "cmdline",
@@ -60,6 +63,13 @@ return {
         inc_rename = false,
         long_message_to_split = true,
         lsp_doc_border = true,
+      },
+      lsp = {
+        override = {
+          ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+          ["vim.lsp.util.stylize_markdown"] = true,
+          ["cmp.entry.get_documentation"] = true,
+        },
       },
       views = {
         cmdline_popupmenu = nui_options.popup,

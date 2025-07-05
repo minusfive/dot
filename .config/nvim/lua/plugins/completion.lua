@@ -29,6 +29,7 @@ return {
     "saghen/blink.cmp",
     optional = true,
     -- dev = true,
+    build = "cargo build --release",
 
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
@@ -37,8 +38,9 @@ return {
 
       completion = {
         accept = { auto_brackets = { enabled = false } },
-        documentation = { window = { border = "solid" } },
+        documentation = { window = { border = "rounded" } },
         menu = {
+          border = "rounded",
           draw = {
             align_to = "label",
             treesitter = { "lsp" },

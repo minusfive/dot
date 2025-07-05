@@ -9,7 +9,7 @@ local function getLSPClient(name) return vim.lsp.get_clients({ bufnr = 0, name =
 local function toggleLSPClient(name)
   local client = getLSPClient(name)
   if client then
-    client.stop(true)
+    client:stop(true)
   else
     vim.cmd("LspStart " .. name)
   end
@@ -21,16 +21,22 @@ return {
     ---@type PluginLspOpts
     opts = {
       diagnostics = {
+        severity_sort = true,
         virtual_text = false,
+        virtual_lines = false,
+
         float = {
           style = "minimal",
-          border = "solid",
+          border = "rounded",
           source = "always",
+          severity_sort = true,
           header = "",
-          prefix = "",
+          prefix = " ",
+          suffix = " ",
         },
       },
       inlay_hints = { enabled = false },
+
       ---@module 'lspconfig'
       ---@type {[string]: lspconfig.Config|{}}
       servers = {

@@ -35,10 +35,10 @@ return {
             -- Floating Windows
             NormalFloat = { bg = colors.base },
             FloatTitle = { link = "NormalFloat" },
-            FloatBorder = { fg = colors.surface0, bg = colors.base },
+            FloatBorder = { fg = colors.surface1, bg = colors.base },
             FloatShadow = { bg = 0, blend = 80, ctermbg = 0 },
             FloatShadowThrough = { bg = 0, blend = 100, ctermbg = 0 },
-            Pmenu = { bg = colors.mantle },
+            Pmenu = { link = "NormalFloat" },
             PmenuSel = { bg = colors.surface0 },
             PmenuSbar = { link = "PmenuSel" },
             PmenuThumb = { bg = colors.surface1 },
@@ -82,8 +82,8 @@ return {
 
             -- Make some elements more subtle
             SnacksIndent = { fg = colors.surface0 },
-            SnacksIndentScope = { fg = colors.surface2 },
-            SnacksIndentChunk = { fg = colors.surface2 },
+            SnacksIndentScope = { fg = colors.surface1 },
+            SnacksIndentChunk = { fg = colors.surface1 },
 
             -- Command utils themed with command mode colors (orange-ish)
             Command = { fg = colors.peach },
@@ -92,23 +92,15 @@ return {
             NoiceCmdlinePopupBorder = { fg = colors.peach },
             NoiceCmdlinePopupTitle = { fg = colors.peach },
 
-            -- Fuzzy Finder
-            -- FzfLuaBorder = { fg = colors.surface1, bg = colors.base },
-            -- FzfLuaNormal = { bg = colors.base },
-            -- FzfLuaTitle = { fg = colors.crust, bg = colors.peach, style = { "bold" } },
-            -- FzfLuaPreviewTitle = { fg = colors.crust, bg = colors.blue, style = { "bold" } },
-            -- FzfLuaHeaderText = { fg = colors.overlay1 },
-            -- FzfLuaHeaderBind = { fg = colors.subtext1 },
-            -- FzfLuaFzfPrompt = { fg = colors.peach },
-            -- FzfLuaFzfPointer = { fg = colors.peach },
-            -- FzfLuaFzfHeader = { fg = colors.overlay0 },
-
             -- Completion
             BlinkCmpItemIdx = { fg = colors.surface2 },
             BlinkCmpLabelMatch = { fg = colors.yellow },
             BlinkCmpDoc = { link = "Pmenu" },
-            BlinkCmpDocBorder = { link = "BlinkCmpDoc" },
+            BlinkCmpDocBorder = { link = "FloatBorder" },
             BlinkCmpDocSeparator = { link = "BlinkCmpDoc" },
+            BlinkCmpMenuBorder = { link = "FloatBorder" },
+            BlinkCmpMenuSelection = { link = "PmenuSel" },
+            BlinkCmpScrollbarThumb = { link = "PmenuThumb" },
 
             -- LSP (e.g. reference highlighting like Snacks.words, vim-illuminate, etc.)
             LspReferenceText = { bg = colors.surface0 },

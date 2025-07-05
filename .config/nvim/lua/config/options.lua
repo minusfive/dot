@@ -58,7 +58,10 @@ vim.filetype.add({
 })
 
 -- Use latest blink.cmp
--- vim.g.lazyvim_blink_main = true
+vim.g.lazyvim_blink_main = true
+
+-- Default picker
+vim.g.lazyvim_picker = "snacks"
 
 -- Use global mise tools, skipping local
 local _tools = { "node", "lua", "luarocks", "ruby", "python" }

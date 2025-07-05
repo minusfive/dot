@@ -73,6 +73,24 @@ local get_note_frontmatter = function(note)
   return out
 end
 
+-- Checks if we are currently in a vault.
+local is_in_vault = function() return not not require("obsidian").get_client():vault_name() end
+
+-- Checks if the current file is a markdown file.
+local is_markdown_file = function() return vim.bo.filetype == "markdown" or vim.bo.filetype == "obsidian" end
+
+-- FIXME: Not working as expected, only checks first buffer opened
+-- Checks if the current file is in a vault and is a markdown file.
+-- local is_in_vault_and_markdown = function()
+--   local is_in_vault = is_in_vault()
+--   local is_markdown_file = is_markdown_file()
+--   vim.notify(
+--     "is_in_vault: " .. tostring(is_in_vault) .. ", is_markdown_file: " .. tostring(is_markdown_file),
+--     vim.log.levels.DEBUG
+--   )
+--   return is_in_vault and is_markdown_file
+-- end
+
 return {
   {
     "obsidian-nvim/obsidian.nvim",
@@ -294,13 +312,13 @@ return {
             mode = { "n", "v" },
             icon = { icon = "󰸗 ", color = "purple" },
             {
-              "<leader>odd",
+              "<leader>odt",
               "<cmd>Obsidian today<cr>",
               desc = "Today",
               icon = { icon = "󰧓 ", color = "purple" },
             },
             {
-              "<leader>odt",
+              "<leader>odT",
               "<cmd>Obsidian tomorrow<cr>",
               desc = "Tomorrow",
               icon = { icon = "󱄵 ", color = "purple" },
@@ -322,14 +340,13 @@ return {
             "<leader>ol",
             group = "Link",
             mode = { "v" },
-            cond = function() return not not require("obsidian").get_client():vault_name() end,
+            cond = is_in_vault,
             icon = { icon = "󰌹 ", color = "purple" },
             {
               "<leader>olf",
               "<ESC><cmd>'<,'>Obsidian link<cr>",
               desc = "Find",
               mode = { "v" },
-              cond = function() return not not require("obsidian").get_client():vault_name() end,
               icon = { icon = "󱙓 ", color = "purple" },
             },
             {
@@ -337,7 +354,6 @@ return {
               "<ESC><cmd>'<,'>Obsidian link_new<cr>",
               desc = "New",
               mode = { "v" },
-              cond = function() return not not require("obsidian").get_client():vault_name() end,
               icon = { icon = "󱄀 ", color = "purple" },
             },
           },
@@ -376,7 +392,7 @@ return {
             "<cmd>Obsidian rename<cr>",
             desc = "Rename",
             icon = { icon = "󰑕 ", color = "purple" },
-            cond = function() return not not require("obsidian").get_client():vault_name() end,
+            cond = is_in_vault,
           },
           {
             "<leader>os",
@@ -389,6 +405,7 @@ return {
             "<cmd>Obsidian template<cr>",
             desc = "Template Picker",
             icon = { icon = "󱙔 ", color = "purple" },
+            cond = is_in_vault,
           },
           {
             "<leader>ow",

@@ -23,6 +23,22 @@ return {
     },
   },
 
+  -- Diagnostics
+  {
+    "folke/trouble.nvim",
+    optional = true,
+    ---@type trouble.Config
+    opts = {
+      modes = {
+        qflist = {
+          win = {
+            size = 20,
+          },
+        },
+      },
+    },
+  },
+
   -- Keybindings help menu
   {
     "folke/which-key.nvim",
