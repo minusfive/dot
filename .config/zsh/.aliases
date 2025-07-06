@@ -47,4 +47,5 @@ alias fzf='fzf '
 alias f='y'
 
 # Lazygit
+alias lazygit='TERM=screen-256color lazygit'
 alias lg='lazygit'

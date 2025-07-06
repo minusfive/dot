@@ -172,5 +172,16 @@ function {
             _v_log_ok $__context "$(_v_fmt_u btop) theme updated"
         fi
     fi
+
+
+    # Update delta theme
+    if [[ $(command -v delta) != "" ]]; then
+        _v_log_info $__context "Updating $(_v_fmt_u delta) theme"
+        wget -O "$XDG_CONFIG_HOME/delta/themes/catppuccin.gitconfig" https://github.com/catppuccin/delta/raw/main/catppuccin.gitconfig
+
+        if [[ $? == 0 ]]; then
+            _v_log_ok $__context "$(_v_fmt_u delta) theme updated"
+        fi
+    fi
 }
 

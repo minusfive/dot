@@ -23,6 +23,7 @@
   defaultBranch = main
 [core]
   editor = nvim
+  pager = delta
   whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
 [merge]
   tool = nvim
@@ -31,6 +32,7 @@
   autoStash = true
 [diff]
   tool = nvim
+  colorMoved = default
 [alias]
   br = branch
   ci = commit
@@ -88,8 +90,19 @@
   clean = git media clean %f
   smudge = git media smudge %f
   required = true
-[pager]
-	log = diff-highlight | less
-	show = diff-highlight | less
-	diff = diff-highlight | less
-
+[interactive]
+  diffFilter = delta --color-only
+[include]
+  path = "~/.config/delta/themes/catppuccin.gitconfig"
+[delta]
+  features = catppuccin-mocha zebra-dark
+  true-color = always
+  navigate = true
+  line-numbers = true
+  file-numbers = true
+  hyperlinks = true
+  conflictStyle = zdiff3
+  file-style = omit
+  commit-decoration-style = "#45475a" box ul
+  file-decoration-style = "#45475a" bold ol
+  hunk-header-decoration-style = "#45475a" ul ol

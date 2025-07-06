@@ -26,6 +26,7 @@ cargo-binstall = "latest"
 # otherwise $PATH may be clobbered
 aws-cli = "latest"
 vault = "latest"
+delta = "latest"
 
 [hooks]
 postinstall = [
