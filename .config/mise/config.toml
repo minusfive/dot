@@ -14,12 +14,16 @@ go = "latest"
 lua = "5.1"
 node = "latest"
 python = "latest"
-ruby = "latest"
-rust = "nightly"
 uv = "latest"
 
-# Order matters, these should be installed after the tools above
+ruby = "latest"
 "gem:neovim" = "latest"
+
+rust = "nightly"
+cargo-binstall = "latest"
+
+# Order matters, these should be installed after the tools above
+# otherwise $PATH may be clobbered
 aws-cli = "latest"
 vault = "latest"
 
