@@ -10,6 +10,18 @@ return {
     event = "VeryLazy",
   },
 
+  -- More powerful joining of lines
+  {
+    "Wansmer/treesj",
+    keys = {
+      { "J", "<cmd>TSJToggle<cr>", desc = "Join Toggle" },
+    },
+    opts = {
+      use_default_keymaps = false,
+      max_join_length = 150,
+    },
+  },
+
   -- Git markers on sign column
   {
     "lewis6991/gitsigns.nvim",
