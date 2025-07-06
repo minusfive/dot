@@ -142,9 +142,10 @@ return {
 
       -- Picker
       picker = {
-        layout = {
-          cycle = true,
-          preset = responsiveLayout,
+        formatters = {
+          file = {
+            -- filename_first = true,
+          },
         },
 
         ---@type snacks.picker.icons.Config|{}
@@ -219,13 +220,20 @@ return {
           },
         },
 
-        formatters = {
-          file = {
-            -- filename_first = true,
-          },
+        layout = {
+          cycle = true,
+          preset = responsiveLayout,
+        },
+
+        previewers = {
+          diff = { builtin = false },
+          git = { builtin = false },
         },
 
         sources = {
+          buffer = {
+            hidden = false,
+          },
           explorer = {
             hidden = true,
           },
@@ -236,7 +244,6 @@ return {
             hidden = true,
           },
           smart = {
-            hidden = true,
             filter = { cwd = true },
           },
         },
