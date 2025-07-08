@@ -96,6 +96,10 @@
   path = "~/.config/delta/themes/catppuccin.gitconfig"
 [delta]
   features = catppuccin-mocha zebra-dark
+  minus-style = bold syntax "#331f24" ; red @ 40%s, 20%v (hsv)
+  minus-emph-style = syntax "#59333e" ; red @ 35%v (hsv)
+  plus-style = bold syntax "#1c261b" ; green @ 30%s, 15%v (hsv)
+  plus-emph-style = syntax "#41593f" ; green @ 35%v (hsv)
   true-color = always
   navigate = true
   line-numbers = true
