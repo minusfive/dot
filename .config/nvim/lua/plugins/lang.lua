@@ -104,4 +104,6 @@ return {
       table.insert(keys, { "<leader>cl", false })
     end,
   },
+
+  { import = "plugins/lang" },
 }
