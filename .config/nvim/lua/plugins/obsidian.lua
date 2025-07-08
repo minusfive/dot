@@ -74,22 +74,132 @@ local get_note_frontmatter = function(note)
 end
 
 -- Checks if we are currently in a vault.
-local is_in_vault = function() return not not require("obsidian").get_client():vault_name() end
+---@return boolean
+local function is_in_vault() return require("obsidian"):get_client():vault_root():exists() end
 
--- Checks if the current file is a markdown file.
-local is_markdown_file = function() return vim.bo.filetype == "markdown" or vim.bo.filetype == "obsidian" end
+-- Checks if the current file is an Obsidian note.
+---@return boolean
+local function is_note() return require("obsidian"):get_client():path_is_note(vim.fn.expand("%:p")) end
 
--- FIXME: Not working as expected, only checks first buffer opened
--- Checks if the current file is in a vault and is a markdown file.
--- local is_in_vault_and_markdown = function()
---   local is_in_vault = is_in_vault()
---   local is_markdown_file = is_markdown_file()
---   vim.notify(
---     "is_in_vault: " .. tostring(is_in_vault) .. ", is_markdown_file: " .. tostring(is_markdown_file),
---     vim.log.levels.DEBUG
---   )
---   return is_in_vault and is_markdown_file
--- end
+--- Only enable these keymaps for markdown files in a vault
+vim.api.nvim_create_autocmd({ "FileType" }, {
+  pattern = "*",
+  callback = function()
+    local _is_note = is_note()
+    local _is_vault = is_in_vault()
+    local wk = require("which-key")
+    wk.add({
+      {
+        "<leader>od",
+        group = "Daily",
+        mode = { "n", "v" },
+        icon = { icon = "󰸗 ", color = "purple" },
+        cond = _is_vault,
+        {
+          "<leader>odt",
+          "<cmd>Obsidian today<cr>",
+          desc = "Today",
+          icon = { icon = "󰧓 ", color = "purple" },
+        },
+        {
+          "<leader>odT",
+          "<cmd>Obsidian tomorrow<cr>",
+          desc = "Tomorrow",
+          icon = { icon = "󱄵 ", color = "purple" },
+        },
+        {
+          "<leader>ody",
+          "<cmd>Obsidian yesterday<cr>",
+          desc = "Yesterday",
+          icon = { icon = "󱄴 ", color = "purple" },
+        },
+      },
+      {
+        "<leader>of",
+        "<cmd>Obsidian quick_switch<cr>",
+        desc = "Find Note",
+        icon = { icon = "󱙓 ", color = "purple" },
+        cond = _is_vault,
+      },
+      {
+        "<leader>ol",
+        group = "Link",
+        mode = { "v" },
+        icon = { icon = "󰌹 ", color = "purple" },
+        cond = _is_note,
+        {
+          "<leader>olf",
+          "<ESC><cmd>'<,'>Obsidian link<cr>",
+          desc = "Find",
+          mode = { "v" },
+          icon = { icon = "󱙓 ", color = "purple" },
+        },
+        {
+          "<leader>oln",
+          "<ESC><cmd>'<,'>Obsidian link_new<cr>",
+          desc = "New",
+          mode = { "v" },
+          icon = { icon = "󱄀 ", color = "purple" },
+        },
+      },
+      {
+        "<leader>on",
+        group = "New",
+        icon = { icon = "󰎜 ", color = "purple" },
+        cond = _is_vault,
+        {
+          "<leader>one",
+          "<ESC><cmd>'<,'>Obsidian extract_note<cr>",
+          desc = "Extract Selection",
+          mode = { "v" },
+          icon = { icon = "󰚸 ", color = "purple" },
+          cond = _is_note,
+        },
+        {
+          "<leader>onn",
+          "<cmd>Obsidian new<cr>",
+          desc = "Note",
+          icon = { icon = "󰎜 ", color = "purple" },
+        },
+        {
+          "<leader>ont",
+          "<cmd>Obsidian new_from_template<cr>",
+          desc = "Note from Template",
+          icon = { icon = "󰚹 ", color = "purple" },
+        },
+      },
+      {
+        "<leader>oo",
+        "<cmd>Obsidian open<cr>",
+        desc = "Open in Obsidian",
+        icon = { icon = "󰏋 ", color = "purple" },
+        cond = _is_note,
+      },
+      {
+        "<leader>or",
+        "<cmd>Obsidian rename<cr>",
+        desc = "Rename",
+        icon = { icon = "󰑕 ", color = "purple" },
+        cond = _is_note,
+      },
+      {
+        "<leader>os",
+        "<cmd>Obsidian search<cr>",
+        desc = "Search Text",
+        icon = { icon = "󱩾 ", color = "purple" },
+        cond = _is_vault,
+      },
+      {
+        "<leader>ot",
+        "<cmd>Obsidian template<cr>",
+        desc = "Template Picker",
+        icon = { icon = "󱙔 ", color = "purple" },
+        buffer = true,
+        cond = _is_note,
+      },
+    })
+  end,
+})
 
 return {
   {
@@ -306,107 +416,6 @@ return {
           mode = { "n", "v" },
           icon = { icon = "󱞁 ", color = "purple" },
           cond = function() return LazyVim.has("obsidian.nvim") end,
-          {
-            "<leader>od",
-            group = "Daily",
-            mode = { "n", "v" },
-            icon = { icon = "󰸗 ", color = "purple" },
-            {
-              "<leader>odt",
-              "<cmd>Obsidian today<cr>",
-              desc = "Today",
-              icon = { icon = "󰧓 ", color = "purple" },
-            },
-            {
-              "<leader>odT",
-              "<cmd>Obsidian tomorrow<cr>",
-              desc = "Tomorrow",
-              icon = { icon = "󱄵 ", color = "purple" },
-            },
-            {
-              "<leader>ody",
-              "<cmd>Obsidian yesterday<cr>",
-              desc = "Yesterday",
-              icon = { icon = "󱄴 ", color = "purple" },
-            },
-          },
-          {
-            "<leader>of",
-            "<cmd>Obsidian quick_switch<cr>",
-            desc = "Find Note",
-            icon = { icon = "󱙓 ", color = "purple" },
-          },
-          {
-            "<leader>ol",
-            group = "Link",
-            mode = { "v" },
-            cond = is_in_vault,
-            icon = { icon = "󰌹 ", color = "purple" },
-            {
-              "<leader>olf",
-              "<ESC><cmd>'<,'>Obsidian link<cr>",
-              desc = "Find",
-              mode = { "v" },
-              icon = { icon = "󱙓 ", color = "purple" },
-            },
-            {
-              "<leader>oln",
-              "<ESC><cmd>'<,'>Obsidian link_new<cr>",
-              desc = "New",
-              mode = { "v" },
-              icon = { icon = "󱄀 ", color = "purple" },
-            },
-          },
-          {
-            "<leader>on",
-            group = "New",
-            icon = { icon = "󰎜 ", color = "purple" },
-            {
-              "<leader>one",
-              "<ESC><cmd>'<,'>Obsidian extract_note<cr>",
-              desc = "Extract Selection",
-              mode = { "v" },
-              icon = { icon = "󰚸 ", color = "purple" },
-            },
-            {
-              "<leader>onn",
-              "<cmd>Obsidian new<cr>",
-              desc = "Note",
-              icon = { icon = "󰎜 ", color = "purple" },
-            },
-            {
-              "<leader>ont",
-              "<cmd>Obsidian new_from_template<cr>",
-              desc = "Note from Template",
-              icon = { icon = "󰚹 ", color = "purple" },
-            },
-          },
-          {
-            "<leader>oo",
-            "<cmd>Obsidian open<cr>",
-            desc = "Open in Obsidian",
-            icon = { icon = "󰏋 ", color = "purple" },
-          },
-          {
-            "<leader>or",
-            "<cmd>Obsidian rename<cr>",
-            desc = "Rename",
-            icon = { icon = "󰑕 ", color = "purple" },
-            cond = is_in_vault,
-          },
-          {
-            "<leader>os",
-            "<cmd>Obsidian search<cr>",
-            desc = "Search Text",
-            icon = { icon = "󱩾 ", color = "purple" },
-          },
-          {
-            "<leader>ot",
-            "<cmd>Obsidian template<cr>",
-            desc = "Template Picker",
-            icon = { icon = "󱙔 ", color = "purple" },
-            cond = is_in_vault,
-          },
           {
             "<leader>ow",
             group = "Workspace",
