@@ -2,10 +2,7 @@
 -- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
 -- Add any additional options here
 
--- mouse
--- vim.opt.mousemoveevent = true
-
--- blinking cursor
+-- Cursor
 vim.opt.guicursor = {
   --- Shape
   "i-c-ci-ve:ver50",
@@ -63,6 +60,7 @@ vim.g.lazyvim_blink_main = true
 -- Default picker
 vim.g.lazyvim_picker = "snacks"
 
+-- TODO: use `:h provider`
 -- Use global mise tools, skipping local
 local _tools = { "node", "lua", "luarocks", "ruby", "python" }
 for _, _t in ipairs(_tools) do
@@ -71,3 +69,7 @@ end
 
 -- Use prettier only when .prettierrc is found in project
 vim.g.lazyvim_prettier_needs_config = true
+
+-- Backup files to standard dir, see `:h backup`
+vim.opt.backup = true
+vim.opt.backupdir = vim.fn.stdpath("state") .. "/backup"
