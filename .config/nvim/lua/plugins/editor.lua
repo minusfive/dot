@@ -1,6 +1,27 @@
 --- Keymap Group: Lazy
 local kmg_lazy = "<leader>L"
 
+--- Only enable `treesj` keymaps for supported languages
+vim.api.nvim_create_autocmd({ "FileType" }, {
+  pattern = "*",
+  callback = function()
+    if not LazyVim.has("treesj") then return end
+    local opts = { buffer = true }
+    local cmd = "join"
+    if require("treesj.langs")["presets"][vim.bo.filetype] then cmd = "TSJToggle" end
+    vim.keymap.set("n", "<leader>j", "<cmd>" .. cmd .. "<cr>", opts)
+    vim.keymap.set("v", "<leader>j", "<cmd>'<,'>" .. cmd .. "<cr>", opts)
+  end,
+})
+
+---@module "trouble"
+---@type trouble.Mode|{}
+local shared_trouble_bottom_modes_config = {
+  win = {
+    size = 30,
+  },
+}
+
 return {
   -- Text manipulation
   -- TODO: give this a proper test, or remove
@@ -13,25 +34,9 @@ return {
   -- More powerful joining of lines
   {
     "Wansmer/treesj",
-    keys = {
-      { "J", "<cmd>TSJToggle<cr>", desc = "Join Toggle" },
-    },
     opts = {
       use_default_keymaps = false,
-      max_join_length = 150,
-    },
-  },
-
-  -- Git markers on sign column
-  {
-    "lewis6991/gitsigns.nvim",
-
-    ---@module "gitsigns"
-    ---@type Gitsigns.Config | {}
-    opts = {
-      numhl = false,
-      linehl = false,
-      culhl = true,
+      max_join_length = 120,
     },
   },
 
@@ -41,12 +46,10 @@ return {
     optional = true,
     ---@type trouble.Config
     opts = {
+      ---@type table<string, trouble.Mode|{}>
       modes = {
-        qflist = {
-          win = {
-            size = 20,
-          },
-        },
+        qflist = shared_trouble_bottom_modes_config,
+        diagnostics = shared_trouble_bottom_modes_config,
       },
     },
   },
