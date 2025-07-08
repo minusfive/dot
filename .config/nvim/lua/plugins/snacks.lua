@@ -109,6 +109,10 @@ return {
 
       -- Indentation guides
       indent = {
+        chunk = {
+          enabled = true,
+          only_current = true,
+        },
         indent = {
           only_current = true,
           only_scope = true,
