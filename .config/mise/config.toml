@@ -10,6 +10,7 @@ python.uv_venv_create_args = ["--seed"]
 
 [tools]
 bun = "latest"
+deno = "latest"
 go = "latest"
 lua = "5.1"
 node = "latest"
