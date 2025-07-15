@@ -68,6 +68,14 @@ return {
             SnacksDashboardSpecial = { fg = colors.overlay1 },
             SnacksDashboardTitle = { fg = colors.surface1, style = { "underline" } },
 
+            -- Text Dimming
+            SnacksDim = { fg = colors.surface2, style = {} },
+
+            -- Indentation Lines
+            SnacksIndent = { fg = colors.surface0 },
+            SnacksIndentScope = { fg = colors.surface1 },
+            SnacksIndentChunk = { fg = colors.surface1 },
+
             -- Picker
             SnacksPickerTitle = { link = "Search" },
             SnacksPickerCursorLine = { link = "PmenuSel" },
@@ -79,11 +87,6 @@ return {
             SnacksPickerPreviewTitle = { bg = colors.sapphire, fg = colors.base },
             SnacksPickerPrompt = { link = "Command" },
             SnacksPickerToggle = vim.tbl_extend("force", {}, search_hl, { style = { "italic" } }),
-
-            -- Make some elements more subtle
-            SnacksIndent = { fg = colors.surface0 },
-            SnacksIndentScope = { fg = colors.surface1 },
-            SnacksIndentChunk = { fg = colors.surface1 },
 
             -- Command utils themed with command mode colors (orange-ish)
             Command = { fg = colors.peach },
