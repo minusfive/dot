@@ -49,6 +49,25 @@ local pickerWinCommonKeymaps = {
   ["<A-PageUp>"] = { "list_scroll_up", desc = "List Scroll Up", mode = { "n", "i", "v" } },
 }
 
+---Increase or reset terminal font size. Only supports WezTerm (for now).
+---Requires tmux setting or no effect: set-option -g allow-passthrough on
+---@param shouldIncreaseFontSize boolean
+local function toggleFontSize(shouldIncreaseFontSize)
+  if vim.env.TERM_PROGRAM ~= "WezTerm" then
+    vim.notify("Font size manipulation only supported on WezTerm", vim.log.levels.WARN, { title = "Snacks" })
+    return
+  end
+  local fontSize = shouldIncreaseFontSize and "+4" or "RESET"
+  local stdout = vim.loop.new_tty(1, false)
+  stdout:write(
+    ("\x1bPtmux;\x1b\x1b]1337;SetUserVar=%s=%s\b\x1b\\"):format(
+      "WEZTERM_CHANGE_FONT_SIZE",
+      vim.fn.system({ "base64" }, fontSize)
+    )
+  )
+  vim.cmd([[redraw]])
+end
+
 return {
   {
     "folke/snacks.nvim",
@@ -276,6 +295,25 @@ return {
       statuscolumn = {
         left = { "sign", "git" },
         right = { "mark", "fold" },
+      },
+
+      -- Zen Mode
+      zen = {
+        on_open = function() toggleFontSize(true) end,
+        on_close = function() toggleFontSize(false) end,
+
+        toggles = {
+          dim = true,
+          -- git_signs = false,
+          -- mini_diff_signs = false,
+          indent = false,
+          -- diagnostics = false,
+          -- inlay_hints = false,
+        },
+
+        win = {
+          backdrop = { transparent = false, bg = require("catppuccin.palettes").get_palette().base },
+        },
       },
     },
 

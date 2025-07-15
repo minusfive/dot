@@ -215,28 +215,31 @@ config.keys = {
   { key = "PageDown", mods = "SHIFT", action = act.ScrollByPage(0.5) },
 }
 
--- folke/zen-mode.nvim
+-- Listen to variable changes
 wezterm.on("user-var-changed", function(window, pane, name, value)
-  local overrides = window:get_config_overrides() or {}
-  if name == "ZEN_MODE" then
+  -- Set font size. Used by Snacks.nvim/zen
+  if name == "WEZTERM_CHANGE_FONT_SIZE" then
+    local overrides = window:get_config_overrides() or {}
     local incremental = value:find("+")
     local number_value = tonumber(value)
-    if incremental ~= nil then
+
+    if value == "RESET" then
+      window:perform_action(wezterm.action.ResetFontSize, pane)
+      overrides.font_size = nil
+      overrides.enable_tab_bar = true
+    elseif incremental ~= nil then
       while number_value > 0 do
         window:perform_action(wezterm.action.IncreaseFontSize, pane)
         number_value = number_value - 1
       end
       overrides.enable_tab_bar = false
-    elseif number_value < 0 then
-      window:perform_action(wezterm.action.ResetFontSize, pane)
-      overrides.font_size = nil
-      overrides.enable_tab_bar = true
     else
       overrides.font_size = number_value
       overrides.enable_tab_bar = false
     end
+
+    window:set_config_overrides(overrides)
   end
-  window:set_config_overrides(overrides)
 end)
 
 -- and finally, return the configuration to wezterm
