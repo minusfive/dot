@@ -1,0 +1,17 @@
+adjust-cell-height = 4
+
+auto-update-channel = tip
+
+custom-shader = ~/.config/ghostty/shaders/cursor_synesthaxia(tweened).glsl
+
+font-size = 17
+font-thicken = false
+font-thicken-strength = 50
+
+macos-non-native-fullscreen = visible-menu
+macos-titlebar-style = tabs
+
+shell-integration = detect
+
+theme = catppuccin-mocha
+
