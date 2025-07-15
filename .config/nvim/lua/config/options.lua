@@ -32,7 +32,7 @@ vim.opt.linebreak = true
 vim.opt.breakat:append("_")
 vim.opt.breakindent = true
 vim.opt.breakindentopt:append({
-  "shift:3",
+  "shift:2",
   -- "sbr", -- Display the 'showbreak' value before applying the additional indent.
 })
 -- vim.opt.cpoptions:append("n")
@@ -73,3 +73,12 @@ vim.g.lazyvim_prettier_needs_config = true
 -- Backup files to standard dir, see `:h backup`
 vim.opt.backup = true
 vim.opt.backupdir = vim.fn.stdpath("state") .. "/backup"
+
+-- Are we using Ghostty?
+vim.g.is_term_ghostty = vim.env["TERM"] == "xterm-ghostty"
+
+-- Ghostty terminal support
+if vim.g.is_term_ghostty then
+  -- Add Ghostty plugins to the runtime path
+  vim.opt.runtimepath:append(",/Applications/Ghostty.app/Contents/Resources/nvim/site/")
+end

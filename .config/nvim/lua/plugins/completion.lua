@@ -13,7 +13,12 @@ local function keymap_index_text(ctx) return get_keymap_for_idx(ctx.idx) end
 ---Generates a keymap with indexed `accept` actions from 1 to 0 (0 being the 10th index)
 local indexed_keymap = (function()
   ---@type blink.cmp.KeymapConfig
-  local keymap = { preset = "super-tab", ["<C-S-y>"] = { "select_and_accept" } }
+  local keymap = {
+    preset = "super-tab",
+    ["<C-S-y>"] = { "select_and_accept" },
+    ["<PageUp>"] = { "scroll_documentation_up" },
+    ["<PageDown>"] = { "scroll_documentation_down" },
+  }
 
   for i = 1, 10 do
     local idx_map = get_keymap_for_idx(i)
@@ -34,7 +39,6 @@ return {
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
     opts = {
-      fuzzy = { implementation = "prefer_rust_with_warning" },
 
       completion = {
         accept = { auto_brackets = { enabled = false } },
@@ -66,10 +70,6 @@ return {
         },
       },
 
-      keymap = indexed_keymap,
-
-      -- signature = { enabled = true },
-
       -- TODO: Explore other ways of reverting overrides?
       -- Force enable commandline completion
       cmdline = vim.tbl_deep_extend("force", {}, require("blink.cmp.config").cmdline, {
@@ -79,6 +79,12 @@ return {
           ghost_text = { enabled = true },
         },
       }),
+
+      fuzzy = { prebuilt_binaries = { ignore_version_mismatch = true }, implementation = "prefer_rust_with_warning" },
+
+      keymap = indexed_keymap,
+
+      -- signature = { enabled = true },
     },
   },
 

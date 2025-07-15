@@ -36,6 +36,7 @@ end
 local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
 
 ---Intercept `vim.lsp.util.open_floating_preview` to set default options
+---@diagnostic disable-next-line: duplicate-set-field
 function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
   local max_dimensions = calc_max_dimensions()
   opts = opts or {}

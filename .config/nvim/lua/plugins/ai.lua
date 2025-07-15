@@ -13,20 +13,20 @@ return {
     },
   },
 
-  -- {
-  --   "saghen/blink.cmp",
-  --   ---@module 'blink.cmp'
-  --   ---@type blink.cmp.Config
-  --   opts = {
-  --     sources = {
-  --       providers = {
-  --         -- copilot = {
-  --         --   score_offset = 0,
-  --         -- },
-  --       },
-  --     },
-  --   },
-  -- },
+  {
+    "saghen/blink.cmp",
+    ---@module 'blink.cmp'
+    ---@type blink.cmp.Config
+    opts = {
+      sources = {
+        providers = {
+          copilot = {
+            score_offset = 0,
+          },
+        },
+      },
+    },
+  },
 
   {
     "olimorris/codecompanion.nvim",
@@ -45,6 +45,9 @@ return {
               show_default_actions = true,
               show_default_prompt_library = true,
             },
+          },
+          diff = {
+            provider = "mini_diff",
           },
         },
         extensions = {
