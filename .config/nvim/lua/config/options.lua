@@ -10,7 +10,7 @@ vim.opt.guicursor = {
   "o-r-cr:hor50",
 
   --- Blink rate
-  "n-v-r-cr-sm:blinkwait175-blinkoff150-blinkon175",
+  "n-v-r-cr-c-ci-sm:blinkwait175-blinkoff150-blinkon175",
   "i:blinkwait700-blinkoff400-blinkon250",
 
   --- Highlights

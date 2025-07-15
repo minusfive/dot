@@ -86,12 +86,13 @@ return {
     "sphamba/smear-cursor.nvim",
     optional = true,
     -- Use native cursor shader on Ghostty
-    enabled = not vim.g.is_term_ghostty,
+    enabled = false and not vim.g.is_term_ghostty,
     opts = {
       stiffness = 0.8,
       trailing_stiffness = 0.5,
       distance_stop_animating = 0.3,
       legacy_computing_symbols_support = true,
+      cursor_color = "none",
     },
   },
 
