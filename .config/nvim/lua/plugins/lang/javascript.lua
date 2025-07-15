@@ -2,12 +2,15 @@ local common_settings = {
   preferGoToSourceDefinition = true,
   preferences = {
     importModuleSpecifier = "non-relative",
-    -- importModuleSpecifierEnding = "js",
     preferGoToSourceDefinition = true,
   },
 }
 
 local vue_ls_config = {
+  mason = false,
+  cmd = { "vue-language-server", "--stdio" },
+  filetypes = { "vue" },
+  root_markers = { "package.json" },
   on_init = function(client)
     client.handlers["tsserver/request"] = function(_, result, context)
       local clients = vim.lsp.get_clients({ bufnr = context.bufnr, name = "vtsls" })
@@ -27,7 +30,7 @@ local vue_ls_config = {
           payload,
         },
       }, { bufnr = context.bufnr }, function(_, r)
-        local response_data = { { id, r and r.body } }
+        local response_data = r and { { id, r.body } } or { { id } }
         client:notify("tsserver/response", response_data)
       end)
     end
@@ -49,7 +52,10 @@ return {
             typescript = common_settings,
           },
         },
-        volar = vue_ls_config,
+        volar = {
+          enabled = false,
+        },
+        vuels = vue_ls_config,
       },
     },
   },
