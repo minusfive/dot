@@ -3,6 +3,9 @@ if [[ "$TERM" == "wezterm" && -f $XDG_CONFIG_HOME/wezterm/shell-integration.sh ]
     source $XDG_CONFIG_HOME/wezterm/shell-integration.sh
 fi
 
+# Load custom functions
+source "$ZDOTDIR/custom_functions.zsh"
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -101,7 +104,6 @@ plugins=(
     # vi-mode
     zsh-vi-mode
     colored-man-pages
-    docker
     fast-syntax-highlighting
     git
     terraform
@@ -259,3 +261,8 @@ bindkey '^y' autosuggest-accept
 # Use 1Password SSH agent
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
 
+# The following lines have been added by Docker Desktop to enable Docker CLI completions.
+fpath=("$HOME/.docker/completions" $fpath)
+autoload -Uz compinit
+compinit
+# End of Docker CLI completions

@@ -1,3 +1,3 @@
 [hooks]
-enter = "wezterm cli set-tab-title \"󰒓  {{ config_root | basename }}\""
-leave = "wezterm cli set-tab-title ''"
+enter = { script = 'set_terminal_title "󰒓  {{ config_root | basename }}"', shell = "zsh" }
+leave = { script = "reset_terminal_title", shell = "zsh" }
