@@ -85,6 +85,8 @@ return {
   {
     "sphamba/smear-cursor.nvim",
     optional = true,
+    -- Use native cursor shader on Ghostty
+    enabled = not vim.g.is_term_ghostty,
     opts = {
       stiffness = 0.8,
       trailing_stiffness = 0.5,
