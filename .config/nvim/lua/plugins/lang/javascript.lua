@@ -37,6 +37,7 @@ local vue_ls_config = {
   end,
 }
 
+---@type LazySpec
 return {
   {
     "neovim/nvim-lspconfig",

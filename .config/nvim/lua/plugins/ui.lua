@@ -20,17 +20,7 @@ local lualine_vectorcode = {
   end,
 }
 
-local lualine_obsidian_vault = {
-  function() return "󰎞  " .. require("obsidian").get_client():vault_name() end,
-  cond = function()
-    if package.loaded["obsidian"] == nil then
-      return false
-    else
-      return not not require("obsidian").get_client():vault_name()
-    end
-  end,
-}
-
+---@type LazySpec
 return {
   -- Disable defaults
   { "lukas-reineke/indent-blankline.nvim", enabled = false }, -- Replaced by Snacks.indent
@@ -100,7 +90,6 @@ return {
   {
     "nvim-lualine/lualine.nvim",
     optional = true,
-
     opts = function(_, opts)
       -- Theme
       local colors = require("catppuccin.palettes").get_palette("mocha")
@@ -130,7 +119,12 @@ return {
       opts.sections.lualine_b = { "%l:%c", "%p%%", "g:obsidian" }
       opts.sections.lualine_c = { cmd }
       opts.sections.lualine_y = { lualine_vectorcode, getcwd, "branch" }
-      opts.sections.lualine_z = { lualine_obsidian_vault }
+      opts.sections.lualine_z = {
+        {
+          function() return "󰎞  " .. require("obsidian"):get_client():vault_name() end,
+          cond = function() return require("obsidian"):get_client():vault_root():exists() end,
+        },
+      }
 
       vim.list_extend(
         opts.options.disabled_filetypes.statusline,

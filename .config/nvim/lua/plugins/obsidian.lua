@@ -53,13 +53,13 @@ local get_note_path = function(spec)
   return path:with_suffix(".md")
 end
 
--- Removes `id`
 ---@param note obsidian.Note
 ---@return table
 local get_note_frontmatter = function(note)
   -- Add the title of the note as an alias.
   if note.title then note:add_alias(note.title) end
 
+  -- Remove `id` from default
   local out = { aliases = note.aliases, tags = note.tags }
 
   -- `note.metadata` contains any manually added fields in the frontmatter.
@@ -89,6 +89,12 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
     local _is_vault = is_in_vault()
     local wk = require("which-key")
     wk.add({
+      {
+        "<leader>ob",
+        "<cmd>Obsidian backlinks<cr>",
+        desc = "Backlinks",
+        icon = { icon = "󰌹 ", color = "purple" },
+      },
       {
         "<leader>od",
         group = "Daily",
@@ -123,28 +129,16 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
       },
       {
         "<leader>ol",
-        group = "Link",
+        "<ESC><cmd>'<,'>Obsidian link<cr>",
+        desc = "Link",
         mode = { "v" },
         icon = { icon = "󰌹 ", color = "purple" },
         cond = _is_note,
-        {
-          "<leader>olf",
-          "<ESC><cmd>'<,'>Obsidian link<cr>",
-          desc = "Find",
-          mode = { "v" },
-          icon = { icon = "󱙓 ", color = "purple" },
-        },
-        {
-          "<leader>oln",
-          "<ESC><cmd>'<,'>Obsidian link_new<cr>",
-          desc = "New",
-          mode = { "v" },
-          icon = { icon = "󱄀 ", color = "purple" },
-        },
       },
       {
         "<leader>on",
         group = "New",
+        mode = { "n", "v" },
         icon = { icon = "󰎜 ", color = "purple" },
         cond = _is_vault,
         {
@@ -153,6 +147,14 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
           desc = "Extract Selection",
           mode = { "v" },
           icon = { icon = "󰚸 ", color = "purple" },
+          cond = _is_note,
+        },
+        {
+          "<leader>onl",
+          "<ESC><cmd>'<,'>Obsidian link_new<cr>",
+          desc = "Link",
+          mode = { "v" },
+          icon = { icon = "󱄀 ", color = "purple" },
           cond = _is_note,
         },
         {
@@ -225,7 +227,6 @@ return {
       -- required.
       "nvim-lua/plenary.nvim",
     },
-    keys = {},
 
     ---@module 'obsidian'
     ---@type obsidian.config.ClientOpts|{}
@@ -244,6 +245,19 @@ return {
       ---@type obsidian.config.PickerOpts|{}
       picker = {
         name = "snacks.pick", -- or 'fzf' or 'builtin'
+      },
+
+      footer = {
+        -- enabled = true, -- turn it off
+        -- separator = true, -- turn it off
+        -- separator = "", -- insert a blank line
+        format = "words: {{words}}  ch: {{chars}}  props: {{properties}}  backlinks: {{backlinks}}",
+        -- format = "({{backlinks}} backlinks)", -- limit to backlinks
+        -- hl_group = "@property", -- Use another hl group
+      },
+
+      statusline = {
+        format = "words: {{words}}  ch: {{chars}}  props: {{properties}}  backlinks: {{backlinks}}",
       },
 
       -- a list of workspace names, paths, and configuration overrides.
@@ -293,47 +307,8 @@ return {
       -- optional, configure additional syntax highlighting / extmarks.
       -- this requires you have `conceallevel` set to 1 or 2. see `:help conceallevel` for more details.
       ui = {
+        -- Disabled so it doesn't conflict with `render-markdown.nvim`.
         enable = false, -- set to false to disable all additional syntax features
-        update_debounce = 200, -- update delay after a text change (in milliseconds)
-        max_file_length = 5000, -- disable ui features for files with more than this many lines
-        -- define how various check-boxes are displayed
-        ---@type table<string, obsidian.config.CheckboxSpec|{}>
-        checkboxes = {
-          -- NOTE: the 'char' value has to be a single character, and the highlight groups are defined below.
-          [" "] = { char = "󰄱", hl_group = "ObsidianTodo" },
-          ["x"] = { char = "", hl_group = "ObsidianDone" },
-          [">"] = { char = "", hl_group = "ObsidianRightArrow" },
-          ["~"] = { char = "󰰱", hl_group = "ObsidianTilde" },
-          ["!"] = { char = "", hl_group = "ObsidianImportant" },
-          -- Replace the above with this if you don't have a patched font:
-          -- [" "] = { char = "☐", hl_group = "ObsidianTodo" },
-          -- ["x"] = { char = "✔", hl_group = "ObsidianDone" },
-
-          -- You can also add more custom ones...
-        },
-        -- Use bullet marks for non-checkbox lists.
-        bullets = { char = "•", hl_group = "ObsidianBullet" },
-        external_link_icon = { char = "", hl_group = "ObsidianExtLinkIcon" },
-        -- Replace the above with this if you don't have a patched font:
-        -- external_link_icon = { char = "", hl_group = "ObsidianExtLinkIcon" },
-        reference_text = { hl_group = "ObsidianRefText" },
-        highlight_text = { hl_group = "ObsidianHighlightText" },
-        tags = { hl_group = "ObsidianTag" },
-        block_ids = { hl_group = "ObsidianBlockID" },
-        -- hl_groups = {
-        --   -- The options are passed directly to `vim.api.nvim_set_hl()`. See `:help nvim_set_hl`.
-        --   ObsidianTodo = { bold = true, fg = "#f78c6c" },
-        --   ObsidianDone = { bold = true, fg = "#89ddff" },
-        --   ObsidianRightArrow = { bold = true, fg = "#f78c6c" },
-        --   ObsidianTilde = { bold = true, fg = "#ff5370" },
-        --   ObsidianImportant = { bold = true, fg = "#d73128" },
-        --   ObsidianBullet = { bold = true, fg = "#89ddff" },
-        --   ObsidianRefText = { underline = true, fg = "#c792ea" },
-        --   ObsidianExtLinkIcon = { fg = "#c792ea" },
-        --   ObsidianTag = { italic = true, fg = "#89ddff" },
-        --   ObsidianBlockID = { italic = true, fg = "#89ddff" },
-        --   ObsidianHighlightText = { bg = "#75662e" },
-        -- },
       },
 
       -- customize how note ids are generated given an optional title.
@@ -376,11 +351,6 @@ return {
         --   return string.format("![%s](%s)", path.name, path)
         -- end,
       },
-
-      ---@type obsidian.config.StatuslineOpts|{}
-      statusline = {
-        format = "words: {{words}}  ch: {{chars}}  props: {{properties}}  backlinks: {{backlinks}}",
-      },
     },
   },
 
@@ -397,6 +367,37 @@ return {
           },
           files = {
             exclude = { ".obsidian" },
+          },
+        },
+      },
+    },
+  },
+
+  {
+    "folke/snacks.nvim",
+    ---@type snacks.Config|{}
+    opts = {
+      picker = {
+        actions = {
+          obsidian_find_or_create_note = function(picker)
+            if is_in_vault() and #picker:items() == 0 then
+              -- If no items are selected, create a new note.
+              local client = require("obsidian"):get_client()
+              local note = client:create_note({ title = picker.input:get(), dir = client:vault_root() })
+              client:open_note(note)
+            else
+              picker:action("confirm")
+            end
+          end,
+        },
+
+        grep = {
+          win = {
+            input = {
+              keys = {
+                ["<c-o>"] = { "obsidian_find_or_create_note", desc = "New Note", mode = { "n", "i", "v" } },
+              },
+            },
           },
         },
       },
