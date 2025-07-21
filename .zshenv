@@ -13,5 +13,3 @@ export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 # Disable Next.js telemetry
 # https://nextjs.org/telemetry
 export NEXT_TELEMETRY_DISABLED=1
-
-
