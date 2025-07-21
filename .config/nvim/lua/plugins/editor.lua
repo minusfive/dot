@@ -22,7 +22,15 @@ local shared_trouble_bottom_modes_config = {
   },
 }
 
+---@type LazySpec
 return {
+  --- Search and Replace UI
+  --- Unnecessary as qflist and cdo natively support this
+  {
+    "MagicDuck/grug-far.nvim",
+    enabled = false,
+  },
+
   -- Text manipulation
   -- TODO: give this a proper test, or remove
   {
@@ -40,6 +48,16 @@ return {
     },
   },
 
+  {
+    "folke/flash.nvim",
+    ---@module "flash"
+    ---@type Flash.Config
+    opts = {
+      modes = {
+        search = { enabled = true },
+      },
+    },
+  },
   -- Diagnostics
   {
     "folke/trouble.nvim",

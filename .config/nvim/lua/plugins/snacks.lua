@@ -49,6 +49,11 @@ local pickerWinCommonKeymaps = {
   ["<A-PageUp>"] = { "list_scroll_up", desc = "List Scroll Up", mode = { "n", "i", "v" } },
 }
 
+--- Keymaps for input picker
+local pickerInputKeymaps = vim.deepcopy(pickerWinCommonKeymaps)
+pickerInputKeymaps["<a-Up>"] = { "history_back", desc = "History Back", mode = { "n", "i", "v" } }
+pickerInputKeymaps["<a-Down>"] = { "history_forward", desc = "History Forward", mode = { "n", "i", "v" } }
+
 ---Increase or reset terminal font size. Only supports WezTerm (for now).
 ---Requires tmux setting or no effect: set-option -g allow-passthrough on
 ---@param shouldIncreaseFontSize boolean
@@ -68,6 +73,7 @@ local function toggleFontSize(shouldIncreaseFontSize)
   vim.cmd([[redraw]])
 end
 
+---@type LazySpec
 return {
   {
     "folke/snacks.nvim",
@@ -125,6 +131,15 @@ return {
           end,
         },
       },
+
+      -- Image Rendering
+      -- image = {
+      --   resolve = function(path, src)
+      --     if LazyVim.is_loaded("obsidian.nvim") and require("obsidian"):get_client():path_is_note(path) then
+      --       return require("obsidian.path").resolve(self, opts?) (src)
+      --     end
+      --   end,
+      -- },
 
       -- Indentation guides
       indent = {
