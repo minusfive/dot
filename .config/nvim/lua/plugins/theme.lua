@@ -53,7 +53,7 @@ return {
 
             -- Custom cursor colors per mode
             MCursorInsert = { bg = colors.green, fg = colors.mantle },
-            MCursorNormal = { bg = colors.text, fg = colors.mantle },
+            MCursorNormal = { bg = colors.blue, fg = colors.mantle },
             MCursorVisual = { bg = colors.text, fg = colors.mauve },
             MCursorReplace = { bg = colors.red, fg = colors.mantle },
             MCursorCommand = { link = "Search" },

@@ -5,7 +5,7 @@
 -- Cursor
 vim.opt.guicursor = {
   --- Shape
-  "i-c-ci-ve:ver50",
+  "i-c-ci:ver50",
   "n-v-sm:block",
   "o-r-cr:hor50",
 
@@ -14,10 +14,9 @@ vim.opt.guicursor = {
   "i:blinkwait700-blinkoff400-blinkon250",
 
   --- Highlights
-  "c-ci:MCursorCommand/lCursorCommand",
+  "c-ci-o:MCursorCommand/lCursorCommand",
   "i:MCursorInsert/lCursorInsert",
   "n:MCursorNormal/lCursorNormal",
-  "o:MCursorCommand/lCursorCommand",
   "r-cr:MCursorReplace/lCursorReplace",
   "v:MCursorVisual/lCursorVisual",
 }
