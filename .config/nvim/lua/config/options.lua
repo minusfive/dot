@@ -21,6 +21,9 @@ vim.opt.guicursor = {
   "v:MCursorVisual/lCursorVisual",
 }
 
+-- Numbers column
+vim.opt.numberwidth = 6
+
 -- don't hide stuff from me
 vim.opt.conceallevel = 0
 
@@ -35,6 +38,9 @@ vim.opt.breakindentopt:append({
   -- "sbr", -- Display the 'showbreak' value before applying the additional indent.
 })
 -- vim.opt.cpoptions:append("n")
+
+-- keep splits equal
+vim.opt.equalalways = true
 
 -- lines to keep at top / bottom
 vim.opt.scrolloff = 16
