@@ -18,7 +18,7 @@ local WindowManager = {
 }
 
 -- Global settings
-local defaultAnimationDuration = 0.1
+local defaultAnimationDuration = 0
 hs.window.animationDuration = defaultAnimationDuration
 hs.window.highlight.ui.overlay = true
 hs.window.highlight.ui.overlayColor = { hex = "#11111b", alpha = 0.000001 }
@@ -47,6 +47,11 @@ WindowManager.layout = {
   rightCenter33 = { x = 0.50, y = 0, w = 0.3333, h = 1 }, --- Right of Center
   right33 = { x = 0.6666, y = 0, w = 0.3333, h = 1 },
 
+  --- 2/3
+  left66 = { x = 0, y = 0, w = 0.6666, h = 1 },
+  center66 = { x = 0.1666, y = 0, w = 0.6666, h = 1 },
+  right66 = { x = 0.3333, y = 0, w = 0.6666, h = 1 },
+
   topLeft33 = { x = 0, y = 0, w = 0.3333, h = 0.50 },
   topRight33 = { x = 0.6666, y = 0, w = 0.3333, h = 0.50 },
 
@@ -72,6 +77,8 @@ WindowManager.layout = {
 local function __optimize(window, fn)
   if not window then return end
 
+  if WindowManager.options.enableFocusedWindowHighlight then hs.window.highlight.stop() end
+
   local app = window:application()
   local ax_app = hs.axuielement.applicationElement(app)
   local was_enhanced = false
@@ -85,19 +92,15 @@ local function __optimize(window, fn)
     hs.window.animationDuration = 0
   end
 
-  if WindowManager.options.enableFocusedWindowHighlight then hs.window.highlight.stop() end
-
   local result = fn(window)
-
-  if WindowManager.options.enableFocusedWindowHighlight then
-    hs.timer.doAfter(hs.window.animationDuration + 0.02, hs.window.highlight.start)
-  end
 
   if ax_app and was_enhanced then
     -- restore original settings
     hs.window.animationDuration = defaultAnimationDuration
     ax_app.AXEnhancedUserInterface = was_enhanced
   end
+
+  if WindowManager.options.enableFocusedWindowHighlight then hs.window.highlight.start() end
 
   return result
 end
