@@ -48,16 +48,18 @@ return {
     },
   },
 
+  -- Labeled search
   {
     "folke/flash.nvim",
     ---@module "flash"
     ---@type Flash.Config
     opts = {
       modes = {
-        search = { enabled = true },
+        search = { enabled = false },
       },
     },
   },
+
   -- Diagnostics
   {
     "folke/trouble.nvim",
