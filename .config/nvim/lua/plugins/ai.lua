@@ -21,7 +21,7 @@ return {
       sources = {
         providers = {
           copilot = {
-            score_offset = 0,
+            score_offset = -1,
           },
         },
       },
