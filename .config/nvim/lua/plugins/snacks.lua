@@ -269,33 +269,17 @@ return {
         },
 
         sources = {
-          buffer = {
-            hidden = false,
-          },
-          explorer = {
-            hidden = true,
-          },
-          files = {
-            hidden = true,
-          },
-          grep = {
-            hidden = true,
-          },
-          smart = {
-            filter = { cwd = true },
-          },
+          buffer = { hidden = false },
+          explorer = { hidden = true },
+          files = { hidden = true },
+          grep = { hidden = true },
+          smart = { filter = { cwd = true } },
         },
 
         win = {
-          input = {
-            keys = pickerWinCommonKeymaps,
-          },
-          list = {
-            keys = pickerWinCommonKeymaps,
-          },
-          preview = {
-            keys = pickerWinCommonKeymaps,
-          },
+          input = { keys = pickerWinCommonKeymaps },
+          list = { keys = pickerWinCommonKeymaps },
+          preview = { keys = pickerWinCommonKeymaps },
         },
       },
 
@@ -341,12 +325,12 @@ return {
       {
         "<leader>fe",
         function() Snacks.explorer() end,
-        desc = "Explorer Snacks (cwd)",
+        desc = "File Explorer (cwd)",
       },
       {
         "<leader>fE",
         function() Snacks.explorer({ cwd = LazyVim.root() }) end,
-        desc = "Explorer Snacks (root dir)",
+        desc = "File Explorer (root dir)",
       },
     },
   },

@@ -93,10 +93,10 @@ return {
     opts = function(_, opts)
       -- Theme
       local colors = require("catppuccin.palettes").get_palette("mocha")
-      local cst = require("catppuccin.utils.lualine")("mocha")
-      cst.normal.b.bg = colors.base
-      cst.normal.c.bg = colors.base
-      opts.options.theme = cst
+      local theme = require("catppuccin.utils.lualine")("mocha")
+      theme.normal.b.bg = colors.base
+      theme.normal.c.bg = colors.base
+      opts.options.theme = theme
 
       -- local icons = require("lazyvim.config").icons
       local c = opts.sections.lualine_c
@@ -118,7 +118,12 @@ return {
       opts.sections.lualine_a = {}
       opts.sections.lualine_b = { "%l:%c", "%p%%", "g:obsidian" }
       opts.sections.lualine_c = { cmd }
-      opts.sections.lualine_y = { lualine_vectorcode, getcwd, "branch" }
+      opts.sections.lualine_y = {
+        "kulala",
+        lualine_vectorcode,
+        getcwd,
+        "branch",
+      }
       opts.sections.lualine_z = {
         {
           function() return "󰎞  " .. require("obsidian"):get_client():vault_name() end,
@@ -136,6 +141,10 @@ return {
       opts.winbar = {
         lualine_a = {
           {
+            "mode",
+            fmt = function(str) return str:sub(1, 1) end,
+          },
+          {
             "bo:modified",
             fmt = function(output) return output == "true" and "󱇧" or nil end,
             color = { bg = colors.yellow },
@@ -144,10 +153,6 @@ return {
             "bo:readonly",
             fmt = function(output) return output == "true" and "󰈡" or nil end,
             color = { bg = colors.red },
-          },
-          {
-            "mode",
-            fmt = function(str) return str:sub(1, 1) end,
           },
         },
 
