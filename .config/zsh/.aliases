@@ -2,8 +2,7 @@
 # = Command Shortcuts =
 # =====================
 # Use `eza` instead of `ls` with some default options
-alias l='eza --color=auto --icons=auto --classify=auto --group-directories-first --header --time-style=long-iso'
-alias ls='l'
+alias ls='eza --color=auto --no-quotes --across --icons=auto --classify=auto --group-directories-first --header --time-style=long-iso --octal-permissions --git'
 # Same as above + show all files except "." & ".."
 alias la='ls --all'
 # Same as above + long list + use powers of 1000 vs. 1024 + ISO time
