@@ -28,7 +28,7 @@ local function notify(title, message)
 end
 
 -- Set default settings
-hs.hotkey.alertDuration = 0.3
+hs.hotkey.alertDuration = 0
 hs.alert.defaultStyle = {
   strokeWidth = 0,
   strokeColor = { white = 0, alpha = 0 },
@@ -38,7 +38,7 @@ hs.alert.defaultStyle = {
   textStyle = { paragraphStyle = { lineSpacing = 10 } },
   textSize = 18,
   radius = 6,
-  atScreenEdge = 1,
+  atScreenEdge = 2,
   fadeInDuration = 0.05,
   fadeOutDuration = 0.05,
   padding = 18,
@@ -56,8 +56,6 @@ local commonModalSpecs = {
 ---@type hs.hotkey.KeySpec[]
 local normalSpecs = {
   -- Apps
-  -- meh + a: AppLauncher mode (one shot)
-  -- hyper + a: AppLauncher mode (sticky)
   { hk.mods.meh, "e", "Microsoft Outlook", al:openApp("Microsoft Outlook") }, -- email
   { hk.mods.meh, "f", "Finder", al:openApp("Finder") },
   { hk.mods.meh, "g", "Google Chrome", al:openApp("Google Chrome") },
@@ -78,9 +76,6 @@ local normalSpecs = {
   { hk.mods.hyper, "7", "1/2 Left", wm:move(wm.layout.left50) },
   { hk.mods.hyper, "8", "1/2 Center", wm:move(wm.layout.center50) },
   { hk.mods.hyper, "9", "1/2 Right", wm:move(wm.layout.right50) },
-
-  -- { hk.mods.meh, "5", "1/2 Top", wm:move(wm.layout.top50) },
-  -- { hk.mods.meh, "0", "1/2 Bottom", wm:move(wm.layout.bottom50) },
 
   { hk.mods.meh, "5", "1/3 Top-Left 1/2", wm:move(wm.layout.topRight33) },
   { hk.mods.meh, "6", "1/3 Left", wm:move(wm.layout.left33) },
@@ -132,14 +127,14 @@ local appLauncherSpecs = {
 
 ---@type Hotkeys.ModalSpec
 local modeAppLauncherOneShot = {
-  trigger = { hk.mods.meh, "a", "App Launcher" },
+  trigger = { hk.mods.meh, "tab", "App Launcher" },
   isOneShot = true,
   specs = appLauncherSpecs,
 }
 
 ---@type Hotkeys.ModalSpec
 local modeAppLauncherSticky = {
-  trigger = { hk.mods.hyper, "a", "App Launcher" },
+  trigger = { hk.mods.hyper, "tab", "App Launcher" },
   specs = appLauncherSpecs,
 }
 
@@ -172,7 +167,8 @@ local modeWindowManagerSticky = {
 -- System manipulation mode
 ---@type Hotkeys.ModalSpec
 local modeSystem = {
-  trigger = { hk.mods.meh, ",", "System" }, -- `cmd + ,` is the standard shortcut for preferences on macOS
+  -- `cmd + ,` is the standard shortcut for preferences on macOS
+  trigger = { hk.mods.meh, ",", "System" },
   isOneShot = true,
   specs = {
     { {}, "c", "Caffeine", cf.toggle },
