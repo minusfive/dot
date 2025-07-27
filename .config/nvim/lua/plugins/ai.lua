@@ -38,6 +38,17 @@ return {
     --- Use a function to ensure VectorCode is loaded before CodeCompanion
     opts = function()
       return {
+        adapters = {
+          copilot = function()
+            return require("codecompanion.adapters").extend("copilot", {
+              schema = {
+                model = {
+                  default = "claude-3.7-sonnet",
+                },
+              },
+            })
+          end,
+        },
         display = {
           action_palette = {
             provider = "snacks",
@@ -112,7 +123,6 @@ return {
         strategies = {
           chat = {
             adapter = "copilot",
-            model = "claude-3-7-sonnet",
             keymaps = {
               close = {
                 modes = {
@@ -136,11 +146,9 @@ return {
           },
           inline = {
             adapter = "copilot",
-            model = "claude-3-7-sonnet",
           },
           cmd = {
             adapter = "copilot",
-            model = "claude-3-7-sonnet",
           },
         },
       }
