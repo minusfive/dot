@@ -34,6 +34,10 @@ return {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
       "ravitemer/codecompanion-history.nvim",
+      {
+        "minusfive/codecompanion-agent-rules",
+        -- dev = true,
+      },
     },
     --- Use a function to ensure VectorCode is loaded before CodeCompanion
     opts = function()
@@ -62,6 +66,9 @@ return {
           },
         },
         extensions = {
+          agent_rules = {
+            enabled = true,
+          },
           history = {
             enabled = true,
             opts = {
