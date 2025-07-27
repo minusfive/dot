@@ -1,10 +1,32 @@
-local vaults = { personal = "Personal", work = "Work" }
+local vaults = { "Personal", "Work" }
 local vaults_dir = vim.fn.expand("~/Notes/")
 local date_format = "%Y-%m-%d"
 local time_format = "%H:%M:%S"
 local time_format_for_path = "%H-%M-%S" -- Used for file names to avoid colons.
 local day_format = "%A"
 local section_separator = " - "
+
+-- Checks whether vault path exists
+---@param vault string The name of the vault to check.
+---@return string|nil path The vault path
+local function get_vault_path(vault)
+  local vault_path = vaults_dir .. vault
+  if vim.fn.isdirectory(vault_path) == 1 then return vault_path end
+end
+
+-- Generates Obsidian workspaces after checking whether paths exist
+---@return obsidian.workspace.WorkspaceSpec[]
+local function get_obsidian_workspaces()
+  ---@type obsidian.workspace.WorkspaceSpec[]
+  local workspaces = {}
+  for _, vault in ipairs(vaults) do
+    local vault_path = get_vault_path(vault)
+    if vault_path then table.insert(workspaces, { name = vault, path = vault_path }) end
+  end
+  return workspaces
+end
+
+local workspaces = get_obsidian_workspaces()
 
 -- Cleans up the title by removing unwanted characters.
 local clean_title = function(title)
@@ -75,11 +97,19 @@ end
 
 -- Checks if we are currently in a vault.
 ---@return boolean
-local function is_in_vault() return require("obsidian"):get_client():vault_root():exists() end
+local function is_in_vault()
+  local client = require("obsidian").get_client()
+  if not client then return false end
+  return client:vault_root():exists()
+end
 
 -- Checks if the current file is an Obsidian note.
 ---@return boolean
-local function is_note() return require("obsidian"):get_client():path_is_note(vim.fn.expand("%:p")) end
+local function is_note()
+  local client = require("obsidian").get_client()
+  if not client then return false end
+  return client:path_is_note(vim.fn.expand("%:p"))
+end
 
 --- Only enable these keymaps for markdown files in a vault
 vim.api.nvim_create_autocmd({ "FileType" }, {
@@ -266,16 +296,7 @@ return {
       -- when obsidian.nvim is loaded by your plugin manager, it will automatically set
       -- the workspace to the first workspace in the list whose `path` is a parent of the
       -- current markdown file being edited.
-      workspaces = {
-        {
-          name = vaults.personal,
-          path = vaults_dir .. vaults.personal,
-        },
-        {
-          name = vaults.work,
-          path = vaults_dir .. vaults.work,
-        },
-      },
+      workspaces = workspaces,
 
       ---@type obsidian.config.DailyNotesOpts|{}
       daily_notes = {
@@ -325,10 +346,9 @@ return {
         -- Automatically switch to the correct workspace based on the current working directory.
         post_setup = function(client)
           local cwd = vim.fn.getcwd()
-          if string.find(cwd, "/dev/work/") then
-            client:switch_workspace(vaults.work)
-          elseif string.find(cwd, "/dev/personal/") then
-            client:switch_workspace(vaults.personal)
+          for _, workspace in pairs(workspaces) do
+            local dev_path = "/dev/" .. workspace.name:lower()
+            if string.find(cwd, dev_path) then client:switch_workspace(workspace.name) end
           end
         end,
       },
@@ -358,6 +378,7 @@ return {
     "folke/snacks.nvim",
     optional = true,
     opts = {
+      ---@module 'snacks'
       ---@type snacks.picker.Config
       picker = {
         sources = {
@@ -383,6 +404,10 @@ return {
             if is_in_vault() and #picker:items() == 0 then
               -- If no items are selected, create a new note.
               local client = require("obsidian"):get_client()
+              if not client then
+                vim.notify("No Obsidian client found. Please open a note in a vault.", vim.log.levels.WARN)
+                return
+              end
               local note = client:create_note({ title = picker.input:get(), dir = client:vault_root() })
               client:open_note(note)
             else
@@ -433,12 +458,24 @@ return {
               "<cmd>Obsidian workspace Personal<cr>",
               desc = "Personal",
               icon = { icon = "󰋜 ", color = "purple" },
+              cond = function()
+                for _, workspace in ipairs(workspaces) do
+                  if workspace.name == "Personal" then return true end
+                end
+                return false
+              end,
             },
             {
               "<leader>oww",
               "<cmd>Obsidian workspace Work<cr>",
               desc = "Work",
               icon = { icon = "󰦑 ", color = "purple" },
+              cond = function()
+                for _, workspace in ipairs(workspaces) do
+                  if workspace.name == "Work" then return true end
+                end
+                return false
+              end,
             },
           },
         },
