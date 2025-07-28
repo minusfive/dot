@@ -235,7 +235,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufLeave" }, {
 return {
   {
     "obsidian-nvim/obsidian.nvim",
-    dev = true,
+    -- dev = true,
     version = "*", -- recommended, use latest release instead of latest commit
     -- optional = true,
     lazy = true,
