@@ -30,6 +30,7 @@ return {
 
   {
     "olimorris/codecompanion.nvim",
+    -- dev = true,
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
@@ -61,6 +62,9 @@ return {
               show_default_prompt_library = true,
             },
           },
+          chat = {
+            intro_message = "",
+          },
           diff = {
             provider = "mini_diff",
           },
@@ -82,8 +86,6 @@ return {
               expiration_days = 0,
               -- Picker interface ("telescope" or "snacks" or "fzf-lua" or "default")
               picker = "snacks",
-              ---Automatically generate titles for new chats
-              auto_generate_title = true,
               ---On exiting and entering neovim, loads the last chat on opening chat
               continue_last_chat = false,
               ---When chat is cleared with `gx` delete the chat from history
@@ -92,6 +94,14 @@ return {
               dir_to_save = vim.fn.stdpath("data") .. "/codecompanion-history",
               ---Enable detailed logging for history extension
               enable_logging = false,
+              ---Automatically generate titles for new chats
+              auto_generate_title = true,
+              title_generation_opts = {
+                ---Adapter for generating titles (defaults to current chat adapter)
+                adapter = "copilot",
+                ---Model for generating titles (defaults to current chat model)
+                model = "gpt-4.1",
+              },
             },
           },
           mcphub = {
@@ -142,6 +152,11 @@ return {
                 index = 5,
                 callback = "keymaps.stop",
                 description = "Stop Request",
+              },
+            },
+            tools = {
+              opts = {
+                default_tools = { "neovim" },
               },
             },
           },
