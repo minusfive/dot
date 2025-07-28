@@ -98,21 +98,20 @@ end
 -- Checks if we are currently in a vault.
 ---@return boolean
 local function is_in_vault()
-  local client = require("obsidian").get_client()
-  if not client then return false end
-  return client:vault_root():exists()
+  if not (Obsidian and Obsidian.workspace) then return false end
+  return Obsidian.workspace.path:exists()
 end
 
 -- Checks if the current file is an Obsidian note.
 ---@return boolean
 local function is_note()
-  local client = require("obsidian").get_client()
-  if not client then return false end
-  return client:path_is_note(vim.fn.expand("%:p"))
+  local api = require("obsidian.api")
+  if not api then return false end
+  return api.path_is_note(vim.fn.expand("%:p"))
 end
 
 --- Only enable these keymaps for markdown files in a vault
-vim.api.nvim_create_autocmd({ "FileType" }, {
+vim.api.nvim_create_autocmd({ "BufEnter", "BufLeave" }, {
   pattern = "*",
   callback = function()
     local _is_note = is_note()
@@ -236,6 +235,7 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 return {
   {
     "obsidian-nvim/obsidian.nvim",
+    dev = true,
     version = "*", -- recommended, use latest release instead of latest commit
     -- optional = true,
     lazy = true,
@@ -321,7 +321,7 @@ return {
         time_format = time_format,
         -- a map for custom variables, the key should be the variable and the value a function
         substitutions = {
-          ["date:dddd"] = function() return os.date(day_format) end,
+          ["date:dddd"] = function() return tostring(os.date(day_format)) end,
         },
       },
 
@@ -344,11 +344,13 @@ return {
       ---@type obsidian.config.CallbackConfig|{}
       callbacks = {
         -- Automatically switch to the correct workspace based on the current working directory.
-        post_setup = function(client)
+        post_setup = function()
           local cwd = vim.fn.getcwd()
-          for _, workspace in pairs(workspaces) do
-            local dev_path = "/dev/" .. workspace.name:lower()
-            if string.find(cwd, dev_path) then client:switch_workspace(workspace.name) end
+          for _, ws in pairs(Obsidian.opts.workspaces) do
+            local dev_path = "/dev/" .. ws.name:lower()
+            if (Obsidian.workspace.name ~= ws.name) and string.find(cwd, dev_path) then
+              Obsidian.workspace.switch(ws.name)
+            end
           end
         end,
       },
@@ -403,13 +405,9 @@ return {
           obsidian_find_or_create_note = function(picker)
             if is_in_vault() and #picker:items() == 0 then
               -- If no items are selected, create a new note.
-              local client = require("obsidian"):get_client()
-              if not client then
-                vim.notify("No Obsidian client found. Please open a note in a vault.", vim.log.levels.WARN)
-                return
-              end
-              local note = client:create_note({ title = picker.input:get(), dir = client:vault_root() })
-              client:open_note(note)
+              local ObsidianNote = require("obsidian.note")
+              local note = ObsidianNote.create({ title = picker.input:get() })
+              ObsidianNote.open(note)
             else
               picker:action("confirm")
             end

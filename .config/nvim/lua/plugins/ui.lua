@@ -90,6 +90,7 @@ return {
   {
     "nvim-lualine/lualine.nvim",
     optional = true,
+
     opts = function(_, opts)
       -- Theme
       local colors = require("catppuccin.palettes").get_palette("mocha")
@@ -116,20 +117,10 @@ return {
       opts.options.section_separators = { "", "" }
 
       opts.sections.lualine_a = {}
-      opts.sections.lualine_b = { "%l:%c", "%p%%", "g:obsidian" }
+      opts.sections.lualine_b = { "%l:%c", "%p%%" }
       opts.sections.lualine_c = { cmd }
-      opts.sections.lualine_y = {
-        "kulala",
-        lualine_vectorcode,
-        getcwd,
-        "branch",
-      }
-      opts.sections.lualine_z = {
-        {
-          function() return "󰎞  " .. require("obsidian"):get_client():vault_name() end,
-          cond = function() return require("obsidian"):get_client():vault_root():exists() end,
-        },
-      }
+      opts.sections.lualine_y = { "kulala", lualine_vectorcode, getcwd, "branch" }
+      opts.sections.lualine_z = { { function() return "󰎞  " .. Obsidian.workspace.name end } }
 
       vim.list_extend(
         opts.options.disabled_filetypes.statusline,
@@ -140,10 +131,7 @@ return {
 
       opts.winbar = {
         lualine_a = {
-          {
-            "mode",
-            fmt = function(str) return str:sub(1, 1) end,
-          },
+          { "mode", fmt = function(str) return str:sub(1, 1) end },
           {
             "bo:modified",
             fmt = function(output) return output == "true" and "󱇧" or nil end,
@@ -156,16 +144,9 @@ return {
           },
         },
 
-        lualine_b = {
-          file_type_icon,
-          { "filename", file_status = false, path = 1 },
-        },
+        lualine_b = { file_type_icon, { "filename", file_status = false, path = 1 } },
         lualine_c = { symbols },
-        lualine_x = {
-          { "searchcount", color = "SearchCount" },
-          diagnostics,
-          diff,
-        },
+        lualine_x = { { "searchcount", color = "SearchCount" }, diagnostics, diff },
       }
 
       opts.inactive_winbar = {
