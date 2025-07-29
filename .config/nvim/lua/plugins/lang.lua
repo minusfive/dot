@@ -1,15 +1,17 @@
 ---Retrieves an LSP client by name
 ---@param name string
----@return vim.lsp.Client | nil
-local function getLSPClient(name) return vim.lsp.get_clients({ bufnr = 0, name = name })[1] end
+---@return vim.lsp.Client[]
+local function getLSPClientsByName(name) return vim.lsp.get_clients({ bufnr = 0, name = name }) end
 
 ---Toggles an LSP client by name
 ---@param name string
 ---@return nil
 local function toggleLSPClient(name)
-  local client = getLSPClient(name)
-  if client then
-    client:stop(true)
+  local clients = getLSPClientsByName(name)
+  if #clients > 0 then
+    for _, client in ipairs(clients) do
+      client:stop(true)
+    end
   else
     vim.cmd("LspStart " .. name)
   end
@@ -85,7 +87,7 @@ return {
         harper_ls = function()
           Snacks.toggle({
             name = "Grammar Checker",
-            get = function() return getLSPClient("harper_ls") ~= nil end,
+            get = function() return #getLSPClientsByName("harper_ls") > 0 end,
             set = function() toggleLSPClient("harper_ls") end,
           }):map("<leader>lg")
         end,
