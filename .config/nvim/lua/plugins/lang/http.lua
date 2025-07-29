@@ -4,8 +4,9 @@ return {
     "mistweaverco/kulala.nvim",
     branch = "develop",
     keys = {
+      { "<leader>Ra", "<cmd>lua require('kulala').run_all()<cr>", desc = "Send all requests", ft = "http" },
       {
-        "<leader>Ra",
+        "<leader>RA",
         "<cmd>lua require('kulala.ui.auth_manager').open_auth_config()<cr>",
         desc = "Auth Manager",
         ft = "http",
@@ -44,7 +45,7 @@ return {
         ["Show headers"] = { "<a-h>", function() require("kulala.ui").show_headers() end },
         ["Show script output"] = { "<a-o>", function() require("kulala.ui").show_script_output() end },
         ["Show report"] = { "<a-r>", function() require("kulala.ui").show_report() end },
-        ["Show stats"] = { "<a-s>", function() require("kulala.ui").show_stats() end },
+        ["Show stats"] = { "<a-i>", function() require("kulala.ui").show_stats() end },
         ["Show verbose"] = { "<a-v>", function() require("kulala.ui").show_verbose() end },
         ["Show help"] = { "?", function() require("which-key").show({ global = false }) end },
       },
