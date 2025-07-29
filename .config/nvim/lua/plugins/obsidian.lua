@@ -442,39 +442,9 @@ return {
           cond = function() return LazyVim.has("obsidian.nvim") end,
           {
             "<leader>ow",
-            group = "Workspace",
+            "<cmd>Obsidian workspace<cr>",
             desc = "Workspace Picker",
-            icon = { icon = "󰴕 ", color = "purple" },
-            {
-              "<leader>owf",
-              "<cmd>Obsidian workspace<cr>",
-              desc = "Find",
-              icon = { icon = "󰴕 ", color = "purple" },
-            },
-            {
-              "<leader>owp",
-              "<cmd>Obsidian workspace Personal<cr>",
-              desc = "Personal",
-              icon = { icon = "󰋜 ", color = "purple" },
-              cond = function()
-                for _, workspace in ipairs(workspaces) do
-                  if workspace.name == "Personal" then return true end
-                end
-                return false
-              end,
-            },
-            {
-              "<leader>oww",
-              "<cmd>Obsidian workspace Work<cr>",
-              desc = "Work",
-              icon = { icon = "󰦑 ", color = "purple" },
-              cond = function()
-                for _, workspace in ipairs(workspaces) do
-                  if workspace.name == "Work" then return true end
-                end
-                return false
-              end,
-            },
+            icon = { icon = " ", color = "purple" },
           },
         },
       },
