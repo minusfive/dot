@@ -280,14 +280,10 @@ return {
       footer = {
         -- enabled = true, -- turn it off
         -- separator = true, -- turn it off
-        -- separator = "", -- insert a blank line
+        separator = "", -- insert a blank line
         format = "words: {{words}}  ch: {{chars}}  props: {{properties}}  backlinks: {{backlinks}}",
         -- format = "({{backlinks}} backlinks)", -- limit to backlinks
         -- hl_group = "@property", -- Use another hl group
-      },
-
-      statusline = {
-        format = "words: {{words}}  ch: {{chars}}  props: {{properties}}  backlinks: {{backlinks}}",
       },
 
       -- a list of workspace names, paths, and configuration overrides.
