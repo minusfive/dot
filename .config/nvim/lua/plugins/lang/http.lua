@@ -16,7 +16,7 @@ return {
     },
 
     opts = {
-      environment_scope = "g",
+      environment_scope = "b",
 
       kulala_keymaps = {
         -- Defaults:
