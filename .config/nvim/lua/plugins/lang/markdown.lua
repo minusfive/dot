@@ -1,73 +1,5 @@
 local left_pad = 2
 
--- From: https://github.com/MeanderingProgrammer/render-markdown.nvim/issues/311
-local function find_all(buf, node, pattern)
-  local start_row, _, end_row, _ = node:range()
-  end_row = end_row + (start_row == end_row and 1 or 0)
-  local lines = vim.api.nvim_buf_get_lines(buf, start_row, end_row, false)
-  local result = {}
-  for row, line in ipairs(lines) do
-    ---@type integer|nil
-    local index = 1
-    while index ~= nil do
-      local start_index, end_index = line:find(pattern, index)
-      if start_index == nil or end_index == nil then
-        index = nil
-      else
-        table.insert(result, {
-          row = start_row + row - 1,
-          col = { start_index - 1, end_index },
-        })
-        index = end_index + 1
-      end
-    end
-  end
-  return result
-end
-local function mark(match, text)
-  return {
-    conceal = true,
-    start_row = match.row,
-    start_col = match.col[1],
-    opts = {
-      end_col = match.col[2],
-      conceal = "",
-      virt_text = { { text, "DiagnosticOk" } },
-      virt_text_pos = "inline",
-    },
-  }
-end
-local function render_dashes(root, buf)
-  local query =
-    vim.treesitter.query.parse("markdown_inline", '((inline) @replacements (#lua-match? @replacements "[%.%-][%.%-]"))')
-  local result = {}
-  for _, node in query:iter_captures(root, buf) do
-    local _, start_col, _, _ = node:range()
-    if start_col == 0 then
-      -- 3 or more dots
-      local ellipses = find_all(buf, node, "%.%.%.+")
-      for _, ellipse in ipairs(ellipses) do
-        table.insert(result, mark(ellipse, "…"))
-      end
-      -- 2 or more hyphens
-      local dashes = find_all(buf, node, "%-%-+")
-      for _, dash in ipairs(dashes) do
-        local width = dash.col[2] - dash.col[1]
-
-        local ems = math.floor(width / 3)
-        width = math.fmod(width, 3)
-
-        local ens = math.floor(width / 2)
-        width = math.fmod(width, 2)
-
-        local text = string.rep("—", ems) .. string.rep("–", ens) .. string.rep("-", width)
-
-        table.insert(result, mark(dash, text))
-      end
-    end
-  end
-  return result
-end
 ---@type LazySpec
 return {
   {
@@ -120,22 +52,29 @@ return {
         language = true,
       },
 
-      custom = {
-        -- This is used to render dashes and ellipses
-        markdown_inline = {
-          extends = true,
-          parse = render_dashes,
-        },
-      },
+      completions = { lsp = { enabled = true } },
 
       heading = {
         border = true,
         border_virtual = true,
         -- icons = { "󰲡  ", "󰲣  ", "󰲥  ", "󰲧  ", "󰲩  ", "󰲫  " },
         position = "inline",
-        -- left_pad = left_pad - 1,
+        left_pad = 0,
         -- sign = true,
         -- signs = { "󰫎 " },
+      },
+
+      link = {
+        custom = {
+          confluence = { pattern = "wiki%.autodesk%.com", icon = " " },
+          jira = { pattern = "jira%.autodesk%.com", icon = "󰌃 " },
+          markdown = { pattern = "%.md$", icon = " " },
+          javascript = { pattern = "%.js$", icon = "󰌞 " },
+          typescript = { pattern = "%.ts$", icon = "󰛦 " },
+          json = { pattern = "%.json5?$", icon = "󰘦 " },
+          python = { pattern = "%.py$", icon = "󰌠 " },
+          ruby = { pattern = "%.rb$", icon = " " },
+        },
       },
 
       paragraph = {
