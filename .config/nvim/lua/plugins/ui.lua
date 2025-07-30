@@ -167,8 +167,12 @@ return {
     "laytan/cloak.nvim",
     event = "VeryLazy",
     opts = function(_, opts)
-      opts.cloak_length = 5
       opts.cloak_on_leave = true
+      opts.patterns = opts.patterns or {}
+      table.insert(opts.patterns, {
+        file_pattern = "*.private.env.json",
+        cloak_pattern = { ': ".*"' },
+      })
 
       require("which-key").add({
         { "<leader>*", group = "Cloak", icon = LazyVim.config.icons.misc.dots },
