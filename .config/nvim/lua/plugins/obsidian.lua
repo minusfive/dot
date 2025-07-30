@@ -97,27 +97,27 @@ end
 
 -- Checks if we are currently in a vault.
 ---@return boolean
-local function is_in_vault()
+local is_in_vault = require("snacks.util").throttle(function()
   if not (Obsidian and Obsidian.workspace) then return false end
   return Obsidian.workspace.path:exists()
-end
+end, { ms = 100 })
 
 -- Checks if the current file is an Obsidian note.
 ---@return boolean
-local function is_note()
+local is_note = require("snacks.util").throttle(function()
   local api = require("obsidian.api")
-  if not api then return false end
-  return api.path_is_note(vim.fn.expand("%:p"))
-end
+  local bufPath = vim.api.nvim_buf_get_name(0)
+  if #bufPath < 1 or not api then return false end
+  return api.path_is_note(vim.api.nvim_buf_get_name(0), Obsidian.workspace)
+end, { ms = 100 })
 
 --- Only enable these keymaps for markdown files in a vault
-vim.api.nvim_create_autocmd({ "BufEnter", "BufLeave" }, {
+vim.api.nvim_create_autocmd({ "LspAttach" }, {
   pattern = "*",
   callback = function()
+    local _is_in_vault = is_in_vault()
     local _is_note = is_note()
-    local _is_vault = is_in_vault()
-    local wk = require("which-key")
-    wk.add({
+    require("which-key").add({
       {
         "<leader>ob",
         "<cmd>Obsidian backlinks<cr>",
@@ -129,7 +129,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufLeave" }, {
         group = "Daily",
         mode = { "n", "v" },
         icon = { icon = "󰸗 ", color = "purple" },
-        cond = _is_vault,
+        cond = _is_in_vault,
         {
           "<leader>odt",
           "<cmd>Obsidian today<cr>",
@@ -154,7 +154,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufLeave" }, {
         "<cmd>Obsidian quick_switch<cr>",
         desc = "Find Note",
         icon = { icon = "󱙓 ", color = "purple" },
-        cond = _is_vault,
+        cond = _is_in_vault,
       },
       {
         "<leader>ol",
@@ -169,7 +169,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufLeave" }, {
         group = "New",
         mode = { "n", "v" },
         icon = { icon = "󰎜 ", color = "purple" },
-        cond = _is_vault,
+        cond = _is_in_vault,
         {
           "<leader>one",
           "<ESC><cmd>'<,'>Obsidian extract_note<cr>",
@@ -218,7 +218,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufLeave" }, {
         "<cmd>Obsidian search<cr>",
         desc = "Search Text",
         icon = { icon = "󱩾 ", color = "purple" },
-        cond = _is_vault,
+        cond = _is_in_vault,
       },
       {
         "<leader>ot",
