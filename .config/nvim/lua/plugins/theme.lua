@@ -6,7 +6,7 @@ return {
     name = "catppuccin",
 
     ---@module 'catppuccin'
-    ---@type CatppuccinOptions
+    ---@type CatppuccinOptions|{}
     opts = {
       transparent_background = false,
       dim_inactive = {
@@ -20,13 +20,9 @@ return {
 
           return {
             -- Base
-            Normal = { bg = colors.base },
             CursorLine = { bg = colors.mantle },
-            CursorLineNr = { link = "CursorLine", fg = colors.text, style = { "bold" } },
+            CursorLineNr = { link = "CursorLine", style = { "bold" } },
             CursorLineSign = { link = "CursorLine" },
-            GitSignsAddCul = { bg = colors.mantle, fg = colors.green },
-            GitSignsChangeCul = { bg = colors.mantle, fg = colors.yellow },
-            GitSignsDeleteCul = { bg = colors.mantle, fg = colors.red },
 
             -- Visual selections with inverted colors matching lualine mode bg
             Visual = { bg = colors.mauve, fg = colors.mantle, style = { "bold" } },
@@ -49,6 +45,7 @@ return {
             CurSearch = { bg = colors.rosewater, fg = colors.base, style = { "bold" } },
             SearchCount = { fg = colors.peach },
             FlashMatch = { link = "Search" },
+            FlashPromptIcon = { link = "Search" },
             FlashLabel = { link = "CurSearch" },
 
             -- Custom cursor colors per mode
@@ -124,7 +121,7 @@ return {
   {
     "folke/tokyonight.nvim",
     name = "tokyonight",
-    -- optional = true,
+    enabled = false,
     opts = {
       dim_inactive = true,
       lualine_bold = true,
@@ -154,12 +151,8 @@ return {
   },
 
   {
-    "nyoom-engineering/oxocarbon.nvim",
-    name = "oxocarbon",
-    -- optional = true,
-    -- Add in any other configuration;
-    --   event = foo,
-    --   config = bar
-    --   end,
+    "ntk148v/habamax.nvim",
+    name = "habamax",
+    enabled = false,
   },
 }

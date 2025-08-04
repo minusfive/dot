@@ -56,6 +56,10 @@ return {
     opts = {
       modes = {
         search = { enabled = false },
+        char = { jump_labels = true },
+      },
+      prompt = {
+        prefix = { { " 󱤇  ", "FlashPromptIcon" }, { " " } },
       },
     },
   },
