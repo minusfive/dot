@@ -2,7 +2,6 @@
 return {
   {
     "mistweaverco/kulala.nvim",
-    branch = "develop",
     keys = {
       { "<leader>Ra", "<cmd>lua require('kulala').run_all()<cr>", desc = "Send all requests", ft = "http" },
       {
