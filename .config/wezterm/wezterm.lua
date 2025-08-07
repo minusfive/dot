@@ -2,48 +2,48 @@
 ---@param path string
 local function parent_dir(path) return path:match("(.*)/") end
 
--- Pull in the wezterm API
+--- Pull in the wezterm API
 local wezterm = require("wezterm")
 local catppuccin = wezterm.plugin.require("https://github.com/minusfive/catppuccin-wezterm")
 
 local act = wezterm.action
 
--- This table will hold the configuration.
+--- This table will hold the configuration.
 local config = {}
 
--- In newer versions of wezterm, use the config_builder which will
--- help provide clearer error messages
+--- In newer versions of wezterm, use the config_builder which will
+--- help provide clearer error messages
 if wezterm.config_builder then config = wezterm.config_builder() end
 
--- This is where you actually apply your config choices
--- Performance
+--- This is where you actually apply your config choices
+--- Performance
 config.front_end = "WebGpu"
 config.animation_fps = 60
 
 local contents_dir = parent_dir(wezterm.executable_dir)
 local resources_dir = contents_dir .. "/Resources"
 
--- Enable advanced features
+--- Enable advanced features
 config.set_environment_variables = {
   TERMINFO_DIRS = resources_dir .. "/terminfo",
   WSLENV = "TERMINFO_DIRS",
 }
 config.term = "wezterm"
 
--- Default working directory
+--- Default working directory
 config.default_cwd = wezterm.home_dir .. "/dev"
 
--- Get theme for customization
+--- Get theme for customization
 local ctp = wezterm.color.get_builtin_schemes()["Catppuccin Mocha"]
 
--- Colors
+--- Colors
 config.colors = {
   split = catppuccin.colors.mocha.surface0,
   selection_fg = catppuccin.colors.mocha.crust,
   selection_bg = catppuccin.colors.mocha.mauve,
 }
 
--- Tab bar
+--- Tab bar
 config.use_fancy_tab_bar = false -- Use retro tab bar
 config.hide_tab_bar_if_only_one_tab = true
 config.show_new_tab_button_in_tab_bar = false
@@ -74,7 +74,7 @@ wezterm.on("format-tab-title", function(tab, _, _, cfg, hover)
   }
 end)
 
--- Command and character selection palettes
+--- Command and character selection palettes
 config.command_palette_bg_color = catppuccin.colors.mocha.surface0
 config.command_palette_fg_color = catppuccin.colors.mocha.lavender
 config.command_palette_font_size = 18
@@ -82,7 +82,7 @@ config.char_select_bg_color = catppuccin.colors.mocha.surface0
 config.char_select_fg_color = catppuccin.colors.mocha.lavender
 config.char_select_font_size = 18
 
--- Windows
+--- Windows
 config.window_decorations = "RESIZE"
 config.window_padding = {
   bottom = 0,
@@ -91,17 +91,17 @@ config.window_padding = {
   top = 0,
 }
 
--- Panes
+--- Panes
 config.inactive_pane_hsb = {
   brightness = 0.7,
   saturation = 0.9,
 }
 
--- Cursor
+--- Cursor
 config.cursor_blink_rate = 333
 config.default_cursor_style = "BlinkingBlock"
 
--- Fonts & Typography
+--- Fonts & Typography
 config.font = wezterm.font({
   family = "JetBrains Mono",
   harfbuzz_features = { "calt=0", "clig=0", "liga=0" },
@@ -114,28 +114,28 @@ config.anti_alias_custom_block_glyphs = true
 config.bold_brightens_ansi_colors = true
 config.underline_position = -8
 
--- Keys
+--- Keys
 config.use_ime = false -- Send keycodes as they are
 config.enable_kitty_keyboard = true
 config.enable_csi_u_key_encoding = false
 
--- Set customized theme
+--- Set customized theme
 config.color_schemes = { ["Catppuccin Mocha (minusfive)"] = ctp }
 config.color_scheme = "Catppuccin Mocha (minusfive)"
 
--- Show active workspace in the status area
--- wezterm.on("update-right-status", function(window, pane)
--- 	window:set_right_status(window:active_workspace())
--- end)
+--- Show active workspace in the status area
+--- wezterm.on("update-right-status", function(window, pane)
+--- 	window:set_right_status(window:active_workspace())
+--- end)
 
--- Show which key table is active in the status area
+--- Show which key table is active in the status area
 wezterm.on("update-right-status", function(window)
   local name = window:active_key_table()
   if name then name = "TABLE: " .. name end
   window:set_right_status(name or "")
 end)
 
--- Key mappings
+--- Key mappings
 config.leader = {
   key = "Space",
   mods = "OPT",
@@ -215,9 +215,9 @@ config.keys = {
   { key = "PageDown", mods = "SHIFT", action = act.ScrollByPage(0.5) },
 }
 
--- Listen to variable changes
+--- Listen to variable changes
 wezterm.on("user-var-changed", function(window, pane, name, value)
-  -- Set font size. Used by Snacks.nvim/zen
+  --- Set font size. Used by Snacks.nvim/zen
   if name == "WEZTERM_CHANGE_FONT_SIZE" then
     local overrides = window:get_config_overrides() or {}
     local incremental = value:find("+")
@@ -242,5 +242,5 @@ wezterm.on("user-var-changed", function(window, pane, name, value)
   end
 end)
 
--- and finally, return the configuration to wezterm
+--- and finally, return the configuration to wezterm
 return config
