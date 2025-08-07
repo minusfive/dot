@@ -8,12 +8,12 @@ return {
     ---@module 'render-markdown'
     ---@type render.md.UserConfig
     opts = {
-      anti_conceal = {
-        ignore = {
-          indent = false,
-          virtual_lines = false,
-        },
-      },
+      -- anti_conceal = {
+      --   ignore = {
+      --     indent = false,
+      --     virtual_lines = false,
+      --   },
+      -- },
 
       bullet = {
         left_pad = 0,
@@ -43,7 +43,7 @@ return {
         language_border = "█",
         language_pad = 0,
         left_pad = left_pad + 1,
-        right_pad = 0,
+        -- right_pad = 0,
         width = "full",
 
         -- These affect how backtick lines are rendered
@@ -55,13 +55,10 @@ return {
       completions = { lsp = { enabled = true } },
 
       heading = {
-        border = true,
-        border_virtual = true,
-        -- icons = { "󰲡  ", "󰲣  ", "󰲥  ", "󰲧  ", "󰲩  ", "󰲫  " },
+        -- border = true,
         position = "inline",
-        left_pad = 0,
-        -- sign = true,
-        -- signs = { "󰫎 " },
+        above = "▂",
+        below = "🮂",
       },
 
       link = {
@@ -78,7 +75,7 @@ return {
       },
 
       paragraph = {
-        left_margin = left_pad,
+        -- left_margin = left_pad,
       },
 
       pipe_table = {
