@@ -1,3 +1,4 @@
+---@module 'obsidian'
 -- Notifications, command pop-ups, etc.
 local nui_options = {
   popup = {
@@ -7,7 +8,7 @@ local nui_options = {
   },
 }
 
-local function getcwd() return vim.fn.fnamemodify(vim.fn.getcwd(), ":t") end
+local function getcwd() return vim.fn.fnamemodify(vim.fn.getcwd(), ":~") end
 
 local lualine_vectorcode = {
   function() return require("vectorcode.integrations").lualine({ show_job_count = true })[1]() end,
@@ -118,16 +119,20 @@ return {
 
       opts.sections.lualine_a = {}
       opts.sections.lualine_b = { "%l:%c", "%p%%" }
-      opts.sections.lualine_c = { cmd }
-      opts.sections.lualine_y = { "kulala", lualine_vectorcode, getcwd, "branch" }
+      opts.sections.lualine_c = { cmd, lualine_vectorcode }
+      opts.sections.lualine_y = { getcwd }
       opts.sections.lualine_z = { { function() return "󰎞  " .. Obsidian.workspace.name end } }
 
-      vim.list_extend(
-        opts.options.disabled_filetypes.statusline,
-        { "neo-tree", "edgy", "snacks_picker_input", "snacks_picker_list", "snacks_picker_preview" }
-      )
+      -- vim.list_extend(opts.options.disabled_filetypes.statusline, {
+      --   "neo-tree",
+      --   "edgy",
+      --   "snacks_picker_input",
+      --   "snacks_picker_list",
+      --   "snacks_picker_preview",
+      -- })
 
-      opts.options.disabled_filetypes.winbar = vim.list_extend({}, opts.options.disabled_filetypes.statusline)
+      opts.options.disabled_filetypes.winbar =
+        vim.list_extend(opts.options.disabled_filetypes.winbar or {}, opts.options.disabled_filetypes.statusline)
 
       opts.winbar = {
         lualine_a = {
@@ -146,7 +151,13 @@ return {
 
         lualine_b = { file_type_icon, { "filename", file_status = false, path = 1 } },
         lualine_c = { symbols },
-        lualine_x = { { "searchcount", color = "SearchCount" }, diagnostics, diff },
+        lualine_x = {
+          "kulala",
+          { "searchcount", color = "SearchCount" },
+          { "branch", color = "Comment" },
+          diff,
+          diagnostics,
+        },
       }
 
       opts.inactive_winbar = {
