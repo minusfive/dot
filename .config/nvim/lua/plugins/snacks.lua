@@ -63,6 +63,7 @@ local function toggleFontSize(shouldIncreaseFontSize)
     return
   end
   local fontSize = shouldIncreaseFontSize and "+4" or "RESET"
+  ---@diagnostic disable-next-line: undefined-field
   local stdout = vim.loop.new_tty(1, false)
   stdout:write(
     ("\x1bPtmux;\x1b\x1b]1337;SetUserVar=%s=%s\b\x1b\\"):format(
@@ -71,6 +72,19 @@ local function toggleFontSize(shouldIncreaseFontSize)
     )
   )
   vim.cmd([[redraw]])
+end
+
+---Update the picker preview title for file items to include the file path.
+---@param ctx snacks.picker.preview.ctx
+local function update_picker_preview_file_title(ctx)
+  local res = Snacks.picker.preview.file(ctx)
+  if ctx.item.file then
+    local path = Snacks.picker.util.path(ctx.item) or ctx.item.file
+    path = Snacks.picker.util.truncpath(path, 80, { cwd = ctx.picker:cwd() })
+    -- WARN: `picker.preview:set_title(item.file)` doesn't work
+    ctx.picker.preview:set_title(path)
+  end
+  return res
 end
 
 ---@type LazySpec
@@ -269,11 +283,20 @@ return {
         },
 
         sources = {
-          buffer = { hidden = false },
+          buffer = {
+            hidden = false,
+            preview = update_picker_preview_file_title,
+          },
           explorer = { hidden = true },
-          files = { hidden = true },
+          files = {
+            hidden = true,
+            preview = update_picker_preview_file_title,
+          },
           grep = { hidden = true },
-          smart = { filter = { cwd = true } },
+          smart = {
+            filter = { cwd = true },
+            preview = update_picker_preview_file_title,
+          },
         },
 
         win = {
