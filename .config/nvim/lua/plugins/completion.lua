@@ -39,9 +39,14 @@ return {
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
     opts = {
-
       completion = {
-        accept = { auto_brackets = { enabled = false } },
+        accept = {
+          auto_brackets = {
+            enabled = false,
+            kind_resolution = { enabled = false },
+            semantic_token_resolution = { enabled = false },
+          },
+        },
         documentation = { window = { border = "rounded" } },
         menu = {
           border = "rounded",
