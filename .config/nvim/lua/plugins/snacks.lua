@@ -283,20 +283,11 @@ return {
         },
 
         sources = {
-          buffer = {
-            hidden = false,
-            preview = update_picker_preview_file_title,
-          },
+          buffer = { hidden = false, preview = update_picker_preview_file_title },
           explorer = { hidden = true },
-          files = {
-            hidden = true,
-            preview = update_picker_preview_file_title,
-          },
-          grep = { hidden = true },
-          smart = {
-            filter = { cwd = true },
-            preview = update_picker_preview_file_title,
-          },
+          files = { hidden = true, preview = update_picker_preview_file_title },
+          grep = { hidden = true, preview = update_picker_preview_file_title },
+          smart = { filter = { cwd = true }, preview = update_picker_preview_file_title },
         },
 
         win = {
