@@ -90,10 +90,11 @@ return {
             SnacksPickerPreviewCursorLine = { link = "SnacksPickerCursorLine" },
             SnacksPickerPreviewTitle = { bg = colors.sapphire, fg = colors.base, style = { "bold" } },
             SnacksPickerPrompt = { link = "Command" },
-            SnacksPickerToggle = { bg = colors.peach, style = { "italic" } },
+            SnacksPickerSelected = { bg = "", fg = colors.mauve },
+            SnacksPickerToggle = { bg = colors.flamingo, fg = colors.base, style = { "italic" } }, ---Title flags indicators
 
             -- Command utils themed with command mode colors (orange-ish)
-            -- Command = { fg = colors.peach },
+            Command = { fg = colors.peach },
             NoiceCmdlineIcon = { bg = colors.peach, fg = colors.mantle },
             NoiceCmdlineIconSearch = { bg = colors.peach, fg = colors.mantle },
             NoiceCmdlinePopupBorder = { fg = colors.peach },
