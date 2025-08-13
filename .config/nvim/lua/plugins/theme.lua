@@ -17,7 +17,7 @@ return {
       highlight_overrides = {
         all = function(colors)
           local utils = require("catppuccin.utils.colors")
-          local search_hl = { bg = utils.blend(colors.rosewater, colors.base, 0.3), fg = colors.peach }
+          local search_hl = { bg = utils.blend(colors.rosewater, colors.base, 0.2), fg = colors.peach }
 
           return {
             -- Base
@@ -26,11 +26,7 @@ return {
             CursorLineSign = { link = "CursorLine" },
 
             -- Visual selections with inverted colors matching lualine mode bg
-            Visual = {
-              bg = utils.blend(colors.mauve, colors.base, 0.2),
-              fg = colors.mauve,
-              style = { "bold", "underline" },
-            },
+            Visual = { bg = utils.blend(colors.mauve, colors.base, 0.15), fg = colors.mauve, style = { "bold" } },
             VisualNOS = { link = "Visual" },
 
             -- Floating Windows
@@ -45,7 +41,7 @@ return {
             PmenuThumb = { bg = colors.surface1 },
 
             -- Search
-            Search = search_hl,
+            Search = { bg = search_hl.bg, fg = search_hl.fg, style = { "underline" } },
             IncSearch = { link = "Search" },
             CurSearch = { bg = search_hl.bg, fg = colors.yellow, style = { "bold", "underline" } },
             SearchCount = { fg = colors.peach },
