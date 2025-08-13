@@ -54,12 +54,8 @@ return {
     ---@module "flash"
     ---@type Flash.Config
     opts = {
-      modes = {
-        search = { enabled = false },
-        char = { jump_labels = true },
-      },
       prompt = {
-        prefix = { { " 󱤇  ", "FlashPromptIcon" }, { " " } },
+        prefix = { { " 󱌯   ", "FlashPromptIcon" }, { " " } },
       },
     },
   },

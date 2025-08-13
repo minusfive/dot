@@ -16,7 +16,8 @@ return {
 
       highlight_overrides = {
         all = function(colors)
-          local search_hl = { bg = colors.peach, fg = colors.mantle }
+          local utils = require("catppuccin.utils.colors")
+          local search_hl = { bg = utils.blend(colors.rosewater, colors.base, 0.3), fg = colors.peach }
 
           return {
             -- Base
@@ -25,7 +26,11 @@ return {
             CursorLineSign = { link = "CursorLine" },
 
             -- Visual selections with inverted colors matching lualine mode bg
-            Visual = { bg = colors.mauve, fg = colors.mantle, style = { "bold" } },
+            Visual = {
+              bg = utils.blend(colors.mauve, colors.base, 0.2),
+              fg = colors.mauve,
+              style = { "bold", "underline" },
+            },
             VisualNOS = { link = "Visual" },
 
             -- Floating Windows
@@ -39,21 +44,23 @@ return {
             PmenuSbar = { link = "PmenuSel" },
             PmenuThumb = { bg = colors.surface1 },
 
-            -- Flash / search matching Noice colors
+            -- Search
             Search = search_hl,
             IncSearch = { link = "Search" },
-            CurSearch = { bg = colors.rosewater, fg = colors.base, style = { "bold" } },
+            CurSearch = { bg = search_hl.bg, fg = colors.yellow, style = { "bold", "underline" } },
             SearchCount = { fg = colors.peach },
-            FlashMatch = { link = "Search" },
-            FlashPromptIcon = { link = "Search" },
-            FlashLabel = { link = "CurSearch" },
+            FlashBackdrop = { fg = colors.overlay1 },
+            FlashMatch = { bg = search_hl.bg, fg = colors.peach },
+            FlashLabel = { bg = utils.blend(colors.teal, colors.base, 0.2), fg = colors.teal },
+            FlashPromptIcon = { bg = colors.peach, fg = colors.mantle },
+            FlashCurrent = { bg = search_hl.bg, fg = colors.yellow, style = { "bold", "underline" } },
 
             -- Custom cursor colors per mode
             MCursorInsert = { bg = colors.green, fg = colors.mantle },
             MCursorNormal = { bg = colors.blue, fg = colors.mantle },
-            MCursorVisual = { bg = colors.text, fg = colors.mauve },
+            MCursorVisual = { bg = colors.mauve, fg = colors.mantle },
             MCursorReplace = { bg = colors.red, fg = colors.mantle },
-            MCursorCommand = { link = "Search" },
+            MCursorCommand = { bg = colors.peach, fg = colors.mantle },
 
             -- Dashboard
             SnacksDashboardDesc = { fg = colors.text },
@@ -74,21 +81,21 @@ return {
             SnacksIndentChunk = { fg = colors.surface1 },
 
             -- Picker
-            SnacksPickerTitle = { link = "Search" },
+            SnacksPickerTitle = { bg = colors.peach, fg = colors.mantle, style = { "bold" } },
             SnacksPickerCursorLine = { link = "PmenuSel" },
             SnacksPickerListCursorLine = { link = "SnacksPickerCursorLine" },
             SnacksPickerListItemSign = { fg = colors.base },
             SnacksPickerListItemSignCursorLine = { bg = colors.surface0, fg = colors.peach },
-            SnacksPickerMatch = { bg = nil, fg = nil, style = { "underline" } },
+            SnacksPickerMatch = { fg = "", style = { "underline" } },
             SnacksPickerPreviewCursorLine = { link = "SnacksPickerCursorLine" },
-            SnacksPickerPreviewTitle = { bg = colors.sapphire, fg = colors.base },
+            SnacksPickerPreviewTitle = { bg = colors.sapphire, fg = colors.base, style = { "bold" } },
             SnacksPickerPrompt = { link = "Command" },
-            SnacksPickerToggle = vim.tbl_extend("force", {}, search_hl, { style = { "italic" } }),
+            SnacksPickerToggle = { bg = colors.peach, style = { "italic" } },
 
             -- Command utils themed with command mode colors (orange-ish)
-            Command = { fg = colors.peach },
-            NoiceCmdlineIcon = search_hl,
-            NoiceCmdlineIconSearch = search_hl,
+            -- Command = { fg = colors.peach },
+            NoiceCmdlineIcon = { bg = colors.peach, fg = colors.mantle },
+            NoiceCmdlineIconSearch = { bg = colors.peach, fg = colors.mantle },
             NoiceCmdlinePopupBorder = { fg = colors.peach },
             NoiceCmdlinePopupTitle = { fg = colors.peach },
 
