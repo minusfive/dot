@@ -18,6 +18,7 @@ return {
       bullet = {
         left_pad = 0,
         right_pad = 0,
+        icons = { "╸" },
       },
 
       checkbox = {
@@ -50,12 +51,20 @@ return {
         border = "thick",
         conceal_delimiters = false,
         language = true,
+
+        -- inline
+        -- inline_left = " ",
+        -- inline_right = " ",
+        inline_pad = 1,
       },
 
       completions = { lsp = { enabled = true } },
 
       heading = {
-        -- border = true,
+        icons = { "▉ ", "▍▍ ", "▏▏▏ ", "▏▏▏▏ ", "▏▏▏▏▏ ", "▏▏▏▏▏▏ " },
+        border = false,
+        border_prefix = false,
+        border_virtual = false,
         position = "inline",
         above = "▂",
         below = "🮂",
@@ -71,18 +80,19 @@ return {
           json = { pattern = "%.json5?$", icon = "󰘦 " },
           python = { pattern = "%.py$", icon = "󰌠 " },
           ruby = { pattern = "%.rb$", icon = " " },
+          excel = { pattern = "share%.autodesk%.com%/%:x%:%/", icon = "󱎏 " },
+          word = { pattern = "share%.autodesk%.com%/%:w%:%/", icon = "󱎒 " },
         },
       },
 
-      paragraph = {
-        -- left_margin = left_pad,
-      },
+      paragraph = {},
 
       pipe_table = {
         cell = "trimmed",
       },
 
       quote = {
+        icon = "▍ ",
         repeat_linebreak = true,
       },
     },

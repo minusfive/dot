@@ -33,7 +33,7 @@ delta = "latest"
 postinstall = [
   # Node.js
   "npm install -g npm@latest",
-  "npm install -g neovim@latest @vue/language-server@3.0 @mermaid-js/mermaid-cli@latest",
+  "npm install -g neovim@latest @vue/language-server@3.0 @mermaid-js/mermaid-cli@latest mcp-hub@latest",
   # Python
   "python -m ensurepip",
   "pip install --user --upgrade pip",

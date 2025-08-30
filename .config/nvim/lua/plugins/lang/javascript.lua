@@ -1,41 +1,66 @@
 local common_settings = {
-  preferGoToSourceDefinition = true,
+  -- preferGoToSourceDefinition = true,
   preferences = {
     importModuleSpecifier = "non-relative",
-    preferGoToSourceDefinition = true,
+    -- preferGoToSourceDefinition = true,
+  },
+  updateImportsOnFileMove = { enabled = "always" },
+  suggest = {
+    completeFunctionCalls = true,
+  },
+  inlayHints = {
+    enumMemberValues = { enabled = true },
+    functionLikeReturnTypes = { enabled = true },
+    parameterNames = { enabled = "literals" },
+    parameterTypes = { enabled = true },
+    propertyDeclarationTypes = { enabled = true },
+    variableTypes = { enabled = false },
   },
 }
 
-local vue_ls_config = {
-  mason = false,
-  cmd = { "vue-language-server", "--stdio" },
-  filetypes = { "vue" },
-  root_markers = { "package.json" },
-  on_init = function(client)
-    client.handlers["tsserver/request"] = function(_, result, context)
-      local clients = vim.lsp.get_clients({ bufnr = context.bufnr, name = "vtsls" })
-      if #clients == 0 then
-        vim.notify("Could not found `vtsls` lsp client, vue_lsp would not work without it.", vim.log.levels.ERROR)
-        return
-      end
-      local ts_client = clients[1]
-
-      local param = unpack(result)
-      local id, command, payload = unpack(param)
-      ts_client:exec_cmd({
-        title = "vue_request_forward", -- You can give title anything as it's used to represent a command in the UI, `:h Client:exec_cmd`
-        command = "typescript.tsserverRequest",
-        arguments = {
-          command,
-          payload,
-        },
-      }, { bufnr = context.bufnr }, function(_, r)
-        local response_data = r and { { id, r.body } } or { { id } }
-        client:notify("tsserver/response", response_data)
-      end)
-    end
-  end,
+local vue_plugin = {
+  name = "@vue/typescript-plugin",
+  location = vim.env.HOME
+    .. "/.local/share/mise/installs/node/latest/lib/node_modules/@vue/language-server/node_modules",
+  languages = { "vue" },
+  configNamespace = "typescript",
+  enableForWorkspaceTypeScriptVersions = true,
 }
+
+vim.lsp.config("vtsls", {
+  complete_function_calls = true,
+  settings = {
+    vtsls = {
+      enableMoveToFileCodeAction = true,
+      experimental = {
+        completion = {
+          -- enableServerSideFuzzyMatch = true,
+        },
+      },
+      autoUseWorkspaceTsdk = true,
+      javascript = common_settings,
+      typescript = common_settings,
+      tsserver = {
+        globalPlugins = {
+          vue_plugin,
+        },
+      },
+    },
+  },
+  filetypes = {
+    "javascript",
+    "javascriptreact",
+    "javascript.jsx",
+    "typescript",
+    "typescriptreact",
+    "typescript.tsx",
+    "vue",
+  },
+})
+
+--NOTE: Not necessary on current LSPConfig
+-- vim.lsp.config("vue_ls", vue_ls_config)
+vim.lsp.enable({ "vtsls", "vue_ls" })
 
 ---@type LazySpec
 return {
@@ -46,17 +71,9 @@ return {
       ---@module 'lspconfig'
       ---@type {[string]: lspconfig.Config|{}}
       servers = {
-        vtsls = {
-          root_markers = { ".git" },
-          settings = {
-            javascript = common_settings,
-            typescript = common_settings,
-          },
-        },
-        volar = {
-          enabled = false,
-        },
-        vuels = vue_ls_config,
+        vtsls = { enabled = false },
+        volar = { enabled = false },
+        vuels = { enabled = false },
       },
     },
   },

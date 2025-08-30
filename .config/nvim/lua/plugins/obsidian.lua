@@ -278,7 +278,7 @@ return {
       },
 
       footer = {
-        -- enabled = true, -- turn it off
+        enabled = false, -- turn it off
         -- separator = true, -- turn it off
         separator = "", -- insert a blank line
         format = "words: {{words}}  ch: {{chars}}  props: {{properties}}  backlinks: {{backlinks}}",

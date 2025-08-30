@@ -72,6 +72,33 @@ return {
     },
   },
 
+  -- Markdown, HTML, ASCIIDoc, SVG Previewer
+  {
+    "brianhuster/live-preview.nvim",
+    ft = { "markdown", "html", "svg" },
+
+    ---@module 'live-preview'
+    ---@param opts LivePreviewConfig
+    opts = function()
+      require("snacks.toggle")
+        .new({
+          name = "Preview in Browser",
+          get = function() return not not require("live-preview").is_running() end,
+          set = function()
+            local lp = require("live-preview")
+            local cmd = lp.is_running() and "close" or "start"
+            vim.cmd("LivePreview " .. cmd)
+          end,
+        })
+        :map("<leader>cp")
+    end,
+  },
+
+  {
+    "iamcco/markdown-preview.nvim",
+    enabled = false,
+  },
+
   -- Animation enhancements
   {
     "sphamba/smear-cursor.nvim",

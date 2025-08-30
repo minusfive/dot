@@ -1,3 +1,5 @@
+vim.lsp.enable("vectorcode_server")
+
 -- TODO: Explore LuaLine integration
 return {
   {
@@ -40,6 +42,7 @@ return {
         -- dev = true,
       },
     },
+    cmd = { "CodeCompanion" },
     --- Use a function to ensure VectorCode is loaded before CodeCompanion
     opts = function()
       return {
@@ -156,7 +159,7 @@ return {
             },
             tools = {
               opts = {
-                default_tools = { "neovim" },
+                -- default_tools = { "neovim" },
               },
             },
           },
@@ -223,16 +226,16 @@ return {
     version = "*", -- optional, depending on whether you're on nightly or release
     build = "uv tool upgrade vectorcode", -- optional but recommended. This keeps your CLI up-to-date.
     dependencies = { "nvim-lua/plenary.nvim" },
+    cmd = { "VectorCode" },
     ---@module "vectorcode"
-    ---@param opts VectorCode.Opts|{}
-    opts = function(_, opts)
-      return {
-        on_setup = {
-          update = true, -- whether to update the CLI on setup
-          lsp = false, -- whether to setup the LSP server
-        },
-      }
-    end,
+    ---@type VectorCode.Opts|{}
+    opts = {
+      async_backend = "lsp",
+      on_setup = {
+        update = true, -- whether to update the CLI on setup
+        lsp = true, -- whether to setup the LSP server
+      },
+    },
     keys = {
       {
         "<leader>au",
@@ -240,16 +243,6 @@ return {
         desc = "Update (VectorCode)",
         mode = { "n", "v" },
       },
-    },
-  },
-
-  {
-    "neovim/nvim-lspconfig",
-    ---@class PluginLspOpts
-    opts = {
-      ---@module 'lspconfig'
-      ---@type {[string]: lspconfig.Config|{}}
-      servers = { vectorcode_server = {} },
     },
   },
 }
