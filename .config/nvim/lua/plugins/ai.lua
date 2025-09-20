@@ -39,7 +39,7 @@ return {
       "ravitemer/codecompanion-history.nvim",
       {
         "minusfive/codecompanion-agent-rules",
-        -- dev = true,
+        dev = true,
       },
     },
     cmd = { "CodeCompanion" },

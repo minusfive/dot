@@ -1,13 +1,16 @@
+---@class MinusfiveUtils
+MinusfiveUtils = MinusfiveUtils or {}
+
 ---Retrieves an LSP client by name
 ---@param name string
 ---@return vim.lsp.Client[]
-local function getLSPClientsByName(name) return vim.lsp.get_clients({ bufnr = 0, name = name }) end
+function MinusfiveUtils.getLSPClientsByName(name) return vim.lsp.get_clients({ bufnr = 0, name = name }) end
 
 ---Toggles an LSP client by name
 ---@param name string
 ---@return nil
-local function toggleLSPClient(name)
-  local clients = getLSPClientsByName(name)
+function MinusfiveUtils.toggleLSPClient(name)
+  local clients = MinusfiveUtils.getLSPClientsByName(name)
   if #clients > 0 then
     for _, client in ipairs(clients) do
       client:stop(true)
@@ -47,6 +50,7 @@ function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
   return orig_util_open_floating_preview(contents, syntax, opts, ...)
 end
 
+---@type LazySpec
 return {
   {
     "neovim/nvim-lspconfig",
@@ -68,30 +72,6 @@ return {
         },
       },
       inlay_hints = { enabled = false },
-
-      ---@module 'lspconfig'
-      ---@type {[string]: lspconfig.Config|{}}
-      servers = {
-        harper_ls = {
-          autostart = false,
-          settings = {
-            ["harper-ls"] = {
-              userDictPath = "~/.config/harper/dictionaries/user.txt",
-              fileDictPath = "~/.config/harper/dictionaries/files/",
-              codeActions = { forceStable = true },
-            },
-          },
-        },
-      },
-      setup = {
-        harper_ls = function()
-          Snacks.toggle({
-            name = "Grammar Checker",
-            get = function() return #getLSPClientsByName("harper_ls") > 0 end,
-            set = function() toggleLSPClient("harper_ls") end,
-          }):map("<leader>lg")
-        end,
-      },
     },
     keys = {
       { "<leader>li", "<cmd>:LspInfo<cr>", desc = "Info" },
