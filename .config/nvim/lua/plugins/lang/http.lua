@@ -2,7 +2,7 @@
 return {
   {
     "mistweaverco/kulala.nvim",
-    branch = "develop",
+    -- branch = "develop",
     keys = {
       { "<leader>Ra", "<cmd>lua require('kulala').run_all()<cr>", desc = "Send all requests", ft = "http" },
       {
@@ -16,6 +16,7 @@ return {
     },
 
     opts = {
+      debug = true,
       environment_scope = "b",
 
       kulala_keymaps = {
@@ -44,7 +45,7 @@ return {
         ["Show headers and body"] = { "ga", function() require("kulala.ui").show_headers_body() end },
         ["Show headers"] = { "gh", function() require("kulala.ui").show_headers() end },
         ["Show script output"] = { "go", function() require("kulala.ui").show_script_output() end },
-        ["Show report"] = { "gr", function() require("kulala.ui").show_report() end },
+        ["Show report"] = { "gR", function() require("kulala.ui").show_report() end },
         ["Show stats"] = { "gs", function() require("kulala.ui").show_stats() end },
         ["Show verbose"] = { "gv", function() require("kulala.ui").show_verbose() end },
         ["Show help"] = { "?", function() require("which-key").show({ global = false }) end },
