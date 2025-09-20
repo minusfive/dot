@@ -49,6 +49,15 @@ Configuration files for Neovim:
 ### WezTerm Configurations
 
 - `.config/wezterm/wezterm.lua`: WezTerm terminal emulator configuration
+- `.config/wezterm/shell-completion.zsh`: WezTerm shell completions
+- `.config/wezterm/shell-integration.zsh`: WezTerm shell integration
+
+### Ghostty Configurations
+
+- `.config/ghostty/config`: Ghostty terminal emulator configuration
+- `.config/ghostty/shaders/cursor_smear.glsl`: Custom cursor shader
+- `.config/ghostty/shaders/cursor_smear_fade.glsl`: Custom cursor fade shader
+- `.config/ghostty/shaders/cursor_synesthaxia(tweened).glsl`: Custom synesthesia cursor shader
 
 ### Yazi Configurations
 
@@ -77,6 +86,8 @@ This project also includes configurations for:
 - 1Password (SSH agent)
 - harper (dictionary)
 - GNU stow
+- ghostty (terminal emulator)
+- delta (git diff viewer)
 
 ## Code Style Guidelines
 
@@ -91,6 +102,23 @@ This project also includes configurations for:
 - Test Neovim configurations with `tests/nvim/repro.lua`
 - Use mise.toml for tool version management
 - Configure plugins via their respective configuration files
+- Use Lima and Podman for virtualization and containerization
+- Use the AI development tools (vectorcode) for codebase navigation and assistance
+
+## AI Development
+
+This project includes support for AI development tools:
+
+- Setup using Lima and Podman for virtualization
+- Container orchestration using Docker Compose
+- VectorCode for semantic code search and navigation
+- Integration with AI assistants for development help
+
+To set up the AI services:
+
+1. Start Lima VM with `limactl start podman`
+2. Start AI services with `podman compose up --build -d`
+3. Index/vectorize files with `vectorcode vectorize`
 
 ## Project Dependencies
 
