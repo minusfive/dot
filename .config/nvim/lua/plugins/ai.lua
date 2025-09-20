@@ -37,10 +37,6 @@ return {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
       "ravitemer/codecompanion-history.nvim",
-      {
-        "minusfive/codecompanion-agent-rules",
-        dev = true,
-      },
     },
     cmd = { "CodeCompanion" },
     --- Use a function to ensure VectorCode is loaded before CodeCompanion
@@ -57,6 +53,7 @@ return {
             })
           end,
         },
+
         display = {
           action_palette = {
             provider = "snacks",
@@ -65,17 +62,17 @@ return {
               show_default_prompt_library = true,
             },
           },
+
           chat = {
             intro_message = "",
           },
+
           diff = {
             provider = "mini_diff",
           },
         },
+
         extensions = {
-          agent_rules = {
-            enabled = true,
-          },
           history = {
             enabled = true,
             opts = {
@@ -107,6 +104,7 @@ return {
               },
             },
           },
+
           mcphub = {
             callback = "mcphub.extensions.codecompanion",
             opts = {
@@ -115,6 +113,7 @@ return {
               show_result_in_chat = true,
             },
           },
+
           vectorcode = {
             opts = {
               add_tool = true,
@@ -134,6 +133,16 @@ return {
             },
           },
         },
+
+        memory = {
+          opts = {
+            chat = {
+              enabled = true,
+              default_memory = { "default" },
+            },
+          },
+        },
+
         strategies = {
           chat = {
             adapter = "copilot",
@@ -163,9 +172,11 @@ return {
               },
             },
           },
+
           inline = {
             adapter = "copilot",
           },
+
           cmd = {
             adapter = "copilot",
           },
