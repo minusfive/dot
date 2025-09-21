@@ -1,6 +1,20 @@
-vim.lsp.enable("vectorcode_server")
+local lualine_vectorcode = {
+  function() return require("vectorcode.integrations").lualine({ show_job_count = true })[1]() end,
+  cond = function()
+    if package.loaded["vectorcode"] == nil then
+      return false
+    else
+      return require("vectorcode.integrations").lualine({ show_job_count = true }).cond()
+    end
+  end,
+}
+
+--- Utility function to check if current working directory is a descendant of a given directory
+---@param ancestor_dir string
+local is_descendant_of_dir = function(ancestor_dir) return vim.fn.getcwd():find(ancestor_dir, 1, true) ~= nil end
 
 -- TODO: Explore LuaLine integration
+---@type LazySpec
 return {
   {
     "zbirenbaum/copilot.lua",
@@ -125,10 +139,10 @@ return {
                 default_num = { chunk = 50, document = 200 },
                 include_stderr = true,
                 use_lsp = true,
-                auto_submit = { ls = false, query = false },
+                auto_submit = { ls = true, query = true },
                 ls_on_start = true,
                 no_duplicate = true,
-                chunk_mode = false,
+                chunk_mode = true,
               },
             },
           },
@@ -138,7 +152,22 @@ return {
           opts = {
             chat = {
               enabled = true,
-              default_memory = { "default" },
+              default_memory = { "default", "ai", "work" },
+            },
+          },
+
+          ai = {
+            files = {
+              "~/.config/ai/RULES.md",
+              ".ai/RULES.md",
+            },
+          },
+
+          work = {
+            description = "Global memory files for work related projects",
+            enabled = function() return is_descendant_of_dir(vim.env.HOME .. "/dev/work") end,
+            files = {
+              "~/dev/work/.ai/RULES.md",
             },
           },
         },
@@ -221,7 +250,14 @@ return {
   {
     "ravitemer/mcphub.nvim",
     build = "npm install -g mcp-hub@latest",
-    config = function() require("mcphub").setup() end,
+    config = true,
+    ---@module 'mcphub'
+    ---@type MCPHub.Config
+    opts = {
+      workspace = {
+        look_for = { ".mcphub/servers.json", ".vscode/mcp.json", ".cursor/mcp.json", ".ai/mcp/servers.json" },
+      },
+    },
     keys = {
       {
         "<leader>am",
@@ -255,5 +291,24 @@ return {
         mode = { "n", "v" },
       },
     },
+  },
+
+  {
+    "neovim/nvim-lspconfig",
+    ---@class PluginLspOpts
+    opts = {
+      servers = { vectorcode_server = {} },
+    },
+  },
+
+  -- Statusline, Winbar and Bufferline (buffer tabs) configuration
+  {
+    "nvim-lualine/lualine.nvim",
+    optional = true,
+
+    opts = function(_, opts)
+      opts.sections = opts.sections or {}
+      opts.sections.lualine_c = table.insert(opts.sections.lualine_c or {}, lualine_vectorcode)
+    end,
   },
 }

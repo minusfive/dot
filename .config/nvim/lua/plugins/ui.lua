@@ -10,17 +10,6 @@ local nui_options = {
 
 local function getcwd() return vim.fn.fnamemodify(vim.fn.getcwd(), ":~") end
 
-local lualine_vectorcode = {
-  function() return require("vectorcode.integrations").lualine({ show_job_count = true })[1]() end,
-  cond = function()
-    if package.loaded["vectorcode"] == nil then
-      return false
-    else
-      return require("vectorcode.integrations").lualine({ show_job_count = true }).cond()
-    end
-  end,
-}
-
 ---@type LazySpec
 return {
   -- Disable defaults
@@ -127,36 +116,41 @@ return {
       theme.normal.c.bg = colors.base
       opts.options.theme = theme
 
-      -- local icons = require("lazyvim.config").icons
-      local c = opts.sections.lualine_c
-      local diagnostics = c[2]
-      local file_type_icon = c[3]
-      -- local pretty_path = c[4]
-      -- local root_dir = c[1]
-      local symbols = c[5]
-
-      local x = opts.sections.lualine_x
-      local cmd = table.remove(x, 1)
-      local diff = table.remove(x)
-
-      cmd.color = "Command"
-
       opts.options.component_separators = { "", "" }
       opts.options.section_separators = { "", "" }
 
       opts.sections.lualine_a = {}
       opts.sections.lualine_b = { "%l:%c", "%p%%" }
-      opts.sections.lualine_c = { cmd, lualine_vectorcode }
+      opts.sections.lualine_c = {
+        { "searchcount", color = "SearchCount" },
+      }
+
+      opts.sections.lualine_x = {
+        Snacks.profiler.status(),
+        {
+          function() return require("noice").api.status.command.get() end,
+          cond = function() return package.loaded["noice"] and require("noice").api.status.command.has() end,
+          color = function() return { fg = Snacks.util.color("Command") } end,
+        },
+        {
+          function() return require("noice").api.status.mode.get() end,
+          cond = function() return package.loaded["noice"] and require("noice").api.status.mode.has() end,
+          color = function() return { fg = Snacks.util.color("Constant") } end,
+        },
+        {
+          function() return "  " .. require("dap").status() end,
+          cond = function() return package.loaded["dap"] and require("dap").status() ~= "" end,
+          color = function() return { fg = Snacks.util.color("Debug") } end,
+        },
+        {
+          require("lazy.status").updates,
+          cond = require("lazy.status").has_updates,
+          color = function() return { fg = Snacks.util.color("Special") } end,
+        },
+      }
+
       opts.sections.lualine_y = { getcwd }
       opts.sections.lualine_z = { { function() return "󰎞  " .. Obsidian.workspace.name end } }
-
-      -- vim.list_extend(opts.options.disabled_filetypes.statusline, {
-      --   "neo-tree",
-      --   "edgy",
-      --   "snacks_picker_input",
-      --   "snacks_picker_list",
-      --   "snacks_picker_preview",
-      -- })
 
       opts.options.disabled_filetypes.winbar =
         vim.list_extend(opts.options.disabled_filetypes.winbar or {}, opts.options.disabled_filetypes.statusline)
@@ -176,16 +170,59 @@ return {
           },
         },
 
-        lualine_b = { file_type_icon, { "filename", file_status = false, path = 1 } },
-        lualine_c = { symbols },
+        lualine_b = {
+          { "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0 } },
+          { "filename", file_status = false, path = 1, padding = { left = 0, right = 0 } },
+        },
+        lualine_c = {},
         lualine_x = {
           "kulala",
-          { "searchcount", color = "SearchCount" },
+          {
+            "diagnostics",
+            symbols = {
+              error = LazyVim.config.icons.diagnostics.Error,
+              warn = LazyVim.config.icons.diagnostics.Warn,
+              info = LazyVim.config.icons.diagnostics.Info,
+              hint = LazyVim.config.icons.diagnostics.Hint,
+            },
+          },
           { "branch", color = "Comment" },
-          diff,
-          diagnostics,
+          {
+            "diff",
+            symbols = {
+              added = LazyVim.config.icons.git.added,
+              modified = LazyVim.config.icons.git.modified,
+              removed = LazyVim.config.icons.git.removed,
+            },
+            source = function()
+              local summary = vim.b.minidiff_summary
+              return summary
+                and {
+                  added = summary.add,
+                  modified = summary.change,
+                  removed = summary.delete,
+                }
+            end,
+          },
         },
       }
+
+      -- And allow it to be overriden for some buffer types (see autocmds)
+      if vim.g.trouble_lualine and LazyVim.has("trouble.nvim") then
+        local trouble = require("trouble")
+        local symbols = trouble.statusline({
+          mode = "symbols",
+          groups = {},
+          title = false,
+          filter = { range = true },
+          format = "{kind_icon}{symbol.name:Normal}",
+          hl_group = "lualine_c_normal",
+        })
+        table.insert(opts.winbar.lualine_c, {
+          symbols and symbols.get,
+          cond = function() return vim.b.trouble_lualine ~= false and symbols.has() end,
+        })
+      end
 
       opts.inactive_winbar = {
         lualine_c = opts.winbar.lualine_b,
