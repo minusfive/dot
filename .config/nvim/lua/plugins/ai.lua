@@ -1,19 +1,13 @@
+-- TODO: Explore LuaLine integration
+
 local lualine_vectorcode = {
-  function() return require("vectorcode.integrations").lualine({ show_job_count = true })[1]() end,
-  cond = function()
-    if package.loaded["vectorcode"] == nil then
-      return false
-    else
-      return require("vectorcode.integrations").lualine({ show_job_count = true }).cond()
-    end
-  end,
+  function() return require("vectorcode.integrations").lualine({ show_job_count = true }) end,
 }
 
 --- Utility function to check if current working directory is a descendant of a given directory
 ---@param ancestor_dir string
 local is_descendant_of_dir = function(ancestor_dir) return vim.fn.getcwd():find(ancestor_dir, 1, true) ~= nil end
 
--- TODO: Explore LuaLine integration
 ---@type LazySpec
 return {
   {
@@ -61,7 +55,7 @@ return {
             return require("codecompanion.adapters").extend("copilot", {
               schema = {
                 model = {
-                  default = "claude-3.7-sonnet",
+                  default = "claude-sonnet-4",
                 },
               },
             })
@@ -132,17 +126,17 @@ return {
             opts = {
               add_tool = true,
               add_slash_command = true,
+              tool_group = {
+                extras = { "file_search" },
+              },
               ---@module "vectorcode"
               ---@type VectorCode.CodeCompanion.ToolOpts
               tool_opts = {
-                max_num = { chunk = -1, document = -1 },
-                default_num = { chunk = 50, document = 200 },
-                include_stderr = true,
                 use_lsp = true,
-                auto_submit = { ls = true, query = true },
-                ls_on_start = true,
-                no_duplicate = true,
-                chunk_mode = true,
+                ---@type VectorCode.CodeCompanion.QueryToolOpts
+                query = {
+                  chunk_mode = true,
+                },
               },
             },
           },
@@ -251,11 +245,15 @@ return {
     "ravitemer/mcphub.nvim",
     build = "npm install -g mcp-hub@latest",
     config = true,
+    cmd = { "MCPHub" },
     ---@module 'mcphub'
     ---@type MCPHub.Config
     opts = {
       workspace = {
         look_for = { ".mcphub/servers.json", ".vscode/mcp.json", ".cursor/mcp.json", ".ai/mcp/servers.json" },
+      },
+      log = {
+        -- level = vim.log.levels.DEBUG,
       },
     },
     keys = {
@@ -270,9 +268,18 @@ return {
 
   {
     "Davidyz/VectorCode",
-    version = "*", -- optional, depending on whether you're on nightly or release
+    branch = "refactor/use_utils_pathcheck",
     build = "uv tool upgrade vectorcode", -- optional but recommended. This keeps your CLI up-to-date.
-    dependencies = { "nvim-lua/plenary.nvim" },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      {
+        "neovim/nvim-lspconfig",
+        ---@class PluginLspOpts
+        opts = {
+          servers = { vectorcode_server = {} },
+        },
+      },
+    },
     cmd = { "VectorCode" },
     ---@module "vectorcode"
     ---@type VectorCode.Opts|{}
@@ -290,14 +297,6 @@ return {
         desc = "Update (VectorCode)",
         mode = { "n", "v" },
       },
-    },
-  },
-
-  {
-    "neovim/nvim-lspconfig",
-    ---@class PluginLspOpts
-    opts = {
-      servers = { vectorcode_server = {} },
     },
   },
 
