@@ -268,7 +268,6 @@ return {
 
   {
     "Davidyz/VectorCode",
-    branch = "refactor/use_utils_pathcheck",
     build = "uv tool upgrade vectorcode", -- optional but recommended. This keeps your CLI up-to-date.
     dependencies = {
       "nvim-lua/plenary.nvim",
