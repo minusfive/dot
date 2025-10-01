@@ -34,6 +34,7 @@ tree-sitter = "latest"
 "npm:@mermaid-js/mermaid-cli" = "latest"
 "npm:@vue/language-server" = "3.0"
 "npm:mcp-hub" = "latest"
+"npm:@github/copilot" = "latest"
 
 [hooks]
 postinstall = [

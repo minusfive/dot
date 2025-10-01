@@ -71,6 +71,7 @@ local _tools = {
   "lua",
   "luarocks",
   "node",
+  "npm-github-copilot",
   "npm-mermaid-js-mermaid-cli",
   "npm-mcp-hub",
   "npm-vue-language-server",
