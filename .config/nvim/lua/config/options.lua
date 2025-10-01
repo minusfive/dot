@@ -67,7 +67,18 @@ vim.g.lazyvim_picker = "snacks"
 
 -- TODO: use `:h provider`
 -- Use global mise tools, skipping local
-local _tools = { "node", "lua", "luarocks", "ruby", "python", "prettier" }
+local _tools = {
+  "lua",
+  "luarocks",
+  "node",
+  "npm-mermaid-js-mermaid-cli",
+  "npm-mcp-hub",
+  "npm-vue-language-server",
+  "prettier",
+  "python",
+  "ruby",
+  "tree-sitter",
+}
 for _, _t in ipairs(_tools) do
   vim.env.PATH = vim.env.HOME .. "/.local/share/mise/installs/" .. _t .. "/latest/bin:" .. vim.env.PATH
 end

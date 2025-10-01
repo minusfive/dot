@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# TODO: lima
-
 tap 'buo/cask-upgrade' # auto-upgrade casks
 
 brew 'bat' # `cat` replacement
@@ -14,7 +12,9 @@ brew 'fzf' # Fuzzy finder
 brew 'gh' # GitHub CLI
 brew 'git' # Version control
 brew 'gum' # Go based interactive shell script generator
+brew 'gs' # Postscript and PDF interpreter
 brew 'htop' # `top` replacement
+brew 'imagemagick' # Image processing
 brew 'jq' # JSON processor
 brew 'just' # Command runner
 brew 'lazygit' # Git Terminal UI
@@ -28,6 +28,7 @@ brew 'podman' # Container management CLI
 brew 'podman-compose' # Compose for Podman
 brew 'ripgrep' # `grep` replacement
 brew 'stow' # Symlink manager
+brew 'tectonic' # LaTeX engine
 brew 'uutils-coreutils' # GNU core utilities Rust replacement
 brew 'vivid' # `LS_COLORS` generator
 brew 'wallpaper' # macOS wallpaper manager

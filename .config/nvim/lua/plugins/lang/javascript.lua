@@ -28,6 +28,7 @@ return {
     "neovim/nvim-lspconfig",
     opts = {
       servers = {
+        vue_ls = { mason = false },
         vtsls = {
           settings = {
             typescript = common_settings,
@@ -36,5 +37,27 @@ return {
         },
       },
     },
+  },
+
+  {
+    "neovim/nvim-lspconfig",
+    opts = function(_, opts)
+      -- Override tsserver plugin location to use mise npm installation
+      if
+        opts.servers
+        and opts.servers.vtsls
+        and opts.servers.vtsls.settings
+        and opts.servers.vtsls.settings.vtsls
+        and opts.servers.vtsls.settings.vtsls.tsserver
+        and opts.servers.vtsls.settings.vtsls.tsserver.globalPlugins
+      then
+        for _, plugin in ipairs(opts.servers.vtsls.settings.vtsls.tsserver.globalPlugins) do
+          if plugin.name ~= "@vue/typescript-plugin" then return end
+          if plugin.location then
+            plugin.location = vim.env.HOME .. "/.local/share/mise/installs/npm-vue-language-server/latest"
+          end
+        end
+      end
+    end,
   },
 }

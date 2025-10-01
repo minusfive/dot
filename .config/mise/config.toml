@@ -9,16 +9,15 @@ python.uv_venv_auto = true
 python.uv_venv_create_args = ["--seed"]
 
 [tools]
+python = "latest"
 bun = "latest"
 deno = "latest"
 go = "latest"
 lua = "5.1"
 node = "latest"
-python = "latest"
 uv = "latest"
 
 ruby = "latest"
-"gem:neovim" = "latest"
 
 rust = "nightly"
 cargo-binstall = "latest"
@@ -30,15 +29,19 @@ vault = "latest"
 delta = "latest"
 stylua = "latest"
 prettier = "latest"
+tree-sitter = "latest"
+
+"npm:@mermaid-js/mermaid-cli" = "latest"
+"npm:@vue/language-server" = "3.0"
+"npm:mcp-hub" = "latest"
 
 [hooks]
 postinstall = [
-  # Node.js
-  "npm install -g npm@latest",
-  "npm install -g neovim@latest @vue/language-server@3.0 @mermaid-js/mermaid-cli@latest mcp-hub@latest",
-  # Python
   "python -m ensurepip",
   "pip install --user --upgrade pip",
   "pip install --user --upgrade pipx pynvim",
   "uv tool install vectorcode[lsp,mcp]",
+  "npm install -g npm@latest",
+  "npm install -g neovim",
+  "gem install neovim",
 ]
