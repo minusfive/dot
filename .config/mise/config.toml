@@ -28,6 +28,8 @@ cargo-binstall = "latest"
 aws-cli = "latest"
 vault = "latest"
 delta = "latest"
+stylua = "latest"
+prettier = "latest"
 
 [hooks]
 postinstall = [
