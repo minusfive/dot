@@ -15,6 +15,7 @@ function {
     local __install_mise_dev_tools=false
     local __install_zsh_theme_plugins=false
     local __install_vm=false
+    local __manage_betterdisplay=false
     local __profile="work" # work or personal; work = safest
     local __symlink_dotfiles=false
     local __noop=false
@@ -29,6 +30,7 @@ function {
     zmodload zsh/zutil
     zparseopts -D -E -F -A __options - \
         b -brew \
+        d -display \
         h -help \
         l -link \
         m -mise \
@@ -48,6 +50,9 @@ function {
         case "$opt" in
             -b|--brew)
                 __brew=true
+                ;;
+            -d|--display)
+                __manage_betterdisplay=true
                 ;;
             -h|--help)
                 _v_print_help
@@ -97,6 +102,9 @@ function {
 
     # Configure OS settings
     source "$__dotfiles_scripts_dir/os.zsh"
+
+    # Manage BetterDisplay settings
+    source "$__dotfiles_scripts_dir/betterdisplay.zsh"
 
     # Exit if no options were provided
     if $__noop; then

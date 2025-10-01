@@ -32,6 +32,7 @@ You are an expert in:
 
 Zsh-based setup automation:
 
+- `betterdisplay.zsh`: BetterDisplay settings export/import management
 - `brew.zsh`: Homebrew and package installation with profile support
 - `functions.zsh`: Reusable utility functions for setup scripts
 - `init.zsh`: System initialization and bootstrapping
@@ -98,11 +99,20 @@ Configurations for:
 
 - `bat`: Syntax highlighting with custom themes
 - `btop`: System resource monitoring
+- `BetterDisplay`: macOS display management and HiDPI scaling
 - `fzf`: Fuzzy finding with custom key bindings
 - `ripgrep`: Fast text search with configuration file
 - `zellij`: Terminal multiplexer alternative to tmux
 - `1Password`: SSH agent integration
 - `harper`: Spell checking and dictionary management
+
+#### Display Management
+
+- **BetterDisplay** (`.config/BetterDisplay/`): macOS display utility configuration
+  - `config.plist`: Main settings export/import file
+  - `README.md`: Configuration documentation and troubleshooting
+  - Automated backup system for settings before imports
+  - Cross-system compatibility guidance for display-specific settings
 
 ## Code Style and Standards
 
@@ -148,6 +158,11 @@ Configurations for:
 ### Testing and Validation
 
 - **Neovim Testing**: Use `tests/nvim/repro.lua` for isolated testing
+- **Script Testing**: Comprehensive test suite in `tests/scripts/`
+  - Unit tests for script integration and syntax
+  - Integration tests for execution flow
+  - Automated validation of help system integration
+  - Error handling verification
 - **Configuration Validation**: Test changes in isolated environments
 - **Backup Strategy**: Version control all configuration changes
 - **Rollback Capability**: Use Git for configuration history
@@ -215,6 +230,7 @@ AI development services setup:
 - **Terminal Emulators**: WezTerm or Ghostty with advanced features
 - **File Management**: Yazi for enhanced terminal file operations
 - **System Monitoring**: btop, htop for system resource monitoring
+- **Display Management**: BetterDisplay for advanced display scaling and management
 
 ## Configuration Best Practices
 
@@ -255,6 +271,30 @@ AI development services setup:
 - **Existing Code Preservation**: Use `// ...existing code...` to indicate unchanged sections
 - **Language Specificity**: Use appropriate language identifiers in code blocks
 - **Error Handling**: Include robust error handling in generated scripts
+- **Test Coverage**: When adding new scripts, include corresponding tests in `tests/scripts/`
+
+### Script Integration Guidelines
+
+When adding new setup scripts:
+
+1. **Follow Naming Convention**: Use descriptive names matching the tool/service
+2. **Bootstrap Integration**: Add new options to `init.zsh` with appropriate flags
+3. **Help System**: Update `functions.zsh` to include new options in help output
+4. **Error Handling**: Use established logging functions (`_v_log_*`) for consistent output
+5. **User Interaction**: Implement confirmation prompts for destructive operations
+6. **Cross-Platform**: Consider macOS-specific behaviors and dependencies
+7. **Testing**: Create comprehensive test suite covering integration and execution
+8. **Documentation**: Include README files for complex configurations
+
+### BetterDisplay Integration Patterns
+
+The BetterDisplay script exemplifies several key patterns for tool integration:
+
+- **Interactive Decision Making**: Smart detection of existing configurations with user prompts
+- **Backup Strategy**: Automatic backups before potentially destructive operations
+- **Dependency Validation**: Check for required applications and provide helpful error messages
+- **Cross-System Compatibility**: Handle display-specific settings that may not transfer between systems
+- **State Management**: Detect and handle running applications that need to be closed for configuration changes
 
 ### Interaction Patterns
 
@@ -262,5 +302,6 @@ AI development services setup:
 - **Configuration Explanation**: Explain complex configuration decisions
 - **Tool Recommendations**: Suggest tools that fit the existing ecosystem
 - **Migration Assistance**: Help with tool updates and configuration changes
+- **Operation Rejection Handling**: Always ask for an explanation and further instructions when an operation is rejected
 
 This comprehensive guide should help AI assistants better understand and work with this sophisticated macOS configuration system.

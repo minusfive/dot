@@ -52,6 +52,7 @@ function _v_print_help {
     printf "\nUsage: $(_v_color_fg green "$ZSH_ARGZERO [options]")\n"
     printf "\nOptions:\n"
     printf " $(_v_arg "-b" "--brew")        Install Homebrew and managed software\n"
+    printf " $(_v_arg "-d" "--display")     Manage BetterDisplay settings (export/import)\n"
     printf " $(_v_arg "-h" "--help")        Show this help message\n"
     printf " $(_v_arg "-l" "--link")        Symlink dotfiles\n"
     printf " $(_v_arg "-m" "--mise")        Install mise dev tools\n"
