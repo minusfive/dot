@@ -83,6 +83,8 @@ config.char_select_fg_color = catppuccin.colors.mocha.lavender
 config.char_select_font_size = 18
 
 --- Windows
+config.window_background_opacity = 0.90
+config.macos_window_background_blur = 20
 config.window_decorations = "RESIZE"
 config.window_padding = {
   bottom = 0,
