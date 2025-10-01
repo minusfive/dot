@@ -320,26 +320,26 @@ local function focusedWindowWatcher(window, appName)
   focusMostRecentAppWindow(window, appName)
 end
 
+---@param window hs.window Window to position
+---@param positionBelowThreshold hs.geometry.rect Window position when screen width is below threshold
+---@param positionAboveThreshold hs.geometry.rect Window position when screen width is above threshold
+---@param threshold? number (Optional) screen width threshold to switch positions. Defaults to 5120.
+local function positionWindow(window, positionBelowThreshold, positionAboveThreshold, threshold)
+  local isAboveThreshold = (window:screen():fullFrame().w >= (threshold or 5120))
+  local position = isAboveThreshold and positionAboveThreshold or positionBelowThreshold
+  window:moveToUnit(position, 0)
+end
+
 -- Ensure all terminal windows open on specific positions depending on screen size
 ---@param window hs.window
 local function terminalNewWindowWatcher(window)
-  local desiredPosition = WindowManager.layout.right50
-  if window:screen():fullFrame().w >= 5120 then desiredPosition = WindowManager.layout.center33 end
-  window:moveToUnit(desiredPosition, 0)
+  positionWindow(window, WindowManager.layout.right50, WindowManager.layout.rightCenter33)
 end
 
 -- Ensure all browser windows open on specific positions depending on screen size
 ---@param window hs.window
 local function browserNewWindowWatcher(window)
-  ---@type hs.application | nil
-  local app = window:application()
-  app = app and app:name()
-
-  local pos = { default = WindowManager.layout.right50, above5125 = WindowManager.layout.right33 }
-
-  if app == "Safari" then pos = { default = WindowManager.layout.left50, above5125 = WindowManager.layout.left33 } end
-
-  window:moveToUnit((window:screen():fullFrame().w >= 5120) and pos.above5125 or pos.default, 0)
+  positionWindow(window, WindowManager.layout.left50, WindowManager.layout.leftCenter33)
 end
 
 --- Initialize WindowManager
