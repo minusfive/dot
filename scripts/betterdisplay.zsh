@@ -8,7 +8,7 @@ set -euo pipefail
 # used to contain variables and functions in a local scope
 function {
     echo "\n"
-    local __context="BDISP"
+    local __context="DISP"
     local __proceed="$__manage_betterdisplay"
 
     # BetterDisplay configuration
