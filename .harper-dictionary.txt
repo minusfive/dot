@@ -3,6 +3,7 @@ Brewfile
 Catppuccin
 Ghostty
 HiDPI
+Lazygit
 LuaDoc
 Podman
 WezTerm
