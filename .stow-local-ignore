@@ -30,11 +30,13 @@ _darcs
 mise.local.toml
 
 # Project
-.stowrc       # This should be used for this repo, not globally
+\.stowrc       # This should be used for this repo, not globally
 \.luarc.json
 \.repro
 \.ruby-lsp
 \.stylua.*
+\.harper-dictionary.txt
+^/.*.log
 ^/\.ai
 ^/\.markdownlint-cli2.jsonc
 ^/\.prettierrc.json
@@ -49,3 +51,5 @@ mise.local.toml
 ^/otel-collector-config.yaml
 ^/scripts
 ^/tests
+^/AGENTS.*
+^/CLAUDE.*
