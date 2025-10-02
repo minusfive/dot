@@ -1,4 +1,9 @@
 ---@module 'obsidian'
+---@module 'lazy'
+---@module 'noice'
+---@module 'live-preview'
+---@module 'lualine'
+
 -- Notifications, command pop-ups, etc.
 local nui_options = {
   popup = {
@@ -7,8 +12,6 @@ local nui_options = {
     },
   },
 }
-
-local function getcwd() return vim.fn.fnamemodify(vim.fn.getcwd(), ":~") end
 
 ---@type LazySpec
 return {
@@ -20,7 +23,6 @@ return {
     "folke/noice.nvim",
     optional = true,
 
-    ---@module 'noice'
     ---@type NoiceConfig
     opts = {
       cmdline = {
@@ -66,7 +68,6 @@ return {
     "brianhuster/live-preview.nvim",
     ft = { "markdown", "html", "svg" },
 
-    ---@module 'live-preview'
     ---@param opts LivePreviewConfig
     opts = function()
       require("snacks.toggle")
@@ -119,11 +120,9 @@ return {
       opts.options.component_separators = { "", "" }
       opts.options.section_separators = { "", "" }
 
-      opts.sections.lualine_a = {}
-      opts.sections.lualine_b = { "%l:%c", "%p%%" }
-      opts.sections.lualine_c = {
-        { "searchcount", color = "SearchCount" },
-      }
+      opts.sections.lualine_a = { { "mode", fmt = function(str) return str:sub(1, 1) end } }
+      opts.sections.lualine_b = { "%p%% %l:%c" }
+      opts.sections.lualine_c = { { "searchcount", color = "SearchCount" } }
 
       opts.sections.lualine_x = {
         Snacks.profiler.status(),
@@ -147,38 +146,33 @@ return {
           cond = require("lazy.status").has_updates,
           color = function() return { fg = Snacks.util.color("Special") } end,
         },
+        "kulala",
       }
 
-      opts.sections.lualine_y = { getcwd }
-      opts.sections.lualine_z = { { function() return "󰎞  " .. Obsidian.workspace.name end } }
+      opts.sections.lualine_y = {
+        { function() return vim.fn.fnamemodify(vim.fn.getcwd(), ":~") end },
+        { "branch", padding = { left = 0, right = 1 } },
+        {
+          function() return Obsidian.workspace.name:sub(1, 1) .. " 󰎞 " end,
+          padding = { left = 0, right = 0 },
+          color = { fg = colors.mauve },
+        },
+      }
+
+      opts.sections.lualine_z = {}
 
       opts.options.disabled_filetypes.winbar =
         vim.list_extend(opts.options.disabled_filetypes.winbar or {}, opts.options.disabled_filetypes.statusline)
 
       opts.winbar = {
-        lualine_a = {
-          { "mode", fmt = function(str) return str:sub(1, 1) end },
-          {
-            "bo:modified",
-            fmt = function(output) return output == "true" and "󱇧" or nil end,
-            color = { bg = colors.yellow },
-          },
-          {
-            "bo:readonly",
-            fmt = function(output) return output == "true" and "󰈡" or nil end,
-            color = { bg = colors.red },
-          },
-        },
+        lualine_a = {},
 
-        lualine_b = {
-          { "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0 } },
-          { "filename", file_status = false, path = 1, padding = { left = 0, right = 0 } },
-        },
-        lualine_c = {},
-        lualine_x = {
-          "kulala",
+        lualine_b = {},
+
+        lualine_c = {
           {
             "diagnostics",
+            padding = { left = 1, right = 1 },
             symbols = {
               error = LazyVim.config.icons.diagnostics.Error,
               warn = LazyVim.config.icons.diagnostics.Warn,
@@ -186,9 +180,12 @@ return {
               hint = LazyVim.config.icons.diagnostics.Hint,
             },
           },
-          { "branch", color = "Comment" },
+        },
+
+        lualine_x = {
           {
             "diff",
+            padding = { left = 0, right = 1 },
             symbols = {
               added = LazyVim.config.icons.git.added,
               modified = LazyVim.config.icons.git.modified,
@@ -205,6 +202,30 @@ return {
             end,
           },
         },
+
+        lualine_y = {
+          {
+            "filename",
+            file_status = false,
+            path = 1,
+            padding = { left = 0, right = 0 },
+            color = function() return { fg = vim.bo.modified and colors.yellow or nil } end,
+          },
+          { "filetype", icon_only = true, padding = { left = 1, right = 1 } },
+        },
+
+        lualine_z = {
+          {
+            "bo:modified",
+            fmt = function(output) return output == "true" and "󱇧" or nil end,
+            color = { bg = colors.yellow },
+          },
+          {
+            "bo:readonly",
+            fmt = function(output) return output == "true" and "󰈡" or nil end,
+            color = { bg = colors.red },
+          },
+        },
       }
 
       -- And allow it to be overriden for some buffer types (see autocmds)
@@ -215,8 +236,8 @@ return {
           groups = {},
           title = false,
           filter = { range = true },
-          format = "{kind_icon}{symbol.name:Normal}",
-          hl_group = "lualine_c_normal",
+          format = "{kind_icon}{symbol.name:Comment}",
+          -- hl_group = "lualine_c_normal",
         })
         table.insert(opts.winbar.lualine_c, {
           symbols and symbols.get,
@@ -225,8 +246,16 @@ return {
       end
 
       opts.inactive_winbar = {
-        lualine_c = opts.winbar.lualine_b,
-        lualine_x = opts.winbar.lualine_x,
+        lualine_x = {
+          {
+            "filename",
+            file_status = false,
+            path = 1,
+            padding = { left = 0, right = 0 },
+            color = { fg = colors.overlay1 },
+          },
+          { "filetype", icon_only = true, colored = false, padding = { left = 1, right = 0 } },
+        },
       }
     end,
   },

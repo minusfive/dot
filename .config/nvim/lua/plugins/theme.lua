@@ -8,7 +8,8 @@ return {
     ---@module 'catppuccin'
     ---@type CatppuccinOptions|{}
     opts = {
-      transparent_background = true,
+      transparent_background = false,
+
       dim_inactive = {
         enabled = true,
         percentage = 0.05,
