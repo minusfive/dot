@@ -8,7 +8,16 @@ This project is a comprehensive macOS dotfiles configuration management system, 
 
 **READ FIRST**: Before proceeding with any operations, review these mandatory sections:
 
-- [CRITICAL INTERACTION RULES](#critical-interaction-rules) - Complete operational guidelines including rejection handling, visual elements policy, and specialized knowledge
+- [CRITICAL INTERACTION RULES](#critical-interaction-rules) - Operation rejection handling, visual policy, task planning
+- [IMPLEMENTATION STANDARDS](#implementation-standards) - Code generation, commits, testing, integration
+- [PROJECT CONTEXT](#project-context) - Architecture, workflow, tools, security
+
+**QUICK REFERENCE**: For specific needs, jump directly to:
+
+- Commit standards: [Change Management Protocol](#change-management-protocol)
+- Code generation: [Code Generation Standards](#code-generation-standards)
+- Testing: [Testing and Validation Standards](#testing-and-validation-standards)
+- Project architecture: [Architecture Overview](#architecture-overview)
 
 ## System Configuration Context
 
@@ -130,182 +139,13 @@ Configurations for:
 - **Modularity**: Keep configurations organized and easily maintainable
 - **XDG Compliance**: Use XDG Base Directory specification where possible
 
-### Commit Message Standards
+### Code Style Reference
 
-- **Conventional Commits**: All commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification
-- **Format**: `<type>[optional scope]: <description>`
-- **Common Types**:
-  - `feat`: A new feature
-  - `fix`: A bug fix
-  - `docs`: Documentation only changes
-  - `style`: Changes that do not affect the meaning of the code
-  - `refactor`: A code change that neither fixes a bug nor adds a feature
-  - `test`: Adding missing tests or correcting existing tests
-  - `chore`: Changes to the build process or auxiliary tools
-- **Examples**:
-  - `feat(nvim): add new plugin configuration`
-  - `fix(zsh): resolve completion loading issue`
-  - `docs(README): update installation instructions`
-  - `chore(brew): update package dependencies`
-
-### Commit Separation Guidelines
-
-When making changes, create separate commits when contextually reasonable to maintain clear project history and facilitate code review. Follow these guidelines:
-
-#### When to Create Separate Commits
-
-1. **Different Functional Areas**:
-   - Separate commits for different tools/applications (e.g., Neovim vs. Hammerspoon changes)
-   - Configuration changes vs. script logic changes
-   - Frontend changes vs. backend changes in the same feature
-
-2. **Different Change Types**:
-   - Bug fixes separate from new features
-   - Documentation updates separate from code changes
-   - Test additions separate from implementation changes
-   - Refactoring separate from feature additions
-
-3. **Independent Concerns**:
-   - Changes that can be reviewed independently
-   - Changes that might need to be reverted independently
-   - Changes affecting different user workflows
-
-4. **Logical Groupings**:
-   - Related configuration files for the same tool in one commit
-   - Complete feature implementation that spans multiple files but serves a single purpose
-   - Bug fix with its corresponding test in one commit
-
-#### When to Keep Changes in a Single Commit
-
-1. **Tightly Coupled Changes**:
-   - Implementation and its immediate tests
-   - Configuration file and its corresponding documentation
-   - Breaking change with necessary compatibility updates
-
-2. **Atomic Operations**:
-   - Feature that requires changes across multiple files to function
-   - Renaming/moving files with their reference updates
-   - Version updates that require coordinated changes
-
-3. **Small, Related Changes**:
-   - Minor formatting or style fixes across similar files
-   - Simple configuration adjustments for the same tool
-   - Typo corrections in related documentation
-
-#### Commit Separation Examples
-
-##### Good Separation
-
-```gitcommit
-feat(nvim): add new LSP configuration for Rust
-feat(hammerspoon): implement window tiling hotkeys
-docs(README): update installation instructions
-test(scripts): add unit tests for brew setup
-```
-
-##### Single Commit Appropriate
-
-```gitcommit
-feat(nvim): add Rust development setup with LSP, DAP, and testing
-fix(zsh): resolve completion loading with updated paths and aliases
-chore: update tool versions in mise.toml and Brewfile
-```
-
-#### Implementation Guidelines for AI Assistants
-
-**IMPORTANT**: All implementation guidelines have been consolidated into the [CRITICAL INTERACTION RULES](#critical-interaction-rules) section above. Refer to the "MANDATORY: Change Implementation Guidelines" subsection for complete guidance on change scope analysis, commit separation, and implementation patterns.
-
-#### Tools and Automation Support
-
-- Use `git add -p` for interactive staging to separate unrelated changes
-- Leverage `git rebase -i` to reorganize commits when needed
-- Consider `git commit --fixup` for small corrections to be squashed later
-- Use meaningful branch names that reflect the change scope
-
-### Lua (Neovim, Hammerspoon, Yazi)
-
-- Use local variables where appropriate
-- Prefer explicit returns and clear module structure
-- Document complex functions with LuaDoc-style comments
-- Follow lazy loading patterns for Neovim plugins
-
-### Shell Scripts (Zsh)
-
-- Use `set -euo pipefail` for error handling
-- Implement logging functions with consistent formatting
-- Use immediately invoked functions for scope isolation
-- Prefix internal variables with double underscores
-
-### Configuration Files
-
-- Use TOML for structured configuration where supported
-- Maintain consistent key naming conventions
-- Group related configurations logically
-- Include fallback/default values where appropriate
+For detailed code style standards, see [IMPLEMENTATION STANDARDS](#implementation-standards) section above.
 
 ## Development Workflow
 
-### Setup and Installation Overview
-
-1. **Initial Setup**: Run bootstrap script with profile selection
-2. **Package Installation**: Homebrew manages system and development tools
-3. **Symlink Creation**: GNU Stow creates symlinks to configuration files
-4. **Tool Installation**: mise manages development tool versions
-5. **Shell Configuration**: Zsh with custom functions and completion
-
-**For detailed setup guidance, see**: [Project Dependencies and Requirements](#project-dependencies-and-requirements)
-
-### Testing and Validation
-
-**IMPORTANT**: For comprehensive testing protocols and validation strategies, refer to [Configuration Best Practices](#configuration-best-practices).
-
-#### Quick Testing Reference
-
-- **Neovim Testing**: Use `tests/nvim/repro.lua` for isolated testing
-- **Script Testing**: Comprehensive test suite in `tests/scripts/`
-- **Configuration Validation**: Test changes in isolated environments
-- **Version Control**: Git-based backup and rollback capability
-
-### Container Development
-
-AI development services setup:
-
-1. **VM Management**: `limactl start podman` for Linux environment
-2. **Service Orchestration**: `podman compose up --build -d` for AI services
-3. **Code Indexing**: VectorCode for semantic search and navigation
-4. **Development Assistance**: AI-powered code analysis and suggestions
-
-## Tool Integration Patterns
-
-### Cross-Tool Integration
-
-- **Shell Integration**: Common environment variables and paths
-- **Theme Consistency**: Catppuccin color scheme across tools
-- **Key Binding Harmony**: Consistent shortcuts across applications
-- **Data Sharing**: XDG directories for configuration and cache
-
-### Plugin Management
-
-- **Neovim**: Lazy.nvim for plugin management with lazy loading
-- **Zsh**: Oh-My-Zsh framework with custom functions
-- **Hammerspoon**: Spoon system for modular functionality
-- **Yazi**: Custom plugins for enhanced file management
-
-## AI Development Integration
-
-### VectorCode Usage
-
-- **Semantic Search**: Index configuration files for intelligent navigation
-- **Code Analysis**: Understand configuration relationships and dependencies
-- **Automated Suggestions**: AI-powered configuration improvements
-- **Documentation**: Generate and maintain configuration documentation
-
-### Development Assistance
-
-- **Configuration Analysis**: Identify optimization opportunities
-- **Dependency Management**: Track tool and plugin dependencies
-- **Migration Support**: Assist with tool updates and migrations
-- **Best Practice Enforcement**: Suggest improvements based on community standards
+For detailed workflow information, see [PROJECT CONTEXT](#project-context) section above.
 
 ## Project Dependencies and Requirements
 
@@ -331,28 +171,146 @@ AI development services setup:
 - **System Monitoring**: btop, htop for system resource monitoring
 - **Display Management**: BetterDisplay for advanced display scaling and management
 
-## Configuration Best Practices
+## IMPLEMENTATION STANDARDS
 
-### Organization
+### Code Generation Standards
 
-- **Modular Structure**: Separate concerns into focused configuration files
-- **Version Control**: Track all configuration changes with meaningful commits following Conventional Commits standard
-- **Documentation**: Comment complex configurations and decision rationale
-- **Backup Strategy**: Regular backups of working configurations
+- **File Path Comments**: Include `// filepath: path/to/file` in code blocks
+- **Existing Code Preservation**: Use `// ...existing code...` to indicate unchanged sections
+- **Language Specificity**: Use appropriate language identifiers in code blocks
+- **Error Handling**: Include robust error handling in generated scripts
+- **Test Coverage**: When adding new scripts, include corresponding tests in `tests/scripts/`
 
-### Maintenance
+### Change Management Protocol
+
+#### Commit Standards
+
+- **Conventional Commits**: Use format `<type>[optional scope]: <description>`
+- **Common Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+- **Examples**:
+  - `feat(nvim): add new plugin configuration`
+  - `fix(zsh): resolve completion loading issue`
+  - `docs(README): update installation instructions`
+
+#### Commit Separation Rules
+
+**Create Separate Commits When**:
+
+1. **Different Functional Areas**: Neovim vs. Hammerspoon changes
+2. **Different Change Types**: Bug fixes vs. new features
+3. **Independent Concerns**: Changes that can be reviewed independently
+
+**Keep in Single Commit When**:
+
+1. **Tightly Coupled Changes**: Implementation and its tests
+2. **Atomic Operations**: Feature requiring changes across multiple files
+3. **Small Related Changes**: Minor formatting fixes across similar files
+
+#### Git Workflow Tools
+
+- Use `git add -p` for interactive staging
+- Leverage `git rebase -i` to reorganize commits
+- Consider `git commit --fixup` for small corrections
+- Use meaningful branch names reflecting change scope
+
+### Script Integration Requirements
+
+When adding new setup scripts:
+
+1. **Bootstrap Integration**: Add new options to `init.zsh` with appropriate flags
+2. **Help System Integration**: Update `functions.zsh` help output
+3. **Follow Established Patterns**: Use logging functions from existing scripts
+4. **Test Integration**: Add comprehensive tests in `tests/scripts/`
+
+### Language-Specific Standards
+
+#### Lua (Neovim, Hammerspoon, Yazi)
+
+- Use local variables where appropriate
+- Prefer explicit returns and clear module structure
+- Document complex functions with LuaDoc-style comments
+- Follow lazy loading patterns for Neovim plugins
+
+#### Shell Scripts (Zsh)
+
+- Use `set -euo pipefail` for error handling
+- Implement logging functions with consistent formatting
+- Use immediately invoked functions for scope isolation
+- Prefix internal variables with double underscores
+
+#### Configuration Files
+
+- Use TOML for structured configuration where supported
+- Maintain consistent key naming conventions
+- Group related configurations logically
+- Include fallback/default values where appropriate
+
+### Testing and Validation Standards
+
+**Testing Protocols**:
+
+- **Neovim Testing**: Use `tests/nvim/repro.lua` for isolated testing
+- **Script Testing**: Comprehensive test suite in `tests/scripts/`
+- **Configuration Validation**: Test changes in isolated environments
+- **Version Control**: Git-based backup and rollback capability
+
+**Validation Requirements**:
 
 - **Regular Updates**: Keep tools and configurations current
 - **Testing Protocol**: Validate changes before deployment
 - **Rollback Plan**: Maintain ability to revert problematic changes
 - **Performance Monitoring**: Track configuration impact on system performance
 
-### Security
+## PROJECT CONTEXT
+
+### Architecture Overview
+
+#### Core Setup System
+
+- **Bootstrap Script**: Main entry point via setup scripts
+- **Package Management**: Homebrew with Brewfile for declarative package management
+- **Tool Versioning**: mise for managing development tool versions
+- **Symlink Management**: GNU Stow for dotfile deployment
+- **Configuration Organization**: XDG Base Directory compliant structure
+
+#### Tool Integration Patterns
+
+- **Shell Integration**: Common environment variables and paths
+- **Theme Consistency**: Catppuccin color scheme across tools
+- **Key Binding Harmony**: Consistent shortcuts across applications
+- **Data Sharing**: XDG directories for configuration and cache
+
+### Development Workflow
+
+#### Setup Process
+
+1. **Initial Setup**: Run bootstrap script with profile selection
+2. **Package Installation**: Homebrew manages system and development tools
+3. **Symlink Creation**: GNU Stow creates symlinks to configuration files
+4. **Tool Installation**: mise manages development tool versions
+5. **Shell Configuration**: Zsh with custom functions and completion
+
+#### AI Development Integration
+
+- **VectorCode Usage**: Semantic search and code analysis
+- **Container Development**: Lima/Podman for AI services
+- **Code Indexing**: Intelligent navigation and suggestions
+
+### Security and Maintenance
 
 - **Credential Management**: Use 1Password for secure credential storage
 - **Permission Management**: Apply principle of least privilege
 - **Update Monitoring**: Track security updates for managed tools
 - **Configuration Auditing**: Regular review of configuration security implications
+- **Backup Strategy**: Regular backups of working configurations
+
+## Configuration Best Practices
+
+### Organization
+
+- **Modular Structure**: Separate concerns into focused configuration files
+- **Version Control**: Track all configuration changes with meaningful commits
+- **Documentation**: Comment complex configurations and decision rationale
 
 ## CRITICAL INTERACTION RULES
 
@@ -417,47 +375,15 @@ When analyzing this project:
 - **Test Coverage**: When adding new scripts, include corresponding tests in `tests/scripts/`
 - **Commit Standards**: Follow project commit standards as detailed in [Code Style and Standards](#code-style-and-standards)
 
-### MANDATORY: Change Implementation Guidelines
+### MANDATORY: Change Implementation Protocol
 
-#### Implementation Standards Reference
-
-**IMPORTANT**: For comprehensive guidance on implementation standards, refer to:
-
-- **[Commit Message Standards](#commit-message-standards)**: Conventional Commits specification, format, types, and examples
-- **[Commit Separation Guidelines](#commit-separation-guidelines)**: Detailed rules for when to create separate commits vs. keeping changes together
-- **[Tools and Automation Support](#tools-and-automation-support)**: Git commands and workflow automation
-
-#### Essential Implementation Rules
+All implementation guidance is consolidated in the [IMPLEMENTATION STANDARDS](#implementation-standards) section above. Key requirements:
 
 1. **Change Scope Analysis**: Assess functional areas and group related changes appropriately
 2. **Atomic Commits**: Ensure each commit leaves the system in a working state
 3. **Conventional Commits**: Use the standardized format: `<type>[optional scope]: <description>`
-4. **Review Optimization**: Structure commits to facilitate code review
-5. **Sequential Logic**: Order commits logically (setup → implementation → tests)
-
-### MANDATORY: Script Integration Protocol
-
-When adding new setup scripts, follow these integration requirements:
-
-**IMPORTANT**: For comprehensive guidance, refer to:
-
-- **[Testing and Validation](#testing-and-validation)**: Complete test suite requirements and patterns
-- **[Code Style and Standards](#code-style-and-standards)**: Naming conventions and documentation standards
-- **[Configuration Best Practices](#configuration-best-practices)**: Error handling and user interaction patterns
-
-#### Essential Integration Steps
-
-1. **Bootstrap Integration**: Add new options to `init.zsh` with appropriate flags
-2. **Help System Integration**: Update `functions.zsh` help output
-3. **Follow Established Patterns**: Use logging functions and interaction patterns from existing scripts
-
-### MANDATORY: Implementation Standards Reference
-
-**IMPORTANT**: For comprehensive guidance on implementation standards, refer to the detailed sections:
-
-- **[Testing and Validation](#testing-and-validation)**: Comprehensive testing protocols and validation strategies
-- **[Tool Integration Patterns](#tool-integration-patterns)**: Cross-tool integration and plugin management standards
-- **[Configuration Best Practices](#configuration-best-practices)**: Organization, maintenance, and security guidelines
+4. **Script Integration**: Add new options to `init.zsh` and update `functions.zsh` help output
+5. **Test Coverage**: Include comprehensive tests in `tests/scripts/` for new functionality
 
 ### MANDATORY: Task Planning and Execution Protocol
 
@@ -518,7 +444,7 @@ After completing each step, show the updated plan:
 - [ ] Document changes and update relevant documentation
 ```
 
-### MANDATORY: User Interaction and Decision Making
+### MANDATORY: User Interaction and Specialized Knowledge
 
 #### Essential Interaction Patterns
 
@@ -527,17 +453,17 @@ After completing each step, show the updated plan:
 3. **Progress Communication**: Keep user informed of multi-step operations
 4. **Configuration Explanation**: Explain complex configuration decisions
 
-#### Reference Implementation Examples
+#### Specialized Knowledge Areas
 
-- **Error Handling**: Follow patterns in `scripts/functions.zsh` logging system
-- **User Prompts**: Use patterns from `scripts/betterdisplay.zsh` for interactive decisions
-- **Testing Integration**: Reference comprehensive patterns in `tests/scripts/` directory
-
-### MANDATORY: Specialized Knowledge and Implementation Patterns
-
-AI assistants should leverage specialized knowledge in:
+AI assistants should leverage expertise in:
 
 - **macOS System Integration**: Understanding system-level configurations and their interactions
 - **Development Workflow Optimization**: Suggesting improvements that enhance productivity
 - **Tool Ecosystem Harmony**: Ensuring new additions complement existing tools
 - **Configuration Maintenance**: Helping maintain long-term system stability and performance
+
+#### Reference Implementation
+
+- **Error Handling**: Follow patterns in `scripts/functions.zsh` logging system
+- **User Prompts**: Use patterns from `scripts/betterdisplay.zsh` for interactive decisions
+- **Testing Integration**: Reference comprehensive patterns in `tests/scripts/` directory
