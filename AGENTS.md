@@ -142,6 +142,90 @@ Configurations for:
   - `docs(README): update installation instructions`
   - `chore(brew): update package dependencies`
 
+### Commit Separation Guidelines
+
+When making changes, create separate commits when contextually reasonable to maintain clear project history and facilitate code review. Follow these guidelines:
+
+#### **When to Create Separate Commits**
+
+1. **Different Functional Areas**:
+   - Separate commits for different tools/applications (e.g., Neovim vs. Hammerspoon changes)
+   - Configuration changes vs. script logic changes
+   - Frontend changes vs. backend changes in the same feature
+
+2. **Different Change Types**:
+   - Bug fixes separate from new features
+   - Documentation updates separate from code changes
+   - Test additions separate from implementation changes
+   - Refactoring separate from feature additions
+
+3. **Independent Concerns**:
+   - Changes that can be reviewed independently
+   - Changes that might need to be reverted independently
+   - Changes affecting different user workflows
+
+4. **Logical Groupings**:
+   - Related configuration files for the same tool in one commit
+   - Complete feature implementation that spans multiple files but serves a single purpose
+   - Bug fix with its corresponding test in one commit
+
+#### **When to Keep Changes in a Single Commit**
+
+1. **Tightly Coupled Changes**:
+   - Implementation and its immediate tests
+   - Configuration file and its corresponding documentation
+   - Breaking change with necessary compatibility updates
+
+2. **Atomic Operations**:
+   - Feature that requires changes across multiple files to function
+   - Renaming/moving files with their reference updates
+   - Version updates that require coordinated changes
+
+3. **Small, Related Changes**:
+   - Minor formatting or style fixes across similar files
+   - Simple configuration adjustments for the same tool
+   - Typo corrections in related documentation
+
+#### **Commit Separation Examples**
+
+**Good Separation**:
+
+```
+feat(nvim): add new LSP configuration for Rust
+feat(hammerspoon): implement window tiling hotkeys
+docs(README): update installation instructions
+test(scripts): add unit tests for brew setup
+```
+
+**Single Commit Appropriate**:
+
+```
+feat(nvim): add Rust development setup with LSP, DAP, and testing
+fix(zsh): resolve completion loading with updated paths and aliases
+chore: update tool versions in mise.toml and Brewfile
+```
+
+#### **Implementation Guidelines for AI Assistants**
+
+1. **Analyze Change Scope**: Before implementing changes, consider if they affect different functional areas or can be logically separated
+
+2. **Group Related Changes**: When multiple files need updates for a single feature, assess if they form a cohesive unit or can be split into preparatory and implementation commits
+
+3. **Consider Review Impact**: Structure commits to make code review easier by grouping changes that reviewers would naturally examine together
+
+4. **Maintain Atomic Functionality**: Ensure each commit leaves the system in a working state and represents a complete logical unit
+
+5. **Use Descriptive Commit Messages**: Each commit should clearly explain its purpose and scope within the larger change
+
+6. **Sequential Dependencies**: When changes build on each other, structure commits in logical order (e.g., setup commit followed by feature commit)
+
+#### **Tools and Automation Support**
+
+- Use `git add -p` for interactive staging to separate unrelated changes
+- Leverage `git rebase -i` to reorganize commits when needed
+- Consider `git commit --fixup` for small corrections to be squashed later
+- Use meaningful branch names that reflect the change scope
+
 ### Lua (Neovim, Hammerspoon, Yazi)
 
 - Use local variables where appropriate
