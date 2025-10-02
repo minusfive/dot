@@ -4,6 +4,12 @@
 
 This project is a comprehensive macOS dotfiles configuration management system, focusing on system automation, development environment setup, and productivity tools. The project includes configurations for Neovim, Hammerspoon, WezTerm/Ghostty terminals, Zsh shell, and numerous development tools.
 
+## CRITICAL SECTIONS FOR AI ASSISTANTS
+
+**READ FIRST**: Before proceeding with any operations, review these mandatory sections:
+
+- [CRITICAL INTERACTION RULES](#critical-interaction-rules) - Complete operational guidelines including rejection handling, visual elements policy, and specialized knowledge
+
 ## System Configuration Context
 
 You are an expert in:
@@ -146,7 +152,7 @@ Configurations for:
 
 When making changes, create separate commits when contextually reasonable to maintain clear project history and facilitate code review. Follow these guidelines:
 
-#### **When to Create Separate Commits**
+#### When to Create Separate Commits
 
 1. **Different Functional Areas**:
    - Separate commits for different tools/applications (e.g., Neovim vs. Hammerspoon changes)
@@ -169,7 +175,7 @@ When making changes, create separate commits when contextually reasonable to mai
    - Complete feature implementation that spans multiple files but serves a single purpose
    - Bug fix with its corresponding test in one commit
 
-#### **When to Keep Changes in a Single Commit**
+#### When to Keep Changes in a Single Commit
 
 1. **Tightly Coupled Changes**:
    - Implementation and its immediate tests
@@ -186,40 +192,30 @@ When making changes, create separate commits when contextually reasonable to mai
    - Simple configuration adjustments for the same tool
    - Typo corrections in related documentation
 
-#### **Commit Separation Examples**
+#### Commit Separation Examples
 
-**Good Separation**:
+##### Good Separation
 
-```
+```gitcommit
 feat(nvim): add new LSP configuration for Rust
 feat(hammerspoon): implement window tiling hotkeys
 docs(README): update installation instructions
 test(scripts): add unit tests for brew setup
 ```
 
-**Single Commit Appropriate**:
+##### Single Commit Appropriate
 
-```
+```gitcommit
 feat(nvim): add Rust development setup with LSP, DAP, and testing
 fix(zsh): resolve completion loading with updated paths and aliases
 chore: update tool versions in mise.toml and Brewfile
 ```
 
-#### **Implementation Guidelines for AI Assistants**
+#### Implementation Guidelines for AI Assistants
 
-1. **Analyze Change Scope**: Before implementing changes, consider if they affect different functional areas or can be logically separated
+**IMPORTANT**: All implementation guidelines have been consolidated into the [CRITICAL INTERACTION RULES](#critical-interaction-rules) section above. Refer to the "MANDATORY: Change Implementation Guidelines" subsection for complete guidance on change scope analysis, commit separation, and implementation patterns.
 
-2. **Group Related Changes**: When multiple files need updates for a single feature, assess if they form a cohesive unit or can be split into preparatory and implementation commits
-
-3. **Consider Review Impact**: Structure commits to make code review easier by grouping changes that reviewers would naturally examine together
-
-4. **Maintain Atomic Functionality**: Ensure each commit leaves the system in a working state and represents a complete logical unit
-
-5. **Use Descriptive Commit Messages**: Each commit should clearly explain its purpose and scope within the larger change
-
-6. **Sequential Dependencies**: When changes build on each other, structure commits in logical order (e.g., setup commit followed by feature commit)
-
-#### **Tools and Automation Support**
+#### Tools and Automation Support
 
 - Use `git add -p` for interactive staging to separate unrelated changes
 - Leverage `git rebase -i` to reorganize commits when needed
@@ -249,7 +245,7 @@ chore: update tool versions in mise.toml and Brewfile
 
 ## Development Workflow
 
-### Setup and Installation
+### Setup and Installation Overview
 
 1. **Initial Setup**: Run bootstrap script with profile selection
 2. **Package Installation**: Homebrew manages system and development tools
@@ -257,17 +253,18 @@ chore: update tool versions in mise.toml and Brewfile
 4. **Tool Installation**: mise manages development tool versions
 5. **Shell Configuration**: Zsh with custom functions and completion
 
+**For detailed setup guidance, see**: [Project Dependencies and Requirements](#project-dependencies-and-requirements)
+
 ### Testing and Validation
+
+**IMPORTANT**: For comprehensive testing protocols and validation strategies, refer to [Configuration Best Practices](#configuration-best-practices).
+
+#### Quick Testing Reference
 
 - **Neovim Testing**: Use `tests/nvim/repro.lua` for isolated testing
 - **Script Testing**: Comprehensive test suite in `tests/scripts/`
-  - Unit tests for script integration and syntax
-  - Integration tests for execution flow
-  - Automated validation of help system integration
-  - Error handling verification
 - **Configuration Validation**: Test changes in isolated environments
-- **Backup Strategy**: Version control all configuration changes
-- **Rollback Capability**: Use Git for configuration history
+- **Version Control**: Git-based backup and rollback capability
 
 ### Container Development
 
@@ -334,7 +331,7 @@ AI development services setup:
 - **System Monitoring**: btop, htop for system resource monitoring
 - **Display Management**: BetterDisplay for advanced display scaling and management
 
-### Configuration Best Practices
+## Configuration Best Practices
 
 ### Organization
 
@@ -357,9 +354,53 @@ AI development services setup:
 - **Update Monitoring**: Track security updates for managed tools
 - **Configuration Auditing**: Regular review of configuration security implications
 
-## AI Assistant Guidelines
+## CRITICAL INTERACTION RULES
 
-### When Analyzing This Project
+### MANDATORY: Operation Rejection Handling
+
+**HIGHEST PRIORITY RULE**: When any tool operation, file edit, or command execution is rejected, declined, or fails:
+
+1. **IMMEDIATELY STOP** the current approach
+2. **ASK FOR EXPLANATION**: "I see that operation was rejected. Could you help me understand why?"
+3. **REQUEST GUIDANCE**: "What would you prefer I do instead?"
+4. **WAIT FOR INSTRUCTIONS**: Do not attempt alternative approaches without explicit user direction
+5. **ACKNOWLEDGE CONSTRAINTS**: Respect user preferences and system limitations
+
+#### Examples of Rejection Scenarios
+
+- **File Edit Rejected**: User cancels/exits editor - Ask what changes they want instead
+- **Command Fails**: Tool returns error - Ask how to proceed or what alternative to try
+- **User Says "No"**: Direct rejection - Ask for explanation and alternative approach
+- **Permission Denied**: System blocks operation - Ask for guidance on permissions or alternatives
+
+#### Anti-Patterns (DO NOT DO)
+
+- Immediately trying a different approach without asking
+- Assuming you know why the operation was rejected
+- Continuing with related operations that might also be problematic
+- Providing generic solutions without understanding the specific issue
+
+#### Response Template
+
+```md
+I see that [specific operation] was rejected/failed.
+
+Could you help me understand:
+
+1. Why this approach isn't suitable?
+2. What you'd prefer I do instead?
+3. Are there any constraints I should be aware of?
+
+I'll wait for your guidance before proceeding.
+```
+
+### MANDATORY: Visual Elements Policy
+
+**NO EMOJIS OR ICONS**: Do not use emojis, Unicode symbols, or decorative icons in responses or generated code unless explicitly requested by the user. Keep all communication clean and text-based.
+
+### MANDATORY: Project Analysis and Context Understanding
+
+When analyzing this project:
 
 1. **Understand Context**: Consider the macOS-centric nature and development focus
 2. **Respect Structure**: Maintain the established organization patterns
@@ -367,44 +408,136 @@ AI development services setup:
 4. **Test Recommendations**: Suggest testable and reversible changes
 5. **Document Changes**: Explain rationale for suggested modifications
 
-### Code Generation
+### MANDATORY: Code Generation Standards
 
 - **File Path Comments**: Include `// filepath: path/to/file` in code blocks
 - **Existing Code Preservation**: Use `// ...existing code...` to indicate unchanged sections
 - **Language Specificity**: Use appropriate language identifiers in code blocks
 - **Error Handling**: Include robust error handling in generated scripts
 - **Test Coverage**: When adding new scripts, include corresponding tests in `tests/scripts/`
-- **Commit Messages**: Always use Conventional Commits standard for all commit messages
+- **Commit Standards**: Follow project commit standards as detailed in [Code Style and Standards](#code-style-and-standards)
 
-### Script Integration Guidelines
+### MANDATORY: Change Implementation Guidelines
 
-When adding new setup scripts:
+#### Implementation Standards Reference
 
-1. **Follow Naming Convention**: Use descriptive names matching the tool/service
-2. **Bootstrap Integration**: Add new options to `init.zsh` with appropriate flags
-3. **Help System**: Update `functions.zsh` to include new options in help output
-4. **Error Handling**: Use established logging functions (`_v_log_*`) for consistent output
-5. **User Interaction**: Implement confirmation prompts for destructive operations
-6. **Cross-Platform**: Consider macOS-specific behaviors and dependencies
-7. **Testing**: Create comprehensive test suite covering integration and execution
-8. **Documentation**: Include README files for complex configurations
+**IMPORTANT**: For comprehensive guidance on implementation standards, refer to:
 
-### BetterDisplay Integration Patterns
+- **[Commit Message Standards](#commit-message-standards)**: Conventional Commits specification, format, types, and examples
+- **[Commit Separation Guidelines](#commit-separation-guidelines)**: Detailed rules for when to create separate commits vs. keeping changes together
+- **[Tools and Automation Support](#tools-and-automation-support)**: Git commands and workflow automation
 
-The BetterDisplay script exemplifies several key patterns for tool integration:
+#### Essential Implementation Rules
 
-- **Interactive Decision Making**: Smart detection of existing configurations with user prompts
-- **Backup Strategy**: Automatic backups before potentially destructive operations
-- **Dependency Validation**: Check for required applications and provide helpful error messages
-- **Cross-System Compatibility**: Handle display-specific settings that may not transfer between systems
-- **State Management**: Detect and handle running applications that need to be closed for configuration changes
+1. **Change Scope Analysis**: Assess functional areas and group related changes appropriately
+2. **Atomic Commits**: Ensure each commit leaves the system in a working state
+3. **Conventional Commits**: Use the standardized format: `<type>[optional scope]: <description>`
+4. **Review Optimization**: Structure commits to facilitate code review
+5. **Sequential Logic**: Order commits logically (setup → implementation → tests)
 
-### Interaction Patterns
+### MANDATORY: Script Integration Protocol
 
-- **Incremental Changes**: Suggest small, testable modifications
-- **Configuration Explanation**: Explain complex configuration decisions
-- **Tool Recommendations**: Suggest tools that fit the existing ecosystem
-- **Migration Assistance**: Help with tool updates and configuration changes
-- **Operation Rejection Handling**: Always ask for an explanation and further instructions when an operation is rejected
+When adding new setup scripts, follow these integration requirements:
 
-This comprehensive guide should help AI assistants better understand and work with this sophisticated macOS configuration system.
+**IMPORTANT**: For comprehensive guidance, refer to:
+
+- **[Testing and Validation](#testing-and-validation)**: Complete test suite requirements and patterns
+- **[Code Style and Standards](#code-style-and-standards)**: Naming conventions and documentation standards
+- **[Configuration Best Practices](#configuration-best-practices)**: Error handling and user interaction patterns
+
+#### Essential Integration Steps
+
+1. **Bootstrap Integration**: Add new options to `init.zsh` with appropriate flags
+2. **Help System Integration**: Update `functions.zsh` help output
+3. **Follow Established Patterns**: Use logging functions and interaction patterns from existing scripts
+
+### MANDATORY: Implementation Standards Reference
+
+**IMPORTANT**: For comprehensive guidance on implementation standards, refer to the detailed sections:
+
+- **[Testing and Validation](#testing-and-validation)**: Comprehensive testing protocols and validation strategies
+- **[Tool Integration Patterns](#tool-integration-patterns)**: Cross-tool integration and plugin management standards
+- **[Configuration Best Practices](#configuration-best-practices)**: Organization, maintenance, and security guidelines
+
+### MANDATORY: Task Planning and Execution Protocol
+
+**REQUIRED FOR ALL TASKS**: Every task must begin with a clear execution plan before any implementation begins.
+
+#### Task Planning Requirements
+
+1. **Initial Plan Presentation**: Always start by presenting a markdown checklist outlining all steps required to complete the task
+2. **Step-by-Step Execution**: Complete each step in the plan sequentially
+3. **Progress Tracking**: After completing each step, present the updated checklist with completed items marked
+4. **Plan Adaptation**: If steps need modification during execution, update the plan and explain changes
+
+#### Plan Format Standards
+
+Use this exact format for task plans:
+
+```markdown
+## Task Plan
+
+- [ ] Step 1: Brief description of first action
+- [ ] Step 2: Brief description of second action
+- [ ] Step 3: Brief description of third action
+- [ ] Step 4: Brief description of final action
+```
+
+#### Progress Update Standards
+
+After completing each step, show the updated plan:
+
+```markdown
+## Task Plan
+
+- [x] Step 1: Brief description of first action
+- [ ] Step 2: Brief description of second action
+- [ ] Step 3: Brief description of third action
+- [ ] Step 4: Brief description of final action
+```
+
+#### Implementation Guidelines
+
+1. **Comprehensive Planning**: Include all necessary steps from analysis to verification
+2. **Granular Steps**: Break complex operations into discrete, manageable actions
+3. **Clear Descriptions**: Each step should be understandable and actionable
+4. **Logical Sequence**: Order steps in the most efficient and safe execution order
+5. **Dependency Awareness**: Ensure each step builds appropriately on previous steps
+
+#### Example Task Plan
+
+```markdown
+## Task Plan
+
+- [ ] Analyze current configuration files to understand existing structure
+- [ ] Identify integration points for new functionality
+- [ ] Create new configuration module following project standards
+- [ ] Update related configuration files with proper cross-references
+- [ ] Test configuration changes in isolated environment
+- [ ] Verify functionality meets requirements
+- [ ] Document changes and update relevant documentation
+```
+
+### MANDATORY: User Interaction and Decision Making
+
+#### Essential Interaction Patterns
+
+1. **Incremental Changes**: Suggest small, testable modifications
+2. **Confirmation Requests**: Always ask before making potentially destructive changes
+3. **Progress Communication**: Keep user informed of multi-step operations
+4. **Configuration Explanation**: Explain complex configuration decisions
+
+#### Reference Implementation Examples
+
+- **Error Handling**: Follow patterns in `scripts/functions.zsh` logging system
+- **User Prompts**: Use patterns from `scripts/betterdisplay.zsh` for interactive decisions
+- **Testing Integration**: Reference comprehensive patterns in `tests/scripts/` directory
+
+### MANDATORY: Specialized Knowledge and Implementation Patterns
+
+AI assistants should leverage specialized knowledge in:
+
+- **macOS System Integration**: Understanding system-level configurations and their interactions
+- **Development Workflow Optimization**: Suggesting improvements that enhance productivity
+- **Tool Ecosystem Harmony**: Ensuring new additions complement existing tools
+- **Configuration Maintenance**: Helping maintain long-term system stability and performance
