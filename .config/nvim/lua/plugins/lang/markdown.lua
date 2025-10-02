@@ -1,3 +1,7 @@
+---@module 'render-markdown'
+---@module 'otter'
+---@module 'lazy'
+
 local left_pad = 2
 
 ---@type LazySpec
@@ -5,7 +9,6 @@ return {
   {
     "MeanderingProgrammer/render-markdown.nvim",
     optional = true,
-    ---@module 'render-markdown'
     ---@type render.md.UserConfig
     opts = {
       -- anti_conceal = {
@@ -61,7 +64,7 @@ return {
       completions = { lsp = { enabled = true } },
 
       heading = {
-        icons = { "▉ ", "▍▍ ", "▏▏▏ ", "▏▏▏▏ ", "▏▏▏▏▏ ", "▏▏▏▏▏▏ " },
+        icons = { "h1. ", "h2. ", "h3. ", "h4. ", "h5. ", "h6. " },
         border = false,
         border_prefix = false,
         border_virtual = false,
@@ -104,7 +107,6 @@ return {
       "nvim-treesitter/nvim-treesitter",
     },
 
-    -- ---@module 'otter'
     -- ---@type OtterConfig
     -- opts = {},
   },

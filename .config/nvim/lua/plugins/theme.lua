@@ -17,14 +17,16 @@ return {
 
       highlight_overrides = {
         all = function(colors)
-          local utils = require("catppuccin.utils.colors")
+          local ctpColorUtils = require("catppuccin.utils.colors")
 
           ---Define alpha function to adjust color transparency
           ---@param color string Color name or hex value
           ---@param transparency number Alpha value (0-1)
           ---@param base string? Base color to blend with (optional)
           ---@return string Color blended color
-          local function alpha(color, transparency, base) return utils.blend(color, base or colors.base, transparency) end
+          local function alpha(color, transparency, base)
+            return ctpColorUtils.blend(color, base or colors.base, transparency)
+          end
 
           local search_hl = { bg = alpha(colors.rosewater, 0.2), fg = colors.peach }
 
@@ -138,9 +140,10 @@ return {
             ["@markup.link.url"] = { fg = colors.sapphire, style = { "italic", "underline" } },
             ["@markup.list"] = { fg = alpha(colors.lavender, 0.6) },
             ["@markup.quote"] = { fg = "" },
-            ["@markup.raw.markdown_inline"] = { fg = colors.text, style = { "italic" } },
-            ["@markup.strong.markdown_inline"] = { fg = colors.text, style = { "bold" } },
+            ["@markup.raw.markdown_inline"] = { fg = colors.peach, bg = colors.mantle, style = { "italic" } },
+            ["@markup.strong.markdown_inline"] = { fg = ctpColorUtils.brighten(colors.text, 0.2), style = { "bold" } },
             RenderMarkdownBullet = { link = "@markup.list" },
+            RenderMarkdownCodeInline = { link = "@markup.raw.markdown_inline" },
             RenderMarkdownH1 = { link = "@markup.heading.1.markdown" },
             RenderMarkdownH1Bg = { bg = alpha(colors.green, 0.075) },
             RenderMarkdownH2 = { link = "@markup.heading.2.markdown" },
