@@ -9,17 +9,214 @@ This project is a comprehensive macOS dotfiles configuration management system, 
 **READ FIRST**: Before proceeding with any operations, review these mandatory sections:
 
 - [CRITICAL INTERACTION RULES](#critical-interaction-rules) - Operation rejection handling, visual policy, task planning
-- [IMPLEMENTATION STANDARDS](#implementation-standards) - Code generation, commits, testing, integration
+- [IMPLEMENTATION STANDARDS](#mandatory-implementation-standards) - Code generation, commits, testing, integration
 - [PROJECT CONTEXT](#project-context) - Architecture, workflow, tools, security
 
-**QUICK REFERENCE**: For specific needs, jump directly to:
+## CRITICAL INTERACTION RULES
 
-- Commit standards: [Change Management Protocol](#change-management-protocol)
-- Code generation: [Code Generation Standards](#code-generation-standards)
-- Testing: [Testing and Validation Standards](#testing-and-validation-standards)
-- Project architecture: [Architecture Overview](#architecture-overview)
+### MANDATORY: Operation Rejection Handling
 
-## System Configuration Context
+**HIGHEST PRIORITY RULE**: When any tool operation, file edit, or command execution is rejected, declined, or fails:
+
+1. **IMMEDIATELY STOP** the current approach
+2. **ASK FOR EXPLANATION**: "I see that operation was rejected. Could you help me understand why?"
+3. **REQUEST GUIDANCE**: "What would you prefer I do instead?"
+4. **WAIT FOR INSTRUCTIONS**: Do not attempt alternative approaches without explicit user direction
+5. **ACKNOWLEDGE CONSTRAINTS**: Respect user preferences and system limitations
+
+#### Examples of Rejection Scenarios
+
+- **File Edit Rejected**: User cancels/exits editor - Ask what changes they want instead
+- **Command Fails**: Tool returns error - Ask how to proceed or what alternative to try
+- **User Says "No"**: Direct rejection - Ask for explanation and alternative approach
+- **Permission Denied**: System blocks operation - Ask for guidance on permissions or alternatives
+
+#### Anti-Patterns (DO NOT DO)
+
+- Immediately trying a different approach without asking
+- Assuming you know why the operation was rejected
+- Continuing with related operations that might also be problematic
+- Providing generic solutions without understanding the specific issue
+
+#### Response Template
+
+```md
+I see that [specific operation] was rejected/failed.
+
+Could you help me understand:
+
+1. Why this approach isn't suitable?
+2. What you'd prefer I do instead?
+3. Are there any constraints I should be aware of?
+
+I'll wait for your guidance before proceeding.
+```
+
+### MANDATORY: Visual Elements Policy
+
+**NO EMOJIS OR ICONS**: Do not use emojis, Unicode symbols, or decorative icons in responses or generated code unless explicitly requested by the user. Keep all communication clean and text-based.
+
+### MANDATORY: Task Planning and Execution Protocol
+
+**REQUIRED FOR ALL TASKS**: Every task must begin with a clear execution plan before any implementation begins.
+
+#### Task Planning Requirements
+
+1. **Initial Plan Presentation**: Always start by presenting a markdown checklist outlining all steps required to complete the task
+2. **Step-by-Step Execution**: Complete each step in the plan sequentially
+3. **Progress Tracking**: After completing each step, present the updated checklist with completed items marked
+4. **Plan Adaptation**: If steps need modification during execution, update the plan and explain changes
+
+#### Plan Format Standards
+
+Use this exact format for task plans:
+
+```markdown
+### Task Plan
+
+- [ ] Step 1: Brief description of first action
+- [ ] Step 2: Brief description of second action
+- [ ] Step 3: Brief description of third action
+- [ ] Step 4: Brief description of final action
+```
+
+#### Progress Update Standards
+
+After completing each step, show the updated plan:
+
+```markdown
+### Task Plan
+
+- [x] Step 1: Brief description of first action
+- [ ] Step 2: Brief description of second action
+- [ ] Step 3: Brief description of third action
+- [ ] Step 4: Brief description of final action
+```
+
+#### Implementation Guidelines
+
+1. **Comprehensive Planning**: Include all necessary steps from analysis to verification
+2. **Granular Steps**: Break complex operations into discrete, manageable actions
+3. **Clear Descriptions**: Each step should be understandable and actionable
+4. **Logical Sequence**: Order steps in the most efficient and safe execution order
+5. **Dependency Awareness**: Ensure each step builds appropriately on previous steps
+
+## MANDATORY: Implementation Standards
+
+### Code Generation and Development Standards
+
+#### Code Generation Guidelines
+
+- **File Path Comments**: Include `// filepath: path/to/file` in code blocks
+- **Existing Code Preservation**: Use `// ...existing code...` to indicate unchanged sections
+- **Language Specificity**: Use appropriate language identifiers in code blocks
+- **Error Handling**: Include robust error handling in generated scripts
+- **Test Coverage**: When adding new scripts, include corresponding tests in `tests/scripts/`
+
+#### General Code Style Guidelines
+
+- **Indentation**: 2 spaces for most configuration files
+- **Language Conventions**: Follow each tool's recommended practices
+- **Documentation**: Comprehensive comments for complex configurations
+- **Modularity**: Keep configurations organized and easily maintainable
+- **XDG Compliance**: Use XDG Base Directory specification where possible
+
+#### Configuration Best Practices
+
+- **Modular Structure**: Separate concerns into focused configuration files
+- **Version Control**: Track all configuration changes with meaningful commits
+- **Documentation**: Comment complex configurations and decision rationale
+
+### Language-Specific Standards
+
+#### Lua (Neovim, Hammerspoon, WezTerm, Yazi)
+
+- Use local variables where appropriate
+- Prefer explicit returns and clear module structure
+- Document complex functions with LuaDoc-style comments
+- Follow lazy loading patterns for Neovim plugins
+
+#### Shell Scripts (Zsh)
+
+- Use `set -euo pipefail` for error handling
+- Implement logging functions with consistent formatting
+- Use immediately invoked functions for scope isolation
+- Prefix internal variables with double underscores
+
+#### Configuration Files
+
+- Use TOML for structured configuration where supported
+- Maintain consistent key naming conventions
+- Group related configurations logically
+- Include fallback/default values where appropriate
+
+#### Markdown Documentation
+
+- **Use Proper Headings**: Replace `**Title**:` pseudo-titles with markdown headings (`###`, `####`, etc.)
+- **Maintain Heading Hierarchy**: Follow logical levels without skipping (H1 → H2 → H3 → H4)
+- **Bold Text for Emphasis Only**: Reserve bold formatting for emphasis within content, not section headers
+- **Standard Link Format**: Always use standard markdown link format `[text](url)` instead of wiki-style `[[text]]` links
+
+### Testing and Validation Standards
+
+#### Testing Protocols
+
+- **Neovim Testing**: Use `tests/nvim/repro.lua` for isolated testing
+- **Script Testing**: Comprehensive test suite in `tests/scripts/`
+- **Configuration Validation**: Test changes in isolated environments
+- **Version Control**: Git-based backup and rollback capability
+
+#### Validation Requirements
+
+- **Regular Updates**: Keep tools and configurations current
+- **Testing Protocol**: Validate changes before deployment
+- **Rollback Plan**: Maintain ability to revert problematic changes
+- **Performance Monitoring**: Track configuration impact on system performance
+
+### Change Management Protocol
+
+#### Commit Standards
+
+- **Conventional Commits**: Use format `<type>[optional scope]: <description>`
+- **Common Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+- **Examples**:
+  - `feat(nvim): add new plugin configuration`
+  - `fix(zsh): resolve completion loading issue`
+  - `docs(README): update installation instructions`
+
+#### Commit Separation Rules
+
+**Create Separate Commits When**:
+
+1. **Different Functional Areas**: E.g.: Neovim vs. Hammerspoon changes
+2. **Different Change Types**: Bug fixes vs. new features
+3. **Independent Concerns**: Changes that can be reviewed independently
+
+**Keep in Single Commit When**:
+
+1. **Tightly Coupled Changes**: Implementation and its tests
+2. **Atomic Operations**: Feature requiring changes across multiple files
+3. **Small Related Changes**: Minor formatting fixes across similar files
+
+#### Git Workflow Tools
+
+- Use `git add -p` for interactive staging
+- Leverage `git rebase -i` to reorganize commits
+- Consider `git commit --fixup` for small corrections
+- Use meaningful branch names reflecting change scope
+
+### Script Integration Requirements
+
+When adding new setup scripts:
+
+1. **Bootstrap Integration**: Add new options to `init.zsh` with appropriate flags
+2. **Help System Integration**: Update `functions.zsh` help output
+3. **Follow Established Patterns**: Use logging functions from existing scripts
+4. **Test Integration**: Add comprehensive tests in `tests/scripts/`
+
+## PROJECT CONTEXT
+
+### System Configuration Context
 
 You are an expert in:
 
@@ -33,9 +230,9 @@ You are an expert in:
 - Development tooling and workflow optimization
 - Container orchestration and virtualization (Lima, Podman, Docker)
 
-## Project Architecture
+### Architecture Overview
 
-### Core Setup System
+#### Core Setup System
 
 - **Bootstrap Script**: Main entry point via setup scripts
 - **Package Management**: Homebrew with Brewfile for declarative package management
@@ -43,7 +240,14 @@ You are an expert in:
 - **Symlink Management**: GNU Stow for dotfile deployment
 - **Configuration Organization**: XDG Base Directory compliant structure
 
-### Setup Scripts (`scripts/`)
+#### Tool Integration Patterns
+
+- **Shell Integration**: Common environment variables and paths
+- **Theme Consistency**: Catppuccin color scheme across tools
+- **Key Binding Harmony**: Consistent shortcuts across applications
+- **Data Sharing**: XDG directories for configuration and cache
+
+### Project Setup Scripts (`scripts/`)
 
 Zsh-based setup automation:
 
@@ -94,13 +298,14 @@ Advanced text editor configuration:
 
 #### Version Management
 
-- `mise.toml`: Global tool versions and environment configuration
-- `.config/mise/config.toml`: Mise-specific settings
+- `mise.toml`: This project's specific tool versions and environment
+- `.config/mise/config.toml`: Global tool versions and environment configuration
 
 #### Git and Version Control
 
-- `lazygit`: Terminal UI for Git operations
-- `.config/lazygit/config.yml`: Custom Git workflow configuration
+- `.config/git/config`: Global Git settings and aliases
+- `.config/git/ignore`: Global Git ignore patterns
+- `.config/lazygit/config.yml`: Lazygit (Terminal UI for Git operations) configuration
 
 #### Container and Virtualization
 
@@ -129,158 +334,7 @@ Configurations for:
   - Automated backup system for settings before imports
   - Cross-system compatibility guidance for display-specific settings
 
-## Code Style and Standards
-
-### General Guidelines
-
-- **Indentation**: 2 spaces for most configuration files
-- **Language Conventions**: Follow each tool's recommended practices
-- **Documentation**: Comprehensive comments for complex configurations
-- **Modularity**: Keep configurations organized and easily maintainable
-- **XDG Compliance**: Use XDG Base Directory specification where possible
-
-### Code Style Reference
-
-For detailed code style standards, see [IMPLEMENTATION STANDARDS](#implementation-standards) section above.
-
-## Development Workflow
-
-For detailed workflow information, see [PROJECT CONTEXT](#project-context) section above.
-
-## Project Dependencies and Requirements
-
-### Core Dependencies
-
-- **macOS**: Primary target platform
-- **Homebrew**: Package management foundation
-- **GNU Stow**: Symlink management system
-- **Zsh**: Advanced shell with completion support
-
-### Development Tools
-
-- **mise**: Multi-language tool version management
-- **Git**: Version control with enhanced workflows
-- **Neovim**: Primary text editor with extensive plugin ecosystem
-- **Lima/Podman**: Containerization and virtualization
-
-### Optional Enhancements
-
-- **Hammerspoon**: macOS automation and window management
-- **Terminal Emulators**: WezTerm or Ghostty with advanced features
-- **File Management**: Yazi for enhanced terminal file operations
-- **System Monitoring**: btop, htop for system resource monitoring
-- **Display Management**: BetterDisplay for advanced display scaling and management
-
-## IMPLEMENTATION STANDARDS
-
-### Code Generation Standards
-
-- **File Path Comments**: Include `// filepath: path/to/file` in code blocks
-- **Existing Code Preservation**: Use `// ...existing code...` to indicate unchanged sections
-- **Language Specificity**: Use appropriate language identifiers in code blocks
-- **Error Handling**: Include robust error handling in generated scripts
-- **Test Coverage**: When adding new scripts, include corresponding tests in `tests/scripts/`
-
-### Change Management Protocol
-
-#### Commit Standards
-
-- **Conventional Commits**: Use format `<type>[optional scope]: <description>`
-- **Common Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-- **Examples**:
-  - `feat(nvim): add new plugin configuration`
-  - `fix(zsh): resolve completion loading issue`
-  - `docs(README): update installation instructions`
-
-#### Commit Separation Rules
-
-**Create Separate Commits When**:
-
-1. **Different Functional Areas**: Neovim vs. Hammerspoon changes
-2. **Different Change Types**: Bug fixes vs. new features
-3. **Independent Concerns**: Changes that can be reviewed independently
-
-**Keep in Single Commit When**:
-
-1. **Tightly Coupled Changes**: Implementation and its tests
-2. **Atomic Operations**: Feature requiring changes across multiple files
-3. **Small Related Changes**: Minor formatting fixes across similar files
-
-#### Git Workflow Tools
-
-- Use `git add -p` for interactive staging
-- Leverage `git rebase -i` to reorganize commits
-- Consider `git commit --fixup` for small corrections
-- Use meaningful branch names reflecting change scope
-
-### Script Integration Requirements
-
-When adding new setup scripts:
-
-1. **Bootstrap Integration**: Add new options to `init.zsh` with appropriate flags
-2. **Help System Integration**: Update `functions.zsh` help output
-3. **Follow Established Patterns**: Use logging functions from existing scripts
-4. **Test Integration**: Add comprehensive tests in `tests/scripts/`
-
-### Language-Specific Standards
-
-#### Lua (Neovim, Hammerspoon, Yazi)
-
-- Use local variables where appropriate
-- Prefer explicit returns and clear module structure
-- Document complex functions with LuaDoc-style comments
-- Follow lazy loading patterns for Neovim plugins
-
-#### Shell Scripts (Zsh)
-
-- Use `set -euo pipefail` for error handling
-- Implement logging functions with consistent formatting
-- Use immediately invoked functions for scope isolation
-- Prefix internal variables with double underscores
-
-#### Configuration Files
-
-- Use TOML for structured configuration where supported
-- Maintain consistent key naming conventions
-- Group related configurations logically
-- Include fallback/default values where appropriate
-
-### Testing and Validation Standards
-
-**Testing Protocols**:
-
-- **Neovim Testing**: Use `tests/nvim/repro.lua` for isolated testing
-- **Script Testing**: Comprehensive test suite in `tests/scripts/`
-- **Configuration Validation**: Test changes in isolated environments
-- **Version Control**: Git-based backup and rollback capability
-
-**Validation Requirements**:
-
-- **Regular Updates**: Keep tools and configurations current
-- **Testing Protocol**: Validate changes before deployment
-- **Rollback Plan**: Maintain ability to revert problematic changes
-- **Performance Monitoring**: Track configuration impact on system performance
-
-## PROJECT CONTEXT
-
-### Architecture Overview
-
-#### Core Setup System
-
-- **Bootstrap Script**: Main entry point via setup scripts
-- **Package Management**: Homebrew with Brewfile for declarative package management
-- **Tool Versioning**: mise for managing development tool versions
-- **Symlink Management**: GNU Stow for dotfile deployment
-- **Configuration Organization**: XDG Base Directory compliant structure
-
-#### Tool Integration Patterns
-
-- **Shell Integration**: Common environment variables and paths
-- **Theme Consistency**: Catppuccin color scheme across tools
-- **Key Binding Harmony**: Consistent shortcuts across applications
-- **Data Sharing**: XDG directories for configuration and cache
-
-### Development Workflow
+### Project Development Workflow
 
 #### Setup Process
 
@@ -296,6 +350,30 @@ When adding new setup scripts:
 - **Container Development**: Lima/Podman for AI services
 - **Code Indexing**: Intelligent navigation and suggestions
 
+### Project Dependencies and Requirements
+
+#### Core Dependencies
+
+- **macOS**: Primary target platform
+- **Homebrew**: Package management foundation
+- **GNU Stow**: Symlink management system
+- **Zsh**: Advanced shell with completion support
+
+#### Development Tools
+
+- **mise**: Multi-language tool version management
+- **Git**: Version control with enhanced workflows
+- **Neovim**: Primary text editor with extensive plugin ecosystem
+- **Lima/Podman**: Containerization and virtualization
+
+#### Optional Enhancements
+
+- **Hammerspoon**: macOS automation and window management
+- **Terminal Emulators**: WezTerm or Ghostty with advanced features
+- **File Management**: Yazi for enhanced terminal file operations
+- **System Monitoring**: btop, htop for system resource monitoring
+- **Display Management**: BetterDisplay for advanced display scaling and management
+
 ### Security and Maintenance
 
 - **Credential Management**: Use 1Password for secure credential storage
@@ -303,58 +381,6 @@ When adding new setup scripts:
 - **Update Monitoring**: Track security updates for managed tools
 - **Configuration Auditing**: Regular review of configuration security implications
 - **Backup Strategy**: Regular backups of working configurations
-
-## Configuration Best Practices
-
-### Organization
-
-- **Modular Structure**: Separate concerns into focused configuration files
-- **Version Control**: Track all configuration changes with meaningful commits
-- **Documentation**: Comment complex configurations and decision rationale
-
-## CRITICAL INTERACTION RULES
-
-### MANDATORY: Operation Rejection Handling
-
-**HIGHEST PRIORITY RULE**: When any tool operation, file edit, or command execution is rejected, declined, or fails:
-
-1. **IMMEDIATELY STOP** the current approach
-2. **ASK FOR EXPLANATION**: "I see that operation was rejected. Could you help me understand why?"
-3. **REQUEST GUIDANCE**: "What would you prefer I do instead?"
-4. **WAIT FOR INSTRUCTIONS**: Do not attempt alternative approaches without explicit user direction
-5. **ACKNOWLEDGE CONSTRAINTS**: Respect user preferences and system limitations
-
-#### Examples of Rejection Scenarios
-
-- **File Edit Rejected**: User cancels/exits editor - Ask what changes they want instead
-- **Command Fails**: Tool returns error - Ask how to proceed or what alternative to try
-- **User Says "No"**: Direct rejection - Ask for explanation and alternative approach
-- **Permission Denied**: System blocks operation - Ask for guidance on permissions or alternatives
-
-#### Anti-Patterns (DO NOT DO)
-
-- Immediately trying a different approach without asking
-- Assuming you know why the operation was rejected
-- Continuing with related operations that might also be problematic
-- Providing generic solutions without understanding the specific issue
-
-#### Response Template
-
-```md
-I see that [specific operation] was rejected/failed.
-
-Could you help me understand:
-
-1. Why this approach isn't suitable?
-2. What you'd prefer I do instead?
-3. Are there any constraints I should be aware of?
-
-I'll wait for your guidance before proceeding.
-```
-
-### MANDATORY: Visual Elements Policy
-
-**NO EMOJIS OR ICONS**: Do not use emojis, Unicode symbols, or decorative icons in responses or generated code unless explicitly requested by the user. Keep all communication clean and text-based.
 
 ### MANDATORY: Project Analysis and Context Understanding
 
@@ -365,84 +391,6 @@ When analyzing this project:
 3. **Follow Standards**: Adhere to the documented coding standards
 4. **Test Recommendations**: Suggest testable and reversible changes
 5. **Document Changes**: Explain rationale for suggested modifications
-
-### MANDATORY: Code Generation Standards
-
-- **File Path Comments**: Include `// filepath: path/to/file` in code blocks
-- **Existing Code Preservation**: Use `// ...existing code...` to indicate unchanged sections
-- **Language Specificity**: Use appropriate language identifiers in code blocks
-- **Error Handling**: Include robust error handling in generated scripts
-- **Test Coverage**: When adding new scripts, include corresponding tests in `tests/scripts/`
-- **Commit Standards**: Follow project commit standards as detailed in [Code Style and Standards](#code-style-and-standards)
-
-### MANDATORY: Change Implementation Protocol
-
-All implementation guidance is consolidated in the [IMPLEMENTATION STANDARDS](#implementation-standards) section above. Key requirements:
-
-1. **Change Scope Analysis**: Assess functional areas and group related changes appropriately
-2. **Atomic Commits**: Ensure each commit leaves the system in a working state
-3. **Conventional Commits**: Use the standardized format: `<type>[optional scope]: <description>`
-4. **Script Integration**: Add new options to `init.zsh` and update `functions.zsh` help output
-5. **Test Coverage**: Include comprehensive tests in `tests/scripts/` for new functionality
-
-### MANDATORY: Task Planning and Execution Protocol
-
-**REQUIRED FOR ALL TASKS**: Every task must begin with a clear execution plan before any implementation begins.
-
-#### Task Planning Requirements
-
-1. **Initial Plan Presentation**: Always start by presenting a markdown checklist outlining all steps required to complete the task
-2. **Step-by-Step Execution**: Complete each step in the plan sequentially
-3. **Progress Tracking**: After completing each step, present the updated checklist with completed items marked
-4. **Plan Adaptation**: If steps need modification during execution, update the plan and explain changes
-
-#### Plan Format Standards
-
-Use this exact format for task plans:
-
-```markdown
-## Task Plan
-
-- [ ] Step 1: Brief description of first action
-- [ ] Step 2: Brief description of second action
-- [ ] Step 3: Brief description of third action
-- [ ] Step 4: Brief description of final action
-```
-
-#### Progress Update Standards
-
-After completing each step, show the updated plan:
-
-```markdown
-## Task Plan
-
-- [x] Step 1: Brief description of first action
-- [ ] Step 2: Brief description of second action
-- [ ] Step 3: Brief description of third action
-- [ ] Step 4: Brief description of final action
-```
-
-#### Implementation Guidelines
-
-1. **Comprehensive Planning**: Include all necessary steps from analysis to verification
-2. **Granular Steps**: Break complex operations into discrete, manageable actions
-3. **Clear Descriptions**: Each step should be understandable and actionable
-4. **Logical Sequence**: Order steps in the most efficient and safe execution order
-5. **Dependency Awareness**: Ensure each step builds appropriately on previous steps
-
-#### Example Task Plan
-
-```markdown
-## Task Plan
-
-- [ ] Analyze current configuration files to understand existing structure
-- [ ] Identify integration points for new functionality
-- [ ] Create new configuration module following project standards
-- [ ] Update related configuration files with proper cross-references
-- [ ] Test configuration changes in isolated environment
-- [ ] Verify functionality meets requirements
-- [ ] Document changes and update relevant documentation
-```
 
 ### MANDATORY: User Interaction and Specialized Knowledge
 
