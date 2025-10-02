@@ -124,6 +124,24 @@ Configurations for:
 - **Modularity**: Keep configurations organized and easily maintainable
 - **XDG Compliance**: Use XDG Base Directory specification where possible
 
+### Commit Message Standards
+
+- **Conventional Commits**: All commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification
+- **Format**: `<type>[optional scope]: <description>`
+- **Common Types**:
+  - `feat`: A new feature
+  - `fix`: A bug fix
+  - `docs`: Documentation only changes
+  - `style`: Changes that do not affect the meaning of the code
+  - `refactor`: A code change that neither fixes a bug nor adds a feature
+  - `test`: Adding missing tests or correcting existing tests
+  - `chore`: Changes to the build process or auxiliary tools
+- **Examples**:
+  - `feat(nvim): add new plugin configuration`
+  - `fix(zsh): resolve completion loading issue`
+  - `docs(README): update installation instructions`
+  - `chore(brew): update package dependencies`
+
 ### Lua (Neovim, Hammerspoon, Yazi)
 
 - Use local variables where appropriate
@@ -232,12 +250,12 @@ AI development services setup:
 - **System Monitoring**: btop, htop for system resource monitoring
 - **Display Management**: BetterDisplay for advanced display scaling and management
 
-## Configuration Best Practices
+### Configuration Best Practices
 
 ### Organization
 
 - **Modular Structure**: Separate concerns into focused configuration files
-- **Version Control**: Track all configuration changes with meaningful commits
+- **Version Control**: Track all configuration changes with meaningful commits following Conventional Commits standard
 - **Documentation**: Comment complex configurations and decision rationale
 - **Backup Strategy**: Regular backups of working configurations
 
@@ -272,6 +290,7 @@ AI development services setup:
 - **Language Specificity**: Use appropriate language identifiers in code blocks
 - **Error Handling**: Include robust error handling in generated scripts
 - **Test Coverage**: When adding new scripts, include corresponding tests in `tests/scripts/`
+- **Commit Messages**: Always use Conventional Commits standard for all commit messages
 
 ### Script Integration Guidelines
 
