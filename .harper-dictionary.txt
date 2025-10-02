@@ -1,1 +1,15 @@
+BetterDisplay
+Brewfile
+Catppuccin
+Ghostty
+HiDPI
+LuaDoc
+Podman
+WezTerm
+XDG
+Zsh
+autocmds
+btop
+htop
 mise
+tmux
