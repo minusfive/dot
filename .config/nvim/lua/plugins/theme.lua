@@ -38,6 +38,7 @@ return {
             CursorLineNr = { link = "CursorLine", style = { "bold" } },
             CursorLineSign = { link = "CursorLine" },
             Folded = { bg = colors.surface0 },
+            WinSeparator = { fg = colors.surface1 },
 
             -- Visual selections with inverted colors matching lualine mode bg
             Visual = { bg = alpha(colors.mauve, 0.15), fg = colors.mauve, style = { "bold" } },

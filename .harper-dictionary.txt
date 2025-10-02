@@ -11,5 +11,6 @@ Zsh
 autocmds
 btop
 htop
+lualine
 mise
 tmux

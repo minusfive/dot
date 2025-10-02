@@ -23,9 +23,11 @@ VectorCode
 Villalobos
 Wezterm
 automations
+bg
 darwin
 deduplication
 fintech
+ish
 minusfive
 modularity
 param
