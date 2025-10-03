@@ -91,6 +91,9 @@ vim.g.lazyvim_prettier_needs_config = true
 vim.opt.backup = true
 vim.opt.backupdir = vim.fn.stdpath("state") .. "/backup"
 
+-- Disable spell check by default
+vim.opt.spell = false
+
 -- Are we using Ghostty?
 vim.g.is_term_ghostty = vim.env["TERM"] == "xterm-ghostty"
 

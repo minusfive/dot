@@ -74,10 +74,6 @@ return {
           chat = {
             intro_message = "",
           },
-
-          diff = {
-            provider = "mini_diff",
-          },
         },
 
         extensions = {
