@@ -27,12 +27,7 @@ cd ~/dev/dot
 ## Programs
 
 - Most of the programs I use are installed via [Homebrew](https://brew.sh) using my [Brewfile](./.config/brew/Brewfile)
-- Some are installed and managed by [mise-en-place](https://mise.jdx.dev), as defined in the following files:
-
-  - [~/.config/mise/config.toml](./.config/mise/config.toml)
-  - [~/.config/mise/default_packages_node](./.config/mise/default_packages_node)
-  - [~/.config/mise/default_packages_python](./.config/mise/default_packages_python)
-  - [~/.config/mise/default_packages_ruby](./.config/mise/default_packages_ruby)
+- Some are installed and managed by [mise-en-place](https://mise.jdx.dev), as defined in [~/.config/mise/config.toml](./.config/mise/config.toml)
 
 - Others are directly installed through the [Zsh scripts](./scripts/)
 
@@ -63,3 +58,7 @@ podman compose up --build -d
 ```sh
 vectorcode vectorize
 ```
+
+## Documentation
+
+For comprehensive project details, architecture information, development guidelines, and AI assistant interaction rules, see [AGENTS.md](./AGENTS.md).

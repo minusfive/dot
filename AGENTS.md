@@ -15,6 +15,61 @@ This project is a comprehensive dotfiles configuration management system for mac
 
 ## Project Context
 
+### Project Structure
+
+```sh
+dot/                              # macOS dotfiles configuration system
+├── .stow-local-ignore            # Stow ignore patterns
+├── .stowrc                       # Stow configuration
+├── AGENTS.md                     # AI agent rules and guidelines
+├── README.md                     # Project documentation
+├── biome.json                    # Code formatter configuration
+├── compose.yaml                  # Docker services
+├── mise.toml                     # Project tool versions
+├── otel-collector-config.yaml    # OpenTelemetry collector configuration
+│
+├── assets/                       # Project assets (wallpaper, screenshots)
+├── scripts/                      # Setup automation scripts (Zsh)
+│   ├── init.zsh                  # Bootstrap entry point
+│   ├── functions.zsh             # Utility functions
+│   ├── brew.zsh                  # Package management
+│   ├── symlink.zsh               # Dotfile deployment
+│   ├── mise.zsh                  # Tool version management
+│   ├── betterdisplay.zsh         # Display management
+│   ├── os.zsh                    # System configuration
+│   ├── vm.zsh                    # Virtualization setup
+│   └── zsh.zsh                   # Shell configuration
+│
+├── tests/                        # Testing framework
+│   ├── nvim/repro.lua            # Neovim test environment
+│   └── scripts/                  # Script test suite
+│
+└── .config/                      # XDG configuration directory
+    ├── nvim/                     # Neovim editor
+    ├── hammerspoon/              # macOS automation
+    ├── wezterm/                  # Terminal emulator
+    ├── ghostty/                  # Alternative terminal
+    ├── yazi/                     # File manager
+    ├── zellij/                   # Terminal multiplexer
+    ├── tmux/                     # Terminal multiplexer
+    ├── git/                      # Version control
+    ├── lazygit/                  # Git interface
+    ├── zsh/                      # Shell customization
+    ├── brew/                     # Package declarations
+    ├── mise/                     # Tool management
+    ├── bat/                      # Syntax highlighting
+    ├── btop/                     # System monitoring
+    ├── BetterDisplay/            # Display management
+    ├── 1Password/                # Security integration
+    ├── fzf/                      # Fuzzy finder
+    ├── harper/                   # Spell checking
+    ├── colortail/                # Log colorization
+    ├── delta/                    # Git diff viewer
+    ├── fd/                       # File finder
+    ├── github-copilot/           # AI coding assistant
+    └── mcphub/                   # Development server
+```
+
 ### Architecture Overview
 
 #### Core Setup System
