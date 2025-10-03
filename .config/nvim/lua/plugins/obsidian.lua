@@ -1,27 +1,20 @@
-local vaults = { "Personal", "Work" }
-local vaults_dir = vim.fn.expand("~/Notes/")
 local date_format = "%Y-%m-%d"
 local time_format = "%H:%M:%S"
 local time_format_for_path = "%H-%M-%S" -- Used for file names to avoid colons.
 local day_format = "%A"
 local section_separator = " - "
 
--- Checks whether vault path exists
----@param vault string The name of the vault to check.
----@return string|nil path The vault path
-local function get_vault_path(vault)
-  local vault_path = vaults_dir .. vault
-  if vim.fn.isdirectory(vault_path) == 1 then return vault_path end
-end
+local vaults = {
+  { name = "Personal", path = "~/dev/personal/notes/Personal" },
+  { name = "Work", path = "~/dev/work/notes/Work" },
+}
 
 -- Generates Obsidian workspaces after checking whether paths exist
 ---@return obsidian.workspace.WorkspaceSpec[]
 local function get_obsidian_workspaces()
-  ---@type obsidian.workspace.WorkspaceSpec[]
   local workspaces = {}
   for _, vault in ipairs(vaults) do
-    local vault_path = get_vault_path(vault)
-    if vault_path then table.insert(workspaces, { name = vault, path = vault_path }) end
+    if vim.fn.isdirectory(vault.path) then table.insert(workspaces, vault) end
   end
   return workspaces
 end
