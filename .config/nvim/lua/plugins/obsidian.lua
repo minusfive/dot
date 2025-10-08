@@ -1,3 +1,7 @@
+---@module 'obsidian'
+---@module 'snacks'
+---@module "which-key"
+
 local date_format = "%Y-%m-%d"
 local time_format = "%H:%M:%S"
 local time_format_for_path = "%H-%M-%S" -- Used for file names to avoid colons.
@@ -30,7 +34,7 @@ end
 ---@param time integer|?
 ---@return string
 local get_timestamp_for_path = function(time)
-  -- Returns the current date and time in the format YYYY-MM-DD--HH-MM-SS.
+  -- Returns the current date and time in the format YYYY-MM-DD - HH-MM-SS.
   return tostring(os.date(date_format .. section_separator .. time_format_for_path, time))
 end
 
@@ -228,8 +232,8 @@ vim.api.nvim_create_autocmd({ "LspAttach" }, {
 return {
   {
     "obsidian-nvim/obsidian.nvim",
-    -- dev = true,
-    version = "*", -- recommended, use latest release instead of latest commit
+    dev = true,
+    version = "*", -- Recommended, use latest release instead of latest commit
     -- optional = true,
     lazy = true,
 
@@ -239,7 +243,7 @@ return {
     -- ...only load for markdown files in vault:
     -- event = {
     --   -- if you want to use the home shortcut '~' here you need to call 'vim.fn.expand'.
-    --   -- e.g. "bufreadpre " .. vim.fn.expand "~" .. "/my-vault/**.md"
+    --   -- E.g. "bufreadpre " .. vim.fn.expand "~" .. "/my-vault/**.md"
     --   "bufreadpre "
     --     .. vaults_dir
     --     .. "**/**.md",
@@ -251,23 +255,19 @@ return {
       "nvim-lua/plenary.nvim",
     },
 
-    ---@module 'obsidian'
-    ---@type obsidian.config.ClientOpts|{}
+    ---@type obsidian.config
     opts = {
       -- either 'wiki' or 'markdown'.
       preferred_link_style = "markdown",
 
       -- optional, completion of wiki links, local markdown links, and tags using nvim-cmp.
-      ---@type obsidian.config.CompletionOpts|{}
       completion = {
-        nvim_cmp = false,
         blink = true,
+        nvim_cmp = false,
       },
 
-      -- optional, set preferred picker
-      ---@type obsidian.config.PickerOpts|{}
       picker = {
-        name = "snacks.pick", -- or 'fzf' or 'builtin'
+        name = "snacks.pick",
       },
 
       footer = {
@@ -287,7 +287,6 @@ return {
       -- current markdown file being edited.
       workspaces = workspaces,
 
-      ---@type obsidian.config.DailyNotesOpts|{}
       daily_notes = {
         -- optional, if you keep daily notes in a separate directory.
         folder = nil,
@@ -302,8 +301,8 @@ return {
         -- Optional, if you want `Obsidian yesterday` to return the last work day or `Obsidian tomorrow` to return the next work day.
         workdays_only = false,
       },
+
       -- optional, for templates (see below).
-      ---@type obsidian.config.TemplateOpts|{}
       templates = {
         folder = "Templates",
         date_format = date_format,
@@ -330,7 +329,6 @@ return {
       -- customize how the frontmatter of a note is generated.
       note_frontmatter_func = get_note_frontmatter,
 
-      ---@type obsidian.config.CallbackConfig|{}
       callbacks = {
         -- Automatically switch to the correct workspace based on the current working directory.
         post_setup = function()
@@ -338,14 +336,13 @@ return {
           for _, ws in pairs(Obsidian.opts.workspaces) do
             local dev_path = "/dev/" .. ws.name:lower()
             if (Obsidian.workspace.name ~= ws.name) and string.find(cwd, dev_path) then
-              Obsidian.workspace.switch(ws.name)
+              Obsidian.workspace.set(ws.name)
             end
           end
         end,
       },
 
       -- Specify how to handle attachments.
-      ---@type obsidian.config.AttachmentsOpts|{}
       attachments = {
         -- The default folder to place images in via `:ObsidianPasteImg`.
         -- If this is a relative path it will be interpreted as relative to the vault root.
@@ -368,26 +365,8 @@ return {
   {
     "folke/snacks.nvim",
     optional = true,
-    opts = {
-      ---@module 'snacks'
-      ---@type snacks.picker.Config
-      picker = {
-        sources = {
-          grep = {
-            need_search = false,
-            exclude = { ".obsidian" },
-          },
-          files = {
-            exclude = { ".obsidian" },
-          },
-        },
-      },
-    },
-  },
 
-  {
-    "folke/snacks.nvim",
-    ---@type snacks.Config|{}
+    ---@type snacks.Config
     opts = {
       picker = {
         actions = {
@@ -403,13 +382,21 @@ return {
           end,
         },
 
-        grep = {
-          win = {
-            input = {
-              keys = {
-                ["<c-o>"] = { "obsidian_find_or_create_note", desc = "New Note", mode = { "n", "i", "v" } },
+        sources = {
+          grep = {
+            need_search = false,
+            exclude = { ".obsidian" },
+            win = {
+              input = {
+                keys = {
+                  ["<c-o>"] = { "obsidian_find_or_create_note", desc = "New Note", mode = { "n", "i", "v" } },
+                },
               },
             },
+          },
+
+          files = {
+            exclude = { ".obsidian" },
           },
         },
       },
@@ -418,7 +405,6 @@ return {
 
   {
     "folke/which-key.nvim",
-    ---@module "which-key"
     ---@type wk.Config|{}
     opts = {
       -- Add Obsidian specific keybindings to the which-key menu.

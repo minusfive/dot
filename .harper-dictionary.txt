@@ -11,6 +11,7 @@ XDG
 Zsh
 autocmds
 btop
+frontmatter
 htop
 lualine
 mise
