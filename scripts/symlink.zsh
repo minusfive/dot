@@ -6,16 +6,17 @@
 set -euo pipefail
 
 function {
-    echo "\n"
     local __context="LINK"
     local __proceed="$__symlink_dotfiles"
 
     if [[ "$__proceed" == true ]]; then
+        echo "\n"
         _v_log_info $__context "Symlinking $(_v_fmt_u dotfiles)..."
         _v_confirm_proceed
     fi
 
     if [[ "$__proceed" != true ]]; then
+        echo "\n"
         _v_log_warn $__context "Skipping $(_v_fmt_u dotfiles) symlinking"
         return 0
     fi
@@ -25,27 +26,28 @@ function {
 
     # Ensure $XDG_CONFIG_HOME dir exists to prevent stow from symlinking entire dir
     if [[ -d "$XDG_CONFIG_HOME" ]]; then
+        echo "\n"
         _v_log_ok $__context "Dir $(_v_fmt_u "$XDG_CONFIG_HOME") already exists"
     else
+        echo "\n"
         _v_log_info $__context "Creating $(_v_fmt_u "$XDG_CONFIG_HOME")"
         mkdir "$XDG_CONFIG_HOME"
         _v_log_ok $__context "Dir $(_v_fmt_u "$XDG_CONFIG_HOME") created"
     fi
-    echo "\n"
-
 
     # Ensure $__ssh_dir dir exists to prevent stow from symlinking entire dir
     if [[ -d "$__ssh_dir" ]]; then
+        echo "\n"
         _v_log_ok $__context "Dir $(_v_fmt_u "$__ssh_dir") already exists"
     else
+        echo "\n"
         _v_log_info $__context "Creating $(_v_fmt_u "$__ssh_dir")"
         mkdir "$__ssh_dir"
         _v_log_ok $__context "Dir $(_v_fmt_u "$__ssh_dir") created"
     fi
-    echo "\n"
-
 
     if [[ $(command -v stow) != "" ]]; then
+        echo "\n"
         _v_log_info $__context "$(_v_fmt_u GNU Stow) found, proceeding..."
 
         # CD to dotfiles dir and then back when done

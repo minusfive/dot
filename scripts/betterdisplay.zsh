@@ -7,7 +7,6 @@ set -euo pipefail
 # Immediately invoked anonymous function with the script's path as its only argument
 # used to contain variables and functions in a local scope
 function {
-    echo "\n"
     local __context="DISP"
     local __proceed="$__manage_betterdisplay"
 
@@ -18,6 +17,7 @@ function {
     local __temp_export_file="/tmp/BetterDisplay_export.plist"
 
     if [[ "$__proceed" == true ]]; then
+        echo "\n"
         _v_log_info $__context "Managing $(_v_fmt_u BetterDisplay) settings..."
         _v_log_info $__context "Config directory: $(_v_color_fg yellow "'$__config_dir'")"
         _v_log_info $__context "Config file: $(_v_color_fg yellow "'$__config_file'")"
@@ -26,6 +26,7 @@ function {
     fi
 
     if [[ "$__proceed" != true ]]; then
+        echo "\n"
         _v_log_warn $__context "Skipping $(_v_fmt_u BetterDisplay) settings management"
         return 0
     fi
@@ -150,6 +151,7 @@ function {
 
     # Determine operation based on whether config file exists
     if [[ -f "$__config_file" ]]; then
+        echo "\n"
         _v_log_info $__context "Found existing config file: $__config_file"
 
         local __action_reply
@@ -171,6 +173,7 @@ function {
                 ;;
         esac
     else
+        echo "\n"
         _v_log_info $__context "No existing config file found. Exporting current settings..."
         __export_betterdisplay_settings
     fi

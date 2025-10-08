@@ -15,16 +15,17 @@ set -euo pipefail
 # Immediately invoked anonymous function with the script's path as its only argument
 # used to contain variables and functions in a local scope
 function {
-    echo "\n"
     local __context="  OS"
     local __proceed="$__configure_os_settings"
 
     if [[ "$__proceed" == true ]]; then
+        echo "\n"
         _v_log_info $__context "Configuring $(_v_fmt_u macOS)..."
         _v_confirm_proceed
     fi
 
     if [[ "$__proceed" != true ]]; then
+        echo "\n"
         _v_log_warn $__context "Skipping $(_v_fmt_u macOS) configuration"
         return 0
     fi
@@ -39,18 +40,21 @@ function {
 
     # Wallpaper
     if [[ $(command -v wallpaper) == "" ]]; then
+        echo "\n"
         _v_log_warn $__context "$(_v_fmt_u wallpaper) command not found. Skipping setting wallpaper."
     else
+        echo "\n"
         _v_log_info $__context "Setting $(_v_fmt_u wallpaper) to $__wallpaper_file"
         wallpaper set "$__wallpaper_file" --fill-color "$__wallpaper_color"
     fi
 
-
     # Screenshots
     # Create screenshots dir if it doesn't exist
     if [[ -d "$__screenshots_dir" ]]; then
+        echo "\n"
         _v_log_ok $__context "Screenshots dir exists: $__screenshots_dir"
     else
+        echo "\n"
         _v_log_info $__context "Creating screenshots dir: $__screenshots_dir"
         mkdir -p "$__screenshots_dir"
 
@@ -392,6 +396,7 @@ function {
 
     # Restart Safari if running
     if [[ $(pgrep -x "Safari") ]]; then
+        echo "\n"
         _v_log_ok $__context "Restarting $(_v_fmt_u Safari) to apply changes"
         killall -q Safari 2>/dev/null || true
         sleep 2
