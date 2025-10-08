@@ -30,6 +30,8 @@ function {
     # Install OhMyZsh
     if [[ -d ${ZSH} ]]; then
         _v_log_ok $__context "$(_v_fmt_u OhMyZsh) already installed"
+
+        echo "\n"
     else
         _v_log_info $__context "Installing $(_v_fmt_u OhMyZsh)"
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
@@ -37,13 +39,16 @@ function {
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u OhMyZsh) installed"
         fi
+
+        echo "\n"
     fi
-    echo "\n"
 
 
     # Install PowerLevel10K
     if [[ -d ${ZSH_CUSTOM}/themes/powerlevel10k ]]; then
         _v_log_ok $__context "$(_v_fmt_u PowerLevel10K) already installed"
+
+        echo "\n"
     else
         _v_log_info $__context "Installing $(_v_fmt_u PowerLevel10K)"
         git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
@@ -52,13 +57,16 @@ function {
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u PowerLevel10K) installed"
         fi
+
+        echo "\n"
     fi
-    echo "\n"
 
 
     # Install fast-syntax-highlighting
     if [[ -d ${ZSH_CUSTOM}/plugins/fast-syntax-highlighting ]]; then
         _v_log_ok $__context "$(_v_fmt_u fast-syntax-highlighting) already installed"
+
+        echo "\n"
     else
         _v_log_info $__context "Installing $(_v_fmt_u fast-syntax-highlighting)"
         git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git \
@@ -67,13 +75,16 @@ function {
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u fast-syntax-highlighting) installed"
         fi
+
+        echo "\n"
     fi
-    echo "\n"
 
 
     # Install zsh-autosuggestions
     if [[ -d ${ZSH_CUSTOM}/plugins/zsh-autosuggestions ]]; then
         _v_log_ok $__context "$(_v_fmt_u zsh-autosuggestions) already installed"
+
+        echo "\n"
     else
         _v_log_info $__context "Installing $(_v_fmt_u zsh-autosuggestions)"
         git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions \
@@ -82,13 +93,16 @@ function {
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u fast-syntax-highlighting) installed"
         fi
+
+        echo "\n"
     fi
-    echo "\n"
 
 
     # Install fzf-tab
     if [[ -d ${ZSH_CUSTOM}/plugins/fzf-tab ]]; then
         _v_log_ok $__context "$(_v_fmt_u fzf-tab) already installed"
+
+        echo "\n"
     else
         _v_log_info $__context "Installing $(_v_fmt_u fzf-tab)"
         git clone --depth=1 https://github.com/Aloxaf/fzf-tab \
@@ -97,13 +111,16 @@ function {
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u fzf-tab) installed"
         fi
+
+        echo "\n"
     fi
-    echo "\n"
 
 
     # Install fzf-tab-source
     if [[ -d ${ZSH_CUSTOM}/plugins/fzf-tab-source ]]; then
         _v_log_ok $__context "$(_v_fmt_u fzf-tab-source) already installed"
+
+        echo "\n"
     else
         _v_log_info $__context "Installing $(_v_fmt_u fzf-tab-source)"
         git clone --depth=1 https://github.com/Freed-Wu/fzf-tab-source \
@@ -112,13 +129,15 @@ function {
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u fzf-tab-source) installed"
         fi
+
+        echo "\n"
     fi
-    echo "\n"
 
 
     # Install zsh-vi-mode
     if [[ -d ${ZSH_CUSTOM}/plugins/zsh-vi-mode ]]; then
         _v_log_ok $__context "$(_v_fmt_u zsh-vi-mode) already installed"
+        echo "\n"
     else
         _v_log_info $__context "Installing $(_v_fmt_u zsh-vi-mode)"
         git clone --depth=1 https://github.com/jeffreytse/zsh-vi-mode \
@@ -127,13 +146,16 @@ function {
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u zsh-vi-mode) installed"
         fi
+
+        echo "\n"
     fi
-    echo "\n"
 
 
     # Install OhMyZsh Full-autoupdate
     if [[ -d ${ZSH_CUSTOM}/plugins/ohmyzsh-full-autoupdate ]]; then
         _v_log_ok $__context "$(_v_fmt_u OhMyZsh Full-autoupdate) already installed"
+
+        echo "\n"
     else
         _v_log_info $__context "Installing $(_v_fmt_u OhMyZsh Full-autoupdate)"
         git clone --depth=1 https://github.com/Pilaton/OhMyZsh-full-autoupdate.git \
@@ -142,6 +164,42 @@ function {
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u OhMyZsh Full-autoupdate) installed"
         fi
+
+        echo "\n"
+    fi
+
+
+    # Update OhMyZsh
+    if [[ -d ${ZSH} ]]; then
+        _v_log_info $__context "Updating $(_v_fmt_u OhMyZsh)"
+        "${ZSH}/tools/upgrade.sh"
+
+        if [[ $? == 0 ]]; then
+            _v_log_ok $__context "$(_v_fmt_u OhMyZsh) updated"
+        fi
+
+        # Update custom plugins and themes if full-autoupdate is installed
+        if [[ -d ${ZSH_CUSTOM}/plugins/ohmyzsh-full-autoupdate ]]; then
+            _v_log_info $__context "Updating $(_v_fmt_u OhMyZsh) custom plugins and themes"
+
+            # Set up environment variables needed by the plugin
+            export ZSH_CACHE_DIR="${ZSH}/cache"
+            mkdir -p "${ZSH_CACHE_DIR}"
+
+            # Remove the update label to force execution
+            if [[ -f "${ZSH_CACHE_DIR}/.zsh-update" ]]; then
+                sed -i '' '/LABEL_FULL_AUTOUPDATE/d' "${ZSH_CACHE_DIR}/.zsh-update"
+            fi
+
+            # Source and run the full-autoupdate plugin
+            source "${ZSH_CUSTOM}/plugins/ohmyzsh-full-autoupdate/ohmyzsh-full-autoupdate.plugin.zsh"
+
+            if [[ $? == 0 ]]; then
+                _v_log_ok $__context "$(_v_fmt_u OhMyZsh) custom plugins and themes updated"
+            fi
+        fi
+
+        echo "\n"
     fi
 
 
@@ -160,6 +218,8 @@ function {
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u Bat) cache refreshed"
         fi
+
+        echo "\n"
     fi
 
 
@@ -171,6 +231,8 @@ function {
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u btop) theme updated"
         fi
+
+        echo "\n"
     fi
 
 
@@ -182,6 +244,8 @@ function {
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u delta) theme updated"
         fi
+
+        echo "\n"
     fi
 }
 
