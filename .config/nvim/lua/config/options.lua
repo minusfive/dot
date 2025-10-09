@@ -74,7 +74,6 @@ local _tools = {
   "npm-github-copilot",
   "npm-mermaid-js-mermaid-cli",
   "npm-mcp-hub",
-  "npm-vue-language-server",
   "prettier",
   "python",
   "ruby",
