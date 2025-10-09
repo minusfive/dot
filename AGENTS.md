@@ -238,16 +238,9 @@ When analyzing this project:
 1. **Test Recommendations**: Suggest testable and reversible changes
 1. **Document Changes**: Explain rationale for suggested modifications
 
-### MANDATORY: User Interaction and Specialized Knowledge
+### MANDATORY: Specialized Knowledge and Reference Implementation
 
-#### Essential Interaction Patterns
-
-1. **Incremental Changes**: Suggest small, testable modifications
-1. **Confirmation Requests**: Always ask before making potentially destructive changes
-1. **Progress Communication**: Keep user informed of multi-step operations
-1. **Configuration Explanation**: Explain complex configuration decisions
-
-#### Specialized Knowledge Areas
+#### Core Expertise Areas
 
 AI agents MUST leverage expertise in:
 
@@ -256,7 +249,7 @@ AI agents MUST leverage expertise in:
 - **Tool Ecosystem Harmony**: Ensuring new additions complement existing tools
 - **Configuration Maintenance**: Helping maintain long-term system stability and performance
 
-#### Reference Implementation
+#### Reference Implementation Patterns
 
 - **Error Handling**: Follow patterns in `scripts/functions.zsh` logging system
 - **User Prompts**: Use patterns from `scripts/betterdisplay.zsh` for interactive decisions
@@ -313,6 +306,7 @@ I'll wait for your guidance before proceeding.
 #### Planning Requirements and Standards
 
 1. **Initial Plan Presentation**: Always start by presenting a markdown checklist of all required steps
+1. **Confidence Assessment**: When confidence is below 90%, ask clarifying questions before proceeding
 1. **Step-by-Step Execution**: Complete each step in the plan sequentially
 1. **Progress Tracking**: After completing each step, present the updated checklist with completed items marked
 1. **Plan Adaptation**: If steps need modification during execution, update the plan and explain changes
@@ -321,6 +315,16 @@ I'll wait for your guidance before proceeding.
 1. **Clear Descriptions**: Each step should be understandable and actionable
 1. **Logical Sequence**: Order steps in the most efficient and safe execution order
 1. **Dependency Awareness**: Ensure each step builds appropriately on previous steps
+
+#### Clarifying Questions Protocol
+
+Ask clarifying questions when:
+
+- Requirements are ambiguous or incomplete
+- Multiple implementation approaches are possible
+- Impact on existing configurations is unclear
+- User preferences for specific tools or patterns are unknown
+- Security implications need validation
 
 ##### Required Format
 
@@ -410,15 +414,27 @@ After completing each step, show the updated plan:
 
 ### Testing and Validation Standards
 
+#### Test-Driven Development Protocol
+
+**REQUIRED APPROACH**: Use TDD with acceptance tests for all implementations:
+
+1. **Define Acceptance Criteria**: Establish clear success criteria before implementation
+1. **Create Tests First**: Write tests that validate the expected behavior
+1. **Implement Incrementally**: Build functionality to pass tests progressively
+1. **Validate Continuously**: Run tests frequently during development
+1. **Refactor Safely**: Use tests to ensure changes don't break functionality
+
 #### Testing Protocols
 
 - **Neovim Testing**: Use `tests/nvim/repro.lua` for isolated testing
 - **Script Testing**: Comprehensive test suite in `tests/scripts/`
+- **Acceptance Testing**: Define and test user-visible functionality
 - **Configuration Validation**: Test changes in isolated environments
 - **Version Control**: Git-based backup and rollback capability
 
 #### Validation Standards
 
+- **Test Coverage**: Ensure all new functionality has corresponding tests
 - **Regular Updates**: Keep tools and configurations current
 - **Testing Protocol**: Validate changes before deployment
 - **Rollback Plan**: Maintain ability to revert problematic changes
@@ -531,6 +547,16 @@ After completing each step, show the updated plan:
 - **Security Scanning**: Regular security scans of the development environment
 - **Incident Response**: Defined procedures for security incidents
 - **Compliance Validation**: Regular validation of security compliance requirements
+
+### AGENTS.md Maintenance Guidelines
+
+When updating this file:
+
+1. **Concise Language**: Use clear, direct language optimized for AI comprehension
+1. **Efficient Execution**: Structure guidelines to minimize decision time
+1. **Eliminate Redundancy**: Consolidate overlapping sections and remove duplicate information
+1. **Action-Oriented**: Focus on specific, actionable instructions rather than abstract concepts
+1. **Consistent Formatting**: Maintain standard markdown structure and formatting
 
 ### Script Integration Requirements
 
