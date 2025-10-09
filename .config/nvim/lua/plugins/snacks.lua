@@ -91,6 +91,7 @@ end
 return {
   {
     "folke/snacks.nvim",
+    optional = true,
     -- dev = true,
 
     ---@type snacks.Config|{}
