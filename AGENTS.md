@@ -8,10 +8,10 @@ This project is a comprehensive dotfiles configuration management system for mac
 
 **READ FIRST**: Before proceeding with any operations, review these mandatory sections:
 
+- [MANDATORY: INTERACTION RULES](#mandatory-interaction-rules) - Operation rejection handling, visual policy, task planning
+- [MANDATORY: SECURITY](#mandatory-security) - Credential management, permissions, maintenance
+- [MANDATORY: IMPLEMENTATION STANDARDS](#mandatory-implementation-standards) - Code generation, commits, testing, integration
 - [PROJECT CONTEXT](#project-context) - Architecture, workflow, tools
-- [SECURITY](#mandatory-security) - Credential management, permissions, maintenance
-- [CRITICAL INTERACTION RULES](#critical-interaction-rules) - Operation rejection handling, visual policy, task planning
-- [IMPLEMENTATION STANDARDS](#mandatory-implementation-standards) - Code generation, commits, testing, integration
 
 ## Project Context
 
@@ -19,56 +19,21 @@ This project is a comprehensive dotfiles configuration management system for mac
 
 ```sh
 dot/                              # macOS dotfiles configuration system
-├── .stow-local-ignore            # Stow ignore patterns
-├── .stowrc                       # Stow configuration
-├── AGENTS.md                     # AI agent rules and guidelines
-├── README.md                     # Project documentation
-├── biome.json                    # Code formatter configuration
-├── compose.yaml                  # Docker services
-├── mise.toml                     # Project tool versions
-├── otel-collector-config.yaml    # OpenTelemetry collector configuration
-│
-├── assets/                       # Project assets (wallpaper, screenshots)
-├── scripts/                      # Setup automation scripts (Zsh)
-│   ├── init.zsh                  # Bootstrap entry point
-│   ├── functions.zsh             # Utility functions
-│   ├── brew.zsh                  # Package management
-│   ├── symlink.zsh               # Dotfile deployment
-│   ├── mise.zsh                  # Tool version management
-│   ├── betterdisplay.zsh         # Display management
-│   ├── os.zsh                    # System configuration
-│   ├── vm.zsh                    # Virtualization setup
-│   └── zsh.zsh                   # Shell configuration
-│
-├── tests/                        # Testing framework
-│   ├── nvim/repro.lua            # Neovim test environment
-│   └── scripts/                  # Script test suite
-│
-└── .config/                      # XDG configuration directory
-    ├── nvim/                     # Neovim editor
-    ├── hammerspoon/              # macOS automation
-    ├── wezterm/                  # Terminal emulator
-    ├── ghostty/                  # Alternative terminal
-    ├── yazi/                     # File manager
-    ├── zellij/                   # Terminal multiplexer
-    ├── tmux/                     # Terminal multiplexer
-    ├── git/                      # Version control
-    ├── lazygit/                  # Git interface
-    ├── zsh/                      # Shell customization
-    ├── brew/                     # Package declarations
-    ├── mise/                     # Tool management
-    ├── bat/                      # Syntax highlighting
-    ├── btop/                     # System monitoring
-    ├── BetterDisplay/            # Display management
-    ├── 1Password/                # Security integration
-    ├── fzf/                      # Fuzzy finder
-    ├── harper/                   # Spell checking
-    ├── colortail/                # Log colorization
-    ├── delta/                    # Git diff viewer
-    ├── fd/                       # File finder
-    ├── github-copilot/           # AI coding assistant
-    └── mcphub/                   # Development server
+├── scripts/                      # Zsh-based setup automation and bootstrapping
+├── tests/                        # Testing framework for configurations and scripts
+├── assets/                       # Project assets (wallpapers, screenshots, media)
+├── .config/                      # XDG-compliant application configurations
+├── compose.yaml                  # Docker services for development
+├── mise.toml                     # Project-specific tool versions
+└── [config files]               # Stow, formatting, and project metadata
 ```
+
+#### Key Directories
+
+- **`scripts/`**: Bootstrap system with Zsh automation for package management, symlinks, and system setup
+- **`.config/`**: XDG Base Directory compliant configurations for all applications (nvim, hammerspoon, terminals, etc.)
+- **`tests/`**: Comprehensive testing suite for both Neovim configurations and setup scripts
+- **`assets/`**: Static resources including wallpapers, screenshots, and documentation media
 
 ### Architecture Overview
 
@@ -238,6 +203,18 @@ When analyzing this project:
 1. **Test Recommendations**: Suggest testable and reversible changes
 1. **Document Changes**: Explain rationale for suggested modifications
 
+#### Directory Structure Analysis
+
+**Use `eza --tree --level=n` for deep directory exploration**:
+
+- `eza --tree --level=2 .config/` - Configuration overview
+- `eza --tree --level=3 scripts/` - Script organization  
+- `eza --tree --level=4 .config/nvim/` - Neovim structure
+- `eza --tree --all --level=2` - Include hidden files
+- `eza --tree --only-dirs --level=3` - Directory structure only
+
+Start with level 2, increase selectively for detailed analysis.
+
 ### MANDATORY: Specialized Knowledge and Reference Implementation
 
 #### Core Expertise Areas
@@ -255,9 +232,9 @@ AI agents MUST leverage expertise in:
 - **User Prompts**: Use patterns from `scripts/betterdisplay.zsh` for interactive decisions
 - **Testing Integration**: Reference comprehensive patterns in `tests/scripts/` directory
 
-## CRITICAL Interaction Rules
+## MANDATORY: Interaction Rules
 
-### MANDATORY: Operation Rejection Handling
+### Operation Rejection Handling
 
 **HIGHEST PRIORITY RULE**: When any tool operation, file edit, or command execution is rejected, declined, or fails:
 
@@ -362,6 +339,7 @@ After completing each step, show the updated plan:
 - **Existing Code Preservation**: Use `// ...existing code...` to indicate unchanged sections
 - **Language Specificity**: Use appropriate language identifiers in code blocks
 - **Error Handling**: Include robust error handling in generated scripts
+- **Edit Tool Error Prevention**: When using SEARCH/REPLACE blocks, escape any content that contains `<<<<<<<`, `=======`, or `>>>>>>>` with backslashes to prevent parser confusion
 - **Test Coverage**: When adding new scripts, include corresponding tests in `tests/scripts/`
 
 #### Style Standards
@@ -412,7 +390,7 @@ After completing each step, show the updated plan:
   - Include blank lines before and after list groups
   - Use 2-space indentation for sub-items in nested lists
 
-### Testing and Validation Standards
+### MANDATORY: Testing and Validation Standards
 
 #### Test-Driven Development Protocol
 
@@ -440,7 +418,7 @@ After completing each step, show the updated plan:
 - **Rollback Plan**: Maintain ability to revert problematic changes
 - **Performance Monitoring**: Track configuration impact on system performance
 
-### Change Management Protocol
+### MANDATORY: Change Management Protocol
 
 #### Commit Standards
 
@@ -472,15 +450,15 @@ After completing each step, show the updated plan:
 - Consider `git commit --fixup` for small corrections
 - Use meaningful branch names reflecting change scope
 
-#### Reference Integrity Management
+#### MANDATORY: Reference Integrity Management
 
-**MANDATORY**: When making changes that affect references, always validate and update all related links:
+When making changes that affect references, always validate and update all related links:
 
 **Heading Changes**:
 
 1. **Update Internal Links**: When modifying headings, update all internal markdown references
 1. **Fragment ID Rules**: Follow standard markdown fragment generation (lowercase, hyphens for spaces, remove special characters)
-1. **Cross-Reference Validation**: Verify all `[text](#fragment)` links point to existing headings
+1. **Cross-Reference Validation**: Verify all reference links point to existing headings
 1. **Documentation Updates**: Update any external documentation that references changed headings
 
 **File Structure Changes**:
@@ -550,7 +528,7 @@ After completing each step, show the updated plan:
 
 ### AGENTS.md Maintenance Guidelines
 
-When updating this file:
+When updating AGENTS.md files:
 
 1. **Concise Language**: Use clear, direct language optimized for AI comprehension
 1. **Efficient Execution**: Structure guidelines to minimize decision time
