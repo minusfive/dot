@@ -48,6 +48,7 @@ config.use_fancy_tab_bar = false -- Use retro tab bar
 config.hide_tab_bar_if_only_one_tab = true
 config.show_new_tab_button_in_tab_bar = false
 config.tab_max_width = 32
+config.tab_bar_at_bottom = true
 ctp.tab_bar.active_tab.intensity = "Bold"
 ctp.tab_bar.inactive_tab.bg_color = catppuccin.colors.mocha.crust
 ctp.tab_bar.inactive_tab.fg_color = catppuccin.colors.mocha.overlay2

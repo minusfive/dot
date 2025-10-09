@@ -109,6 +109,24 @@ return {
     },
   },
 
+  -- Lua types
+  {
+    "folke/lazydev.nvim",
+    dependencies = {
+      {
+        "DrKJeff16/wezterm-types",
+        lazy = true,
+        version = false, -- Get the latest version
+      },
+    },
+    opts = {
+      library = {
+        -- Other library configs...
+        { path = "wezterm-types", mods = { "wezterm" } },
+      },
+    },
+  },
+
   -- File explorer
   {
     "nvim-neo-tree/neo-tree.nvim",
