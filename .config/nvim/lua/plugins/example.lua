@@ -78,9 +78,7 @@ return {
     dependencies = {
       "nvim-telescope/telescope-fzf-native.nvim",
       build = "make",
-      config = function()
-        require("telescope").load_extension("fzf")
-      end,
+      config = function() require("telescope").load_extension("fzf") end,
     },
   },
 
@@ -174,9 +172,7 @@ return {
   {
     "nvim-lualine/lualine.nvim",
     event = "VeryLazy",
-    opts = function(_, opts)
-      table.insert(opts.sections.lualine_x, "😄")
-    end,
+    opts = function(_, opts) table.insert(opts.sections.lualine_x, "😄") end,
   },
 
   -- or you can return new options to override all the defaults
@@ -198,7 +194,7 @@ return {
 
   -- add any tools you want to have installed below
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     opts = {
       ensure_installed = {
         "stylua",
@@ -213,9 +209,7 @@ return {
   -- first: disable default <tab> and <s-tab> behavior in LuaSnip
   {
     "L3MON4D3/LuaSnip",
-    keys = function()
-      return {}
-    end,
+    keys = function() return {} end,
   },
   -- then: setup supertab in cmp
   {
