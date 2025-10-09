@@ -1,0 +1,25 @@
+---
+name: vue-language-server
+description: ⚡ Explore high-performance tooling for Vue.
+homepage: https://github.com/vuejs/language-tools
+licenses:
+  - MIT
+languages:
+  - Vue
+categories:
+  - LSP
+
+source:
+  # Pinned ^3.0 for Vue 2 support
+  id: pkg:npm/%40vue/language-server@3.0
+  extra_packages:
+    - typescript
+
+schemas:
+  lsp: vscode:https://raw.githubusercontent.com/vuejs/language-tools/v{{version}}/extensions/vscode/package.json
+
+bin:
+  vue-language-server: npm:vue-language-server
+
+neovim:
+  lspconfig: vue_ls
