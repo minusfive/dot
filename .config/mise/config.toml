@@ -1,20 +1,21 @@
 [settings]
+# paranoid = true
 env_file = ".env"
 experimental = true
 idiomatic_version_file_enable_tools = ["node"]
-# paranoid = true
 npm.bun = true
+node.compile = false
 pipx.uvx = true
 python.uv_venv_auto = true
 python.uv_venv_create_args = ["--seed"]
 
 [tools]
-python = "latest"
+python = "3.13"
 bun = "latest"
 deno = "latest"
 go = "latest"
 lua = "5.1"
-node = "latest"
+node = "24.9"
 uv = "latest"
 
 ruby = "latest"
