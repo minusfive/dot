@@ -1,3 +1,9 @@
+---@module 'blink.cmp'
+---@module 'copilot'
+---@module 'lazy'
+---@module 'mcphub'
+---@module 'mason-lspconfig'
+---@module "vectorcode"
 -- TODO: Explore LuaLine integration
 
 local lualine_vectorcode = {
@@ -14,7 +20,6 @@ return {
     "zbirenbaum/copilot.lua",
     optional = true,
 
-    ---@module 'copilot'
     ---@type CopilotConfig|{}
     opts = {
       server = {
@@ -25,7 +30,6 @@ return {
 
   {
     "saghen/blink.cmp",
-    ---@module 'blink.cmp'
     ---@type blink.cmp.Config
     opts = {
       sources = {
@@ -125,7 +129,6 @@ return {
               tool_group = {
                 extras = { "file_search" },
               },
-              ---@module "vectorcode"
               ---@type VectorCode.CodeCompanion.ToolOpts
               tool_opts = {
                 use_lsp = true,
@@ -242,7 +245,6 @@ return {
     build = "npm install -g mcp-hub@latest",
     config = true,
     cmd = { "MCPHub" },
-    ---@module 'mcphub'
     ---@type MCPHub.Config
     opts = {
       workspace = {
@@ -264,25 +266,24 @@ return {
 
   {
     "Davidyz/VectorCode",
-    build = "uv tool upgrade vectorcode", -- optional but recommended. This keeps your CLI up-to-date.
+    build = "uv tool upgrade vectorcode", -- Optional but recommended. This keeps your CLI up-to-date.
     dependencies = {
       "nvim-lua/plenary.nvim",
       {
         "neovim/nvim-lspconfig",
         ---@class PluginLspOpts
         opts = {
-          servers = { vectorcode_server = {} },
+          servers = { vectorcode_server = { mason = false } },
         },
       },
     },
     cmd = { "VectorCode" },
-    ---@module "vectorcode"
     ---@type VectorCode.Opts|{}
     opts = {
       async_backend = "lsp",
       on_setup = {
-        update = true, -- whether to update the CLI on setup
-        lsp = true, -- whether to setup the LSP server
+        update = true, -- Whether to update the CLI on setup
+        lsp = true, -- Whether to setup the LSP server
       },
     },
     keys = {
