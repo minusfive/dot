@@ -16,6 +16,7 @@ Netlify
 PlacePass
 RBAC
 SSoT
+TODO
 Terraform
 UX
 Unspace
@@ -28,6 +29,7 @@ darwin
 deduplication
 fintech
 ish
+lua
 minusfive
 modularity
 param
