@@ -233,6 +233,26 @@ After completing each step, show the updated plan:
 - Consider `git commit --fixup` for small corrections
 - Use meaningful branch names reflecting change scope
 
+### Pre-Commit Review Protocol
+
+**MANDATORY**: Always show diffs and get explicit approval before committing changes:
+
+1. **Show Complete Diff**: Display full diff of all staged changes using `git diff --staged` or equivalent
+1. **Highlight Key Changes**: Summarize the most important modifications in the diff
+1. **Request Explicit Approval**: Ask "Should I proceed with committing these changes?" and wait for confirmation
+1. **Never Auto-Commit**: Do not commit changes without explicit user approval after showing the diff
+1. **Diff Formatting**: Present diffs in readable format with proper syntax highlighting when possible
+
+#### Required Pre-Commit Checklist
+
+Before any commit operation:
+
+- [ ] Show complete diff of staged changes
+- [ ] Summarize key modifications
+- [ ] Verify commit message follows conventional commit format
+- [ ] Confirm all changes are intentional and correct
+- [ ] Get explicit user approval to proceed
+
 ### Reference Integrity Management
 
 When making changes that affect references, always validate and update all related links:
