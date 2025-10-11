@@ -145,14 +145,7 @@ return {
           opts = {
             chat = {
               enabled = true,
-              default_memory = { "default", "ai", "work" },
-            },
-          },
-
-          ai = {
-            files = {
-              "~/.config/ai/RULES.md",
-              ".ai/RULES.md",
+              default_memory = { "default", "work" },
             },
           },
 

@@ -232,8 +232,8 @@ vim.api.nvim_create_autocmd({ "LspAttach" }, {
 return {
   {
     "obsidian-nvim/obsidian.nvim",
-    dev = true,
-    version = "*", -- Recommended, use latest release instead of latest commit
+    -- dev = true,
+    -- version = "*", -- Recommended, use latest release instead of latest commit
     -- optional = true,
     lazy = true,
 
