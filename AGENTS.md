@@ -300,6 +300,28 @@ Follow [Commit Message Format](#message-format) with brief summary of all change
 - Security review for system-level changes
 - Reference integrity validation for documentation
 
+### IMPORTANT: Branching Strategy
+
+#### Branch Naming
+
+Keep branch names short and descriptive: `fix-window-snapping`, `lsp-config`, `update-docs`
+
+#### Workflow
+
+- Main branch: `nixless`
+- Create new branch for all new features or complex changes
+- Simple fixes and typos may commit directly to `nixless`
+- Keep branches short-lived
+- Squash merge to `nixless` via PR
+- Delete branch after merge
+
+#### Before Merging
+
+- Sync with latest `nixless`
+- Run tests and linting
+- Follow [Pre-Commit Guidelines](#important-pre-commit-guidelines)
+- Get explicit approval
+
 ## MANDATORY: Security Guidelines
 
 - **NEVER** commit sensitive data to version control
