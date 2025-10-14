@@ -68,3 +68,6 @@ mise.local.toml
 # zsh
 .zsh_history
 .zcompdump
+
+# Node.js / Bun
+node_modules/
