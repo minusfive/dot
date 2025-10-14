@@ -41,8 +41,8 @@ tree-sitter = "latest"
 postinstall = [
   "python -m ensurepip",
   "pip install --user --upgrade pip",
-  "pip install --user --upgrade pipx pynvim",
-  "uv tool install vectorcode[lsp,mcp]",
+  "uv tool install --upgrade pynvim",
+  "uv tool install --upgrade vectorcode[lsp,mcp]",
   "npm install -g npm@latest",
   "npm install -g neovim",
   "gem install neovim",

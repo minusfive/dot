@@ -65,24 +65,6 @@ vim.g.lazyvim_blink_main = true
 -- Default picker
 vim.g.lazyvim_picker = "snacks"
 
--- TODO: use `:h provider`
--- Use global mise tools, skipping local
-local _tools = {
-  "lua",
-  "luarocks",
-  "node",
-  "npm-github-copilot",
-  "npm-mermaid-js-mermaid-cli",
-  "npm-mcp-hub",
-  "prettier",
-  "python",
-  "ruby",
-  "tree-sitter",
-}
-for _, _t in ipairs(_tools) do
-  vim.env.PATH = vim.env.HOME .. "/.local/share/mise/installs/" .. _t .. "/latest/bin:" .. vim.env.PATH
-end
-
 -- Use prettier only when .prettierrc is found in project
 vim.g.lazyvim_prettier_needs_config = true
 
