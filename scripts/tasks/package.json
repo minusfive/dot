@@ -1,0 +1,16 @@
+{
+  "name": "dotfiles-tasks",
+  "version": "1.0.0",
+  "description": "Task scripts for dotfiles configuration management",
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "lint": "bun run --bun tsc --noEmit",
+    "validate-markdown": "bun run validate-markdown.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "bun-types": "latest",
+    "typescript": "^5.0.0"
+  }
+}
