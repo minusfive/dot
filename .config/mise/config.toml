@@ -35,6 +35,7 @@ tree-sitter = "latest"
 "npm:@mermaid-js/mermaid-cli" = "latest"
 "npm:mcp-hub" = "latest"
 "npm:@github/copilot" = "latest"
+"npm:markdownlint-cli2" = "latest"
 
 [hooks]
 postinstall = [

@@ -2,12 +2,58 @@
   "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/refs/heads/main/schema/markdownlint-cli2-config-schema.json",
   "fix": false,
   "config": {
-    // MD013/line-length : Line length : https://github.com/DavidAnson/markdownlint/blob/v0.37.4/doc/md013.md
+    // MD001/heading-increment : Heading levels should only increment by one level at a time
+    // Enforces proper heading hierarchy (H1→H2→H3, not H1→H3)
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md001.md
+    "MD001": true,
+
+    // MD004/ul-style : Unordered list style - enforce hyphens (-) not asterisks (*)
+    // Matches project guideline: "Use hyphens for unordered lists"
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md004.md
+    "MD004": {
+      "style": "dash"
+    },
+
+    // MD011/no-reversed-links : Reversed link syntax
+    // Enforces standard [text](url) format, not (url)[text]
+    // Matches project guideline: "Use standard [text](url) links"
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md011.md
+    "MD011": true,
+
+    // MD013/line-length : Line length - disabled to allow long lines
+    // Project doesn't enforce strict line length limits
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md013.md
     "MD013": false,
 
-    // MD033/no-inline-html : Inline HTML : https://github.com/DavidAnson/markdownlint/blob/v0.37.4/doc/md033.md
+    // MD033/no-inline-html : Inline HTML - allow specific HTML elements
+    // Permits XML-like tags used in AI tool calls and disclosure widgets
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md033.md
     "MD033": {
-      "allowed_elements": ["img"]
-    }
+      "allowed_elements": [
+        "img",
+        "antml:function_calls",
+        "antml:invoke",
+        "antml:parameter",
+        "antml:system_warning",
+        "a",
+        "summary",
+        "details"
+      ]
+    },
+
+    // MD040/fenced-code-language : Fenced code blocks should have a language specified
+    // Enforces code blocks use ```lang not bare ```
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md040.md
+    "MD040": true,
+
+    // MD041/first-line-heading : First line in file should be a top level heading
+    // Disabled - not all markdown files need H1 at top (e.g., READMEs with badges)
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md041.md
+    "MD041": false,
+
+    // MD051/link-fragments : Link fragments should be valid
+    // Validates anchor links like [text](#heading) point to existing headings
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md051.md
+    "MD051": true
   }
 }

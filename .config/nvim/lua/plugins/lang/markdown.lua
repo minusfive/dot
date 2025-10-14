@@ -1,11 +1,28 @@
----@module 'render-markdown'
----@module 'otter'
 ---@module 'lazy'
+---@module 'mason'
+---@module 'otter'
+---@module 'render-markdown'
 
 local left_pad = 2
 
+local mason_tools_to_remove = {
+  "markdownlint-cli2",
+}
+
 ---@type LazySpec
 return {
+  {
+    "mason-org/mason.nvim",
+
+    opts = function(_, opts)
+      opts.ensure_installed = opts.ensure_installed or {}
+
+      for index, tool in ipairs(opts.ensure_installed) do
+        if vim.list_contains(mason_tools_to_remove, tool) then table.remove(opts.ensure_installed, index) end
+      end
+    end,
+  },
+
   {
     "MeanderingProgrammer/render-markdown.nvim",
     optional = true,

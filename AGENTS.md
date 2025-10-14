@@ -226,6 +226,7 @@ When a task requires generating scripts for execution:
 - DO NOT create table of contents unless explicitly requested
   - If one exists, keep it synchronized with actual sections
 - Always analyze the whole file and suggest optimizations according to these rules
+- Validate markdown files using `markdownlint-cli2` configured in `.markdownlint-cli2.jsonc`
 
 #### When updating AGENTS.md or other AI rules files
 
@@ -301,7 +302,7 @@ Keep branch names short and descriptive: `fix-window-snapping`, `lsp-config`, `u
 
 - Sync with latest `nixless`
 - Run tests and linting
-- Follow [Error Handling and Validation Standards](#error-handling-and-validation-standards)
+- Follow [Error Handling](#error-handling)
 
 ## Security Guidelines
 
