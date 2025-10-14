@@ -1,16 +1,11 @@
 # macOS System Configuration Project - AI Rules and Guidelines
 
-Comprehensive dotfiles configuration management system for macOS. Core technologies: Neovim, Hammerspoon, WezTerm/Ghostty, Zsh, development automation.
-
-## READ FIRST: MANDATORY Rules and Guidelines
-
-- [MANDATORY: AI Agent Interaction Rules](#mandatory-ai-agent-interaction-rules)
-- [MANDATORY: Updating AGENTS.md](#mandatory-updating-agentsmd)
-- [MANDATORY: Coding Guidelines](#mandatory-coding-guidelines)
-- [MANDATORY: Version Control (Git) Guidelines](#mandatory-version-control-git-guidelines)
-- [MANDATORY: Security Guidelines](#mandatory-security-guidelines)
+> [!IMPORTANT]
+> All rules and guidelines in this document are **MANDATORY**
 
 ## Project Overview
+
+Dotfiles configuration management system for macOS. Core technologies: Neovim, Hammerspoon, WezTerm/Ghostty, Zsh, development automation.
 
 ### Directory Structure
 
@@ -53,125 +48,106 @@ Comprehensive dotfiles configuration management system for macOS. Core technolog
 - Lima integration for Linux VM management
 - Podman for rootless container management
 
-## MANDATORY: AI Agent Interaction Rules
+## AI Agent Interaction Rules
 
-### HIGHEST PRIORITY: When operations are rejected/fail
-
-1. **STOP** current approach immediately
-2. **ASK**: "I see that operation was rejected. Could you help me understand why?"
-3. **REQUEST**: "What would you prefer I do instead?"
-4. **WAIT** for instructions before proceeding
-5. **NEVER** retry, or continue blindly, assume or generalize without guidance
-
-### MANDATORY: Task Planning
-
-- Present complete plan prior to execution using markdown checklist ([template](#task-plan-template))
-- Explain rationale for modifications
-- Execute steps sequentially
-- Update and present checklist after each step
-  - Mark completed items with `[x]`
-  - Strike-through rejected items and note reason
-
-#### Task Plan Template
-
-```markdown
-### {{ TASK }} - Task Plan
-
-- [ ] Step 1: Brief description
-- [ ] Step 2: Brief description
-- [ ] Step 3: Brief description
-```
-
-### MANDATORY: Updating AGENTS.md
-
-When modifying this file, MUST follow all rules in [Markdown](#markdown) section, plus:
-
-- **Document Rationale**: Explain why changes are needed before implementing
-- **Follow Code Change Philosophy**: Apply [Code Change Philosophy](#code-change-philosophy) principles to documentation
-- **Use Directive Language**: Write rules using concise, imperative instructions (e.g., "Use X" not "Should use X", "Avoid Y" not "Try to avoid Y")
-
-### IMPORTANT: Communication Guidelines
-
-#### Response Style
-
-- Be concise and direct, answering in fewer than 4 lines unless detail is requested
-- Minimize output tokens by addressing only the specific task
-- Skip preambles like "Here is what I'll do..." or "Based on the information..."
-- Brief answers are best, use 1-3 sentences when possible
-- Keep all communication text-based unless explicitly requested (no emojis or icons)
-
-#### Professional Objectivity
+### Core Principles
 
 - Prioritize technical accuracy and facts over validating beliefs
 - Provide honest, objective feedback even when it may not align with expectations
 - Investigate uncertainty first rather than confirming assumptions
 - Apply rigorous standards consistently to all ideas
+- Be concise and direct, answering in fewer than 4 lines unless detail is requested
+- Skip unnecessary preambles and postambles like "Here is what I'll do..." or "Based on the information..."
+- DO NOT use emojis or icons unless explicitly requested
+- Minimize output tokens by addressing only the specific task
 
-#### Tool Usage
+### Task Planning
 
-- Do not explain or narrate exploration process before making tool calls
-- Make tool calls silently and let results speak for themselves
+- Present complete plan prior to execution using markdown checklist (see [Template](#template))
+- Explain rationale for modifications
+- Execute steps sequentially
+- Update and present checklist before and after each step
+  - Mark completed items with `[x]`
+  - Strike-through rejected or failed steps and note reason
 
-#### Code Formatting
+#### Template
 
-- Include `// filepath: path/to/file` in code blocks
-- Use `// ...existing code...` for unchanged sections
-- Specify correct language in code blocks
-- Escape `<<<<<<<`, `=======`, `>>>>>>>` with backslashes
+```markdown
+### {{ TASK }} - Task Plan
 
-#### When to Ask Questions
+- [ ] Step 1: Brief description
+  - [ ] Step 1.1: Sub-step description
+- [ ] Step 2: Brief description
+- [ ] Step 3: Brief description
+```
 
-- Confidence is below 90%
+### When operations are rejected or fail
+
+1. **STOP** current approach immediately
+2. **ASK**: "Why was the operation rejected? What would you prefer I do instead?"
+3. **WAIT** for instructions before proceeding
+4. **DO NOT** retry or continue, assume or generalize without guidance
+
+### When to Ask Questions
+
+- Confidence is below 95%
 - Requirements are ambiguous
 - Multiple approaches possible
 - Configuration impact unclear
 - Tool preferences unknown
 - Security implications exist
 
-### IMPORTANT: Tool Usage Efficiency
+### Code Formatting
 
-#### Parallel Operations
+- Include `// filepath: path/to/file` in code blocks
+- Use `// ...existing code...` for unchanged sections
+- Specify correct language in code blocks
+- Escape `<<<<<<<`, `=======`, `>>>>>>>` with backslashes
 
-- Make ALL independent tool calls in a SINGLE response
-- Never make sequential turns for operations that can run in parallel
-- Examples of parallel operations: reading multiple files, viewing multiple directories, validating multiple changes
+### Tool Usage and Efficiency
+
+- Combine ALL independent tool calls in a SINGLE response
+- Run operations in parallel when possible
+  - Examples of parallel operations: reading multiple files, viewing multiple directories, validating multiple changes
 - Use sequential operations only when tool calls depend on previous results for parameter values
-
-#### Efficiency Patterns
-
 - Read larger file sections using offset and limit parameters
 - Use command chains with `&&` or batch operations
+- Use homebrew or mise-managed tools for consistent analysis across environments
 - Minimize tool output with `--quiet`, `--no-pager`, or pipe to `grep`/`head`
+- Use `rg` instead of `grep` when available
 - Use recursive patterns with globs or batch operations in single tool calls
+- Use `eza` for deep directory analysis when available
+- Use VectorCode for semantic analysis
+- Use language servers and linters for diagnostics, rule analysis and suggestions
 
-#### Directory Analysis
+### Generate and save reusable scripts for task execution
 
-Use `eza --tree --level=n`. Start with level 2, increase selectively for detail.
+When a task requires generating scripts for execution:
 
-- `--level=2 .config/` for configuration overview
-- `--level=3 scripts/` for script organization
-- `--level=4 .config/nvim/` for Neovim structure
-- `--all --level=2` to include hidden files
-- `--only-dirs --level=3` for directory structure only
+- Save scripts in `scripts/tasks/` directory for project-wide reuse
+- Check `scripts/tasks/` directory for existing scripts which may be used to execute current task
+- Suggest modifications to existing scripts if required to execute the current task and improve future reusability
+- Make new scripts generic and reusable
+- Use Bun with strict TypeScript types for all new scripts, tested with `bun test` following [Coding Guidelines](#coding-guidelines)
+- Use kebab-case with descriptive names (e.g., `analyze-config.ts`, `validate-symlinks.ts`)
+- Make scripts executable with proper shebang: `#!/usr/bin/env bun`
+- Write documentation to each script optimized for AI agents, following [Markdown](#markdown)
 
-## MANDATORY: Coding Guidelines
+## Coding Guidelines
 
-### Code Change Philosophy
+### Core Coding Principles
 
+- Explain why changes are needed before implementing
+- Use a test-driven, red-green-refactor approach
 - Make minimal modifications, changing as few lines as possible
-- Make changes surgical and precise
-- Never delete or modify working code unless absolutely necessary
-- Ignore unrelated bugs or broken tests
+- Make surgical and precise changes
+- Make testable and reversible changes
+- DO NOT delete or modify working code unless absolutely necessary
 - Fix only build/test failures related to your task
-- Always validate that changes don't break existing behavior
+- Validate that changes don't break existing behavior
 - Update only documentation directly related to your changes
-
-### General Principles
-
 - Adhere to documented coding standards for each language or module
-- Prefer functional over Object Oriented patterns
-- Suggest testable and reversible changes (see [Testing and Validation](#testing-and-validation))
-- Include robust error handling in all scripts
+- Use functional patterns, avoid Object Oriented
 - Organize configurations for easy maintenance
 - Maintain established organization patterns
 - Use XDG Base Directory specification
@@ -179,21 +155,14 @@ Use `eza --tree --level=n`. Start with level 2, increase selectively for detail.
 - Only add comments if they match existing style or explain complex changes
 - Use existing libraries whenever possible
 - Only add new libraries or update versions if absolutely necessary
+- After completing changes always validate all rules were followed
 
-### Linting, Building, and Testing
+### Error Handling
 
-- Only run existing tools, don't add new ones unless necessary for the task
-- Run existing linters, builds, and tests before making changes to understand unrelated issues
-- Lint, build, and test changes as soon as possible after making them
-- Documentation changes don't need linting/building/testing unless specific tests exist
-
-### Using Ecosystem Tools
-
-- Prefer tools from the ecosystem to automate tasks and reduce mistakes
-- Always use scaffolding tools like `npm init` or `yeoman` for new applications
-- Use package managers (`npm install`, `pip install`) for dependency updates
-- Use refactoring tools to automate changes
-- Use linters and formatters to fix code style and correctness
+- Include robust error handling in all scripts
+- Use `set -euo pipefail` for shell scripts
+- Add JSDoc comments for complex functions in TypeScript
+- Include validation for all user inputs and system states
 
 ### Testing and Validation
 
@@ -202,6 +171,22 @@ Use `eza --tree --level=n`. Start with level 2, increase selectively for detail.
 - Implement incrementally to pass tests
 - Validate continuously during development
 - Test in isolated environments
+- Run existing linters, builds, and tests before making changes to understand unrelated issues
+- Lint, build, and test changes as soon as possible after making them
+
+### Approval and Safety
+
+- Request explicit approval, never auto-commit without user confirmation
+- Perform full security analysis before committing
+- Validate reference integrity: markdown links, path references, GNU Stow symlinks, hardcoded paths, test file references
+
+### Use Ecosystem Tools
+
+- Prefer tools from the ecosystem to automate tasks and reduce mistakes
+- Always use scaffolding tools like `npm init` or `yeoman` for new applications
+- Use package managers (`npm install`, `pip install`) for dependency updates
+- Use refactoring tools to automate changes
+- Use linters and formatters to fix code style and correctness
 
 ### Lua (Neovim, Hammerspoon, WezTerm, Yazi)
 
@@ -216,7 +201,6 @@ Use `eza --tree --level=n`. Start with level 2, increase selectively for detail.
 
 ### Shell Scripts (Zsh)
 
-- Use `set -euo pipefail` for error handling
 - Use consistent logging functions
 - For setup scripts in `scripts/`, see [scripts/AGENTS.md](scripts/AGENTS.md) for detailed guidelines
 
@@ -235,37 +219,36 @@ Use `eza --tree --level=n`. Start with level 2, increase selectively for detail.
 - Validate heading hierarchy (H1→H2→H3→H4)
 - Use bold for emphasis only, not section headers
 - Use standard `[text](url)` links, not wiki-style
-- Maintain consistent list formatting with hyphens for unordered lists
-- Use `1.` for all ordered list items instead of sequential numbers
+- Maintain consistent list formatting
+  - Hyphens for unordered lists
+  - Sequential numbers for ordered lists
 - Validate all anchor links after structural changes (lowercase, hyphenated)
-- Keep table of contents synchronized with actual sections
-- After completing changes, analyze file and suggest optimizations and deduplication opportunities
+- DO NOT create table of contents unless explicitly requested
+  - If one exists, keep it synchronized with actual sections
+- Always analyze the whole file and suggest optimizations according to these rules
 
-## MANDATORY: Version Control (Git) Guidelines
+#### When updating AGENTS.md or other AI rules files
 
-### IMPORTANT: Pre-Commit Guidelines
+- Write concise imperative rules optimized for efficient and accurate AI agent execution
+
+## Version Control (Git) Guidelines
+
+### Pre-Commit Guidelines
 
 - Analyze [Commit Boundaries](#commit-boundaries)
-- Break-down commit plan as specified in [MANDATORY: Task Planning](#mandatory-task-planning)
+- Break-down commit plan as specified in [Task Planning](#task-planning)
 - Show complete diff `git diff --staged` in readable format with syntax highlighting
 - Summarize key modifications
-- Perform a full security analysis before committing (see [MANDATORY: Security Guidelines](#mandatory-security-guidelines))
-- Request explicit approval, never auto-commit without user confirmation
+- Perform a full security analysis before committing (see [Security Guidelines](#security-guidelines))
 - Suggest documentation updates if not included
-- Validate reference integrity:
-  - Validate all markdown links in documentation
-  - Validate all path and structure references
-  - Verify GNU Stow symlinks remain valid
-  - Validate hardcoded paths in scripts/configs
-  - Validate test file references
 
-### IMPORTANT: Commit Guidelines
+### Commit Guidelines
 
 #### Message Format
 
 Use "Conventional Commits" standard: `<type>[scope]: <description>`
 
-Keep commit messages concise (50 characters or less for summary) but descriptive.
+Keep messages under 50 characters for summary but descriptive.
 
 Examples:
 
@@ -287,20 +270,19 @@ Single commit for:
 - Atomic operations across multiple files
 - Small related changes
 
-### IMPORTANT: Pull Request Guidelines
+### Pull Request Guidelines
 
-#### PR Title Format
+#### Title Format
 
-Follow [Commit Message Format](#message-format) with brief summary of all changes to be merged (72 characters or less).
+Follow [Message Format](#message-format) with summary of all changes to be merged
 
-#### PR Requirements
+#### Requirements
 
-- All commits follow [Commit Guidelines](#important-commit-guidelines)
 - Pass existing tests and linting
 - Security review for system-level changes
 - Reference integrity validation for documentation
 
-### IMPORTANT: Branching Strategy
+### Branching Strategy
 
 #### Branch Naming
 
@@ -312,17 +294,16 @@ Keep branch names short and descriptive: `fix-window-snapping`, `lsp-config`, `u
 - Create new branch for all new features or complex changes
 - Simple fixes and typos may commit directly to `nixless`
 - Keep branches short-lived
-- Squash merge to `nixless` via PR
+- Squash merge to `nixless` via pull request
 - Delete branch after merge
 
 #### Before Merging
 
 - Sync with latest `nixless`
 - Run tests and linting
-- Follow [Pre-Commit Guidelines](#important-pre-commit-guidelines)
-- Get explicit approval
+- Follow [Error Handling and Validation Standards](#error-handling-and-validation-standards)
 
-## MANDATORY: Security Guidelines
+## Security Guidelines
 
 - **NEVER** commit sensitive data to version control
 - **Version Pinning**: Use specific versions for security-critical tools
@@ -332,4 +313,4 @@ Keep branch names short and descriptive: `fix-window-snapping`, `lsp-config`, `u
 - Validate permissions before script execution
 - Ensure logs don't contain sensitive information
 - Configure secure defaults for network-enabled tools
-- Limit network access
+- Limit network access and validate all external connections

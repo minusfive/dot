@@ -8,6 +8,7 @@ Lazygit
 LuaDoc
 Podman
 Statusline
+Stylua
 WezTerm
 Winbar
 XDG
@@ -17,6 +18,7 @@ btop
 frontmatter
 fzf
 gh
+hammerspoon
 htop
 lualine
 mise
