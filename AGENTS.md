@@ -138,7 +138,7 @@ When a task requires generating scripts for execution:
 ### Core Coding Principles
 
 - Explain why changes are needed before implementing
-- Use a test-driven, red-green-refactor approach
+- Follow TDD strictly: write tests first, implement second. See [Testing and Validation](#testing-and-validation)
 - Make minimal modifications, changing as few lines as possible
 - Make surgical and precise changes
 - Make testable and reversible changes
