@@ -114,87 +114,66 @@ Dotfiles configuration management system for macOS. Core technologies: Neovim, H
 - Use command chains with `&&` or batch operations
 - Use homebrew or mise-managed tools for consistent analysis across environments
 - Minimize tool output with `--quiet`, `--no-pager`, or pipe to `grep`/`head`
-- Use `rg` instead of `grep` when available
 - Use recursive patterns with globs or batch operations in single tool calls
+- Use `rg` instead of `grep` when available
 - Use `eza` for deep directory analysis when available
 - Use VectorCode for semantic analysis
-- Use language servers and linters for diagnostics, rule analysis and suggestions
+- Use language servers and linters for static analysis
 
 ### Generate and save reusable scripts for task execution
 
 When a task requires generating scripts for execution:
 
-- Save scripts in `scripts/tasks/` directory for project-wide reuse
 - Check `scripts/tasks/` directory for existing scripts which may be used to execute current task
 - Suggest modifications to existing scripts if required to execute the current task and improve future reusability
 - Make new scripts generic and reusable
-- Use Bun with strict TypeScript types for all new scripts, tested with `bun test` following [Coding Guidelines](#coding-guidelines)
-- Use kebab-case with descriptive names (e.g., `analyze-config.ts`, `validate-symlinks.ts`)
-- Make scripts executable with proper shebang: `#!/usr/bin/env bun`
+- Save scripts in `scripts/tasks/` directory for project-wide reuse
 - Write documentation to each script optimized for AI agents, following [Markdown](#markdown)
+
+### When updating AI rules files (AGENTS.md, CLAUDE.md, etc.)
+
+- Write concise imperative rules optimized for accurate and efficient AI execution
 
 ## Coding Guidelines
 
 ### Core Coding Principles
 
 - Explain why changes are needed before implementing
-- Follow TDD strictly: write tests first, implement second. See [Testing and Validation](#testing-and-validation)
-- Make minimal modifications, changing as few lines as possible
-- Make surgical and precise changes
-- Make testable and reversible changes
-- DO NOT delete or modify working code unless absolutely necessary
-- Fix only build/test failures related to your task
-- Validate that changes don't break existing behavior
-- Update only documentation directly related to your changes
+- Follow TDD strictly:
+  - Write acceptance tests first, implement second
+  - Define acceptance criteria first
+  - Implement incrementally to pass tests (Red, Green)
+  - Validate continuously during development
+  - Test in isolated environments
 - Adhere to documented coding standards for each language or module
+- DO NOT delete or modify working code unless absolutely necessary
+- Make minimal modifications, changing as few lines as possible
+- Make surgical and precise, testable and reversible changes
+- Fix only build or test failures related to your task
+- Validate that changes don't break existing behavior
 - Use functional patterns, avoid Object Oriented
-- Organize configurations for easy maintenance
 - Maintain established organization patterns
-- Use XDG Base Directory specification
+- Use XDG standard directories
+- Organize configurations for easy maintenance
+- Update only documentation directly related to your changes
 - Keep existing documentation up to date
 - Only add comments if they match existing style or explain complex changes
 - Use existing libraries whenever possible
 - Only add new libraries or update versions if absolutely necessary
 - After completing changes always validate all rules were followed
-
-### Error Handling
-
-- Include robust error handling in all scripts
-- Use `set -euo pipefail` for shell scripts
-- Add JSDoc comments for complex functions in TypeScript
-- Include validation for all user inputs and system states
-
-### Testing and Validation
-
-- Define acceptance criteria first
-- Create tests validating expected behavior
-- Implement incrementally to pass tests
-- Validate continuously during development
-- Test in isolated environments
-- Run existing linters, builds, and tests before making changes to understand unrelated issues
-- Lint, build, and test changes as soon as possible after making them
-
-### Approval and Safety
-
-- Request explicit approval, never auto-commit without user confirmation
-- Perform full security analysis before committing
-- Validate reference integrity: markdown links, path references, GNU Stow symlinks, hardcoded paths, test file references
-
-### Use Ecosystem Tools
-
+- Handle all errors
+- Validate all user inputs and system states
+- Run linters, builds, and tests before making changes to understand unrelated issues
 - Prefer tools from the ecosystem to automate tasks and reduce mistakes
-- Always use scaffolding tools like `npm init` or `yeoman` for new applications
-- Use package managers (`npm install`, `pip install`) for dependency updates
 - Use refactoring tools to automate changes
 - Use linters and formatters to fix code style and correctness
+- Use local variables to limit scope
+- Always add and update type annotations
 
 ### Lua (Neovim, Hammerspoon, WezTerm, Yazi)
 
-- Use local variables to limit scope
-- Always add and update type annotations
 - Organize `---@module` references at the top of the file, sorted alphabetically
 - Use explicit module returns and clear structure
-- Add LuaDoc-style comments for complex functions
 - For tool-specific patterns, see:
   - [.config/nvim/AGENTS.md](.config/nvim/AGENTS.md) - Neovim configuration
   - [.config/hammerspoon/AGENTS.md](.config/hammerspoon/AGENTS.md) - Hammerspoon automation
@@ -202,6 +181,7 @@ When a task requires generating scripts for execution:
 ### Shell Scripts (Zsh)
 
 - Use consistent logging functions
+- Use `set -euo pipefail` for error safety
 - For setup scripts in `scripts/`, see [scripts/AGENTS.md](scripts/AGENTS.md) for detailed guidelines
 
 ### Configuration Files
@@ -212,103 +192,78 @@ When a task requires generating scripts for execution:
 
 ### Markdown
 
-- Avoid duplication of content, prefer link references to existing sections
 - Be clear and succinct
-- Use proper headings instead of `**Title**:` for section headers
-  - Allow `**Title**:` patterns within list items for clarity
-- Validate heading hierarchy (H1→H2→H3→H4)
-- Use bold for emphasis only, not section headers
+- DO NOT write redundant or duplicate content, use link references
 - Use standard `[text](url)` links, not wiki-style
-- Maintain consistent list formatting
-  - Hyphens for unordered lists
-  - Sequential numbers for ordered lists
-- Validate all anchor links after structural changes (lowercase, hyphenated)
+- Validate all reference links after changes
 - DO NOT create table of contents unless explicitly requested
   - If one exists, keep it synchronized with actual sections
 - Always analyze the whole file and suggest optimizations according to these rules
 - Validate markdown files using `markdownlint-cli2` configured in `.markdownlint-cli2.jsonc`
 
-#### When updating AGENTS.md or other AI rules files
-
-- Write concise imperative rules optimized for efficient and accurate AI agent execution
-
 ## Version Control (Git) Guidelines
-
-### Pre-Commit Guidelines
-
-- Analyze [Commit Boundaries](#commit-boundaries)
-- Break-down commit plan as specified in [Task Planning](#task-planning)
-- Show complete diff `git diff --staged` in readable format with syntax highlighting
-- Summarize key modifications
-- Perform a full security analysis before committing (see [Security Guidelines](#security-guidelines))
-- Suggest documentation updates if not included
 
 ### Commit Guidelines
 
-#### Message Format
+#### Before Committing
 
-Use "Conventional Commits" standard: `<type>[scope]: <description>`
-
-Keep messages under 50 characters for summary but descriptive.
-
-Examples:
-
-- `feat(nvim): add new plugin configuration`
-- `fix(zsh): resolve completion loading issue`
-- `docs(README): update installation instructions`
+- Analyze [Commit Boundaries](#commit-boundaries)
+- Break-down commit plan as specified in [Task Planning](#task-planning)
+- Summarize key modifications
+- Perform a full security analysis before committing (see [Security Guidelines](#security-guidelines))
+- Validate documentation
+- Validate reference integrity: markdown links, path references, GNU Stow symlinks, hardcoded paths, test file references
+- Request explicit approval, never auto-commit without user confirmation
 
 #### Commit Boundaries
 
-Separate commits for:
+- Create separate commits for:
+  - Different functional areas
+  - Different change types
+  - Independent concerns
+- Create a single commit for:
+  - Tightly coupled changes (implementation + tests)
+  - Atomic operations across multiple files
+  - Small related changes
 
-- Different functional areas (Neovim vs. Hammerspoon)
-- Different change types (bugs vs. features)
-- Independent concerns
+#### Commit Message Format
 
-Single commit for:
-
-- Tightly coupled changes (implementation + tests)
-- Atomic operations across multiple files
-- Small related changes
+- Write concise messages (`< 50` characters) following the "Conventional Commits" standard format: `<type>(<scope>): <summary>`
+  - Types:
+    - `feat`: New feature or enhancement
+    - `fix`: Bug fix
+    - `docs`: Documentation changes
+    - `style`: Code style changes (formatting, missing semicolons, etc.)
+    - `refactor`: Code changes that neither fix bugs nor add features
+    - `perf`: Performance improvements
+    - `test`: Adding or modifying tests
+    - `build`: Build system or external dependency changes
+    - `ci`: CI/CD configuration changes
+    - `chore`: Maintenance tasks, dependency updates
+    - `revert`: Reverting previous commits
+    - `config`: Configuration file changes
+    - `security`: Security-related fixes or improvements
+- Write concise details after a blank line, wrapping at 72 characters
 
 ### Pull Request Guidelines
 
-#### Title Format
-
-Follow [Message Format](#message-format) with summary of all changes to be merged
-
-#### Requirements
-
-- Pass existing tests and linting
-- Security review for system-level changes
-- Reference integrity validation for documentation
+- Use titles which follow the [Commit Message Format](#commit-message-format) summarizing all changes to be merged
 
 ### Branching Strategy
-
-#### Branch Naming
-
-Keep branch names short and descriptive: `fix-window-snapping`, `lsp-config`, `update-docs`
 
 #### Workflow
 
 - Main branch: `nixless`
 - Create new branch for all new features or complex changes
-- Simple fixes and typos may commit directly to `nixless`
+  - Use short and descriptive branch names: `fix-window-snapping`, `lsp-config`, `update-docs`
 - Keep branches short-lived
-- Squash merge to `nixless` via pull request
-- Delete branch after merge
-
-#### Before Merging
-
-- Sync with latest `nixless`
-- Run tests and linting
-- Follow [Error Handling](#error-handling)
+- Simple fixes and typos may commit directly to `nixless`
 
 ## Security Guidelines
 
 - **NEVER** commit sensitive data to version control
-- **Version Pinning**: Use specific versions for security-critical tools
-- Enforce use of 1Password CLI for SSH agent and secrets management
+- Pin dependencies to specific versions for security-critical tools
+- Use 1Password CLI for SSH agent and secrets management
 - Follow least privilege principle, grant only the minimum necessary access and permissions
 - Review system modification permissions carefully
 - Validate permissions before script execution
