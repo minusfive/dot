@@ -183,7 +183,7 @@ return {
             },
             tools = {
               opts = {
-                -- default_tools = { "neovim" },
+                default_tools = { "vectorcode_toolbox", "full_stack_dev", "mcp", "github" },
               },
             },
           },
@@ -235,8 +235,8 @@ return {
 
   {
     "ravitemer/mcphub.nvim",
-    build = "npm install -g mcp-hub@latest",
     config = true,
+    lazy = false,
     cmd = { "MCPHub" },
     ---@type MCPHub.Config
     opts = {
