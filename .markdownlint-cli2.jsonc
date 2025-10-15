@@ -2,10 +2,12 @@
   "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/refs/heads/main/schema/markdownlint-cli2-config-schema.json",
   "fix": false,
   "config": {
-    // MD001/heading-increment : Heading levels should only increment by one level at a time
-    // Enforces proper heading hierarchy (H1→H2→H3, not H1→H3)
-    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md001.md
-    "MD001": true,
+    // MD003/heading-style : Heading style should be consistent
+    // Enforces ATX style (# Heading) not Setext style
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md003.md
+    "MD003": {
+      "style": "atx"
+    },
 
     // MD004/ul-style : Unordered list style - enforce hyphens (-) not asterisks (*)
     // Matches project guideline: "Use hyphens for unordered lists"
@@ -14,16 +16,25 @@
       "style": "dash"
     },
 
-    // MD011/no-reversed-links : Reversed link syntax
-    // Enforces standard [text](url) format, not (url)[text]
-    // Matches project guideline: "Use standard [text](url) links"
-    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md011.md
-    "MD011": true,
+    // MD010/no-hard-tabs : Hard tabs
+    // Enforces spaces instead of tabs (2 spaces per tab when fixing)
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md010.md
+    "MD010": {
+      "spaces_per_tab": 2
+    },
 
     // MD013/line-length : Line length - disabled to allow long lines
     // Project doesn't enforce strict line length limits
     // https://github.com/DavidAnson/markdownlint/blob/main/doc/md013.md
     "MD013": false,
+
+    // MD029/ol-prefix : Ordered list item prefix
+    // Enforces sequential numbering (1. 2. 3.) not all 1s
+    // Matches guideline: "Sequential numbers for ordered lists"
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md029.md
+    "MD029": {
+      "style": "ordered"
+    },
 
     // MD033/no-inline-html : Inline HTML - allow specific HTML elements
     // Permits XML-like tags used in AI tool calls and disclosure widgets
@@ -41,19 +52,60 @@
       ]
     },
 
-    // MD040/fenced-code-language : Fenced code blocks should have a language specified
-    // Enforces code blocks use ```lang not bare ```
-    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md040.md
-    "MD040": true,
-
     // MD041/first-line-heading : First line in file should be a top level heading
     // Disabled - not all markdown files need H1 at top (e.g., READMEs with badges)
     // https://github.com/DavidAnson/markdownlint/blob/main/doc/md041.md
     "MD041": false,
 
-    // MD051/link-fragments : Link fragments should be valid
-    // Validates anchor links like [text](#heading) point to existing headings
-    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md051.md
-    "MD051": true
+    // MD046/code-block-style : Code block style
+    // Enforces fenced code blocks (```) over indented code blocks
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md046.md
+    "MD046": {
+      "style": "fenced"
+    },
+
+    // MD048/code-fence-style : Code fence style
+    // Enforces backticks (```) over tildes (~~~) for code fences
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md048.md
+    "MD048": {
+      "style": "backtick"
+    },
+
+    // MD049/emphasis-style : Emphasis style
+    // Enforces underscores (_) for emphasis to differentiate from bold (**)
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md049.md
+    "MD049": {
+      "style": "underscore"
+    },
+
+    // MD050/strong-style : Strong style
+    // Enforces asterisks (**) for bold
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md050.md
+    "MD050": {
+      "style": "asterisk"
+    },
+
+    // MD052/reference-links-images : Reference links and images should use a label that is defined
+    // Ensures reference-style links/images have corresponding definitions
+    // Note: shortcut_syntax:false is default, but keeping explicit for clarity
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md052.md
+    "MD052": {
+      "shortcut_syntax": false
+    },
+
+    // MD055/table-pipe-style : Table pipe style
+    // Enforces tables have leading and trailing pipes
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md055.md
+    "MD055": {
+      "style": "leading_and_trailing"
+    },
+
+    // MD060/table-column-style : Table column style
+    // Enforces aligned table columns with proper padding
+    // Makes tables more readable in markdown source
+    // https://github.com/DavidAnson/markdownlint/blob/main/doc/md060.md
+    "MD060": {
+      "style": "aligned"
+    }
   }
 }
