@@ -1,11 +1,16 @@
 {
-  "nativeMCPServers": [],
   "mcpServers": {
+    "github": {
+      "headers": {
+        "Authorization": "Bearer ${cmd:gh auth token}"
+      },
+      "url": "https://api.githubcopilot.com/mcp/"
+    },
     "github.com/modelcontextprotocol/servers/tree/main/src/filesystem": {
-      "disabled": false,
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "${HOME}/dev"],
-      "command": "npx"
+      "command": "npx",
+      "disabled": false
     }
-  }
+  },
+  "nativeMCPServers": []
 }
-
