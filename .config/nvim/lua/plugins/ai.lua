@@ -1,8 +1,9 @@
 ---@module 'blink.cmp'
+---@module "codecompanion"
 ---@module 'copilot'
 ---@module 'lazy'
----@module 'mcphub'
 ---@module 'mason-lspconfig'
+---@module 'mcphub'
 ---@module "vectorcode"
 -- TODO: Explore LuaLine integration
 
@@ -54,12 +55,14 @@ return {
     --- Use a function to ensure VectorCode is loaded before CodeCompanion
     opts = function()
       return {
+        log_level = "DEBUG",
+
         adapters = {
           copilot = function()
             return require("codecompanion.adapters").extend("copilot", {
               schema = {
                 model = {
-                  default = "claude-sonnet-4",
+                  default = "gpt-5-mini",
                 },
               },
             })
@@ -161,6 +164,7 @@ return {
         strategies = {
           chat = {
             adapter = "copilot",
+
             keymaps = {
               close = {
                 modes = {
@@ -181,9 +185,10 @@ return {
                 description = "Stop Request",
               },
             },
+
             tools = {
               opts = {
-                default_tools = { "vectorcode_toolbox", "full_stack_dev", "mcp", "github" },
+                default_tools = { "mcp", "vectorcode_toolbox" },
               },
             },
           },
