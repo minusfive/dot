@@ -52,6 +52,7 @@ Dotfiles configuration management system for macOS. Core technologies: Neovim, H
 
 ### Core Principles
 
+- Must always present a plan before executing (see [Task Planning](#task-planning))
 - Prioritize technical accuracy and facts over validating beliefs
 - Provide honest, objective feedback even when it may not align with expectations
 - Investigate uncertainty first rather than confirming assumptions
@@ -63,14 +64,15 @@ Dotfiles configuration management system for macOS. Core technologies: Neovim, H
 
 ### Task Planning
 
-- Present complete plan prior to execution using markdown checklist (see [Template](#template))
+- Present complete plan prior to execution using markdown checklist (see [Task Planning Template](#task-planning-template))
+- Follow the plan strictly unless explicitly instructed otherwise
 - Explain rationale for modifications
 - Execute steps sequentially
-- Update and present checklist before and after each step
+- Update and present checklist before and after each step is completed, rejected or skipped
   - Mark completed items with `[x]`
   - Strike-through rejected or failed steps and note reason
 
-#### Template
+#### Task Planning Template
 
 ```markdown
 ### {{ TASK }} - Task Plan
@@ -90,12 +92,12 @@ Dotfiles configuration management system for macOS. Core technologies: Neovim, H
 
 ### When to Ask Questions
 
-- Confidence is below 95%
-- Requirements are ambiguous
-- Multiple approaches possible
-- Configuration impact unclear
-- Tool preferences unknown
-- Security implications exist
+- When confidence is below 95%
+- When security implications exist
+- When requirements are ambiguous
+- When multiple approaches possible
+- When configuration impact is unclear
+- When tool preferences are unknown
 
 ### Code Formatting
 
@@ -107,16 +109,12 @@ Dotfiles configuration management system for macOS. Core technologies: Neovim, H
 ### Tool Usage and Efficiency
 
 - Combine ALL independent tool calls in a SINGLE response
-- Run operations in parallel when possible
-  - Examples of parallel operations: reading multiple files, viewing multiple directories, validating multiple changes
-- Use sequential operations only when tool calls depend on previous results for parameter values
+- Call tools in parallel when possible; use sequential calls only when parameters depend on previous results
 - Read larger file sections using offset and limit parameters
-- Use command chains with `&&` or batch operations
+- Use command chains with `&&`, globs, or batch operations for single tool calls
 - Use homebrew or mise-managed tools for consistent analysis across environments
-- Minimize tool output with `--quiet`, `--no-pager`, or pipe to `grep`/`head`
-- Use recursive patterns with globs or batch operations in single tool calls
-- Use `rg` instead of `grep` when available
-- Use `eza` for deep directory analysis when available
+  - See `./.config/brew/Brewfile`, `./.config/mise/config.toml` and `./mise.toml` for a full list of available tools
+- Minimize tool output with `--quiet`, `--no-pager`, or pipe to `rg`/`head`
 - Use VectorCode for semantic analysis
 - Use language servers and linters for static analysis
 
@@ -130,9 +128,12 @@ When a task requires generating scripts for execution:
 - Save scripts in `scripts/tasks/` directory for project-wide reuse
 - Write documentation to each script optimized for AI agents, following [Markdown](#markdown)
 
-### When updating AI rules files (AGENTS.md, CLAUDE.md, etc.)
+### When analyzing and updating AI rules files (AGENTS.md, CLAUDE.md, etc.)
 
-- Write concise imperative rules optimized for accurate and efficient AI execution
+- Write concise rules using imperative language, optimized for accurate and efficient agentic communication and execution
+- MUST follow the [Markdown](#markdown) guidelines strictly
+- MUST analyze exclusively the literal contents of the file in isolation
+  - MUST NOT include system or other prompts added to the context by tools or clients
 
 ## Coding Guidelines
 
