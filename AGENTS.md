@@ -75,7 +75,7 @@ Dotfiles configuration management system for macOS. Core technologies: Neovim, H
 #### Task Planning Template
 
 ```markdown
-### {{ TASK }} - Task Plan
+### Task Plan: "{{ TASK }}"
 
 - [ ] Step 1: Brief description
   - [ ] Step 1.1: Sub-step description
