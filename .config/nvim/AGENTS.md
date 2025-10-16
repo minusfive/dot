@@ -4,15 +4,9 @@ Advanced Neovim configuration built on LazyVim with modern plugins and Lua-based
 
 ## READ FIRST: MANDATORY Rules and Guidelines
 
-**See [main AGENTS.md](../../AGENTS.md) for core guidelines. This file contains Neovim-specific extensions.**
+**You MUST follow everything stipulated on the [main AGENTS.md](../../AGENTS.md) file first and foremost**. That file **SUPERSEDES** any seemingly contradictory language found on this file or anywhere else.
 
-- [Neovim Configuration Overview](#neovim-configuration-overview)
-- [Neovim-Specific Coding Guidelines](#neovim-specific-coding-guidelines)
-- [Plugin Development Guidelines](#plugin-development-guidelines)
-
-### MANDATORY: Updating this File
-
-Follow [main AGENTS.md updating rules](../../AGENTS.md#mandatory-updating-agentsmd).
+If you detect any such contradictions, you **MUST** report them so they can be resolved.
 
 ## Neovim Configuration Overview
 
@@ -50,7 +44,7 @@ Follow [main AGENTS.md updating rules](../../AGENTS.md#mandatory-updating-agents
 - **Completion Engine**: blink.cmp with LSP integration and AI assistance
 - **AI Integration**: CodeCompanion with Copilot, VectorCode, and MCP Hub
 - **Theme System**: Catppuccin with custom highlight overrides
-- **Language Support**: Comprehensive LSP, treesitter, and formatter integration
+- **Language Support**: Comprehensive LSP, Tree-sitter, and formatter integration
 - **Development Tools**: Built-in debugger, testing, and refactoring support
 
 ### Core Knowledge Requirements and Technology Stack
@@ -67,26 +61,12 @@ Follow [main AGENTS.md updating rules](../../AGENTS.md#mandatory-updating-agents
 ### Key Plugin Ecosystem
 
 - **AI & Completion**: CodeCompanion, Copilot, blink.cmp, VectorCode
-- **Editor**: Flash (motion), Trouble (diagnostics), Which-key (keybindings)
+- **Editor**: Flash (motion), Trouble (diagnostics), Which-key (key bindings)
 - **UI**: Catppuccin (theme), Snacks (utilities), Neo-tree (file explorer)
 - **Language**: Mason (LSP management), Tree-sitter, various language servers
 - **Development**: DAP (debugging), Test runners, Refactoring tools
 
-### Neovim-Specific Analysis Commands
-
-Use systematic exploration patterns for Neovim configurations:
-
-- `eza --tree --level=3 lua/` - Overview of Lua module structure
-- `eza --tree --level=2 lua/plugins/` - Plugin organization
-- `cat lua/config/options.lua` - Core Neovim options
-- `cat lazyvim.json` - LazyVim extras and configuration
-- `cat lazy-lock.json | head -20` - Current plugin versions
-
 ## Neovim-Specific Coding Guidelines
-
-### Lua Configuration Standards
-
-Follow [main AGENTS.md Lua guidelines](../../AGENTS.md#lua-neovim-hammerspoon-wezterm-yazi).
 
 ### Keymap Management with Which-Key
 
@@ -126,9 +106,6 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 
 ### Neovim Testing and Validation
 
-Follow [main AGENTS.md Testing and Validation](../../AGENTS.md#testing-and-validation), plus:
-
-- Test plugin configurations in isolated environments
 - Monitor startup time and memory usage with `:Lazy profile`
 - Ensure compatibility with LazyVim updates
 - Make small, testable changes
@@ -138,13 +115,12 @@ Follow [main AGENTS.md Testing and Validation](../../AGENTS.md#testing-and-valid
 
 ### Plugin Selection Criteria
 
-Follow [main AGENTS.md ecosystem tool guidelines](../../AGENTS.md#using-ecosystem-tools), prioritizing:
-
-- LazyVim integration and compatibility
-- Active maintenance and regular updates
-- Minimal impact on startup and runtime performance
-- Lua-based plugins over Vimscript alternatives
-- Well-established plugins with good community support
+- Use available tools to search for modern plugins, don't rely on trained knowledge
+- Ensure LazyVim integration and compatibility
+- Validate active maintenance and regular updates
+- MUST have minimal impact on startup and runtime performance
+- Prefer Lua-based plugins over Vimscript alternatives
+- Prefer well-established plugins with good community support
 
 ### Configuration Patterns
 
@@ -209,7 +185,3 @@ return {
 - Configure AI tools to understand project context
 - Balance AI features with editor responsiveness
 - Ensure sensitive code handling follows [security guidelines](../../AGENTS.md#mandatory-security-guidelines)
-
----
-
-This configuration extends the main project guidelines with Neovim-specific patterns for LazyVim and the modern plugin ecosystem.

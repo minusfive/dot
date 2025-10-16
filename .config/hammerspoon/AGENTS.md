@@ -4,15 +4,9 @@ Powerful macOS automation and window management system built with Hammerspoon. C
 
 ## READ FIRST: MANDATORY Rules and Guidelines
 
-**See [main AGENTS.md](../../AGENTS.md) for core guidelines. This file contains Hammerspoon-specific extensions.**
+**You MUST follow everything stipulated on the [main AGENTS.md](../../AGENTS.md) file first and foremost**. That file **SUPERSEDES** any seemingly contradictory language found on this file or anywhere else.
 
-- [Hammerspoon Configuration Overview](#hammerspoon-configuration-overview)
-- [Hammerspoon-Specific Coding Guidelines](#hammerspoon-specific-coding-guidelines)
-- [Spoon Development Guidelines](#spoon-development-guidelines)
-
-### MANDATORY: Updating this File
-
-Follow [main AGENTS.md updating rules](../../AGENTS.md#mandatory-updating-agentsmd).
+If you detect any such contradictions, you **MUST** report them so they can be resolved.
 
 ## Hammerspoon Configuration Overview
 
@@ -134,7 +128,7 @@ local Example = {
   version = "0.1",
   author = "...",
   license = "MIT",
-  
+
   ---@class ExampleOptions
   options = {
     enabled = true,
@@ -197,12 +191,12 @@ function Example:start()
   local success, result = pcall(function()
     -- Potentially failing operation
   end)
-  
+
   if not success then
     hs.logger.new(self.name, "error"):e("Failed to start: " .. result)
     return self
   end
-  
+
   return self
 end
 ```
@@ -222,7 +216,7 @@ local normalSpecs = {
   -- Application launches with meh modifier
   { hk.mods.meh, "t", "WezTerm", al:openApp("WezTerm") },
   { hk.mods.meh, "e", "Microsoft Outlook", al:openApp("Microsoft Outlook") },
-  
+
   -- Window positioning with hyper modifier
   { hk.mods.hyper, "7", "1/2 Left", wm:move(wm.layout.left50) },
   { hk.mods.hyper, "8", "1/2 Center", wm:move(wm.layout.center50) },
@@ -373,9 +367,9 @@ options = {
 ---@param title string
 ---@param message? string
 local function notify(title, message)
-  local notification = hs.notify.new({ 
-    title = title, 
-    subTitle = message or "" 
+  local notification = hs.notify.new({
+    title = title,
+    subTitle = message or ""
   })
   if notification then
     notification:send()

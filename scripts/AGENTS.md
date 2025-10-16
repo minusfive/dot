@@ -4,14 +4,9 @@ Bootstrap and system configuration scripts for macOS dotfiles setup. Core techno
 
 ## READ FIRST: MANDATORY Rules and Guidelines
 
-**See [main AGENTS.md](../AGENTS.md) for core guidelines. This file contains scripts-specific extensions.**
+**You MUST follow everything stipulated on the [main AGENTS.md](../AGENTS.md) file first and foremost**. That file **SUPERSEDES** any seemingly contradictory language found on this file or anywhere else.
 
-- [Scripts Overview](#scripts-overview)
-- [Script Development Guidelines](#script-development-guidelines)
-
-### MANDATORY: Updating this File
-
-Follow [main AGENTS.md updating rules](../AGENTS.md#mandatory-updating-agentsmd).
+If you detect any such contradictions, you **MUST** report them so they can be resolved.
 
 ## Scripts Overview
 
@@ -72,9 +67,9 @@ set -euo pipefail
 # Immediately invoked anonymous function used to contain variables and functions scope
 function {
     local __var_name="value"
-    
+
     # Script logic here
-    
+
     # Use logging functions from functions.zsh
     _v_log_info "CONTEXT" "Message"
 }
@@ -95,12 +90,12 @@ function {
 When adding new setup scripts:
 
 1. Create script following architecture pattern above
-1. Add option flag to `init.zsh` option parsing
-1. Update `functions.zsh` help output with new option
-1. Use existing logging functions for consistent output
-1. Add confirmation prompts for destructive operations
-1. Create tests in `../tests/scripts/` directory
-1. Document script purpose in header comment
+2. Add option flag to `init.zsh` option parsing
+3. Update `functions.zsh` help output with new option
+4. Use existing logging functions for consistent output
+5. Add confirmation prompts for destructive operations
+6. Create tests in `../tests/scripts/` directory
+7. Document script purpose in header comment
 
 ### Testing Scripts
 

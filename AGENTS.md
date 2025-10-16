@@ -52,19 +52,20 @@ Dotfiles configuration management system for macOS. Core technologies: Neovim, H
 
 ### Core Principles
 
-- Must always present a plan before executing (see [Task Planning](#task-planning))
+- **MUST ALWAYS** present a plan before executing (see [Task Planning](#task-planning))
 - Prioritize technical accuracy and facts over validating beliefs
 - Provide honest, objective feedback even when it may not align with expectations
 - Investigate uncertainty first rather than confirming assumptions
 - Apply rigorous standards consistently to all ideas
 - Be concise and direct, answering in fewer than 4 lines unless detail is requested
 - Skip unnecessary preambles and postambles like "Here is what I'll do..." or "Based on the information..."
-- DO NOT use emojis or icons unless explicitly requested
+- **MUST NOT** use emojis or icons unless explicitly requested
 - Minimize output tokens by addressing only the specific task
 
 ### Task Planning
 
 - Present complete plan prior to execution using markdown checklist (see [Task Planning Template](#task-planning-template))
+- **MUST ALWAYS** await approval before executing the plan
 - Follow the plan strictly unless explicitly instructed otherwise
 - Explain rationale for modifications
 - Execute steps sequentially
@@ -88,11 +89,11 @@ Dotfiles configuration management system for macOS. Core technologies: Neovim, H
 1. **STOP** current approach immediately
 2. **ASK**: "Why was the operation rejected? What would you prefer I do instead?"
 3. **WAIT** for instructions before proceeding
-4. **DO NOT** retry or continue, assume or generalize without guidance
+4. **MUST NOT** retry or continue, assume or generalize without guidance
 
 ### When to Ask Questions
 
-- When confidence is below 95%
+- When confidence is below 90%
 - When security implications exist
 - When requirements are ambiguous
 - When multiple approaches possible
@@ -101,19 +102,23 @@ Dotfiles configuration management system for macOS. Core technologies: Neovim, H
 
 ### Code Formatting
 
-- Include `// filepath: path/to/file` in code blocks
+- Include a language-appropriate filepath comment in code blocks to indicate the target file.
+  Examples:
+  - `-- filepath: path/to/file` for Lua
+  - `// filepath: path/to/file` for C-like languages (JavaScript, TypeScript, Go, etc.)
+  - `# filepath: path/to/file` for shell scripts or Python
+  - For Markdown/plain-text examples, place a single leading comment line using a language-appropriate comment or a short caption above the fenced block
 - Use `// ...existing code...` for unchanged sections
 - Specify correct language in code blocks
 - Escape `<<<<<<<`, `=======`, `>>>>>>>` with backslashes
 
 ### Tool Usage and Efficiency
 
-- Combine ALL independent tool calls in a SINGLE response
-- Call tools in parallel when possible; use sequential calls only when parameters depend on previous results
+- Combine **ALL** independent tool calls in a **SINGLE** response
+- Call tools in parallel when possible; use command chains with `&&`, globs, or batch operations for single tool calls; use sequential calls only when parameters depend on previous results
 - Read larger file sections using offset and limit parameters
-- Use command chains with `&&`, globs, or batch operations for single tool calls
-- Use homebrew or mise-managed tools for consistent analysis across environments
-  - See `./.config/brew/Brewfile`, `./.config/mise/config.toml` and `./mise.toml` for a full list of available tools
+- Use `eza`, `fd` or `rg` to analyze multiple files or directories
+- Use homebrew or mise-managed tools for consistent analysis across environments; see `./.config/brew/Brewfile`, `./.config/mise/config.toml` and `./mise.toml` for a full list of available tools
 - Minimize tool output with `--quiet`, `--no-pager`, or pipe to `rg`/`head`
 - Use VectorCode for semantic analysis
 - Use language servers and linters for static analysis
@@ -131,23 +136,23 @@ When a task requires generating scripts for execution:
 ### When analyzing and updating AI rules files (AGENTS.md, CLAUDE.md, etc.)
 
 - Write concise rules using imperative language, optimized for accurate and efficient agentic communication and execution
-- MUST follow the [Markdown](#markdown) guidelines strictly
-- MUST analyze exclusively the literal contents of the file in isolation
-  - MUST NOT include system or other prompts added to the context by tools or clients
+- **MUST** follow the [Markdown](#markdown) guidelines strictly
+- **MUST** analyze exclusively the literal contents of the file in isolation
+  - **MUST NOT** include system or other prompts added to the context by tools or clients
 
 ## Coding Guidelines
 
 ### Core Coding Principles
 
 - Explain why changes are needed before implementing
-- Follow TDD strictly:
+- Follow test-driven development strictly:
   - Write acceptance tests first, implement second
   - Define acceptance criteria first
   - Implement incrementally to pass tests (Red, Green)
   - Validate continuously during development
   - Test in isolated environments
 - Adhere to documented coding standards for each language or module
-- DO NOT delete or modify working code unless absolutely necessary
+- **MUST NOT** delete or modify working code unless absolutely necessary
 - Make minimal modifications, changing as few lines as possible
 - Make surgical and precise, testable and reversible changes
 - Fix only build or test failures related to your task
@@ -161,7 +166,7 @@ When a task requires generating scripts for execution:
 - Only add comments if they match existing style or explain complex changes
 - Use existing libraries whenever possible
 - Only add new libraries or update versions if absolutely necessary
-- After completing changes always validate all rules were followed
+- **MUST ALWAYS** validate all rules were followed after completing changes
 - Handle all errors
 - Validate all user inputs and system states
 - Run linters, builds, and tests before making changes to understand unrelated issues
@@ -169,7 +174,7 @@ When a task requires generating scripts for execution:
 - Use refactoring tools to automate changes
 - Use linters and formatters to fix code style and correctness
 - Use local variables to limit scope
-- Always add and update type annotations
+- **ALWAYS** add and update type annotations
 
 ### Lua (Neovim, Hammerspoon, WezTerm, Yazi)
 
@@ -194,29 +199,31 @@ When a task requires generating scripts for execution:
 ### Markdown
 
 - Be clear and succinct
-- DO NOT write redundant or duplicate content, use link references
+- **MUST NOT** write redundant or duplicate content, use link references
 - Use standard `[text](url)` links, not wiki-style
 - Validate all reference links after changes
-- DO NOT create table of contents unless explicitly requested
+- **MUST NOT** create table of contents unless explicitly requested
   - If one exists, keep it synchronized with actual sections
-- Always analyze the whole file and suggest optimizations according to these rules
+- Analyze the whole file and suggest optimizations according to these rules
 - Validate markdown files using `markdownlint-cli2` configured in `.markdownlint-cli2.jsonc`
 
 ## Version Control (Git) Guidelines
 
-### Commit Guidelines
+Main branch: `nixless`
 
-#### Before Committing
+### Before Committing
 
-- Analyze [Commit Boundaries](#commit-boundaries)
+- **MUST** analyze [Commit Boundaries](#commit-boundaries)
+- Create a new branch if necessary following [Branch Guidelines](#branch-guidelines)
 - Break-down commit plan as specified in [Task Planning](#task-planning)
 - Summarize key modifications
+- Present diff for each commit using available tools
 - Perform a full security analysis before committing (see [Security Guidelines](#security-guidelines))
 - Validate documentation
 - Validate reference integrity: markdown links, path references, GNU Stow symlinks, hardcoded paths, test file references
 - Request explicit approval, never auto-commit without user confirmation
 
-#### Commit Boundaries
+### Commit Boundaries
 
 - Create separate commits for:
   - Different functional areas
@@ -227,38 +234,39 @@ When a task requires generating scripts for execution:
   - Atomic operations across multiple files
   - Small related changes
 
-#### Commit Message Format
+### Commit Message Guidelines
 
-- Write concise messages (`< 50` characters) following the "Conventional Commits" standard format: `<type>(<scope>): <summary>`
-  - Types:
-    - `feat`: New feature or enhancement
-    - `fix`: Bug fix
-    - `docs`: Documentation changes
-    - `style`: Code style changes (formatting, missing semicolons, etc.)
-    - `refactor`: Code changes that neither fix bugs nor add features
-    - `perf`: Performance improvements
-    - `test`: Adding or modifying tests
-    - `build`: Build system or external dependency changes
-    - `ci`: CI/CD configuration changes
-    - `chore`: Maintenance tasks, dependency updates
-    - `revert`: Reverting previous commits
-    - `config`: Configuration file changes
-    - `security`: Security-related fixes or improvements
-- Write concise details after a blank line, wrapping at 72 characters
+**MUST** analyze changes to be committed and generate concise and contextually descriptive messages summarizing the changes to be committed (`< 50` characters) following the "Conventional Commits" standard format (`<type>[(<scope>)][!]: <summary>`). Write concise details after a blank line, wrapping at 72 characters.
+
+#### Commit Message Types
+
+- `feat`: New feature or enhancement
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, missing semicolons, etc.)
+- `refactor`: Code changes that neither fix bugs nor add features
+- `perf`: Performance improvements
+- `test`: Adding or modifying tests
+- `build`: Build system or external dependency changes
+- `ci`: CI/CD configuration changes
+- `chore`: Maintenance tasks, dependency updates
+- `revert`: Reverting previous commits
+- `config`: Configuration file changes
+- `security`: Security-related fixes or improvements
 
 ### Pull Request Guidelines
 
-- Use titles which follow the [Commit Message Format](#commit-message-format) summarizing all changes to be merged
+- Analyze all commits in pull request and generate a title which follows the [Commit Message Guidelines](#commit-message-guidelines) summarizing all changes to be merged
+- Summarize key modifications in the pull request description
 
-### Branching Strategy
+### Branch Guidelines
 
-#### Workflow
-
-- Main branch: `nixless`
 - Create new branch for all new features or complex changes
-  - Use short and descriptive branch names: `fix-window-snapping`, `lsp-config`, `update-docs`
-- Keep branches short-lived
+- Analyze changes and generate short and contextually descriptive branch names, e.g.:
+  - **Good:** `fix-window-snapping`, `lsp-improvements`, `update-docs`
+  - **Bad** `commit-recent-changes` or `changes-2025-10-15`
 - Simple fixes and typos may commit directly to `nixless`
+- Keep branches short-lived
 
 ## Security Guidelines
 
