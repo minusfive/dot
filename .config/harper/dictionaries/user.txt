@@ -25,6 +25,7 @@ Villalobos
 Wezterm
 automations
 bg
+cli
 darwin
 deduplication
 fintech
