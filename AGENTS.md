@@ -102,8 +102,14 @@ Dotfiles configuration management system for macOS. Core technologies: Neovim, H
 
 ### How to Ask for Responses
 
-Offer an ordered list of options
+When presenting multiple possible actions, configurations, or solutions, offer an ordered list of options. This helps clarify choices, makes it easier for the recipient to select or reference an option, and avoids ambiguity.
 
+**Example:**
+
+> Please choose one of the following options:
+> 1. Apply the recommended configuration automatically
+> 2. Review and approve the configuration before applying
+> 3. Skip this configuration for now
 ### Code Formatting
 
 - Include a language-appropriate filepath comment in code blocks to indicate the target file.
