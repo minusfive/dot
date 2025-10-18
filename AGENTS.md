@@ -260,7 +260,7 @@ When asked to commit changes (or just "commit"):
   - Atomic operations across multiple files
   - Small related changes
 - Write concise commit messages from diffs following the "Conventional Commits" standard format (`<type>[(<scope>)][!]: <summary>`)
-  - **MUST NOT** exceed 50 characters on the main commit message
+  - **MUST NOT** exceed 50 characters on the commit message subject line
   - Details may be added after a blank line as a markdown list, maximum 72 characters per line.
   - Breaking changes must be marked with `!`, and include details
 - Request explicit approval, never auto-commit without user confirmation
