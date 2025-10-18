@@ -111,7 +111,7 @@ return {
                 ---Adapter for generating titles (defaults to current chat adapter)
                 adapter = "copilot",
                 ---Model for generating titles (defaults to current chat model)
-                model = "gpt-4.1",
+                model = "gpt-5-mini",
               },
             },
           },
