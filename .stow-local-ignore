@@ -30,14 +30,15 @@ _darcs
 mise.local.toml
 
 # Project
-\.stowrc       # This should be used for this repo, not globally
+\.harper-dictionary.txt
 \.luarc.json
 \.repro
 \.ruby-lsp
+\.stowrc
 \.stylua.*
-\.harper-dictionary.txt
 ^/.*.log
-^/\.ai
+^/lefthook*
+^/\.lefthook*
 ^/\.markdownlint-cli2.jsonc
 ^/\.prettierrc.json
 ^/\.vectorcode
@@ -47,9 +48,13 @@ mise.local.toml
 ^/compose.yaml
 ^/flake.lock
 ^/flake.nix
+^/lefthook.yaml
 ^/nix
 ^/otel-collector-config.yaml
 ^/scripts
 ^/tests
+
+# AI
 ^/AGENTS.*
 ^/CLAUDE.*
+^/\.ai

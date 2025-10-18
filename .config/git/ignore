@@ -71,3 +71,7 @@ mise.local.toml
 
 # Node.js / Bun
 node_modules/
+
+# Lefthook
+.lefthook-local.yml
+.lefthook-local/

@@ -18,6 +18,7 @@ brew 'imagemagick' # Image processing
 brew 'jq' # JSON processor
 brew 'just' # Command runner
 brew 'lazygit' # Git Terminal UI
+brew 'lefthook' # Git hooks manager
 brew 'libyaml' # dependency for ruby
 brew 'lima' # Linux virtual machine manager
 brew 'luarocks' # dependency for nvim
