@@ -216,7 +216,10 @@ When a task requires generating scripts for execution:
 When asked to commit changes (or just "commit"):
 
 - Use all changes in the current repository if unspecified
-- **MUST** execute each step below in order, and complete each step before proceeding to the next. Each step **MUST** be performed as its own independent task plan, following [Task Planning](#task-planning) guidelines. The step title **MUST** be used as the Task Plan title.
+- **MUST** execute each step below in order.
+  - Complete each step before proceeding to the next.
+  - Each step **MUST** be performed as its own independent task plan, following [Task Planning](#task-planning) guidelines.
+  - The step title **MUST** be used as the Task Plan title.
 - **MUST NOT** offer to execute a step / task plan until the previous one is completed and approved
 - **DO NOT** offer to run tests or linters
 - **DO NOT** skip hooks execution under any circumstances
