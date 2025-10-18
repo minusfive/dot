@@ -62,6 +62,9 @@ vim.filetype.add({
 -- Use latest blink.cmp
 vim.g.lazyvim_blink_main = true
 
+-- Enable AI autocompletion
+vim.g.ai_cmp = true
+
 -- Default picker
 vim.g.lazyvim_picker = "snacks"
 
