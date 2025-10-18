@@ -251,8 +251,7 @@ When asked to commit changes (or just "commit"):
 
 ### 2: Branch and Commit
 
-- Create a new branch using concise AND descriptive branch names from analysis. It is your job to generate the branch
-  name, do not ask the user to provide it
+- Create a new branch using concise AND descriptive branch names from analysis. It is your job to generate the branch name, do not ask the user to provide it
 - Create separate commits for:
   - Different functional areas or independent concerns
   - Different change types
