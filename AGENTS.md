@@ -102,14 +102,8 @@ Dotfiles configuration management system for macOS. Core technologies: Neovim, H
 
 ### How to Ask for Responses
 
-When presenting multiple possible actions, configurations, or solutions, offer an ordered list of options. This helps clarify choices, makes it easier for the recipient to select or reference an option, and avoids ambiguity.
+When presenting multiple possible actions, configurations, or solutions, offer an ordered list of options.
 
-**Example:**
-
-> Please choose one of the following options:
-> 1. Apply the recommended configuration automatically
-> 2. Review and approve the configuration before applying
-> 3. Skip this configuration for now
 ### Code Formatting
 
 - Include a language-appropriate filepath comment in code blocks to indicate the target file.
@@ -219,12 +213,13 @@ When a task requires generating scripts for execution:
 
 ## Commit, Branch, and Pull Request Guidelines
 
-When asked to commit changes:
+When asked to commit changes (or just "commit"):
 
-- **MUST** execute each step below in order, and complete each step before proceeding to the next.
-- Each step **MUST** be performed as its own independent task plan, following [Task Planning](#task-planning) guidelines.
-- The step title **MUST** be used as the Task Plan title.
+- Use all changes in the current repository if unspecified
+- **MUST** execute each step below in order, and complete each step before proceeding to the next. Each step **MUST** be performed as its own independent task plan, following [Task Planning](#task-planning) guidelines. The step title **MUST** be used as the Task Plan title.
 - **MUST NOT** offer to execute a step / task plan until the previous one is completed and approved
+- **DO NOT** offer to run tests or linters
+- **DO NOT** skip hooks execution under any circumstances
 
 ### 1: Analyze Changes
 
@@ -250,7 +245,6 @@ When asked to commit changes:
   - Atomic operations across multiple files
   - Small related changes
   - Breaking changes
-  - **DO NOT** offer to run tests or linters
 
 ### 2: Branch and Commit
 
@@ -267,8 +261,6 @@ When asked to commit changes:
   - **MUST NOT** exceed 50 characters on the main commit message
   - Details may be added after a blank line as a markdown list, maximum 72 characters per line.
   - Breaking changes must be marked with `!`, and include details
-- **DO NOT** skip hooks execution under any circumstances
-  - **DO NOT** offer to run tests or linters
 - Request explicit approval, never auto-commit without user confirmation
 
 ### 3: Pull Request
