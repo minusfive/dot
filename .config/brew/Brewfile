@@ -30,6 +30,7 @@ brew 'podman-compose' # Compose for Podman
 brew 'ripgrep' # `grep` replacement
 brew 'stow' # Symlink manager
 brew 'tectonic' # LaTeX engine
+brew 'tmux' # Terminal multiplexer
 brew 'uutils-coreutils' # GNU core utilities Rust replacement
 brew 'vivid' # `LS_COLORS` generator
 brew 'wallpaper' # macOS wallpaper manager
@@ -57,6 +58,8 @@ mas '1Password for Safari', id: 1_569_813_296
 
 # Personal profile
 if ENV['HOMEBREW_PROFILE'] == 'personal'
+  brew 'opencode' # AI coding agent
+
   cask 'discord' # Chat
   cask 'whatsapp' # Messenger
 end
