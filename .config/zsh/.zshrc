@@ -106,8 +106,8 @@ plugins=(
     colored-man-pages
     fast-syntax-highlighting
     git
-    terraform
-    virtualenv
+    # terraform
+    # virtualenv
     # yarn # Keyboard commands conflict with Yazi's CLI
     zoxide
     # zsh-autocomplete # Too noisy

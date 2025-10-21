@@ -37,18 +37,16 @@ mise.local.toml
 \.stowrc
 \.stylua.*
 ^/.*.log
-^/lefthook*
-^/\.lefthook*
 ^/\.markdownlint-cli2.jsonc
 ^/\.prettierrc.json
 ^/\.vectorcode
+^/\.vscode
 ^/assets
 ^/biome.json
 ^/codecompanion-workspace.json
 ^/compose.yaml
 ^/flake.lock
 ^/flake.nix
-^/lefthook.yaml
 ^/nix
 ^/otel-collector-config.yaml
 ^/scripts
@@ -58,3 +56,9 @@ mise.local.toml
 ^/AGENTS.*
 ^/CLAUDE.*
 ^/\.ai
+
+# lefthook
+^/\.lefthook
+^/\.lefthook-local
+^/lefthook.yml
+^/lefthook-local.yml
