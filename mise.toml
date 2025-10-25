@@ -15,15 +15,19 @@ yamllint = "latest"
 [hooks]
 enter = { script = 'set_terminal_title "󰒓  {{ config_root | basename }}"', shell = "zsh" }
 leave = { script = "reset_terminal_title", shell = "zsh" }
-
-[tasks.pre-commit]
-run = "hk run pre-commit"
-
-[tasks.fix]
-run = "hk run fix"
+postinstall = ["mise run setup"]
 
 [tasks.check]
 run = "hk run check"
 
+[tasks.fix]
+run = "hk run fix"
+
+[tasks.pre-commit]
+run = "hk run pre-commit"
+
+[tasks.setup]
+run = ["bun install", "mise run vectorize"]
+
 [tasks.vectorize]
-run = "vectorcode vectorize"
+run = "vectorcode vectorise"
