@@ -27,7 +27,7 @@ run = "hk run fix"
 run = "hk run pre-commit"
 
 [tasks.setup]
-run = ["bun install", "mise run vectorize"]
+run = ["bun install", "hk install", "mise run vectorize"]
 
 [tasks.vectorize]
 run = "vectorcode vectorise"
