@@ -47,6 +47,7 @@ mise.local.toml
 ^/compose.yaml
 ^/flake.lock
 ^/flake.nix
+^/hk.pkl
 ^/nix
 ^/otel-collector-config.yaml
 ^/scripts
