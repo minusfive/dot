@@ -75,7 +75,7 @@ return {
     },
     keys = {
       { "<leader>li", "<cmd>:LspInfo<cr>", desc = "Info" },
-      { "<leader>ll", "<cmd>:LspLog<cr>", desc = "Info" },
+      { "<leader>ll", "<cmd>:LspLog<cr>", desc = "Log" },
       { "<leader>lr", "<cmd>:LspRestart<cr>", desc = "Restart" },
     },
   },
