@@ -1,5 +1,9 @@
 .vectorcode/
 .github/
 .ruby-lsp/
+.git/
 **/EmmyLua.spoon/annotations/**
+**/*.png
+**/*.spl
+**/*.plist
 
