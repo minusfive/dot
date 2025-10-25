@@ -77,6 +77,12 @@ hooks {
     }
   }
 
+  ["post-commit"] {
+    steps {
+      ["vectorize"] = vectorize
+    }
+  }
+
   ["pre-commit"] {
     fix = true    // automatically modify files with available linter fixes
     stash = "git" // stashes unstaged changes while running fix steps
