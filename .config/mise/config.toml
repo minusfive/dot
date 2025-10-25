@@ -17,7 +17,6 @@ go = "latest"
 lua = "5.1"
 node = "24.9"
 uv = "latest"
-hk = "latest"
 
 ruby = "latest"
 

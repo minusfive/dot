@@ -1,3 +1,29 @@
+[settings]
+lockfile = true
+
+[env]
+HK_MISE = 1
+HK_STAGE = 0
+
+[tools]
+pkl = "latest"
+hk = "latest"
+shellcheck = "latest"
+stylua = "latest"
+yamllint = "latest"
+
 [hooks]
 enter = { script = 'set_terminal_title "󰒓  {{ config_root | basename }}"', shell = "zsh" }
 leave = { script = "reset_terminal_title", shell = "zsh" }
+
+[tasks.pre-commit]
+run = "hk run pre-commit"
+
+[tasks.fix]
+run = "hk run fix"
+
+[tasks.check]
+run = "hk run check"
+
+[tasks.vectorize]
+run = "vectorcode vectorize"

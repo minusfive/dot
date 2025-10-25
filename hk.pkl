@@ -1,0 +1,86 @@
+amends "package://github.com/jdx/hk/releases/download/v1.19.0/hk@1.19.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v1.19.0/hk@1.19.0#/Builtins.pkl"
+
+local checks = new Mapping<String, Step> {
+  ["check_added_large_files"] = Builtins.check_added_large_files
+  // ["check_case_conflict"] = Builtins.check_case_conflict
+  ["check_executables_have_shebangs"] = Builtins.check_executables_have_shebangs
+  ["check_merge_conflict"] = Builtins.check_merge_conflict
+  ["check_symlinks"] = Builtins.check_symlinks
+  ["detect_private_key"] = Builtins.detect_private_key
+  ["mixed_line_ending"] = Builtins.mixed_line_ending
+  ["newlines"] = Builtins.newlines
+  ["trailing_whitespace"] = Builtins.trailing_whitespace
+}
+
+local linters = new Mapping<String, Step> {
+  ["actionlint"] = Builtins.actionlint // GitHub Actions
+
+  ["hadolint"] = Builtins.hadolint // Dockerfile
+
+  ["markdown_lint"] = (Builtins.markdown_lint) {
+    check = "markdownlint-cli2 {{files}}"
+    fix = "markdownlint-cli2 --fix {{files}}"
+  }
+
+  ["prettier"] = Builtins.prettier
+
+  ["shellcheck"] = Builtins.shellcheck
+
+  ["sort_package_json"] = (Builtins.sort_package_json) {
+    prefix = "bunx"
+  }
+
+  ["stylua"] = Builtins.stylua
+
+  ["yamllint"] = Builtins.yamllint
+}
+
+local vectorize = new Step {
+  check = "vectorcode vectorise {{files}}"
+}
+
+local all = new Mapping<String, Step | Group> {
+  ["pre-lint"] = new Group {
+    steps = checks
+  }
+
+  ["lint"] = new Group {
+    steps = linters
+  }
+
+  ["vectorize"] = vectorize
+}
+
+hooks {
+  // "check" and "fix" are special steps for `hk check` and `hk fix` commands
+  ["check"] {
+    steps = all
+  }
+
+  ["fix"] {
+    fix = true
+    steps = all
+  }
+
+  ["commit-msg"] {
+    steps {
+      ["commitlint"] {
+        prefix = "bunx"
+        check = "commitlint --edit {{commit_msg_file}}"
+      }
+    }
+  }
+
+  ["post-checkout"] {
+    steps {
+      ["vectorize"] = vectorize
+    }
+  }
+
+  ["pre-commit"] {
+    fix = true    // automatically modify files with available linter fixes
+    stash = "git" // stashes unstaged changes while running fix steps
+    steps = all
+  }
+}

@@ -1,9 +1,0 @@
-pre-commit:
-  parallel: true
-  jobs:
-    - run: markdownlin-cli2 {staged_files}
-      glob: "*.{md,mdx,markdown}"
-      exclude:
-        - "node_modules/*"
-    - run: vectorcode vectorise {files}
-      files: git diff --cached --name-only

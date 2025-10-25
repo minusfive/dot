@@ -1,0 +1,18 @@
+{
+  "name": "@minusfive/dot",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Personal system configuration",
+  "keywords": [
+    "dotfiles",
+    "macos",
+    "neovim",
+    "hammerspoon"
+  ],
+  "author": "minusfive",
+  "type": "module",
+  "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0"
+  }
+}
