@@ -38,6 +38,7 @@ local linters = new Mapping<String, Step> {
 
 local vectorize = new Step {
   check = "vectorcode vectorise {{files}}"
+  exclusive = true
 }
 
 local all = new Mapping<String, Step | Group> {
@@ -48,8 +49,6 @@ local all = new Mapping<String, Step | Group> {
   ["lint"] = new Group {
     steps = linters
   }
-
-  ["vectorize"] = vectorize
 }
 
 hooks {
