@@ -123,8 +123,5 @@ return {
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
     },
-
-    -- ---@type OtterConfig
-    -- opts = {},
   },
 }

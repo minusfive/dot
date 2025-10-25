@@ -16,15 +16,16 @@ brew 'gs' # Postscript and PDF interpreter
 brew 'htop' # `top` replacement
 brew 'imagemagick' # Image processing
 brew 'jq' # JSON processor
-brew 'just' # Command runner
+brew 'just' # Script runner
 brew 'lazygit' # Git Terminal UI
 brew 'lefthook' # Git hooks manager
 brew 'libyaml' # dependency for ruby
 brew 'lima' # Linux virtual machine manager
 brew 'luarocks' # dependency for nvim
 brew 'mas' # Mac App Store
-brew 'mise' # version, environment manager
+brew 'mise' # dev tool versions, tasks and environment manager
 brew 'neovim' # Preferred text editor
+brew 'pkl-lsp' # Apple's configuration language server
 brew 'podman' # Container management CLI
 brew 'podman-compose' # Compose for Podman
 brew 'ripgrep' # `grep` replacement

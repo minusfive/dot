@@ -1,3 +1,5 @@
+---@module 'snacks'
+
 local Logos = require("config.logos")
 
 -- Borders
@@ -195,9 +197,10 @@ return {
 
       -- Picker
       picker = {
+        ---@type snacks.picker.formatters.Config|{}
         formatters = {
           file = {
-            -- filename_first = true,
+            truncate = "left",
           },
         },
 
@@ -285,13 +288,13 @@ return {
 
         sources = {
           buffer = { hidden = false, preview = update_picker_preview_file_title },
-          explorer = { hidden = true },
+          explorer = { hidden = true, ignored = true },
           files = { hidden = true, preview = update_picker_preview_file_title },
           git_grep = { hidden = true, preview = update_picker_preview_file_title },
           grep = { hidden = true, preview = update_picker_preview_file_title },
           grep_buffers = { hidden = true, preview = update_picker_preview_file_title },
           grep_word = { hidden = true, preview = update_picker_preview_file_title },
-          smart = { filter = { cwd = true }, preview = update_picker_preview_file_title },
+          smart = { filter = { cwd = true }, preview = update_picker_preview_file_title, supports_live = true },
         },
 
         win = {
