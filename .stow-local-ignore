@@ -37,19 +37,24 @@ mise.local.toml
 \.stowrc
 \.stylua.*
 ^/.*.log
+^/\.commitlintrc.ts
 ^/\.markdownlint-cli2.jsonc
 ^/\.prettierrc.json
 ^/\.vectorcode
 ^/\.vscode
 ^/assets
 ^/biome.json
+^/bun.lock
 ^/codecompanion-workspace.json
 ^/compose.yaml
 ^/flake.lock
 ^/flake.nix
 ^/hk.pkl
 ^/nix
+^/node_modules
 ^/otel-collector-config.yaml
+^/package.json
+^/package-lock.json
 ^/scripts
 ^/tests
 
