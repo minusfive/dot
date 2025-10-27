@@ -1,3 +1,5 @@
+---@module 'lazy'
+
 ---@class MinusfiveUtils
 MinusfiveUtils = MinusfiveUtils or {}
 
@@ -78,15 +80,6 @@ return {
       { "<leader>ll", "<cmd>:LspLog<cr>", desc = "Log" },
       { "<leader>lr", "<cmd>:LspRestart<cr>", desc = "Restart" },
     },
-  },
-
-  {
-    "neovim/nvim-lspconfig",
-    opts = function()
-      --- Remove default LspInfo binding
-      local keys = require("lazyvim.plugins.lsp.keymaps").get()
-      table.insert(keys, { "<leader>cl", false })
-    end,
   },
 
   { import = "plugins/lang" },
