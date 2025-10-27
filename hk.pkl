@@ -77,11 +77,11 @@ hooks {
     }
   }
 
-  ["post-commit"] {
-    steps {
-      ["vectorize"] = vectorize
-    }
-  }
+  // ["post-commit"] {
+  //   steps {
+  //     ["vectorize"] = vectorize
+  //   }
+  // }
 
   ["pre-commit"] {
     fix = true    // automatically modify files with available linter fixes
