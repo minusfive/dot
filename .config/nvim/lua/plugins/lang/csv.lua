@@ -1,9 +1,12 @@
+---@module "csvview"
+---@module 'lazy'
+---@module 'snacks'
+
 ---@type LazySpec
 return {
   {
     "hat0uma/csvview.nvim",
     ft = { "csv", "tsv" },
-    ---@module "csvview"
     ---@param opts CsvView.Options
     opts = function(_, opts)
       ---@type CsvView.Options
