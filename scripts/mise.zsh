@@ -25,9 +25,9 @@ function {
 
     if [[ $(command -v mise) != "" ]]; then
         echo "\n"
+        mise prune
         mise install
         mise upgrade
-        mise prune
         mise reshim -vf
 
         if [[ $? = 0 ]]; then
