@@ -26,6 +26,7 @@ _darcs
 \.Trash
 
 # mise
+^/mise.lock
 ^/mise.toml
 mise.local.toml
 
