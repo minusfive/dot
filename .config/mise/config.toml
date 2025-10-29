@@ -20,7 +20,7 @@ lua = "5.1"
 node = { version = "25", postinstall = "mise run npm-install-global-packages" }
 python = { version = "3.13", postinstall = "mise run python-install-global-packages" }
 ruby = { version = "latest", postinstall = "mise run ruby-install-global-packages" }
-rust = "latest"
+rust = "nightly"
 uv = "latest"
 
 # Order matters, these should be installed after the tools above, otherwise $PATH may be clobbered
