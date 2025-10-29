@@ -54,7 +54,13 @@ local all = new Mapping<String, Step | Group> {
 hooks {
   // "check" and "fix" are special steps for `hk check` and `hk fix` commands
   ["check"] {
-    steps = all
+    steps {
+      ...all
+
+      ["gitleaks"] {
+        check = "gitleaks dir --verbose --redact {{files}}"
+      }
+    }
   }
 
   ["fix"] {

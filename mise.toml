@@ -11,6 +11,7 @@ hk = "latest"
 shellcheck = "latest"
 stylua = "latest"
 yamllint = "latest"
+gitleaks = "latest"
 
 [hooks]
 enter = { script = 'set_terminal_title "󰒓  {{ config_root | basename }}"', shell = "zsh" }
