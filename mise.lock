@@ -1,0 +1,19 @@
+[[tools.hk]]
+version = "1.19.0"
+backend = "aqua:jdx/hk"
+
+[[tools.pkl]]
+version = "0.29.1"
+backend = "aqua:apple/pkl"
+
+[[tools.shellcheck]]
+version = "0.11.0"
+backend = "aqua:koalaman/shellcheck"
+
+[[tools.stylua]]
+version = "2.3.0"
+backend = "aqua:JohnnyMorganz/StyLua"
+
+[[tools.yamllint]]
+version = "1.37.1"
+backend = "pipx:yamllint"

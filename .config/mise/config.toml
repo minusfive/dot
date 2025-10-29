@@ -5,26 +5,25 @@ experimental = true
 idiomatic_version_file_enable_tools = ["node"]
 npm.bun = true
 node.compile = false
+node.gpg_verify = true
 pipx.uvx = true
 python.uv_venv_auto = true
 python.uv_venv_create_args = ["--seed"]
 
+
 [tools]
-python = "3.13"
 bun = "latest"
+cargo-binstall = "latest"
 deno = "latest"
 go = "latest"
 lua = "5.1"
-node = "24.9"
+node = { version = "25", postinstall = "mise run npm-install-global-packages" }
+python = { version = "3.13", postinstall = "mise run python-install-global-packages" }
+ruby = { version = "latest", postinstall = "mise run ruby-install-global-packages" }
+rust = "latest"
 uv = "latest"
 
-ruby = "latest"
-
-rust = "nightly"
-cargo-binstall = "latest"
-
-# Order matters, these should be installed after the tools above
-# otherwise $PATH may be clobbered
+# Order matters, these should be installed after the tools above, otherwise $PATH may be clobbered
 aws-cli = "latest"
 vault = "latest"
 delta = "latest"
@@ -37,13 +36,29 @@ tree-sitter = "latest"
 "npm:@github/copilot" = "latest"
 "npm:markdownlint-cli2" = "latest"
 
-[hooks]
-postinstall = [
-  "python -m ensurepip",
-  "pip install --user --upgrade pip",
-  "uv tool install --upgrade pynvim",
-  "uv tool install --upgrade vectorcode[lsp,mcp]",
-  "npm install -g npm@latest",
-  "npm install -g neovim",
-  "gem install neovim",
+"pipx:vectorcode[lsp,mcp]" = "latest"
+
+
+[tasks.npm-install-global-packages]
+description = "Install global NPM packages"
+alias = "nig"
+run = ["npm install -g npm@latest", "npm install -g neovim@latest"]
+
+[tasks.python-install-global-packages]
+description = "Install global Python packages"
+alias = "pig"
+run = ["uv tool install --upgrade pynvim"]
+
+[tasks.ruby-install-global-packages]
+description = "Install global Ruby gems"
+alias = "rig"
+run = ["gem install neovim"]
+
+[tasks.install-global-packages]
+description = "Install all global packages"
+alias = "ig"
+run = [
+  { task = "npm-install-global-packages" },
+  { task = "python-install-global-packages" },
+  { task = "ruby-install-global-packages" },
 ]
