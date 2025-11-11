@@ -39,26 +39,26 @@ tree-sitter = "latest"
 "pipx:vectorcode[lsp,mcp]" = "latest"
 
 
-[tasks.npm-install-global-packages]
+[tasks.global-install-packages-npm]
 description = "Install global NPM packages"
-alias = "nig"
+alias = "gin"
 run = ["npm install -g npm@latest", "npm install -g neovim@latest"]
 
-[tasks.python-install-global-packages]
+[tasks.global-install-packages-python]
 description = "Install global Python packages"
-alias = "pig"
+alias = "gip"
 run = ["uv tool install --upgrade pynvim"]
 
-[tasks.ruby-install-global-packages]
+[tasks.global-install-packages-ruby]
 description = "Install global Ruby gems"
-alias = "rig"
+alias = "gir"
 run = ["gem install neovim"]
 
 [tasks.install-global-packages]
 description = "Install all global packages"
-alias = "ig"
+alias = "gi"
 run = [
-  { task = "npm-install-global-packages" },
-  { task = "python-install-global-packages" },
-  { task = "ruby-install-global-packages" },
+  { task = "global-install-packages-npm" },
+  { task = "global-install-packages-python" },
+  { task = "global-install-packages-ruby" },
 ]
