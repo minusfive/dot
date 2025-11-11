@@ -43,6 +43,7 @@ mise.local.toml
 ^/\.prettierrc.json
 ^/\.vectorcode
 ^/\.vscode
+^/\.yamllint.yaml
 ^/assets
 ^/biome.json
 ^/bun.lock
