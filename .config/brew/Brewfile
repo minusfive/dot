@@ -61,5 +61,6 @@ if ENV['HOMEBREW_PROFILE'] == 'personal'
   brew 'opencode' # AI coding agent
 
   cask 'discord' # Chat
+  cask 'softraid' # Disk management
   cask 'whatsapp' # Messenger
 end
