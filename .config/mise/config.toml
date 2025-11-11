@@ -9,6 +9,7 @@ node.gpg_verify = true
 pipx.uvx = true
 python.uv_venv_auto = true
 python.uv_venv_create_args = ["--seed"]
+terminal_progress = false
 
 
 [tools]
