@@ -29,6 +29,7 @@ bg
 cli
 darwin
 deduplication
+eslint
 fintech
 ish
 lua
