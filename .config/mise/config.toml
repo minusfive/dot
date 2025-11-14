@@ -18,9 +18,9 @@ cargo-binstall = "latest"
 deno = "latest"
 go = "latest"
 lua = "5.1"
-node = { version = "25", postinstall = "mise run npm-install-global-packages" }
-python = { version = "3.13", postinstall = "mise run python-install-global-packages" }
-ruby = { version = "latest", postinstall = "mise run ruby-install-global-packages" }
+node = { version = "25", postinstall = "mise run global-install-packages-npm" }
+python = { version = "3.13", postinstall = "mise run global-install-packages-python" }
+ruby = { version = "latest", postinstall = "mise run global-install-packages-ruby" }
 rust = "nightly"
 uv = "latest"
 
@@ -55,11 +55,13 @@ description = "Install global Ruby gems"
 alias = "gir"
 run = ["gem install neovim"]
 
-[tasks.install-global-packages]
+[tasks.global-install-packages-all]
 description = "Install all global packages"
 alias = "gi"
 run = [
-  { task = "global-install-packages-npm" },
-  { task = "global-install-packages-python" },
-  { task = "global-install-packages-ruby" },
+  { tasks = [
+    "global-install-packages-npm",
+    "global-install-packages-python",
+    "global-install-packages-ruby",
+  ] },
 ]
