@@ -28,5 +28,6 @@ lualine
 mise
 neovim
 nvim
+postinstall
 tmux
 wget
