@@ -83,7 +83,7 @@ function {
             ${ZSH_CUSTOM}/plugins/zsh-autosuggestions
 
         if [[ $? == 0 ]]; then
-            _v_log_ok $__context "$(_v_fmt_u fast-syntax-highlighting) installed"
+            _v_log_ok $__context "$(_v_fmt_u zsh-autosuggestions) installed"
         fi
     fi
 
