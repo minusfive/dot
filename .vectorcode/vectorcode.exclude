@@ -6,4 +6,5 @@
 **/*.png
 **/*.spl
 **/*.plist
+**/.DS_Store
 
