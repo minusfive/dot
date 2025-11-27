@@ -56,11 +56,15 @@ cask 'wezterm@nightly', args: { no_quarantine: true, greedy_latest: true } # Ter
 
 mas '1Password for Safari', id: 1_569_813_296
 
-# Personal profile
-if ENV['HOMEBREW_PROFILE'] == 'personal'
+if ENV['HOMEBREW_PROFILE'] == 'personal' # Personal profile
   brew 'opencode' # AI coding agent
 
   cask 'discord' # Chat
   cask 'softraid' # Disk management
   cask 'whatsapp' # Messenger
+
+else # Work profile
+  tap 'snyk/tap' # Snyk tap for security tools
+
+  brew 'snyk-cli' # Security scanner
 end
