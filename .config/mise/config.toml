@@ -13,15 +13,16 @@ terminal_progress = false
 
 
 [tools]
-bun = "latest"
+rust = "nightly"
 cargo-binstall = "latest"
-deno = "latest"
-go = "latest"
-lua = "5.1"
 node = { version = "25", postinstall = "mise run global-install-packages-npm" }
 python = { version = "3.13", postinstall = "mise run global-install-packages-python" }
 ruby = { version = "latest", postinstall = "mise run global-install-packages-ruby" }
-rust = "nightly"
+
+bun = "latest"
+deno = "latest"
+go = "latest"
+lua = "5.1"
 uv = "latest"
 
 # Order matters, these should be installed after the tools above, otherwise $PATH may be clobbered
@@ -31,11 +32,11 @@ delta = "latest"
 stylua = "latest"
 prettier = "latest"
 tree-sitter = "latest"
+markdownlint-cli2 = "latest"
 
 "npm:@mermaid-js/mermaid-cli" = "latest"
 "npm:mcp-hub" = "latest"
 "npm:@github/copilot" = "latest"
-"npm:markdownlint-cli2" = "latest"
 
 "pipx:vectorcode[lsp,mcp]" = "latest"
 
