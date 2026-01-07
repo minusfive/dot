@@ -1,20 +1,12 @@
 [[tools.hk]]
-version = "1.25.0"
+version = "1.29.0"
 backend = "aqua:jdx/hk"
-
-[tools.hk.platforms.macos-arm64]
-checksum = "sha256:3fa6f149e20443042d2812e3682c8080168d55d737903849c76cb7e651023b1b"
-size = 6282349
-url = "https://github.com/jdx/hk/releases/download/v1.25.0/hk-aarch64-apple-darwin.tar.gz"
+"platforms.macos-arm64" = { checksum = "sha256:1f610e9efbea3ec718449beeb94b5e13d4692758fd45467449767410751f1135", url = "https://github.com/jdx/hk/releases/download/v1.29.0/hk-aarch64-apple-darwin.tar.gz"}
 
 [[tools.pkl]]
-version = "0.30.0"
+version = "0.30.2"
 backend = "aqua:apple/pkl"
-
-[tools.pkl.platforms.macos-arm64]
-checksum = "sha256:923a636f2c858029d9bf93f35aeae58ebd9783fbe0209f4787c4eed950142212"
-size = 97035920
-url = "https://github.com/apple/pkl/releases/download/0.30.0/pkl-macos-aarch64"
+"platforms.macos-arm64" = { checksum = "sha256:f1db44c0f6f859aee88c9d7d272f2371ae40ac95ec9957ae78eff51665158e04", url = "https://github.com/apple/pkl/releases/download/0.30.2/pkl-macos-aarch64"}
 
 [[tools.shellcheck]]
 version = "0.11.0"
@@ -23,11 +15,7 @@ backend = "aqua:koalaman/shellcheck"
 [[tools.stylua]]
 version = "2.3.1"
 backend = "aqua:JohnnyMorganz/StyLua"
-
-[tools.stylua.platforms.macos-arm64]
-checksum = "sha256:e212e6c21e76c2b1d0f10f8dcf50ec3b5f03f02da7597e0679f539eb18ba0d53"
-size = 3061621
-url = "https://github.com/JohnnyMorganz/StyLua/releases/download/v2.3.1/stylua-macos-aarch64.zip"
+"platforms.macos-arm64" = { checksum = "sha256:e212e6c21e76c2b1d0f10f8dcf50ec3b5f03f02da7597e0679f539eb18ba0d53", url = "https://github.com/JohnnyMorganz/StyLua/releases/download/v2.3.1/stylua-macos-aarch64.zip"}
 
 [[tools.yamllint]]
 version = "1.37.1"
