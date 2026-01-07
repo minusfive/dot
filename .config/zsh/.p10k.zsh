@@ -33,10 +33,10 @@
     # =========================[ Line #1 ]=========================
     # os_icon                 # os identifier
     vi_mode                 # VI mode
+    vpn_ip                  # virtual private network indicator
     dir                     # current directory
     per_directory_history   # Oh My Zsh per-directory-history local/global indicator
     virtualenv              # python virtual environment (https://docs.python.org/3/library/venv.html)
-    # vpn_ip                  # virtual private network indicator
     # separator_space         # space
     vcs                     # git status
     background_jobs         # presence of background jobs
@@ -1588,7 +1588,7 @@
 
   ########################[ vpn_ip: virtual private network indicator ]#########################
   # VPN IP color.
-  typeset -g POWERLEVEL9K_VPN_IP_FOREGROUND=2
+  typeset -g POWERLEVEL9K_VPN_IP_FOREGROUND=15
   # When on VPN, show just an icon without the IP address.
   # Tip: To display the private IP address when on VPN, remove the next line.
   typeset -g POWERLEVEL9K_VPN_IP_CONTENT_EXPANSION=
@@ -1600,7 +1600,7 @@
   # Tip: If you set it to true, you'll probably want to unset POWERLEVEL9K_VPN_IP_CONTENT_EXPANSION.
   typeset -g POWERLEVEL9K_VPN_IP_SHOW_ALL=false
   # Custom icon.
-  # typeset -g POWERLEVEL9K_VPN_IP_VISUAL_IDENTIFIER_EXPANSION='⭐'
+  typeset -g POWERLEVEL9K_VPN_IP_VISUAL_IDENTIFIER_EXPANSION='󰒄 '
 
   ###########[ ip: ip address and bandwidth usage for a specified network interface ]###########
   # IP color.
