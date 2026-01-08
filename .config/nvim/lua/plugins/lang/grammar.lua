@@ -1,6 +1,8 @@
 ---@module 'lazy'
 ---@module 'snacks'
 
+local utils = require("util")
+
 ---@type LazySpec
 return {
   {
@@ -24,8 +26,8 @@ return {
         harper_ls = function()
           Snacks.toggle({
             name = "Grammar Checker",
-            get = function() return #MinusfiveUtils.getLSPClientsByName("harper_ls") > 0 end,
-            set = function() MinusfiveUtils.toggleLSPClient("harper_ls") end,
+            get = function() return #utils.getLSPClientsByName("harper_ls") > 0 end,
+            set = function() utils.toggleLSPClient("harper_ls") end,
           }):map("<leader>lg")
         end,
       },

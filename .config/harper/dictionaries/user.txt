@@ -14,6 +14,7 @@ LinkedIn
 LuaLine
 NeoVim
 Netlify
+PR
 PlacePass
 RBAC
 SSoT
