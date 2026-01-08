@@ -1,27 +1,5 @@
 ---@module 'lazy'
 
----@class MinusfiveUtils
-MinusfiveUtils = MinusfiveUtils or {}
-
----Retrieves an LSP client by name
----@param name string
----@return vim.lsp.Client[]
-function MinusfiveUtils.getLSPClientsByName(name) return vim.lsp.get_clients({ bufnr = 0, name = name }) end
-
----Toggles an LSP client by name
----@param name string
----@return nil
-function MinusfiveUtils.toggleLSPClient(name)
-  local clients = MinusfiveUtils.getLSPClientsByName(name)
-  if #clients > 0 then
-    for _, client in ipairs(clients) do
-      client:stop(true)
-    end
-  else
-    vim.cmd("LspStart " .. name)
-  end
-end
-
 local win_diagnostics_opts = {
   max_width = 0.9, -- 90% of the main window width
   max_height = 0.9, -- 90% of the main window height
