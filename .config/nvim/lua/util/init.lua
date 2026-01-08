@@ -22,6 +22,7 @@ end
 
 --- Check if current working directory is a descendant of a given directory
 ---@param ancestor_dir string
+---@return boolean
 function MinusfiveUtils.cwd_is_descendant_of_dir(ancestor_dir) return vim.fn.getcwd():find(ancestor_dir, 1, true) ~= nil end
 
 return MinusfiveUtils
