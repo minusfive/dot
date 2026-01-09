@@ -15,6 +15,8 @@ return {
       },
     },
 
+    build = function() require("pkl-neovim").init() end,
+
     init = function()
       vim.g.pkl_neovim = {
         start_command = { "pkl-lsp" },
