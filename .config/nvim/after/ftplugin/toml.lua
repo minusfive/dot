@@ -1,1 +1,1 @@
--- require("otter").activate()
+require("otter").activate()
