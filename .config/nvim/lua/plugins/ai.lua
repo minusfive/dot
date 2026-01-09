@@ -1,19 +1,16 @@
 ---@module 'blink.cmp'
----@module "codecompanion"
+---@module 'codecompanion'
 ---@module 'copilot'
 ---@module 'lazy'
 ---@module 'mason-lspconfig'
 ---@module 'mcphub'
----@module "vectorcode"
+---@module 'vectorcode'
+---@module 'snacks'
 -- TODO: Explore LuaLine integration
 
 local lualine_vectorcode = {
   function() return require("vectorcode.integrations").lualine({ show_job_count = true }) end,
 }
-
---- Utility function to check if current working directory is a descendant of a given directory
----@param ancestor_dir string
-local is_descendant_of_dir = function(ancestor_dir) return vim.fn.getcwd():find(ancestor_dir, 1, true) ~= nil end
 
 ---@type LazySpec
 return {
@@ -126,15 +123,18 @@ return {
           },
 
           vectorcode = {
+            ---@type VectorCode.CodeCompanion.ExtensionOpts
             opts = {
-              add_tool = true,
-              add_slash_command = true,
+              -- add_tool = true,
+              -- add_slash_command = true,
               tool_group = {
                 extras = { "file_search" },
               },
-              ---@type VectorCode.CodeCompanion.ToolOpts
               tool_opts = {
-                use_lsp = true,
+                ---@type VectorCode.CodeCompanion.ToolOpts
+                ["*"] = {
+                  use_lsp = true,
+                },
                 ---@type VectorCode.CodeCompanion.QueryToolOpts
                 query = {
                   chunk_mode = true,
@@ -144,24 +144,7 @@ return {
           },
         },
 
-        memory = {
-          opts = {
-            chat = {
-              enabled = true,
-              default_memory = { "default", "work" },
-            },
-          },
-
-          work = {
-            description = "Global memory files for work related projects",
-            enabled = function() return is_descendant_of_dir(vim.env.HOME .. "/dev/work") end,
-            files = {
-              "~/dev/work/.ai/RULES.md",
-            },
-          },
-        },
-
-        strategies = {
+        interactions = {
           chat = {
             adapter = "copilot",
 
@@ -204,6 +187,34 @@ return {
 
           cmd = {
             adapter = "copilot",
+          },
+        },
+
+        prompt_library = {
+          markdown = {
+            dirs = {
+              vim.fn.getcwd() .. "/.ai/prompts",
+              vim.env.XDG_CONFIG_HOME .. "/ai/prompts/codecompanion",
+            },
+          },
+        },
+
+        rules = {
+          opts = {
+            chat = {
+              autoload = function()
+                local is_work = require("util").cwd_is_descendant_of_dir(vim.env.HOME .. "/dev/work")
+                if is_work then return { "default", "work" } end
+                return "default"
+              end,
+            },
+          },
+
+          work = {
+            description = "Global memory files for work related projects",
+            files = {
+              "~/dev/work/AGENTS.md",
+            },
           },
         },
       }
