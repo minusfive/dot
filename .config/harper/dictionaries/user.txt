@@ -1,3 +1,4 @@
+Artifactory
 Autodesk
 BEM
 CodeCompanion
@@ -20,6 +21,7 @@ RBAC
 SSoT
 TODO
 Terraform
+UNIX
 UX
 Unspace
 VectorCode

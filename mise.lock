@@ -1,7 +1,7 @@
 [[tools.hk]]
-version = "1.29.0"
+version = "1.34.0"
 backend = "aqua:jdx/hk"
-"platforms.macos-arm64" = { checksum = "sha256:1f610e9efbea3ec718449beeb94b5e13d4692758fd45467449767410751f1135", url = "https://github.com/jdx/hk/releases/download/v1.29.0/hk-aarch64-apple-darwin.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:68ebb33e8d88848384c488aaf6f7a4eb8baf8426a2bc1b0837353ccece5c4e0e", url = "https://github.com/jdx/hk/releases/download/v1.34.0/hk-aarch64-apple-darwin.tar.gz"}
 
 [[tools.pkl]]
 version = "0.30.2"
@@ -18,5 +18,5 @@ backend = "aqua:JohnnyMorganz/StyLua"
 "platforms.macos-arm64" = { checksum = "sha256:e212e6c21e76c2b1d0f10f8dcf50ec3b5f03f02da7597e0679f539eb18ba0d53", url = "https://github.com/JohnnyMorganz/StyLua/releases/download/v2.3.1/stylua-macos-aarch64.zip"}
 
 [[tools.yamllint]]
-version = "1.37.1"
+version = "1.38.0"
 backend = "pipx:yamllint"
