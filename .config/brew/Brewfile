@@ -43,6 +43,7 @@ brew 'zsh' # Shell
 cask '1password' # Password manager
 cask '1password-cli' # 1Password CLI
 cask 'betterdisplay' # Display configuration manager
+cask 'claude-code' # AI coding agent
 cask 'docker-desktop' # Containerization
 cask 'google-chrome' # Browser
 cask 'ghostty' # Terminal emulator
