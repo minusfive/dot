@@ -1,6 +1,7 @@
 ---@module 'obsidian'
 ---@module 'snacks'
 ---@module "which-key"
+---@module 'lazyvim.util'
 
 local date_format = "%Y-%m-%d"
 local time_format = "%H:%M:%S"
@@ -62,6 +63,7 @@ end
 ---@param spec { id: string, dir: obsidian.Path, title: string|? }
 ---@return string|obsidian.Path path The full path to the new note.
 local get_note_path = function(spec)
+  ---@type string|obsidian.Path
   local path = ""
   if spec.title then
     path = clean_title(spec.title)
@@ -257,6 +259,9 @@ return {
 
     ---@type obsidian.config
     opts = {
+      -- remove deprecation warning
+      legacy_commands = false,
+
       -- either 'wiki' or 'markdown'.
       preferred_link_style = "markdown",
 
@@ -315,6 +320,7 @@ return {
 
       -- optional, configure additional syntax highlighting / extmarks.
       -- this requires you have `conceallevel` set to 1 or 2. see `:help conceallevel` for more details.
+      ---@type obsidian.config.UIOpts | {}
       ui = {
         -- Disabled so it doesn't conflict with `render-markdown.nvim`.
         enable = false, -- set to false to disable all additional syntax features
@@ -327,7 +333,9 @@ return {
       note_path_func = get_note_path,
 
       -- customize how the frontmatter of a note is generated.
-      note_frontmatter_func = get_note_frontmatter,
+      frontmatter = {
+        func = get_note_frontmatter,
+      },
 
       callbacks = {
         -- Automatically switch to the correct workspace based on the current working directory.
@@ -347,7 +355,7 @@ return {
         -- The default folder to place images in via `:ObsidianPasteImg`.
         -- If this is a relative path it will be interpreted as relative to the vault root.
         -- You can always override this per image by passing a full path to the command instead of just a filename.
-        img_folder = "Assets", -- This is the default
+        folder = "Assets", -- This is the default
         -- A function that determines the text to insert in the note when pasting an image.
         -- It takes two arguments, the `obsidian.Client` and an `obsidian.Path` to the image file.
         -- This is the default implementation.

@@ -1,4 +1,5 @@
 ---@module 'snacks'
+---@module 'lazyvim.util'
 
 local Logos = require("config.logos")
 
@@ -31,7 +32,7 @@ local function responsiveLayout() return vim.o.columns >= 120 and "lg" or "sm" e
 
 --- Show which-key help for local window keymaps
 local function showWhichKeyLocal()
-  if package.loaded["which-key"] then require("which-key").show({ global = false }) end
+  if LazyVim.is_loaded("which-key") then require("which-key").show({ global = false }) end
 end
 
 --- Keymaps shared by all picker windows
