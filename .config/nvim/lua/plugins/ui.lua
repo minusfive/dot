@@ -3,6 +3,8 @@
 ---@module 'noice'
 ---@module 'live-preview'
 ---@module 'lualine'
+---@module 'lazyvim.util'
+---@module 'lazyvim.config'
 
 -- Notifications, command pop-ups, etc.
 local nui_options = {
@@ -16,7 +18,7 @@ local nui_options = {
 ---@type LazySpec
 return {
   -- Disable defaults
-  { "lukas-reineke/indent-blankline.nvim", enabled = false }, -- Replaced by Snacks.indent
+  { "lukas-reineke/indent-blankline.nvim", enabled = false }, -- Replaced by `Snacks.indent`
 
   -- Notification messages
   {
@@ -68,7 +70,6 @@ return {
     "brianhuster/live-preview.nvim",
     ft = { "markdown", "html", "svg" },
 
-    ---@param opts LivePreviewConfig
     opts = function()
       require("snacks.toggle")
         .new({
@@ -127,18 +128,18 @@ return {
       opts.sections.lualine_x = {
         Snacks.profiler.status(),
         {
-          function() return require("noice").api.status.command.get() end,
-          cond = function() return package.loaded["noice"] and require("noice").api.status.command.has() end,
+          require("noice").api.status.command.get,
+          cond = function() return LazyVim.is_loaded("noice") and require("noice").api.status.command.has() end,
           color = function() return { fg = Snacks.util.color("Command") } end,
         },
         {
-          function() return require("noice").api.status.mode.get() end,
-          cond = function() return package.loaded["noice"] and require("noice").api.status.mode.has() end,
+          require("noice").api.status.mode.get,
+          cond = function() return LazyVim.is_loaded("noice") and require("noice").api.status.mode.has() end,
           color = function() return { fg = Snacks.util.color("Constant") } end,
         },
         {
           function() return "  " .. require("dap").status() end,
-          cond = function() return package.loaded["dap"] and require("dap").status() ~= "" end,
+          cond = function() return LazyVim.is_loaded("dap") and require("dap").status() ~= "" end,
           color = function() return { fg = Snacks.util.color("Debug") } end,
         },
         {
@@ -228,7 +229,7 @@ return {
         },
       }
 
-      -- And allow it to be overriden for some buffer types (see autocmds)
+      -- And allow it to be overridden for some buffer types (see autocmds)
       if vim.g.trouble_lualine and LazyVim.has("trouble.nvim") then
         local trouble = require("trouble")
         local symbols = trouble.statusline({
