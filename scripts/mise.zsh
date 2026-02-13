@@ -28,7 +28,7 @@ function {
         mise prune
         mise install
         mise upgrade
-        mise reshim -vf
+        mise reshim -f
 
         if [[ $? = 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u mise) dev tools installed, updated and pruned"
