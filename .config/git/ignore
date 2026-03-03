@@ -75,3 +75,5 @@ node_modules/
 # Lefthook
 .lefthook-local.yml
 .lefthook-local/
+
+**/.claude/settings.local.json
