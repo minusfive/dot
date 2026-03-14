@@ -263,7 +263,9 @@ return {
       legacy_commands = false,
 
       -- either 'wiki' or 'markdown'.
-      preferred_link_style = "markdown",
+      link = {
+        style = "markdown",
+      },
 
       -- optional, completion of wiki links, local markdown links, and tags using nvim-cmp.
       completion = {
