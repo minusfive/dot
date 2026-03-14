@@ -38,8 +38,6 @@ markdownlint-cli2 = "latest"
 "npm:mcp-hub" = "latest"
 "npm:@github/copilot" = "latest"
 
-"pipx:vectorcode[lsp,mcp]" = "latest"
-
 
 [tasks.global-install-packages-npm]
 description = "Install global NPM packages"

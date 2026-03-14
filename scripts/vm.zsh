@@ -31,7 +31,7 @@ function {
         echo "\n"
         _v_log_info $__context "Creating $(_v_fmt_u Lima/Podman) VM"
 
-        limactl create template://podman
+        limactl create template:podman
 
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u Lima/Podman) VM created"
@@ -46,7 +46,7 @@ function {
         echo "\n"
         _v_log_info $__context "Configuring $(_v_fmt_u Podman) to use $(_v_fmt_u Lima) VM"
 
-        podman system connection add lima-podman "unix:///Users/$(whoami)/.lima/podman/sock/podman.sock"
+        podman system connection add lima-podman "unix://$HOME/.lima/podman/sock/podman.sock"
         podman system connection default lima-podman
 
         if [[ $? == 0 ]]; then
@@ -54,4 +54,3 @@ function {
         fi
     fi
 }
-

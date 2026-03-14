@@ -31,7 +31,3 @@ run = "hk run pre-commit"
 [tasks.setup]
 description = "Set up the development environment"
 run = ["bun install", "hk install"]
-
-[tasks.vectorize]
-description = "Vectorise codebase"
-run = "vectorcode vectorise"

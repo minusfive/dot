@@ -11,6 +11,7 @@ local checks = new Mapping<String, Step> {
   ["mixed_line_ending"] = Builtins.mixed_line_ending
   ["newlines"] = Builtins.newlines
   ["trailing_whitespace"] = Builtins.trailing_whitespace
+  ["prettier"] = Builtins.prettier
 }
 
 local linters = new Mapping<String, Step> {
@@ -23,8 +24,6 @@ local linters = new Mapping<String, Step> {
     fix = "markdownlint-cli2 --fix {{files}}"
   }
 
-  ["prettier"] = Builtins.prettier
-
   ["shellcheck"] = Builtins.shellcheck
 
   ["sort_package_json"] = (Builtins.sort_package_json) {
@@ -34,11 +33,6 @@ local linters = new Mapping<String, Step> {
   ["stylua"] = Builtins.stylua
 
   ["yamllint"] = Builtins.yamllint
-}
-
-local vectorize = new Step {
-  check = "vectorcode vectorise {{files}}"
-  exclusive = true
 }
 
 local all = new Mapping<String, Step | Group> {
@@ -71,20 +65,8 @@ hooks {
     }
   }
 
-  ["post-checkout"] {
-    steps {
-      ["vectorize"] = vectorize
-    }
-  }
-
-  // ["post-commit"] {
-  //   steps {
-  //     ["vectorize"] = vectorize
-  //   }
-  // }
-
   ["pre-commit"] {
-    fix = true    // automatically modify files with available linter fixes
+    fix = true // automatically modify files with available linter fixes
     stash = "git" // stashes unstaged changes while running fix steps
     steps = all
   }
