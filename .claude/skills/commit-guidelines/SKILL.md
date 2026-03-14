@@ -43,8 +43,8 @@ description: Guidelines for analyzing changes and creating branches and commits 
   - Atomic operations across multiple files
   - Small related changes
 - Write concise commit messages from diffs following the "Conventional Commits" standard format (`<type>[(<scope>)][!]: <summary>`)
-  - **MUST NOT** exceed 50 characters on the commit message subject line
-  - Details may be added after a blank line as a markdown list, maximum 72 characters per line.
+  - **MUST** read `.commitlintrc.ts` and comply with all rules defined there
+    before proposing any commit message
   - Breaking changes must be marked with `!`, and include details
 - Request explicit approval, never auto-commit without user confirmation
 

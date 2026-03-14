@@ -333,13 +333,13 @@ end
 -- Ensure all terminal windows open on specific positions depending on screen size
 ---@param window hs.window
 local function terminalNewWindowWatcher(window)
-  positionWindow(window, WindowManager.layout.right50, WindowManager.layout.rightCenter33)
+  positionWindow(window, WindowManager.layout.maximized, WindowManager.layout.right50)
 end
 
 -- Ensure all browser windows open on specific positions depending on screen size
 ---@param window hs.window
 local function browserNewWindowWatcher(window)
-  positionWindow(window, WindowManager.layout.left50, WindowManager.layout.leftCenter33)
+  positionWindow(window, WindowManager.layout.maximized, WindowManager.layout.left50)
 end
 
 --- Initialize WindowManager
