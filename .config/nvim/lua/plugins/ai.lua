@@ -5,7 +5,6 @@
 ---@module 'mason-lspconfig'
 ---@module 'mcphub'
 ---@module 'snacks'
--- TODO: Explore LuaLine integration
 
 ---@type LazySpec
 return {
@@ -32,6 +31,20 @@ return {
           },
         },
       },
+
+      -- Enable NES (Next Edit Suggestion) integration with Sidekick and Neovim's native inline completions
+      -- keymap = {
+      --   ["<Tab>"] = {
+      --     "snippet_forward",
+      --     function() -- sidekick next edit suggestion
+      --       return require("sidekick").nes_jump_or_apply()
+      --     end,
+      --     function() -- if you are using Neovim's native inline completions
+      --       return vim.lsp.inline_completion.get()
+      --     end,
+      --     "fallback",
+      --   },
+      -- },
     },
   },
 
