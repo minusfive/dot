@@ -5,45 +5,14 @@ description: Overview of the macOS dotfiles configuration management system incl
 
 # Project Overview
 
-Dotfiles configuration management system for macOS. Core technologies: Neovim, Hammerspoon, WezTerm/Ghostty, Zsh, development automation.
+Dotfiles configuration management system for macOS using GNU Stow for symlink management and XDG-compliant directory layout.
 
-## Directory Structure
+## Architecture
 
-```sh
-./                      # macOS dotfiles configuration system
-├── scripts/            # System setup and update scripts
-├── tests/              # Tests directory
-├── assets/             # Project assets (wallpapers, screenshots, etc.)
-├── .config/            # XDG-compliant application configurations
-├── mise.toml           # Project-specific tool versions
-└── [config files]      # Stow, formatting, and project metadata
-```
-
-## Architecture Overview
-
-- **Bootstrap Script** (`./scripts/init.zsh`): Main entry point to setup and update the system
-- **Package Management**: Homebrew with Brewfile (`.config/brew/Brewfile`) for declarative package management
-- **Tool Versioning**: mise for managing development tool versions
-- **Symlink Management**: GNU Stow for dotfile deployment
-- **Configuration and Data Sharing**: XDG directories for configuration and cache
-- **Key Binding Harmony**: Consistent shortcuts across applications
-- **Theme Consistency**: Catppuccin color scheme across tools
-
-## Core Knowledge Requirements and Technology Stack
-
-- System configuration and automation
-- Neovim configuration and plugin management
-- Hammerspoon automation and window management
-- Terminal emulator configuration (WezTerm, Ghostty)
-- Zsh scripting and shell customization
-- Lua scripting for configuration files
-- Dotfiles management with GNU Stow
-- Container orchestration (Lima, Podman, Docker)
-
-## Development Tools Configuration
-
-- `mise.toml`: This project's specific tool versions and environment
-- `.config/mise/config.toml`: Global tool versions and environment configuration
-- `compose.yaml`: Docker Compose services for development
-- Lima integration for Linux VM management
-- Podman for rootless container management
+- **Bootstrap**: `scripts/init.zsh` orchestrates full system setup
+- **Package Management**: Homebrew + Brewfile (`.config/brew/Brewfile`)
+- **Tool Versioning**: mise (`mise.toml`, `.config/mise/config.toml`)
+- **Symlink Management**: GNU Stow deploys dotfiles to the home directory
+- **XDG Layout**: all configs under `.config/`, data/cache follow XDG spec
+- **Key Binding Harmony**: consistent shortcuts maintained across all applications
+- **Theme Consistency**: Catppuccin applied uniformly across tools

@@ -85,16 +85,6 @@ When presenting multiple possible actions, configurations, or solutions, offer a
 - Use VectorCode for semantic analysis
 - Use language servers and linters for static analysis
 
-## Generate and save reusable scripts for task execution
-
-When a task requires generating scripts for execution:
-
-- Check `scripts/tasks/` directory for existing scripts which may be used to execute current task
-- Suggest modifications to existing scripts if required to execute the current task and improve future reusability
-- Make new scripts generic and reusable
-- Save scripts in `scripts/tasks/` directory for project-wide reuse
-- Write documentation to each script optimized for AI agents, following [Markdown](../coding-guidelines/SKILL.md#markdown)
-
 ## When analyzing and updating AI rules files (AGENTS.md, CLAUDE.md, etc.)
 
 - Write concise rules using imperative language, optimized for accurate and efficient agentic communication and execution

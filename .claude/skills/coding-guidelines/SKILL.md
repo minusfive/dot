@@ -43,15 +43,11 @@ description: Coding standards and guidelines for the macOS dotfiles project cove
 
 - Organize `---@module` references at the top of the file, sorted alphabetically
 - Use explicit module returns and clear structure
-- For tool-specific patterns, see:
-  - [../nvim/SKILL.md](../nvim/SKILL.md) - Neovim configuration
-  - [../hammerspoon/SKILL.md](../hammerspoon/SKILL.md) - Hammerspoon automation
 
 ## Shell Scripts (Zsh)
 
 - Use consistent logging functions
 - Use `set -euo pipefail` for error safety
-- For setup scripts in `scripts/`, see [../scripts/SKILL.md](../scripts/SKILL.md) for detailed guidelines
 
 ## Configuration Files
 
