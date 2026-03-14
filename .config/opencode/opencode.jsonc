@@ -7,6 +7,5 @@
     "edit": "ask",
     "webfetch": "ask"
   },
-  "share": "disabled",
-  "theme": "catppuccin"
+  "share": "disabled"
 }
