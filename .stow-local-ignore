@@ -64,6 +64,7 @@ mise.local.toml
 ^/AGENTS.*
 ^/CLAUDE.*
 ^/\.ai
+^/\.claude
 
 # lefthook
 ^/\.lefthook

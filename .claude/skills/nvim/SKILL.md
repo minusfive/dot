@@ -1,12 +1,11 @@
+---
+name: nvim
+description: AI rules and guidelines for the Neovim configuration built on LazyVim with Lua scripting, LSP integration, and plugin management. Use when working with Neovim configuration files, plugins, or Lua modules.
+---
+
 # Neovim Configuration - AI Rules and Guidelines
 
 Advanced Neovim configuration built on LazyVim with modern plugins and Lua-based development environment. Core technologies: LazyVim, lazy.nvim, Lua scripting, LSP integration, completion systems, AI assistance.
-
-## READ FIRST: MANDATORY Rules and Guidelines
-
-**You MUST follow everything stipulated on the [main AGENTS.md](../../AGENTS.md) file first and foremost**. That file **SUPERSEDES** any seemingly contradictory language found on this file or anywhere else.
-
-If you detect any such contradictions, you **MUST** report them so they can be resolved.
 
 ## Neovim Configuration Overview
 
@@ -184,4 +183,4 @@ return {
 - Integrate AI tools with existing workflow patterns
 - Configure AI tools to understand project context
 - Balance AI features with editor responsiveness
-- Ensure sensitive code handling follows [security guidelines](../../AGENTS.md#mandatory-security-guidelines)
+- Ensure sensitive code handling follows [security guidelines](../security/SKILL.md)
