@@ -29,12 +29,17 @@ function {
         exit 1
     else
         echo "\n"
-        _v_log_info $__context "Creating $(_v_fmt_u Lima/Podman) VM"
+        if limactl list podman >/dev/null 2>&1; then
+            _v_log_info $__context "$(_v_fmt_u Lima/Podman) VM already exists, skipping creation"
+        else
+            _v_log_info $__context "Creating $(_v_fmt_u Lima/Podman) VM"
 
-        limactl create template://podman
-
-        if [[ $? == 0 ]]; then
-            _v_log_ok $__context "$(_v_fmt_u Lima/Podman) VM created"
+            if limactl create template:podman >/dev/null 2>&1; then
+                _v_log_ok $__context "$(_v_fmt_u Lima/Podman) VM created"
+            else
+                _v_log_error $__context "Failed to create $(_v_fmt_u Lima/Podman) VM"
+                exit 1
+            fi
         fi
     fi
 
@@ -46,7 +51,7 @@ function {
         echo "\n"
         _v_log_info $__context "Configuring $(_v_fmt_u Podman) to use $(_v_fmt_u Lima) VM"
 
-        podman system connection add lima-podman "unix:///Users/$(whoami)/.lima/podman/sock/podman.sock"
+        podman system connection add lima-podman "unix://$HOME/.lima/podman/sock/podman.sock"
         podman system connection default lima-podman
 
         if [[ $? == 0 ]]; then
@@ -54,4 +59,3 @@ function {
         fi
     fi
 }
-

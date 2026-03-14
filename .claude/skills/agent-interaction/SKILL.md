@@ -82,7 +82,6 @@ When presenting multiple possible actions, configurations, or solutions, offer a
 - Use `eza`, `fd` or `rg` to analyze multiple files or directories
 - Use homebrew or mise-managed tools for consistent analysis across environments; see `./.config/brew/Brewfile`, `./.config/mise/config.toml` and `./mise.toml` for a full list of available tools
 - Minimize tool output with `--quiet`, `--no-pager`, or pipe to `rg`/`head`
-- Use VectorCode for semantic analysis
 - Use language servers and linters for static analysis
 
 ## When analyzing and updating AI rules files (AGENTS.md, CLAUDE.md, etc.)

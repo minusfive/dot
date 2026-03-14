@@ -54,6 +54,7 @@ description: Coding standards and guidelines for the macOS dotfiles project cove
 - Consistent key naming conventions
 - Logical grouping with fallback values
 - Modular structure separating concerns
+- **MUST NOT** manually edit lock files (e.g. `lazy-lock.json`, `mise.lock`, `bun.lockb`); they are managed exclusively by their respective tools
 
 ## Markdown
 

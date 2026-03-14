@@ -38,27 +38,3 @@ Most of the tools I use are installed via [Homebrew](https://brew.sh) (see the [
 
 This project uses the tools it manages, so setting up the machine should set everything up for development. Switching to
 the repository directory should automatically install the project-specific dependencies via [mise-en-place](https://mise.jdx.dev).
-
-### AI
-
-- Ensure the [Lima](https://lima-vm.org/) + [Podman](https://podman.io) VM is running:
-
-```sh
-limactl start podman
-```
-
-- Then start the AI Services;
-
-```sh
-podman compose up --build -d
-```
-
-- Index / vectorize the files:
-
-```sh
-vectorcode vectorize
-```
-
-## Documentation
-
-For comprehensive project details, architecture information, development guidelines, and AI assistant interaction rules, see [`.claude/skills/`](./.claude/skills/).

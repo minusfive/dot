@@ -4,13 +4,8 @@
 ---@module 'lazy'
 ---@module 'mason-lspconfig'
 ---@module 'mcphub'
----@module 'vectorcode'
 ---@module 'snacks'
 -- TODO: Explore LuaLine integration
-
-local lualine_vectorcode = {
-  function() return require("vectorcode.integrations").lualine({ show_job_count = true }) end,
-}
 
 ---@type LazySpec
 return {
@@ -49,176 +44,152 @@ return {
       "ravitemer/codecompanion-history.nvim",
     },
     cmd = { "CodeCompanion" },
-    --- Use a function to ensure VectorCode is loaded before CodeCompanion
-    opts = function()
-      return {
-        log_level = "DEBUG",
+    opts = {
+      log_level = "DEBUG",
 
-        adapters = {
-          copilot = function()
-            return require("codecompanion.adapters").extend("copilot", {
-              schema = {
-                model = {
-                  default = "gpt-5-mini",
-                },
-              },
-            })
-          end,
-        },
-
-        display = {
-          action_palette = {
-            provider = "snacks",
-            opts = {
-              show_default_actions = true,
-              show_default_prompt_library = true,
-            },
-          },
-
-          chat = {
-            intro_message = "",
-          },
-        },
-
-        extensions = {
-          history = {
-            enabled = true,
-            opts = {
-              -- Keymap to open history from chat buffer (default: gh)
-              keymap = "gh",
-              -- Keymap to save the current chat manually (when auto_save is disabled)
-              save_chat_keymap = "sc",
-              -- Save all chats by default (disable to save only manually using 'sc')
-              auto_save = true,
-              -- Number of days after which chats are automatically deleted (0 to disable)
-              expiration_days = 0,
-              -- Picker interface ("telescope" or "snacks" or "fzf-lua" or "default")
-              picker = "snacks",
-              ---On exiting and entering neovim, loads the last chat on opening chat
-              continue_last_chat = false,
-              ---When chat is cleared with `gx` delete the chat from history
-              delete_on_clearing_chat = false,
-              ---Directory path to save the chats
-              dir_to_save = vim.fn.stdpath("data") .. "/codecompanion-history",
-              ---Enable detailed logging for history extension
-              enable_logging = false,
-              ---Automatically generate titles for new chats
-              auto_generate_title = true,
-              title_generation_opts = {
-                ---Adapter for generating titles (defaults to current chat adapter)
-                adapter = "copilot",
-                ---Model for generating titles (defaults to current chat model)
-                model = "gpt-5-mini",
+      adapters = {
+        copilot = function()
+          return require("codecompanion.adapters").extend("copilot", {
+            schema = {
+              model = {
+                default = "gpt-5-mini",
               },
             },
-          },
+          })
+        end,
+      },
 
-          mcphub = {
-            callback = "mcphub.extensions.codecompanion",
-            opts = {
-              make_vars = true,
-              make_slash_commands = true,
-              show_result_in_chat = true,
-            },
-          },
-
-          vectorcode = {
-            ---@type VectorCode.CodeCompanion.ExtensionOpts
-            opts = {
-              -- add_tool = true,
-              -- add_slash_command = true,
-              tool_group = {
-                extras = { "file_search" },
-              },
-              tool_opts = {
-                ---@type VectorCode.CodeCompanion.ToolOpts
-                ["*"] = {
-                  use_lsp = true,
-                },
-                ---@type VectorCode.CodeCompanion.QueryToolOpts
-                query = {
-                  chunk_mode = true,
-                },
-              },
-            },
-          },
-        },
-
-        interactions = {
-          chat = {
-            adapter = "copilot",
-
-            keymaps = {
-              close = {
-                modes = {
-                  n = "q",
-                  i = "<C-q>",
-                },
-                index = 4,
-                callback = "keymaps.close",
-                description = "Close Chat",
-              },
-              stop = {
-                modes = {
-                  n = "<C-c>",
-                  i = "<C-c>",
-                },
-                index = 5,
-                callback = "keymaps.stop",
-                description = "Stop Request",
-              },
-            },
-
-            roles = {
-              ---@type string|fun(adapter: CodeCompanion.HTTPAdapter|CodeCompanion.ACPAdapter): string
-              llm = function(adapter) return adapter.formatted_name end,
-            },
-
-            tools = {
-              opts = {
-                default_tools = { "mcp", "vectorcode_toolbox" },
-              },
-            },
-          },
-
-          inline = {
-            adapter = "copilot",
-          },
-
-          cmd = {
-            adapter = "copilot",
-          },
-        },
-
-        prompt_library = {
-          markdown = {
-            dirs = {
-              vim.fn.getcwd() .. "/.ai/prompts",
-              vim.env.XDG_CONFIG_HOME .. "/ai/prompts/codecompanion",
-            },
-          },
-        },
-
-        rules = {
+      display = {
+        action_palette = {
+          provider = "snacks",
           opts = {
-            chat = {
-              autoload = function()
-                local is_work = require("util").cwd_is_descendant_of_dir(vim.env.HOME .. "/dev/work")
-                if is_work then return { "default", "work" } end
-                return "default"
-              end,
-            },
+            show_default_actions = true,
+            show_default_prompt_library = true,
           },
+        },
 
-          work = {
-            description = "Global memory files for work related projects",
-            files = {
-              "~/dev/work/AGENTS.md",
+        chat = {
+          intro_message = "",
+        },
+      },
+
+      extensions = {
+        history = {
+          enabled = true,
+          opts = {
+            -- Keymap to open history from chat buffer (default: gh)
+            keymap = "gh",
+            -- Keymap to save the current chat manually (when auto_save is disabled)
+            save_chat_keymap = "sc",
+            -- Save all chats by default (disable to save only manually using 'sc')
+            auto_save = true,
+            -- Number of days after which chats are automatically deleted (0 to disable)
+            expiration_days = 0,
+            -- Picker interface ("telescope" or "snacks" or "fzf-lua" or "default")
+            picker = "snacks",
+            ---On exiting and entering neovim, loads the last chat on opening chat
+            continue_last_chat = false,
+            ---When chat is cleared with `gx` delete the chat from history
+            delete_on_clearing_chat = false,
+            ---Directory path to save the chats
+            dir_to_save = vim.fn.stdpath("data") .. "/codecompanion-history",
+            ---Enable detailed logging for history extension
+            enable_logging = false,
+            ---Automatically generate titles for new chats
+            auto_generate_title = true,
+            title_generation_opts = {
+              ---Adapter for generating titles (defaults to current chat adapter)
+              adapter = "copilot",
+              ---Model for generating titles (defaults to current chat model)
+              model = "gpt-5-mini",
             },
           },
         },
-      }
-    end,
+
+        mcphub = {
+          callback = "mcphub.extensions.codecompanion",
+          opts = {
+            make_vars = true,
+            make_slash_commands = true,
+            show_result_in_chat = true,
+          },
+        },
+      },
+
+      interactions = {
+        chat = {
+          adapter = "copilot",
+
+          keymaps = {
+            close = {
+              modes = {
+                n = "q",
+                i = "<C-q>",
+              },
+              index = 4,
+              callback = "keymaps.close",
+              description = "Close Chat",
+            },
+            stop = {
+              modes = {
+                n = "<C-c>",
+                i = "<C-c>",
+              },
+              index = 5,
+              callback = "keymaps.stop",
+              description = "Stop Request",
+            },
+          },
+
+          roles = {
+            ---@type string|fun(adapter: CodeCompanion.HTTPAdapter|CodeCompanion.ACPAdapter): string
+            llm = function(adapter) return adapter.formatted_name end,
+          },
+
+          tools = {
+            opts = {
+              default_tools = { "mcp" },
+            },
+          },
+        },
+
+        inline = {
+          adapter = "copilot",
+        },
+
+        cmd = {
+          adapter = "copilot",
+        },
+      },
+
+      prompt_library = {
+        markdown = {
+          dirs = {
+            vim.fn.getcwd() .. "/.ai/prompts",
+            vim.env.XDG_CONFIG_HOME .. "/ai/prompts/codecompanion",
+          },
+        },
+      },
+
+      rules = {
+        opts = {
+          chat = {
+            autoload = function()
+              local is_work = require("util").cwd_is_descendant_of_dir(vim.env.HOME .. "/dev/work")
+              if is_work then return { "default", "work" } end
+              return "default"
+            end,
+          },
+        },
+
+        work = {
+          description = "Global memory files for work related projects",
+          files = {
+            "~/dev/work/AGENTS.md",
+          },
+        },
+      },
+    },
     keys = {
       { "<leader>a", "", desc = "+ai", mode = { "n", "v" } },
       {
@@ -276,48 +247,5 @@ return {
         mode = { "n", "v" },
       },
     },
-  },
-
-  {
-    "Davidyz/VectorCode",
-    build = "uv tool upgrade vectorcode", -- Optional but recommended. This keeps your CLI up-to-date.
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      {
-        "neovim/nvim-lspconfig",
-        ---@class PluginLspOpts
-        opts = {
-          servers = { vectorcode_server = { mason = false } },
-        },
-      },
-    },
-    cmd = { "VectorCode" },
-    ---@type VectorCode.Opts|{}
-    opts = {
-      async_backend = "lsp",
-      on_setup = {
-        update = true, -- Whether to update the CLI on setup
-        lsp = true, -- Whether to setup the LSP server
-      },
-    },
-    keys = {
-      {
-        "<leader>au",
-        function() return require("vectorcode").update() end,
-        desc = "Update (VectorCode)",
-        mode = { "n", "v" },
-      },
-    },
-  },
-
-  -- Statusline, Winbar and Bufferline (buffer tabs) configuration
-  {
-    "nvim-lualine/lualine.nvim",
-    optional = true,
-
-    opts = function(_, opts)
-      opts.sections = opts.sections or {}
-      opts.sections.lualine_c = table.insert(opts.sections.lualine_c or {}, lualine_vectorcode)
-    end,
   },
 }
