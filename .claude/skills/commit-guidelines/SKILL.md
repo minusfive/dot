@@ -1,20 +1,11 @@
 ---
 name: commit-guidelines
-description: Guidelines for creating commits, branches, and pull requests using Conventional Commits format. Use when asked to commit changes, create a branch, or open a pull request in this macOS dotfiles project.
+description: Guidelines for analyzing changes and creating branches and commits using Conventional Commits format. Use when asked to commit changes or create a branch in this macOS dotfiles project.
 ---
 
-# Commit, Branch, and Pull Request Guidelines
+# Commit and Branch Guidelines
 
-When asked to commit changes (or just "commit"):
-
-- Use all changes in the current repository if unspecified
-- **MUST** execute each step below in order.
-  - Complete each step before proceeding to the next.
-  - Each step **MUST** be performed as its own independent task plan, following [Task Planning](../agent-interaction/SKILL.md#task-planning) guidelines.
-  - The step title **MUST** be used as the Task Plan title.
-- **MUST NOT** offer to execute a step / task plan until the previous one is completed and approved
-- **DO NOT** offer to run tests or linters
-- **DO NOT** skip hooks execution under any circumstances
+- **MUST NOT** skip hooks execution under any circumstances
 
 ## 1: Analyze Changes
 
@@ -57,7 +48,4 @@ When asked to commit changes (or just "commit"):
   - Breaking changes must be marked with `!`, and include details
 - Request explicit approval, never auto-commit without user confirmation
 
-## 3: Pull Request
-
-- Push branch to remote repository
-- Use the same commit message format for pull request titles, summarizing all changes in the pull request
+> For pushing and opening a pull request, see [PR Guidelines](../pr-guidelines/SKILL.md).
