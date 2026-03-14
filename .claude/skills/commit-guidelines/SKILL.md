@@ -13,20 +13,8 @@ description: Guidelines for analyzing changes and creating branches and commits 
 - Validate documentation and reference integrity (e.g. documentation links, path references, GNU Stow symlinks, hardcoded paths, test file references)
 - Analyze diffs and identify:
   - Different functional areas or independent concerns (e.g. Neovim vs. Hammerspoon vs. Zsh)
-  - Different change types:
-    - `feat`: New feature or enhancement
-    - `fix`: Bug fix
-    - `docs`: Documentation changes
-    - `style`: Code style changes (e.g. formatting, missing semicolons, etc.)
-    - `refactor`: Code changes that neither fix bugs nor add features
-    - `perf`: Performance improvements
-    - `test`: Adding or modifying tests
-    - `build`: Build system or external dependency changes
-    - `ci`: CI/CD configuration changes
-    - `chore`: Maintenance tasks, dependency updates
-    - `revert`: Reverting previous commits
-    - `config`: Configuration file changes
-    - `security`: Security-related fixes or improvements
+  - Different change types — **MUST** read `.commitlintrc.ts` (including rules
+    inherited from any presets it extends) to determine valid commit types
   - Tightly coupled changes (e.g. implementation + tests)
   - Atomic operations across multiple files
   - Small related changes
@@ -43,8 +31,8 @@ description: Guidelines for analyzing changes and creating branches and commits 
   - Atomic operations across multiple files
   - Small related changes
 - Write concise commit messages from diffs following the "Conventional Commits" standard format (`<type>[(<scope>)][!]: <summary>`)
-  - **MUST NOT** exceed 50 characters on the commit message subject line
-  - Details may be added after a blank line as a markdown list, maximum 72 characters per line.
+  - **MUST** read `.commitlintrc.ts` and comply with all rules defined there
+    before proposing any commit message
   - Breaking changes must be marked with `!`, and include details
 - Request explicit approval, never auto-commit without user confirmation
 
