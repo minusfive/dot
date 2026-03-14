@@ -61,4 +61,4 @@ vectorcode vectorize
 
 ## Documentation
 
-For comprehensive project details, architecture information, development guidelines, and AI assistant interaction rules, see [AGENTS.md](./AGENTS.md).
+For comprehensive project details, architecture information, development guidelines, and AI assistant interaction rules, see [`.claude/skills/`](./.claude/skills/).

@@ -1,12 +1,11 @@
+---
+name: hammerspoon
+description: AI rules and guidelines for Hammerspoon macOS automation and window management configuration using Lua scripting. Use when working with Hammerspoon scripts, Spoons, hotkeys, or window management code.
+---
+
 # Hammerspoon Configuration - AI Rules and Guidelines
 
 Powerful macOS automation and window management system built with Hammerspoon. Core technologies: Hammerspoon, Lua scripting, custom Spoons, hotkey management, window manipulation.
-
-## READ FIRST: MANDATORY Rules and Guidelines
-
-**You MUST follow everything stipulated on the [main AGENTS.md](../../AGENTS.md) file first and foremost**. That file **SUPERSEDES** any seemingly contradictory language found on this file or anywhere else.
-
-If you detect any such contradictions, you **MUST** report them so they can be resolved.
 
 ## Hammerspoon Configuration Overview
 
@@ -71,7 +70,7 @@ Use systematic exploration patterns for Hammerspoon configurations:
 
 ### Lua Configuration Standards
 
-Follow [main AGENTS.md Lua guidelines](../../AGENTS.md#lua-neovim-hammerspoon-wezterm-yazi).
+Follow [Lua guidelines](../coding-guidelines/SKILL.md#lua-neovim-hammerspoon-wezterm-yazi).
 
 ### Modifier Keys Reference
 
@@ -100,7 +99,7 @@ WindowManager.layout = {
 
 ### Hammerspoon Testing and Validation
 
-Follow [main AGENTS.md Testing and Validation](../../AGENTS.md#testing-and-validation), plus:
+Testing and Validation:
 
 - Test changes with `hs.reload()` for immediate feedback
 - Verify hotkeys don't conflict with system or application shortcuts

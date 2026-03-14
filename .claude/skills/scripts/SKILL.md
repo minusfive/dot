@@ -1,12 +1,11 @@
+---
+name: scripts
+description: AI rules and guidelines for system setup and bootstrap scripts using Zsh, Homebrew, GNU Stow, and mise. Use when working with setup scripts, automation, or system initialization in this dotfiles project.
+---
+
 # System Setup Scripts - AI Rules and Guidelines
 
 Bootstrap and system configuration scripts for macOS dotfiles setup. Core technologies: Zsh, Homebrew, GNU Stow, mise, macOS configuration.
-
-## READ FIRST: MANDATORY Rules and Guidelines
-
-**You MUST follow everything stipulated on the [main AGENTS.md](../AGENTS.md) file first and foremost**. That file **SUPERSEDES** any seemingly contradictory language found on this file or anywhere else.
-
-If you detect any such contradictions, you **MUST** report them so they can be resolved.
 
 ## Scripts Overview
 
@@ -50,7 +49,7 @@ scripts/
 
 ### Zsh Script Standards
 
-Follow [main AGENTS.md Shell Scripts guidelines](../AGENTS.md#shell-scripts-zsh).
+Follow [Shell Scripts (Zsh)](../coding-guidelines/SKILL.md#shell-scripts-zsh).
 
 ### Script Architecture Pattern
 
@@ -99,7 +98,7 @@ When adding new setup scripts:
 
 ### Testing Scripts
 
-Follow [main AGENTS.md Testing and Validation](../AGENTS.md#testing-and-validation), plus:
+Testing and Validation:
 
 - Test scripts with `--noop` flag when available
 - Test in isolated environment or VM before running on main system
