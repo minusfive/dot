@@ -31,9 +31,7 @@ local wo = {
 local function responsiveLayout() return vim.o.columns >= 120 and "lg" or "sm" end
 
 --- Show which-key help for local window keymaps
-local function showWhichKeyLocal()
-  if LazyVim.is_loaded("which-key") then require("which-key").show({ global = false }) end
-end
+local function showWhichKeyLocal() require("which-key").show({ global = false }) end
 
 --- Keymaps shared by all picker windows
 local pickerWinCommonKeymaps = {
@@ -42,8 +40,8 @@ local pickerWinCommonKeymaps = {
   ["<c-u>"] = false,
 
   -- use which-key for help
-  ["<c-/>"] = { showWhichKeyLocal, desc = "Help", mode = { "n", "i", "v" } },
-  ["?"] = { showWhichKeyLocal, desc = "Help", mode = { "n", "v" } },
+  ["<c-/>"] = { "wk_help", desc = "Help", mode = { "n", "i", "v" } },
+  ["?"] = { "wk_help", desc = "Help", mode = { "n", "v" } },
 
   -- scroll with PageUp/Down
   ["<PageDown>"] = { "preview_scroll_down", desc = "Preview Scroll Down", mode = { "n", "i", "v" } },
@@ -198,6 +196,11 @@ return {
 
       -- Picker
       picker = {
+        ---@type snacks.picker.Action.spec
+        actions = {
+          wk_help = showWhichKeyLocal,
+        },
+
         ---@type snacks.picker.formatters.Config|{}
         formatters = {
           file = {
