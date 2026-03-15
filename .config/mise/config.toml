@@ -12,6 +12,9 @@ python.uv_venv_create_args = ["--seed"]
 terminal_progress = false
 lockfile = true
 
+[hooks]
+enter = { script = 'set_terminal_title', shell = "zsh" }
+leave = { script = "reset_terminal_title", shell = "zsh" }
 
 [tools]
 rust = "nightly"

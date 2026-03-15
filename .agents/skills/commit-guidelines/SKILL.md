@@ -7,8 +7,9 @@ description: Guidelines for analyzing changes and creating branches and commits 
 
 - **MUST NOT** skip hooks execution under any circumstances
 
-## 1: Analyze Changes
+## Analyze Changes
 
+- Perform a comprehensive review of all the changes
 - Perform a full security analysis before committing (see `security` skill)
 - Validate documentation and reference integrity (e.g. documentation links, path references, hardcoded paths, test file references)
 - Analyze diffs and identify:
@@ -18,14 +19,17 @@ description: Guidelines for analyzing changes and creating branches and commits 
   - Atomic operations across multiple files
   - Small related changes
   - Breaking changes
-- Determine commit message constraints before drafting messages:
+
+## Branch
+
+- Create a new branch using concise AND descriptive branch names from analysis. It is your job to generate the branch name, do not ask the user to provide it
+
+## Commit
+
+- **MUST** determine and follow commit title and message constraints before drafting messages:
   - Check for commitlint configuration in this order: `commitlint.config.*`, `.commitlintrc*`, then `package.json` `commitlint` section
   - If commitlint config exists, follow its rules (including inherited presets)
   - If no commitlint config exists, use Conventional Commits (`<type>[(<scope>)][!]: <summary>`)
-
-## 2: Branch and Commit
-
-- Create a new branch using concise AND descriptive branch names from analysis. It is your job to generate the branch name, do not ask the user to provide it
 - Create separate commits for:
   - Different functional areas or independent concerns
   - Different change types
@@ -37,4 +41,6 @@ description: Guidelines for analyzing changes and creating branches and commits 
   - Breaking changes should be clearly marked and include details
 - Request explicit approval, never auto-commit without user confirmation
 
-> For pushing and opening a pull request, see `pr-guidelines` skill.
+## Pull Request
+
+- For pushing and opening a pull request, see `pr-guidelines` skill.

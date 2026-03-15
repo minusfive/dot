@@ -15,10 +15,7 @@ description: Guidelines for pushing branches and creating pull requests with pro
 
 ## 2: Pull Request
 
-- Determine pull request title rules before drafting:
-  - Check for commitlint configuration in this order: `commitlint.config.*`, `.commitlintrc*`, then `package.json` `commitlint` section
-  - If commitlint config exists, align the pull request title format to those rules
-  - If no commitlint config exists, use Conventional Commits-compatible format (`<type>[(<scope>)][!]: <summary>`)
+- PR title and message formatting **MUST** follow the same guidelines as commits
 - The pull request body should include a brief summary of the changes and any relevant context or notes for the reviewer
 - **MUST NOT** include commit messages in the pull request body — these are clear from the PR's commit history and will quickly become stale
 - Reference any related issues or pull requests where relevant
