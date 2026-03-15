@@ -10,6 +10,7 @@ pipx.uvx = true
 python.uv_venv_auto = true
 python.uv_venv_create_args = ["--seed"]
 terminal_progress = false
+lockfile = true
 
 
 [tools]
@@ -20,13 +21,9 @@ python = { version = "3.13", postinstall = "mise run global-install-packages-pyt
 ruby = { version = "latest", postinstall = "mise run global-install-packages-ruby" }
 
 bun = "latest"
-deno = "latest"
 go = "latest"
 lua = "5.1"
 uv = "latest"
-
-# Order matters, these should be installed after the tools above, otherwise $PATH may be clobbered
-aws-cli = "latest"
 vault = "latest"
 delta = "latest"
 stylua = "latest"
