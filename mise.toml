@@ -3,7 +3,7 @@ lockfile = true
 
 [env]
 HK_MISE = 1
-HK_STAGE = 0
+HK_STAGE = 1
 
 [tools]
 pkl = "latest"
@@ -11,10 +11,6 @@ hk = "latest"
 shellcheck = "latest"
 stylua = "latest"
 yamllint = "latest"
-
-[hooks]
-enter = { script = 'set_terminal_title "󰒓  {{ config_root | basename }}"', shell = "zsh" }
-leave = { script = "reset_terminal_title", shell = "zsh" }
 
 [tasks.check]
 description = "Run all checks"
