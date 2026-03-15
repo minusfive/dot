@@ -249,6 +249,54 @@ backend = "npm:@mermaid-js/mermaid-cli"
 version = "4.2.1"
 backend = "npm:mcp-hub"
 
+[[tools.opencode]]
+version = "1.2.26"
+backend = "aqua:anomalyco/opencode"
+
+[tools.opencode."platforms.linux-arm64"]
+checksum = "sha256:c2f387dcef451379eedd51702c029b190667a9cf7069037d9d19f258b059a61c"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.2.26/opencode-linux-arm64.tar.gz"
+
+[tools.opencode."platforms.linux-arm64-musl"]
+checksum = "sha256:c2f387dcef451379eedd51702c029b190667a9cf7069037d9d19f258b059a61c"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.2.26/opencode-linux-arm64.tar.gz"
+
+[tools.opencode."platforms.linux-x64"]
+checksum = "sha256:3c7a6dd1dc46e3e39a60e0e2f371176fbf3d9681e29b670991491f1172062454"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.2.26/opencode-linux-x64.tar.gz"
+
+[tools.opencode."platforms.linux-x64-baseline"]
+checksum = "sha256:3c7a6dd1dc46e3e39a60e0e2f371176fbf3d9681e29b670991491f1172062454"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.2.26/opencode-linux-x64.tar.gz"
+
+[tools.opencode."platforms.linux-x64-musl"]
+checksum = "sha256:3c7a6dd1dc46e3e39a60e0e2f371176fbf3d9681e29b670991491f1172062454"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.2.26/opencode-linux-x64.tar.gz"
+
+[tools.opencode."platforms.linux-x64-musl-baseline"]
+checksum = "sha256:3c7a6dd1dc46e3e39a60e0e2f371176fbf3d9681e29b670991491f1172062454"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.2.26/opencode-linux-x64.tar.gz"
+
+[tools.opencode."platforms.macos-arm64"]
+checksum = "sha256:214b97f623f870478468aad2be159544ab312f3354b23402c75ae8853de3e821"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.2.26/opencode-darwin-arm64.zip"
+
+[tools.opencode."platforms.macos-x64"]
+checksum = "sha256:950c9918df4c923f6b9e9842f81974fd341bfbf793fda768119c4d17159cdc87"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.2.26/opencode-darwin-x64.zip"
+
+[tools.opencode."platforms.macos-x64-baseline"]
+checksum = "sha256:950c9918df4c923f6b9e9842f81974fd341bfbf793fda768119c4d17159cdc87"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.2.26/opencode-darwin-x64.zip"
+
+[tools.opencode."platforms.windows-x64"]
+checksum = "sha256:4cdd79773a21a73847e1024ba689d305cdc96e8100729bd89bca4cf1fd5b8256"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.2.26/opencode-windows-x64.zip"
+
+[tools.opencode."platforms.windows-x64-baseline"]
+checksum = "sha256:4cdd79773a21a73847e1024ba689d305cdc96e8100729bd89bca4cf1fd5b8256"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.2.26/opencode-windows-x64.zip"
+
 [[tools.prettier]]
 version = "3.8.1"
 backend = "npm:prettier"

@@ -34,6 +34,7 @@ markdownlint-cli2 = "latest"
 "npm:@mermaid-js/mermaid-cli" = "latest"
 "npm:mcp-hub" = "latest"
 "npm:@github/copilot" = "latest"
+opencode = "latest"
 
 
 [tasks.global-install-packages-npm]
