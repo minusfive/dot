@@ -31,7 +31,7 @@ description: AI rules and guidelines for the Neovim configuration built on LazyV
 ## AI Integration
 
 - Balance AI features with editor responsiveness
-- Ensure sensitive code handling follows [security guidelines](../security/SKILL.md)
+- Ensure sensitive code handling follows `security` skill
 
 ## Testing and Validation
 

@@ -1,7 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": true,
-  "model": "github-copilot/claude-sonnet-4-5",
+  "model": "github-copilot/gpt-5.3-codex",
+  "small_model": "github-copilot/gpt-5-mini",
+  "default_agent": "plan",
   "permission": {
     "bash": "ask",
     "edit": "ask",
@@ -14,7 +16,7 @@
         "claude-haiku-4.5": { "name": "Claude Haiku 4.5 [0.33x]" },
         "claude-opus-4.5": { "name": "Claude Opus 4.5 [3x]" },
         "claude-opus-4.6": { "name": "Claude Opus 4.6 [3x]" },
-        "claude-opus-41": { "name": "Claude Opus 4.1" },
+        "claude-opus-41": { "name": "Claude Opus 4.1 [RETIRED]" },
         "claude-sonnet-4": { "name": "Claude Sonnet 4 [1x]" },
         "claude-sonnet-4.5": { "name": "Claude Sonnet 4.5 [1x]" },
         "claude-sonnet-4.6": { "name": "Claude Sonnet 4.6 [1x]" },
@@ -24,7 +26,7 @@
         "gemini-3.1-pro-preview": { "name": "Gemini 3.1 Pro [1x]" },
         "gpt-4.1": { "name": "GPT-4.1 [0x]" },
         "gpt-4o": { "name": "GPT-4o [0x]" },
-        "gpt-5": { "name": "GPT-5" },
+        "gpt-5": { "name": "GPT-5 [RETIRED]" },
         "gpt-5-mini": { "name": "GPT-5 mini [0x]" },
         "gpt-5.1": { "name": "GPT-5.1 [1x]" },
         "gpt-5.1-codex": { "name": "GPT-5.1 Codex [1x]" },

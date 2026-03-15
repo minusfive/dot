@@ -1,6 +1,6 @@
 ---
 name: coding-guidelines
-description: Coding standards and guidelines for the macOS dotfiles project covering TDD, Lua, Zsh shell scripts, configuration files, and Markdown. Use when writing, reviewing, or refactoring code in this repository.
+description: Coding standards and guidelines for writing, reviewing, and refactoring code across software projects.
 ---
 
 # Coding Guidelines
@@ -8,7 +8,7 @@ description: Coding standards and guidelines for the macOS dotfiles project cove
 ## Core Coding Principles
 
 - Explain why changes are needed before implementing
-- Follow test-driven development strictly:
+- Prefer test-driven development when practical:
   - Write acceptance tests first, implement second
   - Define acceptance criteria first
   - Implement incrementally to pass tests (Red, Green)
@@ -22,7 +22,6 @@ description: Coding standards and guidelines for the macOS dotfiles project cove
 - Validate that changes don't break existing behavior
 - Use functional patterns, avoid Object Oriented
 - Maintain established organization patterns
-- Use XDG standard directories
 - Organize configurations for easy maintenance
 - Update only documentation directly related to your changes
 - Keep existing documentation up to date
@@ -54,7 +53,7 @@ description: Coding standards and guidelines for the macOS dotfiles project cove
 - Consistent key naming conventions
 - Logical grouping with fallback values
 - Modular structure separating concerns
-- **MUST NOT** manually edit lock files (e.g. `lazy-lock.json`, `mise.lock`, `bun.lockb`); they are managed exclusively by their respective tools
+- **MUST NOT** manually edit tool-generated lock files; they are managed by their respective tools
 
 ## Markdown
 
@@ -65,4 +64,4 @@ description: Coding standards and guidelines for the macOS dotfiles project cove
 - **MUST NOT** create table of contents unless explicitly requested
   - If one exists, keep it synchronized with actual sections
 - Analyze the whole file and suggest optimizations according to these rules
-- Validate markdown files using `markdownlint-cli2` configured in `.markdownlint-cli2.jsonc`
+- Validate markdown files with the project's configured markdown linter when available

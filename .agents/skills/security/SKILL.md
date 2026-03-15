@@ -1,13 +1,13 @@
 ---
 name: security
-description: Security guidelines for the macOS dotfiles project covering secrets management, permissions, network access, and secure defaults. Use when making changes involving security-sensitive operations, credentials, or system permissions.
+description: Security guidelines covering secrets management, permissions, network access, and secure defaults.
 ---
 
 # Security Guidelines
 
 - **NEVER** commit sensitive data to version control
 - Pin dependencies to specific versions for security-critical tools
-- Use 1Password CLI for SSH agent and secrets management
+- Use an approved secret manager for credentials and SSH agent integration
 - Follow least privilege principle, grant only the minimum necessary access and permissions
 - Review system modification permissions carefully
 - Validate permissions before script execution
