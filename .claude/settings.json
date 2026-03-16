@@ -1,5 +1,5 @@
 {
-  "additionalDirectories": ["~/.agents"],
+  "additionalDirectories": ["./.agents", "~/.agents"],
   "attribution": {
     "commit": "",
     "pr": ""
