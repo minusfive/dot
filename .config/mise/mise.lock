@@ -487,6 +487,7 @@ url = "https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.7/tree
 [tools.tree-sitter."platforms.macos-arm64"]
 checksum = "sha256:24162119aca35a160a2752a4457b17f3c47f7b2895ab63002c66b8dfd1bb41d1"
 url = "https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.7/tree-sitter-macos-arm64.gz"
+provenance = "github-attestations"
 
 [tools.tree-sitter."platforms.macos-x64"]
 checksum = "sha256:bbb1df269cd462393e8826bee55f2b09ccbc0d7b8b914c9827bebd6c467087ca"
@@ -535,6 +536,7 @@ url = "https://github.com/astral-sh/uv/releases/download/0.10.10/uv-x86_64-unkno
 [tools.uv."platforms.macos-arm64"]
 checksum = "sha256:8a09f0ef51ee7f7170731b4cb8bde5bf9ba6da5304f49a7df6cdab42a1f37b5d"
 url = "https://github.com/astral-sh/uv/releases/download/0.10.10/uv-aarch64-apple-darwin.tar.gz"
+provenance = "github-attestations"
 
 [tools.uv."platforms.macos-x64"]
 checksum = "sha256:dd18420591d625f9b4ca2b57a7a6fe3cce43910f02e02d90e47a4101428de14a"
