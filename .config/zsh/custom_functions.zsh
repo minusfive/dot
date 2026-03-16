@@ -3,14 +3,14 @@
 # Set terminal title
 function set_terminal_title() {
     local icon_dir=" "
-    local start_dir current_dir project_root project_name package_json
+    local start_dir current_dir project_root project_name package_json tsconfig detected_project_name
 
     start_dir="$PWD"
     current_dir="$start_dir"
     project_root=""
 
     while [ -n "$current_dir" ] && [ "$current_dir" != "/" ]; do
-        if [ -d "$current_dir/.git" ]; then
+        if [ -e "$current_dir/.git" ]; then
             icon_dir="󰊢 "
             project_root="$current_dir"
             break
@@ -31,7 +31,10 @@ function set_terminal_title() {
         icon_dir="󰌞 "
 
         if command -v jq >/dev/null 2>&1; then
-            project_name="$(jq -r '.name // empty' "$package_json" 2>/dev/null || true)"
+            detected_project_name="$(jq -r '.name // empty' "$package_json" 2>/dev/null || true)"
+            if [ -n "$detected_project_name" ]; then
+                project_name="$detected_project_name"
+            fi
         fi
     fi
 
@@ -39,14 +42,14 @@ function set_terminal_title() {
         icon_dir="󰛦 "
     fi
 
-    if [ "$TERM" = "wezterm" ]; then
+    if [ "$TERM_PROGRAM" = "WezTerm" ] && command -v wezterm >/dev/null 2>&1; then
         wezterm cli set-tab-title "$icon_dir $project_name"
     fi
 }
 
 # Reset terminal title
 function reset_terminal_title() {
-    if [ "$TERM" = "wezterm" ]; then
+    if [ "$TERM_PROGRAM" = "WezTerm" ] && command -v wezterm >/dev/null 2>&1; then
         wezterm cli set-tab-title ""
     fi
 }
