@@ -1,0 +1,24 @@
+{
+  "additionalDirectories": ["~/.agents"],
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "forceLoginMethod": "console",
+  "permissions": {
+    "allow": [
+      "Bash(* --help *)",
+      "Bash(* --version)",
+      "Bash(cat *)",
+      "Bash(eza *)",
+      "Bash(find *)",
+      "Bash(gh *)",
+      "Bash(git *)",
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(rg *)"
+    ],
+    "deny": ["Bash(git push *)"]
+  },
+  "syntaxHighlightingDisabled": false
+}
