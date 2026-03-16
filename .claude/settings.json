@@ -7,16 +7,27 @@
   "forceLoginMethod": "console",
   "permissions": {
     "allow": [
-      "Bash(* --help *)",
-      "Bash(* --version)",
-      "Bash(cat *)",
       "Bash(eza *)",
       "Bash(find *)",
       "Bash(gh *)",
-      "Bash(git *)",
+      "Bash(git branch*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git status*)",
       "Bash(grep *)",
       "Bash(ls *)",
       "Bash(rg *)"
+    ],
+    "ask": [
+      "Bash(git reset *)",
+      "Bash(git clean *)",
+      "Bash(git checkout *)",
+      "Bash(git switch *)",
+      "Bash(git restore *)",
+      "Bash(git rebase *)",
+      "Bash(git cherry-pick *)",
+      "Bash(git stash *)"
     ],
     "deny": ["Bash(git push *)"]
   },
