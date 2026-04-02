@@ -24,6 +24,12 @@ local shared_trouble_bottom_modes_config = {
 
 ---@type LazySpec
 return {
+  {
+    "nvim-mini/mini.comment",
+    event = nil,
+    optional = true,
+  },
+
   --- Search and Replace UI
   --- Unnecessary as qflist and cdo natively support this
   {
