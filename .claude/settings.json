@@ -1,35 +1,28 @@
 {
-  "additionalDirectories": ["./.agents", "~/.agents"],
   "attribution": {
     "commit": "",
     "pr": ""
   },
-  "forceLoginMethod": "console",
   "permissions": {
     "allow": [
-      "Bash(eza *)",
-      "Bash(find *)",
-      "Bash(gh *)",
-      "Bash(git branch*)",
       "Bash(git diff*)",
       "Bash(git log*)",
       "Bash(git show*)",
       "Bash(git status*)",
-      "Bash(grep *)",
-      "Bash(ls *)",
-      "Bash(rg *)"
-    ],
-    "ask": [
-      "Bash(git reset *)",
-      "Bash(git clean *)",
-      "Bash(git checkout *)",
-      "Bash(git switch *)",
-      "Bash(git restore *)",
-      "Bash(git rebase *)",
-      "Bash(git cherry-pick *)",
-      "Bash(git stash *)"
-    ],
-    "deny": ["Bash(git push *)"]
+      "Read(.agents/**)",
+      "Read(~/.agents/**)",
+      "Read(~/.claude/**)",
+      "Glob(.agents/**)",
+      "Glob(~/.agents/**)",
+      "Glob(~/.claude/**)",
+      "Grep(.agents/**)",
+      "Grep(~/.agents/**)",
+      "Grep(~/.claude/**)"
+    ]
   },
-  "syntaxHighlightingDisabled": false
+  "model": "opus[1m]",
+  "forceLoginMethod": "console",
+  "syntaxHighlightingDisabled": false,
+  "effortLevel": "high",
+  "additionalDirectories": ["./.agents", "~/.agents"]
 }
