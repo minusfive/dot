@@ -9,7 +9,7 @@ return {
     ---@type PluginLspOpts
     opts = {
       servers = {
-        css_ls = {},
+        cssls = {},
         css_variables = {},
         cssmodules_ls = {
           init_options = {

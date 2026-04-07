@@ -1,5 +1,9 @@
 ---@module 'lazy'
 
+vim.api.nvim_create_user_command("LspLog", function() vim.cmd.tabnew({ vim.lsp.log.get_filename() }) end, {
+  desc = "Opens the Nvim LSP client log.",
+})
+
 local win_diagnostics_opts = {
   max_width = 0.9, -- 90% of the main window width
   max_height = 0.9, -- 90% of the main window height
@@ -54,9 +58,9 @@ return {
       inlay_hints = { enabled = false },
     },
     keys = {
-      { "<leader>li", "<cmd>:LspInfo<cr>", desc = "Info" },
+      { "<leader>li", "<cmd>:che vim.lsp<cr>", desc = "Info" },
       { "<leader>ll", "<cmd>:LspLog<cr>", desc = "Log" },
-      { "<leader>lr", "<cmd>:LspRestart<cr>", desc = "Restart" },
+      { "<leader>lr", "<cmd>:lsp restart<cr>", desc = "Restart" },
     },
   },
 
