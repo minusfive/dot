@@ -24,5 +24,8 @@
   "forceLoginMethod": "console",
   "syntaxHighlightingDisabled": false,
   "effortLevel": "high",
-  "additionalDirectories": ["./.agents", "~/.agents"]
+  "additionalDirectories": ["./.agents", "~/.agents"],
+  "env": {
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "false"
+  }
 }
