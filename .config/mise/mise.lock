@@ -241,7 +241,7 @@ checksum = "sha256:929552b8305effac843ba7b4270c437aefb702fc3fbd73fcd1bffd35d4ac2
 url = "https://nodejs.org/dist/v25.9.0/node-v25.9.0-win-x64.zip"
 
 [[tools."npm:@github/copilot"]]
-version = "1.0.21"
+version = "1.0.22"
 backend = "npm:@github/copilot"
 
 [[tools."npm:@mermaid-js/mermaid-cli"]]
@@ -253,114 +253,114 @@ version = "4.2.1"
 backend = "npm:mcp-hub"
 
 [[tools.opencode]]
-version = "1.4.0"
+version = "1.4.3"
 backend = "aqua:anomalyco/opencode"
 
 [tools.opencode."platforms.linux-arm64"]
-checksum = "sha256:2f5728ed47d8147da9163e4c10a83914131bf849bfc0f17590ab6d58b7d03ba3"
-url = "https://github.com/anomalyco/opencode/releases/download/v1.4.0/opencode-linux-arm64.tar.gz"
+checksum = "sha256:4cbf32f4c31da7dae14712b65aadbce6acfa1a7a85bee986a2ce4eaaed4eb5c8"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-linux-arm64.tar.gz"
 
 [tools.opencode."platforms.linux-arm64-musl"]
-checksum = "sha256:2f5728ed47d8147da9163e4c10a83914131bf849bfc0f17590ab6d58b7d03ba3"
-url = "https://github.com/anomalyco/opencode/releases/download/v1.4.0/opencode-linux-arm64.tar.gz"
+checksum = "sha256:4cbf32f4c31da7dae14712b65aadbce6acfa1a7a85bee986a2ce4eaaed4eb5c8"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-linux-arm64.tar.gz"
 
 [tools.opencode."platforms.linux-x64"]
-checksum = "sha256:5117eb08aa542d49b0149ba837d01c7ebc1d79ba332e8518859edc33c4eff2cf"
-url = "https://github.com/anomalyco/opencode/releases/download/v1.4.0/opencode-linux-x64.tar.gz"
+checksum = "sha256:34d503ebb029853293be6fd4d441bbb2dbb03919bfa4525e88b1ca55d68f3e17"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-linux-x64.tar.gz"
 
 [tools.opencode."platforms.linux-x64-baseline"]
-checksum = "sha256:5117eb08aa542d49b0149ba837d01c7ebc1d79ba332e8518859edc33c4eff2cf"
-url = "https://github.com/anomalyco/opencode/releases/download/v1.4.0/opencode-linux-x64.tar.gz"
+checksum = "sha256:34d503ebb029853293be6fd4d441bbb2dbb03919bfa4525e88b1ca55d68f3e17"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-linux-x64.tar.gz"
 
 [tools.opencode."platforms.linux-x64-musl"]
-checksum = "sha256:5117eb08aa542d49b0149ba837d01c7ebc1d79ba332e8518859edc33c4eff2cf"
-url = "https://github.com/anomalyco/opencode/releases/download/v1.4.0/opencode-linux-x64.tar.gz"
+checksum = "sha256:34d503ebb029853293be6fd4d441bbb2dbb03919bfa4525e88b1ca55d68f3e17"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-linux-x64.tar.gz"
 
 [tools.opencode."platforms.linux-x64-musl-baseline"]
-checksum = "sha256:5117eb08aa542d49b0149ba837d01c7ebc1d79ba332e8518859edc33c4eff2cf"
-url = "https://github.com/anomalyco/opencode/releases/download/v1.4.0/opencode-linux-x64.tar.gz"
+checksum = "sha256:34d503ebb029853293be6fd4d441bbb2dbb03919bfa4525e88b1ca55d68f3e17"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-linux-x64.tar.gz"
 
 [tools.opencode."platforms.macos-arm64"]
-checksum = "sha256:be968e559051bb622f0b9fc628216670240b7e7441a11b0eb11f79a6f03239a5"
-url = "https://github.com/anomalyco/opencode/releases/download/v1.4.0/opencode-darwin-arm64.zip"
+checksum = "sha256:d085c072087fa1cf076058ae28785a31a9368e0f3c42985ea8c558036fcb9b0c"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-darwin-arm64.zip"
 
 [tools.opencode."platforms.macos-x64"]
-checksum = "sha256:fb2ab4b4995bcced575f19f90bb08cb657accdb90ebeec9f0cd182f02e1e9e0c"
-url = "https://github.com/anomalyco/opencode/releases/download/v1.4.0/opencode-darwin-x64.zip"
+checksum = "sha256:1431028e324dcdd2322e5aa710444a52c6de74d1a382f8082a4ad12fdae0768f"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-darwin-x64.zip"
 
 [tools.opencode."platforms.macos-x64-baseline"]
-checksum = "sha256:fb2ab4b4995bcced575f19f90bb08cb657accdb90ebeec9f0cd182f02e1e9e0c"
-url = "https://github.com/anomalyco/opencode/releases/download/v1.4.0/opencode-darwin-x64.zip"
+checksum = "sha256:1431028e324dcdd2322e5aa710444a52c6de74d1a382f8082a4ad12fdae0768f"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-darwin-x64.zip"
 
 [tools.opencode."platforms.windows-x64"]
-checksum = "sha256:378cb5fd511c90f4bdbb5a69c79d65c241e17d0f825d49b78a2cf6457d3a8e90"
-url = "https://github.com/anomalyco/opencode/releases/download/v1.4.0/opencode-windows-x64.zip"
+checksum = "sha256:a0efc8a0028083104d2e68bb23721395700f20e83e6018c38043a2d7e0e9897a"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-windows-x64.zip"
 
 [tools.opencode."platforms.windows-x64-baseline"]
-checksum = "sha256:378cb5fd511c90f4bdbb5a69c79d65c241e17d0f825d49b78a2cf6457d3a8e90"
-url = "https://github.com/anomalyco/opencode/releases/download/v1.4.0/opencode-windows-x64.zip"
+checksum = "sha256:a0efc8a0028083104d2e68bb23721395700f20e83e6018c38043a2d7e0e9897a"
+url = "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-windows-x64.zip"
 
 [[tools.prettier]]
 version = "3.8.1"
 backend = "npm:prettier"
 
 [[tools.python]]
-version = "3.13.12"
+version = "3.13.13"
 backend = "core:python"
 
 [tools.python."platforms.linux-arm64"]
-checksum = "sha256:8abd16da242b56902a13ba1d6e3aaa0d6d19dfc71547f04e437f707fde179915"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:f06466ac56cdc185d61190ea89f9c4e84ff4fc03ac08793151970a1fea86410b"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260408/cpython-3.13.13+20260408-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-arm64-musl"]
-checksum = "sha256:8abd16da242b56902a13ba1d6e3aaa0d6d19dfc71547f04e437f707fde179915"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:f06466ac56cdc185d61190ea89f9c4e84ff4fc03ac08793151970a1fea86410b"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260408/cpython-3.13.13+20260408-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64"]
-checksum = "sha256:91c8920a197c3f7c562612eb4537e18e0c52c1c918bb39912cbd0b1b3c154229"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:a1dbc39f9c7b7d4ff3074fa18de66714c4e4400643bd657894a65803b0362a92"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260408/cpython-3.13.13+20260408-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64-baseline"]
-checksum = "sha256:91c8920a197c3f7c562612eb4537e18e0c52c1c918bb39912cbd0b1b3c154229"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:a1dbc39f9c7b7d4ff3074fa18de66714c4e4400643bd657894a65803b0362a92"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260408/cpython-3.13.13+20260408-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64-musl"]
-checksum = "sha256:91c8920a197c3f7c562612eb4537e18e0c52c1c918bb39912cbd0b1b3c154229"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:a1dbc39f9c7b7d4ff3074fa18de66714c4e4400643bd657894a65803b0362a92"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260408/cpython-3.13.13+20260408-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64-musl-baseline"]
-checksum = "sha256:91c8920a197c3f7c562612eb4537e18e0c52c1c918bb39912cbd0b1b3c154229"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:a1dbc39f9c7b7d4ff3074fa18de66714c4e4400643bd657894a65803b0362a92"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260408/cpython-3.13.13+20260408-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-arm64"]
-checksum = "sha256:3de7059c87c0e7604e3e9397a547020c161f65c8d51d358e230d3a7d3a456aaa"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-aarch64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "blake3:3755af963d2c019e820b290c79358a731be796da375c3a549d168885bb6eca92"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260408/cpython-3.13.13+20260408-aarch64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-x64"]
-checksum = "sha256:7fd6a6162ef82c9df74eb1c71dad042a05960869789915b1203d61f14d3dc629"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-x86_64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "sha256:a457622f281816d436a9184dc44934968eeb966bd1739eb8b5829db82d19dfb0"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260408/cpython-3.13.13+20260408-x86_64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-x64-baseline"]
-checksum = "sha256:7fd6a6162ef82c9df74eb1c71dad042a05960869789915b1203d61f14d3dc629"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-x86_64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "sha256:a457622f281816d436a9184dc44934968eeb966bd1739eb8b5829db82d19dfb0"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260408/cpython-3.13.13+20260408-x86_64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.windows-x64"]
-checksum = "sha256:b11194bd12122df60e24b08a71a4e5aaa1d15c2cf436f7f4f57bbea4f9a80462"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
+checksum = "sha256:d8dad87f274a6e50423ad7d5d01807c87ac6fec6eaff133eff76dabf135eb101"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260408/cpython-3.13.13+20260408-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.windows-x64-baseline"]
-checksum = "sha256:b11194bd12122df60e24b08a71a4e5aaa1d15c2cf436f7f4f57bbea4f9a80462"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
+checksum = "sha256:d8dad87f274a6e50423ad7d5d01807c87ac6fec6eaff133eff76dabf135eb101"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260408/cpython-3.13.13+20260408-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [[tools.ruby]]
@@ -520,62 +520,62 @@ checksum = "sha256:28301a969412066bf4818c30c71d9c313091a9b9dc24b53a14ddda3a8e2cc
 url = "https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.8/tree-sitter-windows-x64.gz"
 
 [[tools.uv]]
-version = "0.11.4"
+version = "0.11.6"
 backend = "aqua:astral-sh/uv"
 
 [tools.uv."platforms.linux-arm64"]
-checksum = "sha256:a02ec7667d7bb1d33cdb7e1de22f7e4242967e3df7e350bac6212515e3bce8ac"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.4/uv-aarch64-unknown-linux-musl.tar.gz"
+checksum = "sha256:d14ebd6f200047264152daaf97b8bd36c7885a5033e9e8bba8366cb0049c0d00"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.6/uv-aarch64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-arm64-musl"]
-checksum = "sha256:a02ec7667d7bb1d33cdb7e1de22f7e4242967e3df7e350bac6212515e3bce8ac"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.4/uv-aarch64-unknown-linux-musl.tar.gz"
+checksum = "sha256:d14ebd6f200047264152daaf97b8bd36c7885a5033e9e8bba8366cb0049c0d00"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.6/uv-aarch64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64"]
-checksum = "sha256:36ce1c5d8997db9b6a24d0f41646d5509b6d1d8b9448c7325f8248a6ea5d4b00"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.4/uv-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:aa342a53abe42364093506d7704214d2cdca30b916843e520bc67759a5d20132"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.6/uv-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64-baseline"]
-checksum = "sha256:36ce1c5d8997db9b6a24d0f41646d5509b6d1d8b9448c7325f8248a6ea5d4b00"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.4/uv-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:aa342a53abe42364093506d7704214d2cdca30b916843e520bc67759a5d20132"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.6/uv-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64-musl"]
-checksum = "sha256:36ce1c5d8997db9b6a24d0f41646d5509b6d1d8b9448c7325f8248a6ea5d4b00"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.4/uv-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:aa342a53abe42364093506d7704214d2cdca30b916843e520bc67759a5d20132"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.6/uv-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64-musl-baseline"]
-checksum = "sha256:36ce1c5d8997db9b6a24d0f41646d5509b6d1d8b9448c7325f8248a6ea5d4b00"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.4/uv-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:aa342a53abe42364093506d7704214d2cdca30b916843e520bc67759a5d20132"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.6/uv-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.macos-arm64"]
-checksum = "sha256:9b9cb6c6f58c3246dbf3351ed4e97c500bc3266f5f237d2fd620b66e1c31dc56"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.4/uv-aarch64-apple-darwin.tar.gz"
+checksum = "sha256:4b69a4e366ec38cd5f305707de95e12951181c448679a00dce2a78868dfc9f5b"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.6/uv-aarch64-apple-darwin.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.macos-x64"]
-checksum = "sha256:c326edaf3fd492f53d1c58777f3459c0d87bf9dae8d89e80aec4b0da6622dcf3"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.4/uv-x86_64-apple-darwin.tar.gz"
+checksum = "sha256:8e0ed5035eaa28c7c8cd2a46b5b9a05bfff1ef01dbdc090a010eb8fdf193a457"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.6/uv-x86_64-apple-darwin.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.macos-x64-baseline"]
-checksum = "sha256:c326edaf3fd492f53d1c58777f3459c0d87bf9dae8d89e80aec4b0da6622dcf3"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.4/uv-x86_64-apple-darwin.tar.gz"
+checksum = "sha256:8e0ed5035eaa28c7c8cd2a46b5b9a05bfff1ef01dbdc090a010eb8fdf193a457"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.6/uv-x86_64-apple-darwin.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.windows-x64"]
-checksum = "sha256:26d84455a40b0272b2ab4785cad298ff2c89cd0765b482e9f85b5a1bd880a863"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.4/uv-x86_64-pc-windows-msvc.zip"
+checksum = "sha256:99aa60edd017a256dbf378f372d1cff3292dbc6696e0ea01716d9158d773ab77"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.6/uv-x86_64-pc-windows-msvc.zip"
 provenance = "github-attestations"
 
 [tools.uv."platforms.windows-x64-baseline"]
-checksum = "sha256:26d84455a40b0272b2ab4785cad298ff2c89cd0765b482e9f85b5a1bd880a863"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.4/uv-x86_64-pc-windows-msvc.zip"
+checksum = "sha256:99aa60edd017a256dbf378f372d1cff3292dbc6696e0ea01716d9158d773ab77"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.6/uv-x86_64-pc-windows-msvc.zip"
 provenance = "github-attestations"
 
 [[tools.vault]]
