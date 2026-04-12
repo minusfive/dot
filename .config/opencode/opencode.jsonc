@@ -5,7 +5,20 @@
   "small_model": "github-copilot/gpt-5-mini",
   "default_agent": "plan",
   "permission": {
-    "bash": "ask",
+    "bash": {
+      "*": "ask",
+      "bun ~/.agents/skills/opencode-copilot-multipliers/scripts/sync-opencode-copilot-multipliers.ts*": "allow",
+    },
+    "read": {
+      "*": "allow",
+      "~/.agents/**": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow",
+    },
+    "external_directory": {
+      "~/.agents/**": "allow",
+    },
     "edit": "ask",
     "webfetch": "ask",
   },
@@ -13,30 +26,69 @@
   "provider": {
     "github-copilot": {
       "models": {
-        "claude-haiku-4.5": { "name": "Claude Haiku 4.5 [0.33x]" },
-        "claude-opus-4.5": { "name": "Claude Opus 4.5 [3x]" },
-        "claude-opus-4.6": { "name": "Claude Opus 4.6 [3x]" },
-        "claude-opus-41": { "name": "Claude Opus 4.1 [RETIRED]" },
-        "claude-sonnet-4": { "name": "Claude Sonnet 4 [1x]" },
-        "claude-sonnet-4.5": { "name": "Claude Sonnet 4.5 [1x]" },
-        "claude-sonnet-4.6": { "name": "Claude Sonnet 4.6 [1x]" },
-        "gemini-2.5-pro": { "name": "Gemini 2.5 Pro [1x]" },
-        "gemini-3-flash-preview": { "name": "Gemini 3 Flash [0.33x]" },
-        "gemini-3-pro-preview": { "name": "Gemini 3 Pro [1x]" },
-        "gemini-3.1-pro-preview": { "name": "Gemini 3.1 Pro [1x]" },
-        "gpt-4.1": { "name": "GPT-4.1 [0x]" },
-        "gpt-4o": { "name": "GPT-4o [0x]" },
-        "gpt-5": { "name": "GPT-5 [RETIRED]" },
-        "gpt-5-mini": { "name": "GPT-5 mini [0x]" },
-        "gpt-5.1": { "name": "GPT-5.1 [1x]" },
-        "gpt-5.1-codex": { "name": "GPT-5.1 Codex [1x]" },
-        "gpt-5.1-codex-max": { "name": "GPT-5.1 Codex Max [1x]" },
-        "gpt-5.1-codex-mini": { "name": "GPT-5.1 Codex Mini [0.33x]" },
-        "gpt-5.2": { "name": "GPT-5.2 [1x]" },
-        "gpt-5.2-codex": { "name": "GPT-5.2 Codex [1x]" },
-        "gpt-5.3-codex": { "name": "GPT-5.3 Codex [1x]" },
-        "gpt-5.4": { "name": "GPT-5.4 [1x]" },
-        "grok-code-fast-1": { "name": "Grok Code Fast 1 [0.25x]" },
+        "claude-haiku-4.5": {
+          "name": "Claude Haiku 4.5 [0.33x]",
+        },
+        "claude-opus-4.5": {
+          "name": "Claude Opus 4.5 [3x]",
+        },
+        "claude-opus-4.6": {
+          "name": "Claude Opus 4.6 [3x]",
+        },
+        "claude-sonnet-4": {
+          "name": "Claude Sonnet 4 [1x]",
+        },
+        "claude-sonnet-4.5": {
+          "name": "Claude Sonnet 4.5 [1x]",
+        },
+        "claude-sonnet-4.6": {
+          "name": "Claude Sonnet 4.6 [1x]",
+        },
+        "gemini-2.5-pro": {
+          "name": "Gemini 2.5 Pro [1x]",
+        },
+        "gemini-3-flash-preview": {
+          "name": "Gemini 3 Flash [0.33x]",
+        },
+        "gemini-3.1-pro-preview": {
+          "name": "Gemini 3.1 Pro [1x]",
+        },
+        "gpt-4.1": {
+          "name": "GPT-4.1 [0x]",
+        },
+        "gpt-4o": {
+          "name": "GPT-4o [0x]",
+        },
+        "gpt-5-mini": {
+          "name": "GPT-5 mini [0x]",
+        },
+        "gpt-5.1": {
+          "name": "GPT-5.1 [1x]",
+        },
+        "gpt-5.2": {
+          "name": "GPT-5.2 [1x]",
+        },
+        "gpt-5.2-codex": {
+          "name": "GPT-5.2 Codex [1x]",
+        },
+        "gpt-5.3-codex": {
+          "name": "GPT-5.3 Codex [1x]",
+        },
+        "gpt-5.4": {
+          "name": "GPT-5.4 [1x]",
+        },
+        "grok-code-fast-1": {
+          "name": "Grok Code Fast 1 [0.25x]",
+        },
+        "claude-opus-4.6-fast-mode-preview": {
+          "name": "Claude Opus 4.6 (fast mode) (preview) [30x]",
+        },
+        "gpt-5.4-mini": {
+          "name": "GPT-5.4 mini [0.33x]",
+        },
+        "raptor-mini": {
+          "name": "Raptor mini [0x]",
+        },
       },
     },
   },

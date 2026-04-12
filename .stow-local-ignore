@@ -61,7 +61,6 @@ mise.local.toml
 ^/tests
 
 # AI
-^/AGENTS.*
 ^/\.ai
 
 # lefthook

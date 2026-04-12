@@ -76,4 +76,8 @@ node_modules/
 .lefthook-local.yml
 .lefthook-local/
 
+# Claude
 **/.claude/settings.local.json
+
+# OpenCode
+.config/opencode/package-lock.json
