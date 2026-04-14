@@ -13,6 +13,45 @@ function _v_log_ok { print -P "$(_v_color_fg green "$(_v_fmt_s "   $1 ") $2")
 function _v_log_warn { print -P "$(_v_color_fg yellow "$(_v_fmt_s "   $1 ") $2")" }
 function _v_log_q { print -P "$(_v_color_fg white "$(_v_fmt_s "   $1 ") $2")" }
 
+function _v_profile_file_path {
+    local __xdg_state_home="${XDG_STATE_HOME:-$HOME/.local/state}"
+    print -r -- "$__xdg_state_home/minusfive/profile"
+}
+
+function _v_profile_is_valid {
+    local __profile="${1:-}"
+    [[ "$__profile" == "work" || "$__profile" == "personal" ]]
+}
+
+function _v_profile_read {
+    local __profile_file="$(_v_profile_file_path)"
+    local __profile="work"
+
+    if [[ -r "$__profile_file" ]]; then
+        local __stored_profile
+        __stored_profile="$(<"$__profile_file")"
+        __stored_profile="${__stored_profile//$'\n'/}"
+
+        if _v_profile_is_valid "$__stored_profile"; then
+            __profile="$__stored_profile"
+        fi
+    fi
+
+    print -r -- "$__profile"
+}
+
+function _v_profile_write {
+    local __profile="${1:-}"
+
+    if ! _v_profile_is_valid "$__profile"; then
+        return 1
+    fi
+
+    local __profile_file="$(_v_profile_file_path)"
+    mkdir -p "${__profile_file:h}"
+    print -r -- "$__profile" >| "$__profile_file"
+}
+
 function _v_confirm_proceed {
     local __reply
     vared -p "$(print -P "$(_v_log_q $__context "Proceed?") $(_v_color_fg green $(_v_fmt_u y))es | $(_v_color_fg yellow $(_v_fmt_u N))o | $(_v_color_fg red $(_v_fmt_u q))uit $(_v_color_fg green $(_v_fmt_b ⟩)) "
@@ -57,7 +96,7 @@ function _v_print_help {
     printf " $(_v_arg "-l" "--link")        Symlink dotfiles\n"
     printf " $(_v_arg "-m" "--mise")        Install mise dev tools\n"
     printf " $(_v_arg "-o" "--os")          Configure OS settings\n"
-    printf " $(_v_arg "-p" "--profile")     Valid profiles: $(_v_color_fg yellow "'work'") (default, safest), or $(_v_color_fg yellow "'personal'"). e.g. \`$(_v_color_fg green "$ZSH_ARGZERO -p personal")\`\n"
+    printf " $(_v_arg "-p" "--profile")     Valid profiles: $(_v_color_fg green "'work'") (default, safest), or $(_v_color_fg yellow "'personal'"). Persists for future runs. e.g. \`$(_v_color_fg green "$ZSH_ARGZERO -p personal")\`\n"
     printf " $(_v_arg "-v" "--vm")          Install VM and containerization tools\n"
     printf " $(_v_arg "-z" "--zsh")         Install Zsh plugins and themes\n"
 }

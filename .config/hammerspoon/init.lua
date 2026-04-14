@@ -4,6 +4,12 @@ hs.loadSpoon("WindowManager")
 hs.loadSpoon("AppLauncher")
 hs.loadSpoon("Caffeine")
 hs.loadSpoon("Hotkeys")
+hs.loadSpoon("ProfileState")
+
+---@type ProfileState
+local ps = spoon.ProfileState
+
+local profile = ps:syncSettings()
 
 ---@type AppLauncher
 local al = spoon.AppLauncher
@@ -221,4 +227,4 @@ al:start()
 require("hs.ipc")
 
 -- Notify on config [re]load
-notify("Configuration Loaded", "Settings applied")
+notify("Configuration Loaded", string.format("Profile: %s", profile))

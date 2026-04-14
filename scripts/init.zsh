@@ -26,6 +26,9 @@ function {
     # Load functions
     source "$__dotfiles_scripts_dir/functions.zsh"
 
+    # Default to persisted profile (fall back to 'work')
+    __profile="$(_v_profile_read)"
+
     # Parse parameters and or display help and exit
     zmodload zsh/zutil
     zparseopts -D -E -F -A __options - \
@@ -68,7 +71,7 @@ function {
                 __configure_os_settings=true
                 ;;
             -p|--profile)
-                if [[ "$arg" == "work" || "$arg" == "personal" ]]; then
+                if _v_profile_is_valid "$arg"; then
                     __profile="$arg"
                 else
                     _v_log_error "ERROR" "Valid profile name is required for the \`$opt\` option. Use 'work' or 'personal'. Received: '$arg'"
@@ -84,6 +87,17 @@ function {
                 ;;
         esac
     done
+
+    echo "\n"
+    local __profile_color=$([[ "$__profile" == "work" ]] && echo green || echo yellow)
+    _v_log_info "PRFL" "Profile: $(_v_color_fg $__profile_color "$__profile")"
+
+    # Make selected profile available to all scripts and future runs
+    export DOT_PROFILE="$__profile"
+    if ! _v_profile_write "$__profile"; then
+        _v_log_error "ERROR" "Failed to persist selected profile '$__profile'"
+        exit 1
+    fi
 
     # Homebrew and Homebrew packages installation
     source "$__dotfiles_scripts_dir/brew.zsh"
@@ -118,4 +132,3 @@ function {
     _v_log_ok "DONE" "Bootstrap complete"
     _v_reload
 } "$@"
-

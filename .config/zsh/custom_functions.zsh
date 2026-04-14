@@ -53,3 +53,20 @@ function reset_terminal_title() {
         wezterm cli set-tab-title ""
     fi
 }
+
+function read_dot_profile() {
+    local profile_file="${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile"
+    local profile="work"
+
+    if [[ -r "$profile_file" ]]; then
+        local stored_profile
+        stored_profile="$(<"$profile_file")"
+        stored_profile="${stored_profile//$'\n'/}"
+
+        if [[ "$stored_profile" == "work" || "$stored_profile" == "personal" ]]; then
+            profile="$stored_profile"
+        fi
+    fi
+
+    print -r -- "$profile"
+}
