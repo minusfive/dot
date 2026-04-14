@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "false"
+  },
   "attribution": {
     "commit": "",
     "pr": ""
@@ -24,8 +27,5 @@
   "forceLoginMethod": "console",
   "syntaxHighlightingDisabled": false,
   "effortLevel": "high",
-  "additionalDirectories": ["./.agents", "~/.agents"],
-  "env": {
-    "CLAUDE_CODE_ATTRIBUTION_HEADER": "false"
-  }
+  "additionalDirectories": ["./.agents", "~/.agents"]
 }
