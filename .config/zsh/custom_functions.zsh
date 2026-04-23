@@ -1,9 +1,27 @@
 #!/usr/bin/env zsh
 
+function git_branch_or_short_sha() {
+    local repo_root="$1"
+    local git_ref
+
+    if [ ! -e "$repo_root/.git" ]; then
+        return
+    fi
+
+    git_ref="$(git -C "$repo_root" symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+    if [ -z "$git_ref" ]; then
+        git_ref="$(git -C "$repo_root" rev-parse --short HEAD 2>/dev/null || true)"
+    fi
+
+    if [ -n "$git_ref" ]; then
+        echo "$git_ref"
+    fi
+}
+
 # Set terminal title
 function set_terminal_title() {
     local icon_dir=" "
-    local start_dir current_dir project_root project_name package_json tsconfig detected_project_name
+    local start_dir current_dir project_root project_name package_json tsconfig detected_project_name git_ref title
 
     start_dir="$PWD"
     current_dir="$start_dir"
@@ -42,8 +60,14 @@ function set_terminal_title() {
         icon_dir="󰛦 "
     fi
 
+    title="$icon_dir $project_name"
+    git_ref="$(git_branch_or_short_sha "$project_root")"
+    if [ -n "$git_ref" ]; then
+        title="$title @ $git_ref"
+    fi
+
     if [ "$TERM_PROGRAM" = "WezTerm" ] && command -v wezterm >/dev/null 2>&1; then
-        wezterm cli set-tab-title "$icon_dir $project_name"
+        wezterm cli set-tab-title "$title"
     fi
 }
 
