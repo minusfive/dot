@@ -21,34 +21,6 @@ return {
   },
 
   {
-    "saghen/blink.cmp",
-    ---@type blink.cmp.Config
-    opts = {
-      sources = {
-        providers = {
-          copilot = {
-            score_offset = -1,
-          },
-        },
-      },
-
-      -- Enable NES (Next Edit Suggestion) integration with Sidekick and Neovim's native inline completions
-      -- keymap = {
-      --   ["<Tab>"] = {
-      --     "snippet_forward",
-      --     function() -- sidekick next edit suggestion
-      --       return require("sidekick").nes_jump_or_apply()
-      --     end,
-      --     function() -- if you are using Neovim's native inline completions
-      --       return vim.lsp.inline_completion.get()
-      --     end,
-      --     "fallback",
-      --   },
-      -- },
-    },
-  },
-
-  {
     "olimorris/codecompanion.nvim",
     -- dev = true,
     dependencies = {

@@ -34,7 +34,6 @@ return {
     "saghen/blink.cmp",
     optional = true,
     -- dev = true,
-    build = "cargo build --release",
 
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
@@ -85,11 +84,16 @@ return {
         },
       }),
 
-      fuzzy = { prebuilt_binaries = { ignore_version_mismatch = true }, implementation = "prefer_rust_with_warning" },
-
       keymap = indexed_keymap,
 
       -- signature = { enabled = true },
+      sources = {
+        providers = {
+          copilot = {
+            -- score_offset = -1,
+          },
+        },
+      },
     },
   },
 
