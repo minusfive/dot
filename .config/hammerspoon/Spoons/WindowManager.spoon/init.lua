@@ -10,7 +10,7 @@ local WindowManager = {
   options = {
     enableFocusedWindowHighlight = false,
     appNamesForFilters = {
-      toFocusMostRecentWindow = { "Microsoft Teams" },
+      -- toFocusMostRecentWindow = { "Microsoft Teams" },
       terminals = { "Terminal", "WezTerm", "Ghostty", "Kitty" },
       browsers = { "Safari", "Google Chrome", "Firefox", "Brave" },
     },
