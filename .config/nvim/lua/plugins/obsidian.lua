@@ -257,7 +257,7 @@ return {
       "nvim-lua/plenary.nvim",
     },
 
-    ---@type obsidian.config
+    ---@type obsidian.config.ClientOpts
     opts = {
       -- remove deprecation warning
       legacy_commands = false,
@@ -336,6 +336,10 @@ return {
 
       -- customize how the frontmatter of a note is generated.
       frontmatter = {
+        enabled = function(filename)
+          if filename == "AGENTS.md" or filename == "CLAUDE.md" then return false end
+          return true
+        end,
         func = get_note_frontmatter,
       },
 

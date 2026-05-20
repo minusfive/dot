@@ -23,9 +23,10 @@
       "Grep(~/.claude/**)"
     ]
   },
-  "model": "opus[1m]",
+  "model": "sonnet[1m]",
   "forceLoginMethod": "console",
   "syntaxHighlightingDisabled": false,
   "effortLevel": "high",
-  "additionalDirectories": ["./.agents", "~/.agents"]
+  "additionalDirectories": ["./.agents", "~/.agents"],
+  "editorMode": "vim"
 }
