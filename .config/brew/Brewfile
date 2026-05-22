@@ -5,6 +5,7 @@ tap 'buo/cask-upgrade' # auto-upgrade casks
 brew 'bat' # `cat` replacement
 brew 'btop' # `htop` replacement
 brew 'curl' # CLI for transferring data
+brew 'coreutils' # GNU core utilities
 brew 'dockutil' # CLI for MacOS Dock management
 brew 'eza' # `ls` replacement
 brew 'fd' # `find` replacement
@@ -31,7 +32,6 @@ brew 'ripgrep' # `grep` replacement
 brew 'stow' # Symlink manager
 brew 'tectonic' # LaTeX engine
 brew 'tmux' # Terminal multiplexer
-brew 'uutils-coreutils' # GNU core utilities Rust replacement
 brew 'vivid' # `LS_COLORS` generator
 brew 'wallpaper' # macOS wallpaper manager
 brew 'wget' # GNU Wget
