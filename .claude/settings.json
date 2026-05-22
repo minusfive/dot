@@ -1,7 +1,4 @@
 {
-  "env": {
-    "CLAUDE_CODE_ATTRIBUTION_HEADER": "false"
-  },
   "attribution": {
     "commit": "",
     "pr": ""
@@ -21,12 +18,17 @@
       "Grep(.agents/**)",
       "Grep(~/.agents/**)",
       "Grep(~/.claude/**)"
-    ]
+    ],
+    "defaultMode": "plan"
   },
-  "model": "sonnet[1m]",
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline-command.sh"
+  },
   "forceLoginMethod": "console",
   "syntaxHighlightingDisabled": false,
   "effortLevel": "high",
+  "editorMode": "vim",
   "additionalDirectories": ["./.agents", "~/.agents"],
-  "editorMode": "vim"
+  "skipAutoPermissionPrompt": true
 }

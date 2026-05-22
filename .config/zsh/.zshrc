@@ -134,10 +134,6 @@ KEYTIMEOUT=1
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
-# Use deduplicated (unique) path entries to maintain performance
-typeset -U path
-typeset -U fpath
-typeset -U manpath
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
@@ -148,33 +144,6 @@ fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
-
-path=(
-    # UUtils
-    $(brew --prefix uutils-coreutils)/libexec/uubin
-
-    # git diff-highlight
-    $(brew --prefix git)/share/git-core/contrib/diff-highlight
-
-    # curl
-    $(brew --prefix curl)/bin
-
-    # yarn
-    $HOME/.yarn/bin
-    $XDG_CONFIG_HOME/yarn/global/node_modules/.bin
-
-    # local
-    /usr/local/bin
-    /usr/local/sbin
-    $HOME/.local/bin
-
-    # default
-    $path
-)
-
-export PATH
-export FPATH
-export MANPATH
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
@@ -269,3 +238,8 @@ fpath=("$HOME/.docker/completions" $fpath)
 autoload -Uz compinit
 compinit
 # End of Docker CLI completions
+
+
+export PATH
+export FPATH
+export MANPATH
