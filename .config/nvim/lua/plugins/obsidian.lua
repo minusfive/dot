@@ -8,6 +8,14 @@ local time_format = "%H:%M:%S"
 local time_format_for_path = "%H-%M-%S" -- Used for file names to avoid colons.
 local day_format = "%A"
 local section_separator = " - "
+local ignore_frontmatter = {
+  ".agents/",
+  ".claude/",
+  ".copilot/",
+  ".github/",
+  "AGENTS.md",
+  "CLAUDE.md",
+}
 
 local vaults = {
   { name = "Personal", path = "~/dev/personal/notes/Personal" },
@@ -92,6 +100,31 @@ local get_note_frontmatter = function(note)
   end
 
   return out
+end
+
+---@param path string
+---@return string
+local normalize_path = function(path) return path:gsub("\\", "/"):gsub("/+", "/"):gsub("^%./", "") end
+
+---@param value string
+---@param suffix string
+---@return boolean
+local ends_with = function(value, suffix) return suffix == "" or value:sub(-#suffix) == suffix end
+
+---@param filename string
+---@return boolean
+local should_ignore_frontmatter = function(filename)
+  local normalized_filename = normalize_path(filename)
+  for _, entry in ipairs(ignore_frontmatter) do
+    local normalized_entry = normalize_path(entry)
+    if ends_with(normalized_entry, "/") then
+      if vim.startswith(normalized_filename, normalized_entry) then return true end
+      if normalized_filename:find("/" .. normalized_entry, 1, true) then return true end
+    elseif normalized_filename == normalized_entry or ends_with(normalized_filename, "/" .. normalized_entry) then
+      return true
+    end
+  end
+  return false
 end
 
 -- Checks if we are currently in a vault.
@@ -336,10 +369,7 @@ return {
 
       -- customize how the frontmatter of a note is generated.
       frontmatter = {
-        enabled = function(filename)
-          if filename == "AGENTS.md" or filename == "CLAUDE.md" then return false end
-          return true
-        end,
+        enabled = function(filename) return not should_ignore_frontmatter(filename) end,
         func = get_note_frontmatter,
       },
 
