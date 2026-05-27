@@ -91,39 +91,77 @@ if [ -n "$used" ]; then
     ctx=$(printf '%b%s%b%s\033[0m %b%s%%\033[0m' "$ctx_color" "$filled" "$gray" "$empty" "$ctx_color" "$pct")
 fi
 
-# Cost: session and monthly total, no labels
+# Cost: session and monthly total, no labels.
+# State is keyed by session_id so concurrent sessions don't double-count;
+# monthly total is the sum of all per-session entries for the current month.
 cost_str=""
 state_file="$HOME/.claude/monthly-usage.json"
+lock_dir="${state_file}.lock"
 
 if [ -n "$cost" ]; then
+    session_id=$(echo "$input" | jq -r '.session_id // empty')
     cur_month=$(date +%Y-%m)
-    accumulated=0
-    last_cost=0
+
+    lock_acquired=0
+    for _ in $(seq 1 25); do
+        if mkdir "$lock_dir" 2>/dev/null; then
+            lock_acquired=1
+            break
+        fi
+        sleep 0.02
+    done
+
+    # Break stale lock from a crashed prior invocation (>5s old).
+    if [ "$lock_acquired" -eq 0 ] && [ -d "$lock_dir" ]; then
+        lock_mtime=$(stat -f %m "$lock_dir" 2>/dev/null || echo 0)
+        if [ $(($(date +%s) - lock_mtime)) -gt 5 ]; then
+            rmdir "$lock_dir" 2>/dev/null
+            mkdir "$lock_dir" 2>/dev/null && lock_acquired=1
+        fi
+    fi
+
+    [ "$lock_acquired" -eq 1 ] && trap 'rmdir "$lock_dir" 2>/dev/null' EXIT
+
     state_month=""
-
+    sessions_json="{}"
     if [ -f "$state_file" ]; then
-        state_month=$(jq -r '.month // ""' "$state_file")
-        accumulated=$(jq -r '.accumulated // 0' "$state_file")
-        last_cost=$(jq -r '.last_cost // 0' "$state_file")
+        state_month=$(jq -r '.month // ""' "$state_file" 2>/dev/null)
+        sj=$(jq -c '.sessions // {}' "$state_file" 2>/dev/null)
+        [ -n "$sj" ] && sessions_json="$sj"
     fi
 
-    if [ "$state_month" != "$cur_month" ]; then
-        accumulated=0
-        last_cost=0
+    [ "$state_month" != "$cur_month" ] && sessions_json="{}"
+
+    if [ -n "$session_id" ]; then
+        # Track base offset per session so inherited costs after /clear are excluded.
+        # New session_id: base=current cost (inherited value), max=current cost → net $0.
+        # Existing session: only update max (preserves the base offset).
+        # Flat numbers from old format: treated as base=0 for backward compat.
+        sessions_json=$(jq -c --arg sid "$session_id" --argjson c "$cost" '
+          if has($sid) then
+            .[$sid] = (.[$sid] | if type == "object"
+              then .max = ([.max, $c] | max)
+              else {"base": 0, "max": ([., $c] | max)}
+              end)
+          else
+            .[$sid] = {"base": $c, "max": $c}
+          end
+        ' <<<"$sessions_json")
+
+        if [ "$lock_acquired" -eq 1 ]; then
+            tmp_state=$(mktemp "${state_file}.XXXXXX")
+            jq -n --arg m "$cur_month" --argjson s "$sessions_json" \
+                '{ month: $m, sessions: $s }' >"$tmp_state" && mv "$tmp_state" "$state_file"
+        fi
     fi
 
-    new_accumulated=$(echo "$accumulated $last_cost $cost" | awk '{
-        acc=$1; prev=$2; cur=$3
-        if (cur < prev) acc += prev
-        print acc
-    }')
+    monthly_total=$(jq -r '[to_entries[].value | if type == "object" then .max - .base else . end] | add // 0' <<<"$sessions_json")
+    cost_str=$(printf '$%.2f ($%.2f)' "$cost" "$monthly_total")
 
-    tmp_state=$(mktemp "${state_file}.XXXXXX")
-    jq -n --arg m "$cur_month" --argjson a "$new_accumulated" --argjson l "$cost" \
-        '{ month: $m, accumulated: $a, last_cost: $l }' >"$tmp_state" && mv "$tmp_state" "$state_file"
-
-    monthly_total=$(echo "$new_accumulated $cost" | awk '{printf "%.4f", $1 + $2}')
-    cost_str=$(printf '$%.4f ($%.2f)' "$cost" "$monthly_total")
+    if [ "$lock_acquired" -eq 1 ]; then
+        rmdir "$lock_dir" 2>/dev/null
+        trap - EXIT
+    fi
 fi
 
 # Build status line — row 1: context | model | effort | cost, row 2: dir branch

@@ -68,6 +68,7 @@ When presenting multiple possible actions, configurations, or solutions, offer a
 - Use `project-overview` skill for project structure and configuration discovery before implementation
 - Minimize tool output with `--quiet`, `--no-pager`, or pipe to `rg`/`head`
 - Use language servers and linters for static analysis
+- Never bypass repository hooks (`--no-verify` or equivalent)
 
 ## When analyzing and updating AI rules files (AGENTS.md, CLAUDE.md, etc.)
 

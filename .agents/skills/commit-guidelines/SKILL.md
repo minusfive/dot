@@ -6,6 +6,7 @@ description: Guidelines for analyzing changes and creating branches and commits 
 # Commit and Branch Guidelines
 
 - **MUST NOT** skip hooks execution under any circumstances
+- **MUST NEVER** use hook-bypass flags (for example: `git commit --no-verify`, `git merge --no-verify`, `git push --no-verify`) or any equivalent hook-disabling workaround
 
 ## Analyze Changes
 
@@ -40,6 +41,7 @@ description: Guidelines for analyzing changes and creating branches and commits 
 - Write concise commit messages from diffs using discovered commitlint rules when available, otherwise Conventional Commits format
   - Breaking changes should be clearly marked and include details
 - Request explicit approval, never auto-commit without user confirmation
+- If hooks fail, fix the underlying issues and retry; do not bypass hooks
 
 ## Pull Request
 

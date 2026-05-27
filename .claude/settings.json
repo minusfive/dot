@@ -21,6 +21,7 @@
     ],
     "defaultMode": "plan"
   },
+  "model": "sonnet[1m]",
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline-command.sh"
@@ -29,6 +30,6 @@
   "syntaxHighlightingDisabled": false,
   "effortLevel": "high",
   "editorMode": "vim",
-  "additionalDirectories": ["./.agents", "~/.agents"],
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "additionalDirectories": ["./.agents", "~/.agents"]
 }

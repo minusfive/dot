@@ -1,3 +1,8 @@
+# Use deduplicated (unique) path entries to maintain performance
+typeset -aU path
+typeset -aU fpath
+typeset -aU manpath
+
 # wezterm shell integration
 if [[ "$TERM" == "wezterm" && -f $XDG_CONFIG_HOME/wezterm/shell-integration.sh ]]; then
     source $XDG_CONFIG_HOME/wezterm/shell-integration.sh
@@ -239,7 +244,31 @@ autoload -Uz compinit
 compinit
 # End of Docker CLI completions
 
+path=(
+    # Coreutils
+    $(brew --prefix coreutils)/libexec/gnubin
+
+    # git diff-highlight
+    $(brew --prefix git)/share/git-core/contrib/diff-highlight
+
+    # curl
+    $(brew --prefix curl)/bin
+
+    # yarn
+    $HOME/.yarn/bin
+    $XDG_CONFIG_HOME/yarn/global/node_modules/.bin
+
+    # local
+    /usr/local/bin
+    /usr/local/sbin
+    $HOME/.local/bin
+
+    # default
+    $path
+)
 
 export PATH
 export FPATH
 export MANPATH
+
+eval "$(mise activate zsh)"
