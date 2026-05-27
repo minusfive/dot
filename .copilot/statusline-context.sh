@@ -54,15 +54,22 @@ for ((i = 0; i < empty_count; i++)); do
   empty+="█"
 done
 
-# <45 green, 45-59 orange, >=60 red.
-if [ "$pct" -ge 60 ]; then
-  fg='\033[31m'
-elif [ "$pct" -ge 45 ]; then
-  fg='\033[38;5;208m'
-else
-  fg='\033[32m'
-fi
+# Foreground transitions gradually from green (0%) to red (50%), then stays red.
+fg=$(awk -v p="$pct" 'BEGIN {
+  if (p < 0) p = 0
+  if (p > 100) p = 100
+  # 256-color ramp from green -> cyan -> blue -> teal -> deep blue -> maroon -> red.
+  split("008 006 002 003 017 016 009", ramp, " ")
+  if (p >= 50) {
+    idx = ramp[7]
+  } else {
+    step = int((p / 50) * 6)
+    idx = ramp[step + 1]
+  }
+  printf "\033[38;5;%dm", idx
+}')
 
 gray='\033[38;5;0m'
 
-printf '%b%s%b%s\033[0m %b%s%%\033[0m' "$fg" "$filled" "$gray" "$empty" "$fg" "$pct"
+# Print one leading space before percentage, then one separator space before bar.
+printf ' %b%s%%\033[0m %b%s%b%s\033[0m' "$fg" "$pct" "$fg" "$filled" "$gray" "$empty"
