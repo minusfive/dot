@@ -327,9 +327,12 @@ return {
       -- current markdown file being edited.
       workspaces = workspaces,
 
+      -- Keep new notes aligned with inbox ingestion workflow.
+      notes_subdir = "inbox/notes",
+
       daily_notes = {
         -- optional, if you keep daily notes in a separate directory.
-        folder = nil,
+        folder = "inbox/daily-notes",
         -- optional, if you want to change the date format for the id of daily notes.
         date_format = date_format .. " - " .. day_format,
         -- optional, if you want to change the date format of the default alias of daily notes.
@@ -391,7 +394,7 @@ return {
         -- The default folder to place images in via `:ObsidianPasteImg`.
         -- If this is a relative path it will be interpreted as relative to the vault root.
         -- You can always override this per image by passing a full path to the command instead of just a filename.
-        folder = "Assets", -- This is the default
+        folder = "assets",
         -- A function that determines the text to insert in the note when pasting an image.
         -- It takes two arguments, the `obsidian.Client` and an `obsidian.Path` to the image file.
         -- This is the default implementation.
