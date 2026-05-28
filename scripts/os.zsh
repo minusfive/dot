@@ -408,4 +408,3 @@ function {
     _v_log_info $__context "Logging out user to apply all changes..."
     osascript -e 'tell application "System Events" to log out'
 }
-

@@ -3,4 +3,6 @@
 git:
   pagers:
     - colorArg: always
-      pager: delta --features='catppuccin-mocha zebra-dark' --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+      pager: >-
+        delta --features='catppuccin-mocha zebra-dark' --paging=never --line-numbers
+        --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"

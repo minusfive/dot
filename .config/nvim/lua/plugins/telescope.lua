@@ -17,26 +17,20 @@ return {
     {
       "nvim-telescope/telescope-fzf-native.nvim",
       build = "make",
-      config = function()
-        require("telescope").load_extension("fzf")
-      end,
+      config = function() require("telescope").load_extension("fzf") end,
     },
     {
       "nvim-telescope/telescope-file-browser.nvim",
       event = "VeryLazy",
       config = function()
-        Util.on_load("telescope.nvim", function()
-          require("telescope").load_extension("file_browser")
-        end)
+        Util.on_load("telescope.nvim", function() require("telescope").load_extension("file_browser") end)
       end,
     },
     {
       "debugloop/telescope-undo.nvim",
       event = "VeryLazy",
       config = function()
-        Util.on_load("telescope.nvim", function()
-          require("telescope").load_extension("undo")
-        end)
+        Util.on_load("telescope.nvim", function() require("telescope").load_extension("undo") end)
       end,
     },
   },

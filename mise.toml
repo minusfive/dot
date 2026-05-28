@@ -6,6 +6,9 @@ HK_MISE = 1
 HK_STAGE = 1
 
 [tools]
+bun = "latest"
+betterleaks = "latest"
+markdownlint-cli2 = "latest"
 pkl = "latest"
 hk = "latest"
 shellcheck = "latest"

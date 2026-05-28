@@ -57,29 +57,19 @@ function M.comment(str, commentStr)
 end
 
 function M.parseType(module, str)
-  if not str then
-    return
-  end
+  if not str then return end
 
   str = str:lower()
 
-  if options.types[str] then
-    return options.types[str]
-  end
+  if options.types[str] then return options.types[str] end
 
   local type = str:match("^(hs%.%S*)%s*object")
-  if type then
-    return type
-  end
+  if type then return type end
 
   type = str:match("^list of (hs%.%S*)%s*object")
-  if type then
-    return type .. "[]"
-  end
+  if type then return type .. "[]" end
 
-  if module.name:find(str, 1, true) or str == "self" then
-    return module.name
-  end
+  if module.name:find(str, 1, true) or str == "self" then return module.name end
 end
 
 function M.trim(str)
@@ -97,9 +87,7 @@ function M.parseArgs(str)
     if args:find("...") then
       args = args:gsub(",?%s*%.%.%.", "")
       args = M.trim(args)
-      if #args > 0 then
-        args = args .. ", "
-      end
+      if #args > 0 then args = args .. ", " end
       args = args .. "..."
     end
     args = hs.fnutils.split(args, "%s*,%s*")
@@ -124,9 +112,7 @@ function M.parseDef(module, el)
   local name, args = M.parseArgs(parts[1])
   local ret = { name = name, args = args, type = M.parseType(module, parts[2]) }
   if name:match("%[.*%]$") then
-    if not ret.type then
-      ret.type = "table"
-    end
+    if not ret.type then ret.type = "table" end
     ret.name = ret.name:sub(1, ret.name:find("%[") - 1)
   end
   return ret
@@ -151,18 +137,12 @@ function M.processModule(module)
     -- io.write("-- " .. item.def)
     io.write(M.comment(item.doc))
     local name = def.name
-    if def.name:find(module.name, 1, true) == 1 then
-      name = "M" .. def.name:sub(#module.name + 1)
-    end
+    if def.name:find(module.name, 1, true) == 1 then name = "M" .. def.name:sub(#module.name + 1) end
     if def.args then
-      if def.type then
-        io.write("---@return " .. def.type .. "\n")
-      end
+      if def.type then io.write("---@return " .. def.type .. "\n") end
       io.write("function " .. name .. "(" .. table.concat(def.args, ", ") .. ") end\n")
     else
-      if def.type then
-        io.write("---@type " .. def.type .. "\n")
-      end
+      if def.type then io.write("---@type " .. def.type .. "\n") end
       if def.type and (def.type:find("table") or def.type:find("%[%]")) then
         io.write(name .. " = {}\n")
       else
@@ -178,9 +158,7 @@ function M.create(jsonDocs, prefix)
   prefix = prefix or ""
   local data = hs.json.read(jsonDocs)
   for _, module in ipairs(data) do
-    if module.type ~= "Module" then
-      error("Expected a module, but found type=" .. module.type)
-    end
+    if module.type ~= "Module" then error("Expected a module, but found type=" .. module.type) end
     module.prefix = prefix
     module.name = prefix .. module.name
     local fname = options.annotations .. "/" .. module.name .. ".lua"
@@ -203,9 +181,7 @@ function M:init()
   -- Load Spoons
   for _, spoon in ipairs(hs.spoons.list()) do
     local doc = hs.configdir .. "/Spoons/" .. spoon.name .. ".spoon/docs.json"
-    if hs.fs.attributes(doc, "modification") then
-      M.create(doc, "spoon.")
-    end
+    if hs.fs.attributes(doc, "modification") then M.create(doc, "spoon.") end
   end
 end
 

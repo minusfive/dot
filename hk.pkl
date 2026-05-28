@@ -1,38 +1,81 @@
-amends "package://github.com/jdx/hk/releases/download/v1.43.0/hk@1.43.0#/Config.pkl"
-import "package://github.com/jdx/hk/releases/download/v1.43.0/hk@1.43.0#/Builtins.pkl"
+amends "package://github.com/jdx/hk/releases/download/v1.45.0/hk@1.45.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v1.45.0/hk@1.45.0#/Builtins.pkl"
+
+local non_security_excludes = List(
+  ".config/hammerspoon/Spoons/EmmyLua.spoon/annotations/**",
+  ".config/hammerspoon/Spoons/EmmyLua.spoon/docs.json",
+  ".config/yazi/flavors/**",
+  ".config/yazi/plugins/**",
+  ".config/nvim/lua/config/logos.lua",
+)
 
 local checks = new Mapping<String, Step> {
-  ["check_added_large_files"] = Builtins.check_added_large_files
+  ["check_added_large_files"] = (Builtins.check_added_large_files) {
+    exclude = non_security_excludes
+  }
   // ["check_case_conflict"] = Builtins.check_case_conflict
-  ["check_executables_have_shebangs"] = Builtins.check_executables_have_shebangs
-  ["check_merge_conflict"] = Builtins.check_merge_conflict
-  ["check_symlinks"] = Builtins.check_symlinks
+  ["check_executables_have_shebangs"] = (Builtins.check_executables_have_shebangs) {
+    exclude = non_security_excludes
+  }
+  ["check_merge_conflict"] = (Builtins.check_merge_conflict) {
+    exclude = non_security_excludes
+  }
+  ["check_symlinks"] = (Builtins.check_symlinks) {
+    exclude = non_security_excludes
+  }
   ["detect_private_key"] = Builtins.detect_private_key
-  ["mixed_line_ending"] = Builtins.mixed_line_ending
-  ["newlines"] = Builtins.newlines
-  ["trailing_whitespace"] = Builtins.trailing_whitespace
-  ["prettier"] = Builtins.prettier
+  ["mixed_line_ending"] = (Builtins.mixed_line_ending) {
+    exclude = non_security_excludes
+  }
+  ["newlines"] = (Builtins.newlines) {
+    exclude = non_security_excludes
+  }
+  ["trailing_whitespace"] = (Builtins.trailing_whitespace) {
+    exclude = non_security_excludes
+  }
+  ["prettier"] = (Builtins.prettier) {
+    batch = true
+    exclude = non_security_excludes
+  }
 }
 
 local linters = new Mapping<String, Step> {
-  ["actionlint"] = Builtins.actionlint // GitHub Actions
+  ["actionlint"] = (Builtins.actionlint) {
+    exclude = non_security_excludes
+  } // GitHub Actions
 
-  ["hadolint"] = Builtins.hadolint // Dockerfile
+  ["hadolint"] = (Builtins.hadolint) {
+    exclude = non_security_excludes
+  } // Dockerfile
 
   ["markdown_lint"] = (Builtins.markdown_lint) {
-    check = "markdownlint-cli2 {{files}}"
-    fix = "markdownlint-cli2 --fix {{files}}"
+    batch = true
+    exclude = non_security_excludes
+    check = "markdownlint-cli2 --no-globs --config .markdownlint-cli2.jsonc {{files}}"
+    fix = "markdownlint-cli2 --no-globs --config .markdownlint-cli2.jsonc --fix {{files}}"
   }
 
-  ["shellcheck"] = Builtins.shellcheck
+  ["betterleaks"] = (Builtins.betterleaks) {
+    batch = true
+    prefix = "mise x --"
+  }
+
+  ["shellcheck"] = (Builtins.shellcheck) {
+    exclude = non_security_excludes
+  }
 
   ["sort_package_json"] = (Builtins.sort_package_json) {
     prefix = "bunx"
+    exclude = non_security_excludes
   }
 
-  ["stylua"] = Builtins.stylua
+  ["stylua"] = (Builtins.stylua) {
+    exclude = non_security_excludes
+  }
 
-  ["yamllint"] = Builtins.yamllint
+  ["yamllint"] = (Builtins.yamllint) {
+    exclude = non_security_excludes
+  }
 }
 
 local all = new Mapping<String, Step | Group> {
