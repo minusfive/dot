@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Renders Copilot CLI context usage as a Unicode progress bar with gray background,
-# color-coded foreground and matching percentage text (green <45%, orange 45-59%, red >=60%).
+# Renders Copilot CLI context usage as a Unicode progress bar with a dark empty segment,
+# plus a color-ramped filled segment and matching percentage text.
 input=$(cat)
 
 # Find the context usage percentage from known paths and broad fallbacks.
@@ -54,16 +54,16 @@ for ((i = 0; i < empty_count; i++)); do
   empty+="█"
 done
 
-# Foreground transitions gradually from green (0%) to red (50%), then stays red.
+# Foreground transitions through a fixed 256-color ramp from 0-50%, then stays at the final color.
 fg=$(awk -v p="$pct" 'BEGIN {
   if (p < 0) p = 0
   if (p > 100) p = 100
-  # 256-color ramp from green -> cyan -> blue -> teal -> deep blue -> maroon -> red.
-  split("008 006 002 003 017 016 009", ramp, " ")
+  # 256-color ramp: 006 -> 002 -> 003 -> 017 -> 016 -> 009.
+  split("006 002 003 017 016 009", ramp, " ")
   if (p >= 50) {
-    idx = ramp[7]
+    idx = ramp[6]
   } else {
-    step = int((p / 50) * 6)
+    step = int((p / 50) * 5)
     idx = ramp[step + 1]
   }
   printf "\033[38;5;%dm", idx
@@ -71,5 +71,5 @@ fg=$(awk -v p="$pct" 'BEGIN {
 
 gray='\033[38;5;0m'
 
-# Print one leading space before percentage, then one separator space before bar.
-printf ' %b%s%%\033[0m %b%s%b%s\033[0m' "$fg" "$pct" "$fg" "$filled" "$gray" "$empty"
+# Use a leading NBSP so display layers that trim ASCII leading spaces keep the left pad.
+printf ' %b%s%%\033[0m %b%s%b%s\033[0m' "$fg" "$pct" "$fg" "$filled" "$gray" "$empty"
