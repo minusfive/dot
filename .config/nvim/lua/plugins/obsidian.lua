@@ -300,12 +300,6 @@ return {
         style = "markdown",
       },
 
-      -- optional, completion of wiki links, local markdown links, and tags using nvim-cmp.
-      completion = {
-        blink = true,
-        nvim_cmp = false,
-      },
-
       picker = {
         name = "snacks.pick",
       },

@@ -1,3 +1,6 @@
+---@module 'lazy'
+---@module 'kulala'
+
 ---@type LazySpec
 return {
   {
@@ -15,9 +18,11 @@ return {
       { "<leader>Ro", "<cmd>lua require('kulala').open()<cr>", desc = "Open Kulala", ft = "http" },
     },
 
+    ---@type KulalaCoreRunOpts
     opts = {
       debug = true,
-      environment_scope = "b",
+      generate_bug_report = true,
+      -- environment_scope = "b",
 
       kulala_keymaps = {
         -- Defaults:
