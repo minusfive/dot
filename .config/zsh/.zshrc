@@ -110,20 +110,20 @@ fi
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
     # vi-mode
-    zsh-vi-mode
-    colored-man-pages
-    fast-syntax-highlighting
     git
+    zsh-vi-mode
     # terraform
     # virtualenv
     # yarn # Keyboard commands conflict with Yazi's CLI
     zoxide
-    # zsh-autocomplete # Too noisy
-    zsh-autosuggestions
     # per-directory-history # Not used to this yet
     fzf
     fzf-tab
     fzf-tab-source
+    # zsh-autocomplete # Too noisy
+    zsh-autosuggestions
+    fast-syntax-highlighting
+    colored-man-pages
     ohmyzsh-full-autoupdate
     mise
     bun
@@ -270,5 +270,3 @@ path=(
 export PATH
 export FPATH
 export MANPATH
-
-eval "$(mise activate zsh)"
