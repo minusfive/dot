@@ -1,3 +1,6 @@
+---General settings
+local default_font_size = 20
+
 ---Returns the parent directory of a path.
 ---@param path string
 local function parent_dir(path) return path:match("(.*)/") end
@@ -78,10 +81,10 @@ end)
 --- Command and character selection palettes
 config.command_palette_bg_color = catppuccin.colors.mocha.surface0
 config.command_palette_fg_color = catppuccin.colors.mocha.lavender
-config.command_palette_font_size = 18
+config.command_palette_font_size = default_font_size
 config.char_select_bg_color = catppuccin.colors.mocha.surface0
 config.char_select_fg_color = catppuccin.colors.mocha.lavender
-config.char_select_font_size = 18
+config.char_select_font_size = default_font_size
 
 --- Windows
 -- config.window_background_opacity = 0.9725
@@ -109,7 +112,7 @@ config.font = wezterm.font({
   family = "JetBrains Mono",
   harfbuzz_features = { "calt=0", "clig=0", "liga=0" },
 })
-config.font_size = 18.0
+config.font_size = default_font_size
 config.line_height = 1.25
 config.adjust_window_size_when_changing_font_size = false
 config.custom_block_glyphs = true
