@@ -26,4 +26,6 @@ Use this skill to map how a project is organized before implementation.
 
 - Summarize discovered conventions before editing code.
 - Call out missing or conflicting conventions and choose the safest default.
+- Surface unresolved ambiguities as a numbered list of explicit questions.
+- Do not carry unresolved ambiguities into execution.
 - Reference related skills explicitly when needed (for example, `scripts` skill or `commit-guidelines` skill).

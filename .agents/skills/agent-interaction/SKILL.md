@@ -22,22 +22,15 @@ description: Rules and guidelines for AI agent interaction, task planning, and t
 
 ## Task Planning
 
-- Use a checklist plan when it improves clarity
-- Ask for confirmation before destructive or irreversible operations
-- Execute dependent steps sequentially; parallelize independent steps
-- Update the plan when requirements or constraints change
-- Explain rationale for major deviations
-
-### Task Planning Template
-
-```markdown
-### Task Plan: "{{ TASK }}"
-
-- [ ] Step 1: Brief description
-  - [ ] Step 1.1: Sub-step description
-- [ ] Step 2: Brief description
-- [ ] Step 3: Brief description
-```
+- The canonical planning-phase completeness policy is defined in `planning-determinism`.
+- For scoped tasks (multi-step, high-risk, ambiguous, or multi-file), complete planning gates before execution:
+  - Exploration is complete.
+  - Tradeoffs are evaluated.
+  - Decisions are explicit and deterministic.
+  - Unknowns are either resolved or converted into explicit user questions.
+- Ask for confirmation before destructive or irreversible operations.
+- Execute dependent steps sequentially; parallelize independent steps.
+- Update the plan when requirements or constraints change and explain rationale for major deviations.
 
 ## When operations are rejected or fail
 
@@ -45,6 +38,13 @@ description: Rules and guidelines for AI agent interaction, task planning, and t
 2. **ASK** what changed and what outcome is preferred
 3. **WAIT** for instructions before proceeding
 4. **DO NOT** retry the same approach without new information
+
+## When new unknowns emerge mid-execution
+
+1. **STOP** execution for the affected scope.
+2. **RETURN** to planning for that scope.
+3. **RESOLVE** the unknown or ask an explicit question before resuming.
+4. **DO NOT** guess, defer, or continue with unresolved decision points.
 
 ## When to Ask Questions
 
