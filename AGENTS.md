@@ -17,7 +17,7 @@
 
 ## Task Planning
 
-- The canonical planning-phase completeness policy is defined in `planning-determinism`.
+- Use the `planning` skill during planning sessions, especially when work is multi-step, high-risk, ambiguous, or touches multiple files; it is the canonical planning-phase completeness policy source.
 - For scoped tasks (multi-step, high-risk, ambiguous, or multi-file), complete planning gates before execution:
   - Exploration is complete.
   - Tradeoffs are evaluated.

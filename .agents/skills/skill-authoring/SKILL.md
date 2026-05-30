@@ -26,5 +26,5 @@ Avoid static assumptions and derive requirements dynamically from the loaded ref
 - Use markdown links (`[text](url)`) instead of bare URLs so skill docs pass markdownlint (`MD034/no-bare-urls`).
 - Audit for duplicate or conflicting instructions across instruction sources (for example: `AGENTS.md`, `CLAUDE.md`, `COPILOT.md`, repository instruction files, and other skill files).
 - Prefer a single canonical source and cross-reference it rather than duplicating the same guidance.
-- For planning-phase completeness policy, use `planning-determinism` as canonical and keep related skills as references.
+- For planning-phase completeness policy, use `planning` as canonical and keep related skills as references.
 - Flag or remove drift-prone duplication that can diverge from real behavior over time.
