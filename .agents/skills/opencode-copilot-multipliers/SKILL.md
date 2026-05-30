@@ -8,10 +8,10 @@ metadata:
 
 # OpenCode Copilot Multipliers
 
-Use this skill to refresh `provider.github-copilot.models.*.name` labels in OpenCode config from the current GitHub Docs multiplier source.
+Use this skill to refresh `provider.github-copilot.models.*.name` labels in OpenCode config from the current model-multiplier source table.
 
 ## Workflow
 
-1. Run `bun ~/.agents/skills/opencode-copilot-multipliers/scripts/sync-opencode-copilot-multipliers.ts`.
+1. Run the colocated sync script defined in this skill metadata.
 2. Review the script output table of planned updates, additions, and removals.
-3. Review the diff and ensure only Copilot model overrides changed.
+3. Review the diff and ensure only provider model override labels changed.

@@ -11,11 +11,11 @@ Bulk-migrate import statements from one module to another across a codebase.
 
 ### 1. Discover affected files
 
-Use `Grep` with `output_mode: files_with_matches` to find all files importing from the old module path.
+Use content-search capability with a "files with matches" output mode to find all files importing from the old module path.
 
 ### 2. Edit imports
 
-Use the Agent tool to run edit agents in parallel (one per batch/group of similar files). Before editing any file, **read it first** — the Edit tool requires exact `old_string` matches.
+Use parallel editing workflows (for example, one batch per similar file group). Before editing any file, **read it first** so exact replacement matching succeeds.
 
 **Multi-line imports:** These are the most common source of failed edits. The `old_string` must match exact whitespace, newlines, and indentation of the multi-line import block. Always copy the import exactly as it appears in the file.
 
@@ -23,4 +23,4 @@ Use the Agent tool to run edit agents in parallel (one per batch/group of simila
 
 ### 3. Format and verify
 
-Run the `code-quality` skill to fix formatting and catch type errors.
+Run the repository's formatting and type-check validation workflow to catch import-order and type issues.

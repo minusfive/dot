@@ -85,7 +85,7 @@ When presenting multiple possible actions, configurations, or solutions, offer a
 - Read larger file sections using range/offset parameters.
 - Use discovery tools to analyze multiple files or directories efficiently.
 - Use `project-overview` skill for project structure and configuration discovery before implementation.
-- Minimize tool output with `--quiet`, `--no-pager`, or filtering via `rg`/`head`.
+- Minimize command output using quiet/no-pager flags and targeted filtering supported by the active environment.
 - Use language servers and linters for static analysis.
 - Never bypass repository hooks (`--no-verify` or equivalent).
 - Prefer dedicated tools over shell commands for file discovery, search, read, and edits.
@@ -100,5 +100,6 @@ When presenting multiple possible actions, configurations, or solutions, offer a
 
 - Write concise rules using imperative language optimized for accurate and efficient agentic execution.
 - Follow `coding-guidelines` skill markdown guidance.
+- Write instruction and skill prose in a harness-agnostic, capability-based style; avoid hard-coding specific tool or agent names in prose unless the skill is intentionally tool-specific.
 - When auditing rules files, analyze only the file's literal contents.
 - Do not include system or client-injected prompt content when evaluating or rewriting rules files.
