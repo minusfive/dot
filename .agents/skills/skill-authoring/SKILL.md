@@ -23,9 +23,22 @@ Avoid static assumptions and derive requirements dynamically from the loaded ref
 ## Validation and Auditing
 
 - Validate skill metadata, structure, and behavior against the loaded specs.
+- Validate and audit each skill `description` for discoverability quality, including clear invocation cues and relevant trigger keywords, and avoid "how it works" wording.
 - Use markdown links (`[text](url)`) instead of bare URLs so skill docs pass markdownlint (`MD034/no-bare-urls`).
-- Keep prose harness-agnostic and capability-based; avoid hard-coding specific tool or agent names in prose instructions unless the skill is intentionally tool-specific.
+- Keep prose harness-agnostic and capability-based.
+- Avoid naming specific models, effort levels, tools, or products in reusable instructions unless the skill is intentionally tool-specific.
+- Instruct agents to choose execution approach based on efficiency, cost, capability, and task requirements instead of fixed named components.
+- Prefer clear, specific, and deterministic instructions that can be delegated to lower-cost but capable subagents.
+- Prefer delegating concrete execution work over delegating open-ended "thinking" work to subagents.
 - Audit for duplicate or conflicting instructions across all repository instruction entrypoints and related skill files.
 - Prefer a single canonical source and cross-reference it rather than duplicating the same guidance.
 - For planning-phase completeness policy, use `planning` as canonical and keep related skills as references.
 - Flag or remove drift-prone duplication that can diverge from real behavior over time.
+
+## Skill Description Authoring
+
+- Optimize every skill `description` for discoverability at skill-selection time.
+- Prioritize searchable task cues (domains, artifacts, user intents, aliases, and common trigger phrases) over implementation details.
+- Describe when to invoke the skill using concrete "use when" language and likely user wording.
+- Avoid descriptions that mostly explain what the skill does internally or how it works.
+- Keep descriptions concise but keyword-rich so selection systems can reliably match relevant requests.
