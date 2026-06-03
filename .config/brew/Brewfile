@@ -20,14 +20,11 @@ brew 'jq' # JSON processor
 brew 'just' # Script runner
 brew 'lazygit' # Git Terminal UI
 brew 'libyaml' # dependency for ruby
-brew 'lima' # Linux virtual machine manager
 brew 'luarocks' # dependency for nvim
 brew 'mas' # Mac App Store
 brew 'mise' # dev tool versions, tasks and environment manager
 brew 'neovim' # Preferred text editor
 brew 'pkl-lsp' # Apple's configuration language server
-brew 'podman' # Container management CLI
-brew 'podman-compose' # Compose for Podman
 brew 'ripgrep' # `grep` replacement
 brew 'stow' # Symlink manager
 brew 'tectonic' # LaTeX engine
@@ -52,7 +49,6 @@ cask 'hammerspoon' # macOS automation
 cask 'imageoptim' # Image optimizer
 cask 'insomnium' # HTTP Client
 cask 'obsidian' # Note-taking
-cask 'podman-desktop' # Container management GUI
 cask 'wezterm@nightly', args: { no_quarantine: true, greedy_latest: true } # Terminal emulator
 
 mas '1Password for Safari', id: 1_569_813_296
@@ -61,9 +57,4 @@ if ENV['HOMEBREW_PROFILE'] == 'personal' # Personal profile
   cask 'discord' # Chat
   cask 'softraid' # Disk management
   cask 'whatsapp' # Messenger
-
-else # Work profile
-  tap 'snyk/tap' # Snyk tap for security tools
-
-  brew 'snyk-cli' # Security scanner
 end

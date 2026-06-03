@@ -26,7 +26,6 @@ ruby = { version = "latest", postinstall = "mise run global-install-packages-rub
 bun = "latest"
 go = "latest"
 uv = "latest"
-vault = "latest"
 delta = "latest"
 stylua = "latest"
 prettier = "latest"
