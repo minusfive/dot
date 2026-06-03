@@ -38,6 +38,13 @@ description: Apply repository coding standards for implementation and review tas
 - Use local variables to limit scope
 - **ALWAYS** add and update type annotations
 
+## Critique Before Validation
+
+- Treat critique and validation as separate gates: validation confirms the change passes tests, types, and lints; critique confirms the change is the right change. Both must pass.
+- Before declaring an implementation done, run a critique pass that asks: should this exist at all? Is this the right abstraction? What breaks under realistic edge cases? Which assumptions does the surrounding code not actually guarantee?
+- For non-trivial changes, run a critique-capable sub-agent review (or equivalent independent reviewer) before reporting completion, not after. Do not hard-code a single tool name; choose a capability appropriate to the active harness.
+- Record how critique feedback changed the implementation before presenting it.
+
 ## Lua (Neovim, Hammerspoon, WezTerm, Yazi)
 
 - Organize `---@module` references at the top of the file, sorted alphabetically

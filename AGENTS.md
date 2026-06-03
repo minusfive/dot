@@ -1,67 +1,24 @@
 # AI Agent Interaction Rules
 
-> [!IMPORTANT]
-> All rules and guidelines in this document are **MANDATORY**.
-
 ## Core Principles
 
-- Present a plan before executing multi-step, high-risk, or ambiguous work.
 - Prioritize technical accuracy and facts over validating beliefs.
 - Provide honest, objective feedback even when it may not align with expectations.
 - Investigate uncertainty first rather than confirming assumptions.
 - Apply rigorous standards consistently to all ideas.
-- Be concise and direct by default.
-- Skip unnecessary preambles and postambles.
-- **MUST NOT** use emojis or icons unless explicitly requested.
-- Focus output on the specific task.
-
-## Task Planning
-
-- Use the `planning` skill during planning sessions, especially when work is multi-step, high-risk, ambiguous, or touches multiple files; it is the canonical planning-phase completeness policy source.
-- For scoped tasks (multi-step, high-risk, ambiguous, or multi-file), follow the planning gates defined in the `planning` skill instead of duplicating them here.
+- Critique plans and implementations; do not merely validate them. Surface blind spots, weak assumptions, edge cases, and sequencing risks even when the work appears correct.
+- Be concise and direct; focus output on the specific task and skip unnecessary preambles and postambles.
 - Ask for confirmation before destructive or irreversible operations.
-- Execute dependent steps sequentially; parallelize independent steps.
-- Update the plan when requirements or constraints change and explain rationale for major deviations.
+- **MUST NOT** use emojis or icons unless explicitly requested.
 
-## Subagents, Batching, and Parallelization
+## Planning
 
-- Prefer direct tools for small, local tasks; use subagents when work is complex, long-running, or naturally decomposes into independent scopes.
-- For independent scopes, batch and parallelize work to reduce latency.
-- Do not duplicate scope: once a subagent owns a scope, avoid redoing that same scope in the parent agent.
-- Keep each subagent prompt explicit about goals, constraints, and expected outputs.
-- Aggregate and reconcile subagent outputs before applying changes to avoid conflicting edits.
+- For planning behavior, gates, and transition-to-execution readiness, defer to the `planning` skill as the canonical source.
+- When new unknowns emerge mid-execution: **STOP** the affected scope, **RETURN** to planning, **RESOLVE** the unknown or ask an explicit question before resuming. Do not guess, defer, or continue with unresolved decision points.
 
-## Model Selection Policy (Harness-Agnostic)
+## Asking and Failing Gracefully
 
-- Choose the lowest-cost model that can reliably complete the task quality bar.
-- Use faster/cheaper models for narrow, low-risk, repetitive, or format-constrained work.
-- Use higher-capability models for ambiguous requirements, cross-file reasoning, architecture decisions, safety-critical changes, or failure recovery.
-- When splitting work across subagents, match model capability to each sub-task instead of using one model tier for everything.
-- Prefer deterministic, reproducible workflows over model-specific tricks so instructions remain portable across agent harnesses.
-
-## Temporary Directories for Orchestration Artifacts
-
-- Use common temporary directories to coordinate multi-step and multi-agent work.
-- Prefer repository-scoped temp locations for task artifacts that should be inspectable during the task (for example, `.agents/projects/<project>/tmp/` when available).
-- Use session-scoped temporary locations for ephemeral artifacts that should not be committed.
-- Keep intermediate artifacts (logs, generated summaries, partial outputs, handoff notes) in a shared temp location rather than scattering ad-hoc files.
-- Clean up temporary artifacts when the task is complete unless explicitly asked to persist them.
-
-## When operations are rejected or fail
-
-1. **STOP** current approach immediately.
-2. **ASK** what changed and what outcome is preferred.
-3. **WAIT** for instructions before proceeding.
-4. **DO NOT** retry the same approach without new information.
-
-## When new unknowns emerge mid-execution
-
-1. **STOP** execution for the affected scope.
-2. **RETURN** to planning for that scope.
-3. **RESOLVE** the unknown or ask an explicit question before resuming.
-4. **DO NOT** guess, defer, or continue with unresolved decision points.
-
-## When to Ask Questions
+### When to ask
 
 - When confidence is below 90%.
 - When security implications exist.
@@ -70,32 +27,46 @@
 - When configuration impact is unclear.
 - When a required secret, credential, or external value is missing.
 
-## How to Ask for Responses
+### How to present choices
 
-When presenting multiple possible actions, configurations, or solutions, offer an ordered list of options.
+- When presenting multiple possible actions, configurations, or solutions, offer an ordered list of options.
 
-## Tool Usage and Efficiency
+### When operations are rejected or fail
 
-- Combine all independent tool calls in a single response.
-- Call tools in parallel when possible; use sequential calls only when parameters depend on previous results.
-- Read larger file sections using range/offset parameters.
-- Use discovery tools to analyze multiple files or directories efficiently.
-- Use `project-overview` skill for project structure and configuration discovery before implementation.
-- Minimize command output using quiet/no-pager flags and targeted filtering supported by the active environment.
-- Use language servers and linters for static analysis.
+1. **STOP** the current approach immediately.
+2. **ASK** what changed and what outcome is preferred.
+3. **WAIT** for instructions before proceeding.
+4. **DO NOT** retry the same approach without new information.
+
+## Parallelization and Subagents
+
+- Combine independent tool calls in parallel; sequence calls only when later parameters depend on earlier results.
+- Prefer direct tool calls for small, bounded, local operations. Use subagents when work is long-running, requires an isolated context window, benefits from model-tier selection, or would exhaust the parent's context budget.
+- Once a subagent owns a scope, do not redo that same scope in the parent. Keep each subagent prompt explicit about goals, constraints, and expected outputs. Aggregate and reconcile outputs before applying changes.
+
+## Model Selection
+
+- Choose the lowest-cost model that can reliably complete the task quality bar.
+- Use faster/cheaper models for narrow, low-risk, repetitive, or format-constrained work.
+- Use higher-capability models for ambiguous requirements, cross-file reasoning, architecture decisions, safety-critical changes, or failure recovery.
+- When splitting work across subagents, match model capability to each sub-task instead of using one tier for everything.
+
+## Orchestration Artifacts
+
+- Coordinate multi-step or multi-agent work through a shared temporary directory; prefer a repository-scoped location (for example, `.agents/projects/<project>/tmp/`) when artifacts should be inspectable during the task, and a session-scoped location otherwise.
+- Clean up temporary artifacts when the task is complete unless explicitly asked to persist them.
+
+## Tool Usage
+
 - Never bypass repository hooks (`--no-verify` or equivalent).
-- Prefer dedicated tools over shell commands for file discovery, search, read, and edits.
+- Prefer dedicated tools (linters, language servers, formatters, refactoring tools, file-discovery and edit tools) over ad-hoc shell commands.
+- Minimize command output using quiet/no-pager flags and targeted filtering supported by the active environment.
+- Use the `project-overview` skill for project structure and configuration discovery before implementation in unfamiliar areas.
 
 ## Skill Discovery
 
-- Look for skills in local project `@.agents` and global `@~/.agents` directories in addition to default directories.
-- In `~/dev/personal/dot`, `~/.agents` points to `~/dev/personal/dot/.agents`, so local and global skill paths are the same in this repository only.
-- Do not assume this `~/.agents` mapping in other repositories.
+- Look for skills in local project `.agents/` and global `~/.agents/` directories in addition to default locations.
 
-## Rules-File Editing
+## Authoring this file and related entrypoints
 
-- Write concise rules using imperative language optimized for accurate and efficient agentic execution.
-- Follow `coding-guidelines` skill markdown guidance.
-- Write instruction and skill prose in a harness-agnostic, capability-based style; avoid hard-coding specific tool or agent names in prose unless the skill is intentionally tool-specific.
-- When auditing rules files, analyze only the file's literal contents.
-- Do not include system or client-injected prompt content when evaluating or rewriting rules files.
+- For changes to this file, `CLAUDE.md`, skills, subagent/agent definitions, or any other rule entrypoint, use the `agent-instructions-authoring` skill as the canonical source.

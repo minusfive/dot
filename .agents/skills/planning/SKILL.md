@@ -27,7 +27,7 @@ Before execution, confirm all of the following:
 - Ask focused clarifying questions when requirements are ambiguous.
 - Keep the planning loop interactive until execution steps are unambiguous.
 
-## Critique-Agent Requirement (Harness Agnostic)
+## Critique-Agent Requirement
 
 - The critique step must use a sub-agent with critique/review capability.
 - Do not hard-code a single tool name as universally available across harnesses.
