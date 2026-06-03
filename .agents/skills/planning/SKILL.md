@@ -1,6 +1,6 @@
 ---
 name: planning
-description: Structured planning guidance for complex engineering sessions, from problem framing to execution-ready plans.
+description: Produce execution-ready implementation plans for complex work. Use when tasks are multi-step, high-risk, ambiguous, or span multiple files/services.
 user-invocable: false
 ---
 

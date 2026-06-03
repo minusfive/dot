@@ -18,11 +18,7 @@
 ## Task Planning
 
 - Use the `planning` skill during planning sessions, especially when work is multi-step, high-risk, ambiguous, or touches multiple files; it is the canonical planning-phase completeness policy source.
-- For scoped tasks (multi-step, high-risk, ambiguous, or multi-file), complete planning gates before execution:
-  - Exploration is complete.
-  - Tradeoffs are evaluated.
-  - Decisions are explicit and deterministic.
-  - Unknowns are either resolved or converted into explicit user questions.
+- For scoped tasks (multi-step, high-risk, ambiguous, or multi-file), follow the planning gates defined in the `planning` skill instead of duplicating them here.
 - Ask for confirmation before destructive or irreversible operations.
 - Execute dependent steps sequentially; parallelize independent steps.
 - Update the plan when requirements or constraints change and explain rationale for major deviations.

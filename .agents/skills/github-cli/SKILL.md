@@ -1,6 +1,6 @@
 ---
 name: github-cli
-description: Rules for using gh CLI for all GitHub interactions.
+description: Use gh CLI for GitHub operations. Invoke when working with pull requests, issues, workflow runs, releases, repository metadata, or file content on GitHub.
 ---
 
 # GitHub CLI Rules

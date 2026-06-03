@@ -1,6 +1,6 @@
 ---
 name: commit-guidelines
-description: Guidelines for analyzing changes and creating branches and commits with project-aware commit message rules.
+description: Create branches and commits from local diffs with correct commit message conventions. Use when asked to branch, split commits, write commit messages, or apply commitlint/Conventional Commits rules.
 ---
 
 # Commit and Branch Guidelines

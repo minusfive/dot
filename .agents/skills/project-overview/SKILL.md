@@ -1,6 +1,6 @@
 ---
 name: project-overview
-description: Framework for discovering project structure, architecture, and tooling before making changes.
+description: Discover project structure, architecture, and tooling before implementation. Use when starting work in an unfamiliar repository or before making non-trivial code changes.
 ---
 
 # Project Overview
@@ -18,9 +18,8 @@ Use this skill to map how a project is organized before implementation.
 
 ## Configuration Detection Priorities
 
-- Check for `Brewfile` and use it for package operations when present.
-- Check for mise config files (`mise.toml`, `.config/mise/config.toml`) and use them for runtime/tool versions when present.
-- Detect commit message rules from `commitlint.config.*`, `.commitlintrc*`, or `package.json` `commitlint` settings.
+- For package/runtime environment detection rules, follow the canonical guidance in `scripts` skill.
+- For commit message rule discovery (`commitlint`/Conventional Commits), follow the canonical guidance in `commit-guidelines` skill.
 
 ## Output Expectations
 

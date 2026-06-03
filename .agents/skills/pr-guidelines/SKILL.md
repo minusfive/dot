@@ -1,12 +1,11 @@
 ---
 name: pr-guidelines
-description: Guidelines for pushing branches and creating pull requests with project-aware title rules.
+description: Push branches and open pull requests with correct title/body conventions. Use when preparing a branch for review, writing PR metadata, or opening a PR with linked issues.
 ---
 
 # Pull Request Guidelines
 
-- **MUST NOT** skip hooks execution under any circumstances
-- Complete `commit-guidelines` skill (branch creation and commits) before proceeding
+- Complete `commit-guidelines` skill (including hook policy, branch creation, and commits) before proceeding
 
 ## 1: Push
 

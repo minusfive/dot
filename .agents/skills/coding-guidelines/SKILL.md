@@ -1,6 +1,6 @@
 ---
 name: coding-guidelines
-description: Coding standards and guidelines for writing, reviewing, and refactoring code across software projects.
+description: Apply repository coding standards for implementation and review tasks. Use when adding features, fixing bugs, refactoring, updating tests, or resolving lint/type/build issues.
 ---
 
 # Coding Guidelines

@@ -1,6 +1,6 @@
 ---
 name: scripts
-description: Rules and guidelines for setup, automation, and system-initialization scripts across software projects.
+description: Author and maintain setup, automation, and bootstrap scripts. Use when creating or modifying shell/task scripts, install flows, or system initialization routines.
 ---
 
 # Script Automation Guidelines

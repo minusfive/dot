@@ -1,6 +1,6 @@
 ---
 name: security
-description: Security guidelines covering secrets management, permissions, network access, and secure defaults.
+description: Apply security checks and safeguards during implementation. Use when handling secrets, permissions, external network access, dependency risk, or security-sensitive configuration.
 ---
 
 # Security Guidelines
