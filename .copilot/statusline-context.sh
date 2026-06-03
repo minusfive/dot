@@ -4,23 +4,22 @@
 # plus a color-ramped filled segment and matching percentage text.
 input=$(cat)
 
-# Find the context usage percentage from known paths and broad fallbacks.
+# Find the context usage percentage from known current-state paths only.
+# Avoid recursive fallbacks that can select stale historical values.
 used=$(
   jq -r '
     .context_window.used_percentage //
+    .context_window.usedPercentage //
     .contextWindow.usedPercentage //
     .contextWindow.used_percentage //
     .context.used_percentage //
     .context.usedPercentage //
     .usage.context_window.used_percentage //
     .usage.contextWindow.usedPercentage //
-    ([.. | objects | .used_percentage? // empty] | first) //
-    ([.. | objects | .usedPercentage? // empty] | first) //
-    empty
+    .usage.context_window.usedPercentage //
+    0
   ' <<<"$input"
 )
-
-[ -z "$used" ] && exit 0
 
 pct=$(awk -v u="$used" 'BEGIN { p = u + 0; if (p < 0) p = 0; if (p > 100) p = 100; printf "%.0f", p }')
 
