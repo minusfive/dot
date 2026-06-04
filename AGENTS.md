@@ -11,11 +11,6 @@
 - Ask for confirmation before destructive or irreversible operations.
 - **MUST NOT** use emojis or icons unless explicitly requested.
 
-## Planning
-
-- For planning behavior, gates, and transition-to-execution readiness, defer to the `planning` skill as the canonical source.
-- When new unknowns emerge mid-execution: **STOP** the affected scope, **RETURN** to planning, **RESOLVE** the unknown or ask an explicit question before resuming. Do not guess, defer, or continue with unresolved decision points.
-
 ## Asking and Failing Gracefully
 
 ### When to ask
@@ -38,35 +33,35 @@
 3. **WAIT** for instructions before proceeding.
 4. **DO NOT** retry the same approach without new information.
 
-## Parallelization and Subagents
-
-- Combine independent tool calls in parallel; sequence calls only when later parameters depend on earlier results.
-- Prefer direct tool calls for small, bounded, local operations. Use subagents when work is long-running, requires an isolated context window, benefits from model-tier selection, or would exhaust the parent's context budget.
-- Once a subagent owns a scope, do not redo that same scope in the parent. Keep each subagent prompt explicit about goals, constraints, and expected outputs. Aggregate and reconcile outputs before applying changes.
-
-## Model Selection
-
-- Choose the lowest-cost model that can reliably complete the task quality bar.
-- Use faster/cheaper models for narrow, low-risk, repetitive, or format-constrained work.
-- Use higher-capability models for ambiguous requirements, cross-file reasoning, architecture decisions, safety-critical changes, or failure recovery.
-- When splitting work across subagents, match model capability to each sub-task instead of using one tier for everything.
-
-## Orchestration Artifacts
-
-- Coordinate multi-step or multi-agent work through a shared temporary directory; prefer a repository-scoped location (for example, `.agents/projects/<project>/tmp/`) when artifacts should be inspectable during the task, and a session-scoped location otherwise.
-- Clean up temporary artifacts when the task is complete unless explicitly asked to persist them.
-
 ## Tool Usage
 
 - Never bypass repository hooks (`--no-verify` or equivalent).
 - Prefer dedicated tools (linters, language servers, formatters, refactoring tools, file-discovery and edit tools) over ad-hoc shell commands.
 - Minimize command output using quiet/no-pager flags and targeted filtering supported by the active environment.
-- Use the `project-overview` skill for project structure and configuration discovery before implementation in unfamiliar areas.
+- Combine independent tool calls in parallel; sequence calls only when later parameters depend on earlier results. Do not artificially serialize independent operations to "be safe" — parallelism is the default for independent work.
 
-## Skill Discovery
+## Skills
 
-- Look for skills in local project `.agents/` and global `~/.agents/` directories in addition to default locations.
+The skills below are available under `~/.agents/skills/`.
 
-## Authoring this file and related entrypoints
+- **MUST NOT** preload any skill in this index. Load a skill only when the current task matches its description or use-when criteria.
+- Keep this index synchronized with the contents of `~/.agents/skills/`; when adding, renaming, or removing a skill, update this section in the same change. Each entry must use the skill's frontmatter `name` and a one-line summary of its `description`.
+- For changes to this file, any listed skill, subagent/agent definitions, or other rule entrypoints, use the `agent-instructions-authoring` skill as the canonical source.
 
-- For changes to this file, `CLAUDE.md`, skills, subagent/agent definitions, or any other rule entrypoint, use the `agent-instructions-authoring` skill as the canonical source.
+### Index
+
+- `agent-instructions-authoring` — Author, audit, and modify agent instruction files (skills, `AGENTS.md`, `CLAUDE.md`, subagent/agent definitions); consolidate duplicated rules; validate skill metadata and discoverability.
+- `agentic-projects` — Organize per-repo agentic project workspaces under `.agents/projects/<project>/` (prompts, plans, research, temporary artifacts).
+- `coding-guidelines` — Apply repository coding standards when adding features, fixing bugs, refactoring, updating tests, or resolving lint/type/build issues.
+- `commit-guidelines` — Create branches and commits from local diffs using project commit-message conventions (Conventional Commits, commitlint).
+- `github-cli` — Use the `gh` CLI for pull requests, issues, workflow runs, releases, repository metadata, and file content on GitHub.
+- `hammerspoon` — Rules and guidelines for Hammerspoon macOS automation, window management, Spoons, and hotkey Lua configuration.
+- `nvim` — Rules and guidelines for the LazyVim-based Neovim configuration, Lua modules, plugin management, and LSP integration.
+- `opencode-copilot-multipliers` — Sync GitHub Copilot model alias multiplier labels in the OpenCode config with current `github/docs` paid multipliers.
+- `planning` — Produce execution-ready implementation plans for multi-step, high-risk, ambiguous, or multi-file/service work.
+- `pr-guidelines` — Push branches and open pull requests using the project's title/body conventions and linked issues.
+- `project-overview` — Discover project structure, architecture, and tooling before implementation in an unfamiliar area.
+- `rewrite-imports` — Bulk-migrate import paths safely across many files after module renames or moves.
+- `scripts` — Author and maintain setup, automation, and bootstrap shell/task scripts and install flows.
+- `security` — Apply security checks and safeguards for secrets, permissions, external network access, dependency risk, and sensitive configuration.
+- `task-orchestration` — Decide when to parallelize tool calls, when to dispatch subagents, which model tier suits each sub-task, and how to coordinate multi-step work via shared temporary artifacts.
