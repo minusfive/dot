@@ -38,3 +38,7 @@ description: Apply LazyVim Neovim configuration rules for Lua scripting, LSP int
 - Monitor startup time and memory usage with `:Lazy profile`
 - Ensure compatibility with LazyVim updates before upgrading
 - Make small, testable, reversible changes
+
+## Cross-references
+
+- For general Lua authoring conventions (module structure, EmmyLua annotations) see the `lua` skill.

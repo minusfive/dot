@@ -5,6 +5,9 @@ lockfile = true
 HK_MISE = 1
 HK_STAGE = 1
 
+[task_config]
+includes = ["scripts/tasks"]
+
 [tools]
 bun = "latest"
 betterleaks = "latest"
@@ -14,19 +17,3 @@ hk = "latest"
 shellcheck = "latest"
 stylua = "latest"
 yamllint = "latest"
-
-[tasks.check]
-description = "Run all checks"
-run = "hk run check"
-
-[tasks.fix]
-description = "Fix all (fixable) issues"
-run = "hk run fix"
-
-[tasks.pre-commit]
-description = "Run pre-commit hooks"
-run = "hk run pre-commit"
-
-[tasks.setup]
-description = "Set up the development environment"
-run = ["bun install", "hk install"]

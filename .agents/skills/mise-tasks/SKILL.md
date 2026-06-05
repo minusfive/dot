@@ -1,7 +1,6 @@
 ---
 name: mise-tasks
 description: Add, modify, or invoke mise tasks (file tasks and TOML tasks); wire task help via usage directives; run tasks with mise run. Use when adding, modifying, running, or debugging tasks in a mise-managed project.
-user-invocable: false
 ---
 
 # Mise Tasks

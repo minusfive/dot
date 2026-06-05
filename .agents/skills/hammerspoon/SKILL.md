@@ -43,3 +43,7 @@ description: Apply Hammerspoon macOS automation and window management configurat
 - Test window movements across multiple displays
 - Validate modal states exit correctly
 - Monitor Hammerspoon console for errors
+
+## Cross-references
+
+- For general Lua authoring conventions (module structure, EmmyLua annotations) see the `lua` skill.

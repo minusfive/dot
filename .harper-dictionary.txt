@@ -9,6 +9,7 @@ HiDPI
 LazyVim
 Lazygit
 LuaDoc
+OpenCode
 Podman
 Snyk
 Statusline

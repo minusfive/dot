@@ -72,3 +72,7 @@ When a task requires a script for execution:
 - Make new scripts generic and reusable.
 - Save new scripts in the project's reusable script location.
 - Write script documentation optimized for AI agents (see `coding-guidelines` skill).
+
+## Cross-references
+
+- For Zsh-specific conventions (error safety, logging helpers) see the `zsh` skill.

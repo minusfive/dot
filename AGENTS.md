@@ -7,7 +7,7 @@
 - Investigate uncertainty first rather than confirming assumptions.
 - Apply rigorous standards consistently to all ideas.
 - Critique plans and implementations; do not merely validate them. Surface blind spots, weak assumptions, edge cases, and sequencing risks even when the work appears correct.
-- Treat critique as a discrete gate that runs AFTER the implementation passes validation (lint, tests, structural checks). Before declaring a task complete, run a fresh critique pass over the actual produced artifact — assumptions inherited from a source, unverified URLs or commands, scope creep beyond the original source, and rules that no longer apply after generalization are common findings. A clean lint is not a stopping signal.
+- Treat critique as a discrete gate that runs AFTER the implementation passes validation (lint, tests, structural checks). Before declaring a task complete, run a fresh critique pass over the actual produced artifact. Do not treat any validation step as the stopping signal; the critique pass is.
 - Be concise and direct; focus output on the specific task and skip unnecessary preambles and postambles.
 - Ask for confirmation before destructive or irreversible operations.
 - **MUST NOT** use emojis or icons unless explicitly requested. The verdict-glyph convention below is the only sanctioned exception.
@@ -35,8 +35,13 @@ In critique, review, audit, and other verdict-style output (any structured repor
 ### How to present choices
 
 - When presenting multiple possible actions, configurations, or solutions, offer an ordered list of options.
+- Place the recommended option first; order the remainder by likely preference.
+- Use the active harness's structured ask capability (for example, a question-with-options tool) when it is available and the choices are mutually exclusive; otherwise present them as a numbered list in prose.
+- Keep each option short and self-explanatory; reserve free-text input for divergent answers.
 
-### When operations are rejected or fail
+### When tool calls are rejected or refused
+
+This protocol applies to permission denials, policy refusals, and explicit user rejections of a tool call — not to ordinary task failures (failing tests, missing dependencies, transient errors), which follow normal debugging behavior.
 
 1. **STOP** the current approach immediately.
 2. **ASK** what changed and what outcome is preferred.
@@ -52,10 +57,10 @@ In critique, review, audit, and other verdict-style output (any structured repor
 
 ## Skills
 
-The skills below are available under `~/.agents/skills/`.
+The skills below are available under `.agents/skills/`.
 
 - **MUST NOT** preload any skill in this index. Load a skill only when the current task matches its description or use-when criteria.
-- Keep this index synchronized with the contents of `~/.agents/skills/`; when adding, renaming, or removing a skill, update this section in the same change. Each entry must use the skill's frontmatter `name` and a one-line summary of its `description`.
+- Keep this index synchronized with the contents of `.agents/skills/`; when adding, renaming, or removing a skill, update this section in the same change. Each entry must use the skill's frontmatter `name` and a one-line summary of its `description`.
 - For changes to this file, any listed skill, subagent/agent definitions, or other rule entrypoints, use the `agent-instructions-authoring` skill as the canonical source.
 
 ### Index
@@ -64,15 +69,18 @@ The skills below are available under `~/.agents/skills/`.
 - `agentic-projects` — Organize per-repo agentic project workspaces under `.agents/projects/<project>/` (prompts, plans, research, temporary artifacts).
 - `coding-guidelines` — Apply repository coding standards when adding features, fixing bugs, refactoring, updating tests, or resolving lint/type/build issues.
 - `commit-guidelines` — Create branches and commits from local diffs using project commit-message conventions (Conventional Commits, commitlint).
-- `github-cli` — Use the `gh` CLI for pull requests, issues, workflow runs, releases, repository metadata, and file content on GitHub.
+- `github-cli` — Use the `gh` CLI for pull requests, issues, workflow runs, releases, repository metadata, and file content on GitHub; invoke when interacting with any GitHub resource from the terminal.
 - `hammerspoon` — Apply Hammerspoon macOS automation and window management rules when working with scripts, Spoons, hotkeys, or Lua code.
+- `lua` — Apply Lua authoring conventions for Neovim, Hammerspoon, WezTerm, and Yazi configurations (module structure, returns, EmmyLua annotations).
+- `markdown` — Apply Markdown authoring conventions (clarity, link style, table-of-contents discipline, linter validation).
 - `mise-tasks` — Add, modify, or invoke mise tasks (file tasks and TOML tasks); wire task help via usage directives; run tasks with mise run.
 - `nvim` — Apply LazyVim Neovim configuration rules when working with config files, plugins, or Lua modules.
 - `opencode-copilot-multipliers` — Sync GitHub Copilot model alias multiplier labels in the OpenCode config with current `github/docs` paid multipliers.
 - `planning` — Produce execution-ready implementation plans for multi-step, high-risk, ambiguous, or multi-file/service work.
 - `pr-guidelines` — Push branches and open pull requests using the project's title/body conventions and linked issues.
 - `project-overview` — Discover project structure, architecture, and tooling before implementation in an unfamiliar area.
-- `rewrite-imports` — Bulk-migrate import paths safely across many files after module renames or moves.
+- `rewrite-imports` — Bulk-migrate import paths after module renames, file moves, or package refactors; use when changing how modules are referenced across many files.
 - `scripts` — Author and maintain setup, automation, and bootstrap shell/task scripts and install flows.
-- `security` — Apply security checks and safeguards for secrets, permissions, external network access, dependency risk, and sensitive configuration.
+- `security` — Apply security checks for secrets, credentials, permissions, external network access, dependency risk, and sensitive configuration; use during implementation and security review passes.
 - `task-orchestration` — Decide when to parallelize tool calls, when to dispatch subagents, which model tier suits each sub-task, and how to coordinate multi-step work via shared temporary artifacts.
+- `zsh` — Apply Zsh shell scripting conventions (error safety, logging helpers); use when authoring or modifying Zsh scripts.
