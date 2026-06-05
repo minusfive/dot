@@ -1,6 +1,6 @@
 ---
 name: hammerspoon
-description: AI rules and guidelines for Hammerspoon macOS automation and window management configuration using Lua scripting. Use when working with Hammerspoon scripts, Spoons, hotkeys, or window management code.
+description: Apply Hammerspoon macOS automation and window management configuration rules. Use when working with Hammerspoon scripts, Spoons, hotkeys, or window management Lua code.
 ---
 
 # Hammerspoon Configuration - AI Rules and Guidelines

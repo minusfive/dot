@@ -13,8 +13,8 @@ Use this skill for any task that creates, edits, audits, or restructures files t
 
 At the start of each task, load these references in this exact order:
 
-1. [Agent Skills specification](https://agentskills.io/specification)
-2. The current harness documentation for skill, instruction, and agent-definition behavior and metadata.
+1. [Agent Skills specification](https://agentskills.io/specification).
+2. The active harness's public documentation for skills, instruction files, and agent/subagent definitions. Identify the active harness from environment signals (top-level instruction file headers, repository configuration, user configuration) before resolving its documentation.
 3. Repository-specific instruction documentation for the active project (top-level instruction file, skill READMEs, related agent definitions).
 
 Use the loaded specs as the active source of truth for the task. Avoid static assumptions and derive requirements dynamically from the loaded references and current repository state.
@@ -32,13 +32,20 @@ Use the loaded specs as the active source of truth for the task. Avoid static as
 - Validate skill metadata, structure, and behavior against the loaded specs.
 - Validate and audit each skill `description` for discoverability quality, including clear invocation cues and relevant trigger keywords, and avoid "how it works" wording.
 - When renaming or restructuring an instruction file or skill, search the repository for stale references and update them.
-- Run the configured markdown linter against changed files.
+- Verify every `assets/…` (or equivalent referenced-resource) path resolves to an existing file and that the asset's current contents still match how the body cites them.
+- Verify every concrete claim in the file before shipping: every command runs, every flag behaves as stated, every URL resolves, every directive or syntax example matches current tool behavior. Inherited assumptions from a source skill or older docs do not count as verified.
+- Run the markdown linter required by the `coding-guidelines` skill against changed files.
 
 ## Critique
 
-- Treat critique and validation as separate gates: validation confirms the file parses, lints, and matches the spec; critique confirms the rule is the right rule. Both must pass.
-- Before finalizing a change to an instruction entrypoint, critique it: does this rule conflict with another entrypoint? Would a reasonable agent misread it? Does it over- or under-constrain compared to the user's actual intent? Is the canonical source still canonical after this edit?
-- For non-trivial rule changes (new skill, restructuring, broadened scope, renames), run a critique-capable sub-agent review before presenting the edit. Do not hard-code a single tool name; choose a capability appropriate to the active harness.
+The repository's general post-validation critique gate (defined in the top-level instruction file) applies to every change. This skill adds the following instruction-file-specific checks; apply them during that critique pass rather than as a separate cycle:
+
+- Does this rule conflict with another instruction entrypoint?
+- Would a reasonable agent misread it?
+- Does it over- or under-constrain compared to the user's actual intent?
+- Is the canonical source still canonical after this edit?
+
+For non-trivial rule changes (new skill, restructuring, broadened scope, renames), run a critique-capable sub-agent review before presenting the edit. Select that capability based on the active harness rather than hard-coding a tool name.
 
 ## Authoring Style
 
@@ -81,6 +88,15 @@ This section governs how to create, edit, and structure individual skills.
 - Describe when to invoke the skill using concrete "use when" language and likely user wording.
 - Avoid descriptions that mostly explain what the skill does internally or how it works.
 - Keep descriptions concise but keyword-rich so selection systems can reliably match relevant requests.
+- Keep descriptions free of links, command examples, full path enumerations, and other content that belongs in the body. The `description` is a selector, not a summary.
+
+### Body authoring style
+
+- Write rules as positive, imperative directives. State what to do; describe the desired end state. Reserve "do not X" or "X is wrong" framings for cases where the antipattern is concrete, plausible, high-risk, and not already excluded by a positive rule — instruction-file authoring contains several such antipatterns (e.g., assuming the harness auto-loads referenced assets, restating canonical rules in multiple entrypoints), so negative framings appear in this skill where the exception is met.
+- Negative rules carry two costs: they plant the antipattern in agent context (which can prompt the very behavior they forbid), and they can conflict with project-specific configuration (aliases, custom directories, custom commands) that legitimately uses the named token.
+- Defer to upstream documentation as the durable source of truth. When the underlying system supports configuration (custom paths, directories, env names, command aliases), reference the docs and the project's configuration; do not enumerate defaults inline as if they were invariant.
+- Keep guidance language-, tool-, and version-agnostic where possible. State the rule generically and use language-specific or version-specific names only as examples, not as the rule itself.
+- Prefer linking to canonical documentation over restating it; restated facts drift, links do not (and broken links are caught by validation).
 
 ## AGENTS.md Authoring
 

@@ -1,6 +1,6 @@
 ---
 name: agentic-projects
-description: Organize per-repo agentic project workspaces under .agents/projects/<project-name>. Use when initializing or maintaining project prompt, plans, research, and temporary artifacts.
+description: Organize per-repo agentic project workspaces under .agents/projects/<project-name>. Use when initializing or maintaining project prompts, plans, research, and temporary artifacts.
 user-invocable: true
 disable-model-invocation: true
 argument-hint: --project <project-name> --prompt "<initial prompt>" [--force]

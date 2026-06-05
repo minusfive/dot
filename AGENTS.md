@@ -7,15 +7,25 @@
 - Investigate uncertainty first rather than confirming assumptions.
 - Apply rigorous standards consistently to all ideas.
 - Critique plans and implementations; do not merely validate them. Surface blind spots, weak assumptions, edge cases, and sequencing risks even when the work appears correct.
+- Treat critique as a discrete gate that runs AFTER the implementation passes validation (lint, tests, structural checks). Before declaring a task complete, run a fresh critique pass over the actual produced artifact — assumptions inherited from a source, unverified URLs or commands, scope creep beyond the original source, and rules that no longer apply after generalization are common findings. A clean lint is not a stopping signal.
 - Be concise and direct; focus output on the specific task and skip unnecessary preambles and postambles.
 - Ask for confirmation before destructive or irreversible operations.
-- **MUST NOT** use emojis or icons unless explicitly requested.
+- **MUST NOT** use emojis or icons unless explicitly requested. The verdict-glyph convention below is the only sanctioned exception.
+
+### Verdict output glyphs
+
+In critique, review, audit, and other verdict-style output (any structured report that classifies items as pass / fail / risk), label each classified item with the canonical Unicode status glyph below, rendered in the named semantic color. Apply only to verdict-bearing items; leave ordinary prose, headings, and unclassified bullet lists undecorated. The active harness chooses how to realize the color; do not hard-code escape sequences inline.
+
+- `✓` green — pass: claim verified, rule survives critique, no action needed.
+- `✗` red — fail: claim falsified, rule rejected, change must not ship as-is.
+- `⚠` yellow — risk: known unknown, residual edge case, or assumption deliberately accepted but worth surfacing.
+- `ℹ` cyan — note: contextual remark that is neither a verdict nor a risk.
 
 ## Asking and Failing Gracefully
 
 ### When to ask
 
-- When confidence is below 90%.
+- When the correct approach is unclear after checking available context.
 - When security implications exist.
 - When requirements are ambiguous.
 - When multiple valid approaches materially change outcomes.
@@ -55,8 +65,9 @@ The skills below are available under `~/.agents/skills/`.
 - `coding-guidelines` — Apply repository coding standards when adding features, fixing bugs, refactoring, updating tests, or resolving lint/type/build issues.
 - `commit-guidelines` — Create branches and commits from local diffs using project commit-message conventions (Conventional Commits, commitlint).
 - `github-cli` — Use the `gh` CLI for pull requests, issues, workflow runs, releases, repository metadata, and file content on GitHub.
-- `hammerspoon` — Rules and guidelines for Hammerspoon macOS automation, window management, Spoons, and hotkey Lua configuration.
-- `nvim` — Rules and guidelines for the LazyVim-based Neovim configuration, Lua modules, plugin management, and LSP integration.
+- `hammerspoon` — Apply Hammerspoon macOS automation and window management rules when working with scripts, Spoons, hotkeys, or Lua code.
+- `mise-tasks` — Add, modify, or invoke mise tasks (file tasks and TOML tasks); wire task help via usage directives; run tasks with mise run.
+- `nvim` — Apply LazyVim Neovim configuration rules when working with config files, plugins, or Lua modules.
 - `opencode-copilot-multipliers` — Sync GitHub Copilot model alias multiplier labels in the OpenCode config with current `github/docs` paid multipliers.
 - `planning` — Produce execution-ready implementation plans for multi-step, high-risk, ambiguous, or multi-file/service work.
 - `pr-guidelines` — Push branches and open pull requests using the project's title/body conventions and linked issues.
