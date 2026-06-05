@@ -417,6 +417,7 @@
       # Styling for up-to-date Git status.
       local       meta='%244F'     # default foreground
       local      clean='%002F'   # green foreground
+      local     staged='%002F'   # green foreground
       local   modified='%178F'  # yellow foreground
       local  untracked="%001F"   # blue foreground
       local conflicted='%196F'  # red foreground
@@ -424,6 +425,7 @@
       # Styling for incomplete and stale Git status.
       local       meta='%244F'  # grey foreground
       local      clean='%244F'  # grey foreground
+      local     staged='%244F'  # grey foreground
       local   modified='%244F'  # grey foreground
       local  untracked='%244F'  # grey foreground
       local conflicted='%244F'  # grey foreground
@@ -491,7 +493,7 @@
     # ~42 if have merge conflicts.
     (( VCS_STATUS_NUM_CONFLICTED )) && res+=" ${conflicted}~${VCS_STATUS_NUM_CONFLICTED}"
     # +42 if have staged changes.
-    (( VCS_STATUS_NUM_STAGED     )) && res+=" ${modified}+${VCS_STATUS_NUM_STAGED}"
+    (( VCS_STATUS_NUM_STAGED     )) && res+=" ${staged}+${VCS_STATUS_NUM_STAGED}"
     # !42 if have unstaged changes.
     (( VCS_STATUS_NUM_UNSTAGED   )) && res+=" ${modified}!${VCS_STATUS_NUM_UNSTAGED}"
     # ?42 if have untracked files. It's really a question mark, your font isn't broken.

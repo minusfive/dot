@@ -28,7 +28,7 @@ description: Apply repository coding standards for implementation and review tas
 - Only add comments if they match existing style or explain complex changes
 - Use existing libraries whenever possible
 - Only add new libraries or update versions if absolutely necessary
-- **MUST ALWAYS** validate all rules were followed after completing changes
+- Validate that all rules were followed after completing changes
 - Handle all errors
 - Validate all user inputs and system states
 - Run linters, builds, and tests before making changes to understand unrelated issues
@@ -36,24 +36,17 @@ description: Apply repository coding standards for implementation and review tas
 - Use refactoring tools to automate changes
 - Use linters and formatters to fix code style and correctness
 - Use local variables to limit scope
-- **ALWAYS** add and update type annotations
+- Always add and update type annotations
 
-## Critique Before Validation
+## Critique Gate
 
-- Treat critique and validation as separate gates: validation confirms the change passes tests, types, and lints; critique confirms the change is the right change. Both must pass.
-- Before declaring an implementation done, run a critique pass that asks: should this exist at all? Is this the right abstraction? What breaks under realistic edge cases? Which assumptions does the surrounding code not actually guarantee?
-- For non-trivial changes, run a critique-capable sub-agent review (or equivalent independent reviewer) before reporting completion, not after. Do not hard-code a single tool name; choose a capability appropriate to the active harness.
-- Record how critique feedback changed the implementation before presenting it.
+Follow the canonical critique-before-completion gate defined in `AGENTS.md`. Apply the universal gate to every change; layer domain-specific checks on top during the same pass when relevant.
 
-## Lua (Neovim, Hammerspoon, WezTerm, Yazi)
+## Language-Specific Guidance
 
-- Organize `---@module` references at the top of the file, sorted alphabetically
-- Use explicit module returns and clear structure
-
-## Shell Scripts (Zsh)
-
-- Use consistent logging functions
-- Use `set -euo pipefail` for error safety
+- Lua (Neovim, Hammerspoon, WezTerm, Yazi) — see the `lua` skill
+- Zsh shell scripts — see the `zsh` skill
+- Markdown — see the `markdown` skill
 
 ## Configuration Files
 
@@ -61,14 +54,3 @@ description: Apply repository coding standards for implementation and review tas
 - Logical grouping with fallback values
 - Modular structure separating concerns
 - **MUST NOT** manually edit tool-generated lock files; they are managed by their respective tools
-
-## Markdown
-
-- Be clear and succinct
-- **MUST NOT** write redundant or duplicate content, use link references
-- Use standard `[text](url)` links, not wiki-style
-- Validate all reference links after changes
-- **MUST NOT** create table of contents unless explicitly requested
-  - If one exists, keep it synchronized with actual sections
-- Analyze the whole file and suggest optimizations according to these rules
-- Validate markdown files with the project's configured markdown linter when available

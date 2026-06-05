@@ -5,8 +5,7 @@ description: Create branches and commits from local diffs with correct commit me
 
 # Commit and Branch Guidelines
 
-- **MUST NOT** skip hooks execution under any circumstances
-- **MUST NEVER** use hook-bypass flags (for example: `git commit --no-verify`, `git merge --no-verify`, `git push --no-verify`) or any equivalent hook-disabling workaround
+Follow the canonical hook-bypass policy in `AGENTS.md` (Tool Usage). For git specifically, this means commands such as `git commit --no-verify`, `git merge --no-verify`, and `git push --no-verify` are not used; failing hooks must be fixed at the root cause.
 
 ## Analyze Changes
 

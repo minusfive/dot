@@ -2,6 +2,7 @@ ASCIIDoc
 Artifactory
 Autodesk
 BEM
+CLAUDE
 CodeCompanion
 Contentful
 Crowdmark
@@ -31,15 +32,18 @@ Wezterm
 automations
 bg
 cli
+conformant
 darwin
 deduplication
 eslint
 fintech
 ish
 lua
+md
 minusfive
 modularity
 param
 postambles
 schemas
+subagents
 symlink

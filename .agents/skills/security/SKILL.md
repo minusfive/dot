@@ -1,6 +1,6 @@
 ---
 name: security
-description: Apply security checks and safeguards during implementation. Use when handling secrets, permissions, external network access, dependency risk, or security-sensitive configuration.
+description: Apply security checks for secrets, credentials, permissions, external network access, dependency risk, and sensitive configuration. Use during implementation, code review, and security review passes.
 ---
 
 # Security Guidelines

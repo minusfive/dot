@@ -1,6 +1,6 @@
 ---
 name: nvim
-description: AI rules and guidelines for the Neovim configuration built on LazyVim with Lua scripting, LSP integration, and plugin management. Use when working with Neovim configuration files, plugins, or Lua modules.
+description: Apply LazyVim Neovim configuration rules for Lua scripting, LSP integration, and plugin management. Use when working with Neovim configuration files, plugins, or Lua modules.
 ---
 
 # Neovim Configuration - AI Rules and Guidelines
@@ -38,3 +38,7 @@ description: AI rules and guidelines for the Neovim configuration built on LazyV
 - Monitor startup time and memory usage with `:Lazy profile`
 - Ensure compatibility with LazyVim updates before upgrading
 - Make small, testable, reversible changes
+
+## Cross-references
+
+- For general Lua authoring conventions (module structure, EmmyLua annotations) see the `lua` skill.

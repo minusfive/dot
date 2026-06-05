@@ -1,6 +1,6 @@
 ---
 name: rewrite-imports
-description: Migrate import paths safely across many files. Use when renaming modules/packages, moving files, or bulk-rewriting import statements after refactors.
+description: Bulk-migrate import paths after module renames, file moves, or package refactors. Use when changing how modules are referenced across many files.
 ---
 
 # Rewrite Imports

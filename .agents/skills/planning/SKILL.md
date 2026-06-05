@@ -1,7 +1,6 @@
 ---
 name: planning
 description: Produce execution-ready implementation plans for complex work. Use when tasks are multi-step, high-risk, ambiguous, or span multiple files/services.
-user-invocable: false
 ---
 
 # Planning
@@ -15,7 +14,7 @@ Before execution, confirm all of the following:
 1. **Exploration complete**: relevant codepaths, docs, and constraints are identified.
 2. **Unknowns handled**: unknowns are resolved or converted into explicit user questions.
 3. **Conversational planning complete**: planning interaction challenges assumptions, pressure-tests risks, and avoids passive transcription.
-4. **Critique pass complete**: every time the plan is updated, run a critique-capable sub-agent review before presenting the updated plan to the user.
+4. **Critique pass complete**: every time the plan is updated, apply the canonical critique gate defined in `AGENTS.md` before presenting the updated plan to the user.
 5. **Deterministic sequence**: execution steps are ordered, concrete, and testable.
 6. **Failure protocol ready**: rollback/mitigation approach is clear for risky operations.
 
@@ -26,12 +25,6 @@ Before execution, confirm all of the following:
 - Surface blind spots, edge cases, and sequencing risks.
 - Ask focused clarifying questions when requirements are ambiguous.
 - Keep the planning loop interactive until execution steps are unambiguous.
-
-## Critique-Agent Requirement
-
-- The critique step must use a sub-agent with critique/review capability.
-- Do not hard-code a single tool name as universally available across harnesses.
-- Record how critique feedback changed the updated plan before presenting it.
 
 ## Execution Guardrails
 
