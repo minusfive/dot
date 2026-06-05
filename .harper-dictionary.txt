@@ -20,6 +20,7 @@ XDG
 Zsh
 autocmds
 btop
+entrypoints
 frontmatter
 fzf
 gh
@@ -30,5 +31,6 @@ mise
 neovim
 nvim
 postinstall
+subagent
 tmux
 wget
