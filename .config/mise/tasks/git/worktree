@@ -1,6 +1,8 @@
 #!/usr/bin/env bun
 //MISE description="Create or remove a git worktree"
 //MISE alias="gwt"
+//MISE dir="{{cwd}}"
+//MISE quiet=true
 //USAGE arg "[name]" help="Branch-like name for the worktree, or ALL_CLOSED_PRS with --delete"
 //USAGE flag "-d --delete" help="Delete a worktree; use ALL_CLOSED_PRS to delete all closed PR worktrees"
 //USAGE flag "-p --pull-request <pull-request>" help="Create a worktree from an open PR, or target PR worktrees with --delete"
@@ -53,10 +55,24 @@ function commandExists(command: string): boolean {
   return result.status === 0
 }
 
+function ensureInsideGitRepo(): void {
+  const result = spawnSync('git', ['rev-parse', '--is-inside-work-tree'], { encoding: 'utf-8' })
+  if (result.status !== 0 || result.stdout.trim() !== 'true') {
+    throw new Error(
+      `not inside a git working tree (cwd: ${process.cwd()}). cd into a git checkout before running this task.`,
+    )
+  }
+}
+
 function ensureCommand(command: string, reason: string): void {
   if (!commandExists(command)) {
     throw new Error(`${command} is required for ${reason}.`)
   }
+}
+
+function miseTaskExists(task: string): boolean {
+  const result = spawnSync('mise', ['tasks', 'info', task], { stdio: 'ignore' })
+  return result.status === 0
 }
 
 function isValidName(name: string): boolean {
@@ -522,8 +538,10 @@ function runPullRequestFlow(prNumberOverride: string): void {
   if (hasMiseConfig) {
     console.log('Trusting mise configuration ...')
     runInherit('mise', ['trust'])
-    console.log('Running setup ...')
-    runInherit('mise', ['setup'])
+    if (miseTaskExists('setup')) {
+      console.log('Running setup ...')
+      runInherit('mise', ['setup'])
+    }
   }
   console.log('\nWorktree ready. To switch to it, run:')
   console.log(`  cd ${worktreePath}`)
@@ -549,14 +567,17 @@ function runCreateFlow(name: string): void {
   if (hasMiseConfig) {
     console.log('Trusting mise configuration ...')
     runInherit('mise', ['trust'])
-    console.log('Running setup ...')
-    runInherit('mise', ['setup'])
+    if (miseTaskExists('setup')) {
+      console.log('Running setup ...')
+      runInherit('mise', ['setup'])
+    }
   }
   console.log('\nWorktree ready. To switch to it, run:')
   console.log(`  cd ${worktreePath}`)
 }
 
 async function runMain(): Promise<void> {
+  ensureInsideGitRepo()
   const deleteFlag = process.env['usage_delete'] === 'true'
   const pullRequestRaw = (process.env['usage_pull_request'] ?? '').trim()
   const pullRequest = pullRequestRaw.length > 0 && pullRequestRaw !== 'false'

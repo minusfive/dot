@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #MISE description="Install global NPM packages"
 #MISE alias="gin"
+#MISE quiet=true
 
 set -euo pipefail
 
