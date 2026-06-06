@@ -21,7 +21,7 @@
     ],
     "defaultMode": "plan"
   },
-  "model": "sonnet[1m]",
+  "model": "sonnet",
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline-command.sh"

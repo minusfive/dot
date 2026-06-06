@@ -1,6 +1,6 @@
 ---
 name: markdown
-description: Apply Markdown authoring conventions for clarity, link style, table-of-contents discipline, and linter validation. Use when writing or editing Markdown files, documentation, READMEs, or instruction files.
+description: Apply Markdown authoring conventions for clarity, link style, and table-of-contents discipline. Use when writing or editing Markdown files, documentation, READMEs, or instruction files.
 ---
 
 # Markdown Authoring Conventions
@@ -21,4 +21,4 @@ description: Apply Markdown authoring conventions for clarity, link style, table
 
 - Validate all reference links after changes; fix dangling or moved targets.
 - Analyze the whole file and apply these rules consistently; flag deviations.
-- Validate Markdown files with the project's configured Markdown linter when available.
+- For Markdown files, run linters following the `linting` skill.

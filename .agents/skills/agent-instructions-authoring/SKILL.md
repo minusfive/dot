@@ -24,7 +24,7 @@ Required upstream references are listed alongside the work they govern: see [Ski
 - When renaming or restructuring an instruction file or skill, search the repository for stale references and update them.
 - Verify every `assets/…` (or equivalent referenced-resource) path resolves to an existing file and that the asset's current contents still match how the body cites them.
 - Verify every concrete claim in the file before shipping: every command runs, every flag behaves as stated, every URL resolves, every directive, or syntax example matches current tool behavior. Inherited assumptions from a source skill or older docs do not count as verified.
-- Run the Markdown linter required by the `markdown` skill against changed files.
+- Run linters following the `linting` skill.
 - For changes that touch the `AGENTS.md` skill index or any skill directory under `.agents/skills/`, run `mise run lint-skills-index` to verify the index and on-disk skills stay in sync.
 
 ## Critique

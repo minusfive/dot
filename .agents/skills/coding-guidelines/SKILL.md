@@ -31,10 +31,10 @@ description: Apply repository coding standards for implementation and review tas
 - Validate that all rules were followed after completing changes
 - Handle all errors
 - Validate all user inputs and system states
-- Run linters, builds, and tests before making changes to understand unrelated issues
+- Run linters following the `linting` skill
+- Run builds and tests before non-trivial changes to baseline unrelated failures
 - Prefer tools from the ecosystem to automate tasks and reduce mistakes
 - Use refactoring tools to automate changes
-- Use linters and formatters to fix code style and correctness
 - Use local variables to limit scope
 - Always add and update type annotations
 
