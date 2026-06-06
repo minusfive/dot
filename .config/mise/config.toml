@@ -1,3 +1,6 @@
+[task_config]
+includes = ["tasks"]
+
 [settings]
 # paranoid = true
 env_file = ".env"
@@ -36,30 +39,3 @@ markdownlint-cli2 = "latest"
 "npm:mcp-hub" = "latest"
 "npm:@github/copilot" = "latest"
 opencode = "latest"
-
-
-[tasks.global-install-packages-npm]
-description = "Install global NPM packages"
-alias = "gin"
-run = ["npm install -g npm@latest", "npm install -g neovim@latest"]
-
-[tasks.global-install-packages-python]
-description = "Install global Python packages"
-alias = "gip"
-run = ["uv tool install --upgrade pynvim"]
-
-[tasks.global-install-packages-ruby]
-description = "Install global Ruby gems"
-alias = "gir"
-run = ["gem install neovim"]
-
-[tasks.global-install-packages-all]
-description = "Install all global packages"
-alias = "gi"
-run = [
-  { tasks = [
-    "global-install-packages-npm",
-    "global-install-packages-python",
-    "global-install-packages-ruby",
-  ] },
-]

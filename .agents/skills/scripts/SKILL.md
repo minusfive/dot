@@ -73,6 +73,14 @@ When a task requires a script for execution:
 - Save new scripts in the project's reusable script location.
 - Write script documentation optimized for AI agents (see `coding-guidelines` skill).
 
+## Machine Portability (dot repositories)
+
+When working in a dot repository intended to be checked out on multiple machines:
+
+- Never embed absolute paths (e.g., `/Users/username/…`) in any script, config, or task file.
+- Reference paths relative to the file itself (e.g., `../../utils/git.js`) or relative to `~` (e.g., `~/dev/personal/dot`).
+- In mise `task_config.includes`, use a path relative to the config file (e.g., `["tasks"]`) rather than an absolute or `~`-based path where possible.
+
 ## Cross-references
 
 - For Zsh-specific conventions (error safety, logging helpers) see the `zsh` skill.
