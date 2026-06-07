@@ -55,6 +55,13 @@ local linters = new Mapping<String, Step> {
     fix = "markdownlint-cli2 --no-globs --config .markdownlint-cli2.jsonc --fix {{files}}"
   }
 
+  ["markdown_no_html_comments"] = new Step {
+    batch = true
+    exclude = non_security_excludes
+    glob = List("**/*.md", "**/*.markdown")
+    check = "mise run lint-no-html-comments -- {{files}}"
+  }
+
   ["betterleaks"] = (Builtins.betterleaks) {
     batch = true
     prefix = "mise x --"

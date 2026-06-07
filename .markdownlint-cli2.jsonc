@@ -1,6 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/refs/heads/main/schema/markdownlint-cli2-config-schema.json",
   "fix": false,
+  "noInlineConfig": true,
   "config": {
     // MD003/heading-style : Heading style should be consistent
     // Enforces ATX style (# Heading) not Setext style

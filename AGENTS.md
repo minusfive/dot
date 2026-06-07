@@ -75,6 +75,10 @@ The skills below are available under `.agents/skills/`.
 - `linting` — Run linters and respond to lint failures across languages and hook-managed projects; covers `hk` step-level invocation and changed-file vs. whole-tree scope.
 - `lua` — Apply Lua authoring conventions for Neovim, Hammerspoon, WezTerm, and Yazi configurations (module structure, returns, EmmyLua annotations).
 - `markdown` — Apply Markdown authoring conventions (clarity, link style, table-of-contents discipline).
+- `migrate-to-rsbuild` — Migrate Webpack, Vite, CRA/CRACO, or Vue CLI projects to Rsbuild.
+- `migrate-to-rslib` — Migrate TypeScript library projects from tsc or tsup to Rslib.
+- `migrate-to-rslint` — Migrate ESLint or other lint setups to Rslint, including config, scripts, and editor integration.
+- `migrate-to-rstest` — Migrate Jest or Vitest test suites and configuration to Rstest equivalents.
 - `mise-tasks` — Add, modify, or invoke mise tasks (file tasks and TOML tasks); wire task help via usage directives; run tasks with mise run.
 - `nvim` — Apply LazyVim Neovim configuration rules when working with config files, plugins, or Lua modules.
 - `node-npm-bun` — Guide Node package-manager execution across bun, npm, and bunx/npx. Use when installing dependencies, running scripts, or invoking Node CLIs, while preferring bun/bunx when available and respecting project standards.
@@ -83,6 +87,22 @@ The skills below are available under `.agents/skills/`.
 - `pr-guidelines` — Push branches and open pull requests using the project's title/body conventions and linked issues.
 - `project-overview` — Discover project structure, architecture, and tooling before implementation in an unfamiliar area.
 - `rewrite-imports` — Bulk-migrate import paths after module renames, file moves, or package refactors; use when changing how modules are referenced across many files.
+- `rsbuild-best-practices` — Apply Rsbuild configuration, CLI, type-checking, optimization, asset handling, and debugging best practices.
+- `rsbuild-v2-upgrade` — Upgrade Rsbuild projects from v1.x to v2, including dependency and configuration updates.
+- `rsdoctor-analysis` — Analyze local `rsdoctor-data.json` bundle reports and produce evidence-based optimization recommendations.
+- `rslib-best-practices` — Apply Rslib configuration, CLI, output, declaration, dependency, and build optimization best practices.
+- `rslib-modern-package` — Apply modern JS/TS npm package conventions for Rslib libraries and release readiness.
+- `rspack-best-practices` — Apply Rspack configuration, CLI, type-checking, CSS, optimization, asset, and profiling best practices.
+- `rspack-debugging` — Debug Rspack crashes and hangs (including segmentation faults) with LLDB-focused workflows.
+- `rspack-split-chunks` — Diagnose and optimize Rspack `optimization.splitChunks` settings for chunking, caching, and deduplication.
+- `rspack-tracing` — Diagnose Rspack build failures and performance bottlenecks with tracing and profiling workflows.
+- `rspack-v2-upgrade` — Upgrade Rspack projects from v1.x to v2, including dependency and configuration updates.
+- `rspress-best-practices` — Apply Rspress best practices for config, content, MDX, theming, i18n, search, and deployment.
+- `rspress-custom-theme` — Customize Rspress themes via CSS variables, layout slots, component wrapping, and theme ejection.
+- `rspress-description-generator` — Generate and maintain Rspress page description frontmatter for SEO and metadata quality.
+- `rspress-v2-upgrade` — Migrate Rspress projects from v1 to v2 and validate config/theme compatibility.
+- `rstest-best-practices` — Apply Rstest best practices for test authoring, mocking, snapshots, DOM testing, coverage, CI, and performance.
+- `rstest-debugging` — Debug Rstest failures and performance regressions with startup-vs-execution isolation and controlled experiments.
 - `scripts` — Author and maintain setup, automation, and bootstrap shell/task scripts and install flows.
 - `security` — Apply security checks for secrets, credentials, permissions, external network access, dependency risk, and sensitive configuration; use during implementation and security review passes.
 - `task-orchestration` — Decide when to parallelize tool calls, when to dispatch subagents, which model tier suits each sub-task, and how to coordinate multi-step work via shared temporary artifacts.
