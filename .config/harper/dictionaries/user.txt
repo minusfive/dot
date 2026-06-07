@@ -3,6 +3,7 @@ Artifactory
 Autodesk
 BEM
 CLAUDE
+Catppuccin
 CodeCompanion
 Contentful
 Crowdmark
