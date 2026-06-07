@@ -77,6 +77,7 @@ The skills below are available under `.agents/skills/`.
 - `markdown` — Apply Markdown authoring conventions (clarity, link style, table-of-contents discipline).
 - `mise-tasks` — Add, modify, or invoke mise tasks (file tasks and TOML tasks); wire task help via usage directives; run tasks with mise run.
 - `nvim` — Apply LazyVim Neovim configuration rules when working with config files, plugins, or Lua modules.
+- `node-npm-bun` — Guide Node package-manager execution across bun, npm, and bunx/npx. Use when installing dependencies, running scripts, or invoking Node CLIs, while preferring bun/bunx when available and respecting project standards.
 - `opencode-copilot-multipliers` — Sync GitHub Copilot model alias multiplier labels in the OpenCode config with current `github/docs` paid multipliers.
 - `planning` — Produce execution-ready implementation plans for multi-step, high-risk, ambiguous, or multi-file/service work.
 - `pr-guidelines` — Push branches and open pull requests using the project's title/body conventions and linked issues.
@@ -85,4 +86,5 @@ The skills below are available under `.agents/skills/`.
 - `scripts` — Author and maintain setup, automation, and bootstrap shell/task scripts and install flows.
 - `security` — Apply security checks for secrets, credentials, permissions, external network access, dependency risk, and sensitive configuration; use during implementation and security review passes.
 - `task-orchestration` — Decide when to parallelize tool calls, when to dispatch subagents, which model tier suits each sub-task, and how to coordinate multi-step work via shared temporary artifacts.
+- `tanstack-cli` — Use TanStack CLI for app scaffolding, add-on management, docs lookup, and MCP migration whenever a project uses TanStack tools or the user asks for TanStack workflows.
 - `zsh` — Apply Zsh shell scripting conventions (error safety, logging helpers); use when authoring or modifying Zsh scripts.
