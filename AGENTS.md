@@ -48,6 +48,14 @@ This protocol applies to permission denials, policy refusals, and explicit user 
 3. **WAIT** for instructions before proceeding.
 4. **DO NOT** retry the same approach without new information.
 
+### Learning from corrections
+
+When the user corrects an error, challenges an assumption, points out an incomplete execution, or clarifies a misinterpretation:
+
+1. **Check available instructions** — scan `AGENTS.md`, loaded skills under `.agents/skills/`, and `CLAUDE.md` for rules that address or should address the corrected behavior.
+2. **Update or create** — if an existing instruction is ambiguous, incomplete, or absent, update the most relevant file or create a new skill using the `agent-instructions-authoring` skill.
+3. Do not treat the correction as session-only — the goal is a durable instruction, not an in-context patch.
+
 ## Tool Usage
 
 - Never bypass repository hooks (`--no-verify` or equivalent).
