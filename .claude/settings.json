@@ -21,7 +21,7 @@
     ],
     "defaultMode": "plan"
   },
-  "model": "sonnet",
+  "model": "opus",
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline-command.sh"
@@ -31,5 +31,9 @@
   "effortLevel": "high",
   "editorMode": "vim",
   "skipAutoPermissionPrompt": true,
-  "additionalDirectories": ["./.agents", "~/.agents"]
+  "additionalDirectories": [
+    "./.agents",
+    "~/.agents"
+  ],
+  "skipWorkflowUsageWarning": true
 }
