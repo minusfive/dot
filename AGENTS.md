@@ -48,13 +48,15 @@ This protocol applies to permission denials, policy refusals, and explicit user 
 3. **WAIT** for instructions before proceeding.
 4. **DO NOT** retry the same approach without new information.
 
-### Learning from corrections
+### Encoding corrections as durable rules
 
-When the user corrects an error, challenges an assumption, points out an incomplete execution, or clarifies a misinterpretation:
+When the user corrects an error, challenges an assumption, points out an incomplete execution, or clarifies a misinterpretation, treat it as an instruction update opportunity. Apply this protocol only when the correction reflects a repeatable pattern, a standing preference, or a systematic gap — not a one-off or context-specific fix.
 
-1. **Check available instructions** — scan `AGENTS.md`, loaded skills under `.agents/skills/`, and `CLAUDE.md` for rules that address or should address the corrected behavior.
-2. **Update or create** — if an existing instruction is ambiguous, incomplete, or absent, update the most relevant file or create a new skill using the `agent-instructions-authoring` skill.
-3. Do not treat the correction as session-only — the goal is a durable instruction, not an in-context patch.
+1. **Load the `agent-instructions-authoring` skill** — its conventions shape every step below.
+2. **Scan existing instructions** — review local and global instructions and skills for rules that address or should address the corrected behavior. Classify the result as: (a) no relevant rule exists, (b) a relevant rule is incomplete or ambiguous, or (c) a relevant rule directly contradicts the correction.
+3. **Determine scope and target** — decide (a) local vs. global, preferring local unless the rule applies across all projects; and (b) a flat rule in the local instructions vs. a dedicated skill — prefer a skill when the correction is topical or reusable across tasks; prefer the local instructions for universal behavioral guidance. For the contradiction case, plan removal or supersession alongside any new wording.
+4. **Present and confirm** — draft the exact proposed change (file, section, wording) and ask the user to confirm. If they reject, revise based on their feedback and re-present, or abandon the change if the rejection indicates the rule should not exist.
+5. **Apply the change** — write the confirmed wording verbatim, then perform any mechanical follow-ups (index entries, cross-references) needed to keep the instruction set consistent.
 
 ## Tool Usage
 
