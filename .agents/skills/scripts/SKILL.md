@@ -40,6 +40,11 @@ main() {
 main "$@"
 ```
 
+## File Naming and Extensions
+
+- Name script files with an extension that matches the script language/interpreter (for example `.zsh`, `.sh`, `.bash`, `.js`, `.ts`).
+- Keep file extension and shebang/runtime aligned; when they disagree, fix the filename to the actual script language.
+
 ## Adding or Updating Scripts
 
 1. Reuse and extend existing scripts when possible before creating new scripts.
@@ -84,3 +89,4 @@ When working in a dot repository intended to be checked out on multiple machines
 ## Cross-references
 
 - For Zsh-specific conventions (error safety, logging helpers) see the `zsh` skill.
+- For mise task-specific naming rules (including `_default`), see the `mise-tasks` skill.

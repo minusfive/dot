@@ -25,6 +25,8 @@ See [file tasks](https://mise.jdx.dev/tasks/file-tasks.html).
 
 - Place file tasks in the project's configured tasks directory; refer to the docs for the supported defaults and how `task_config.includes` overrides them.
 - Make the file executable; mise auto-registers executable files in the tasks directory.
+- Use a file extension that matches the task language/interpreter (for example `.zsh`, `.sh`, `.js`, `.ts`).
+- Keep files named `_default` extensionless; mise default-task resolution breaks when `_default` has an extension.
 - Before authoring a file task, assess whether any of its logic should be reusable across other tasks or scripts. When it should, extract the reusable code into a directory outside the mise-detected tasks directory and import it from the task file. Keep the task namespace populated only by tasks; let shared logic live alongside the project's other source code for clearer separation of concerns.
 
 ### TOML tasks

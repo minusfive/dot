@@ -13,6 +13,10 @@ description: Apply Zsh shell scripting conventions for error safety and logging.
 
 - Use consistent logging functions across scripts in the same project; detect and reuse existing helpers before introducing new ones.
 
+## File Naming
+
+- Use `.zsh` for Zsh scripts, including Zsh-based mise file tasks.
+
 ## Cross-references
 
 - For broader script-authoring guidance (project pattern detection, environment configuration, testing, integration) see the `scripts` skill.
