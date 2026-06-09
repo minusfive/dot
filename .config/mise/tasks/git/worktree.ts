@@ -2,7 +2,6 @@
 //MISE description="Create or remove a git worktree"
 //MISE alias="gwt"
 //MISE dir="{{cwd}}"
-//MISE quiet=true
 //USAGE arg "[name]" help="Branch-like name for the worktree, or ALL_CLOSED_PRS with --delete"
 //USAGE flag "-d --delete" help="Delete a worktree; use ALL_CLOSED_PRS to delete all closed PR worktrees"
 //USAGE flag "-p --pull-request <pull-request>" help="Create a worktree from an open PR, or target PR worktrees with --delete"
@@ -56,7 +55,9 @@ function commandExists(command: string): boolean {
 }
 
 function ensureInsideGitRepo(): void {
-  const result = spawnSync("git", ["rev-parse", "--is-inside-work-tree"], { encoding: "utf-8" });
+  const result = spawnSync("git", ["rev-parse", "--is-inside-work-tree"], {
+    encoding: "utf-8",
+  });
   if (result.status !== 0 || result.stdout.trim() !== "true") {
     throw new Error(
       `not inside a git working tree (cwd: ${process.cwd()}). cd into a git checkout before running this task.`,
@@ -71,7 +72,9 @@ function ensureCommand(command: string, reason: string): void {
 }
 
 function miseTaskExists(task: string): boolean {
-  const result = spawnSync("mise", ["tasks", "info", task], { stdio: "ignore" });
+  const result = spawnSync("mise", ["tasks", "info", task], {
+    stdio: "ignore",
+  });
   return result.status === 0;
 }
 
@@ -113,7 +116,9 @@ function parseWorktreeList(repoRoot: string): WorktreeEntry[] {
       continue;
     }
     if (line.startsWith("branch ")) {
-      currentBranch = line.slice("branch ".length).replace(/^refs\/heads\//, "");
+      currentBranch = line
+        .slice("branch ".length)
+        .replace(/^refs\/heads\//, "");
       continue;
     }
     if (line.trim() === "") {
@@ -129,7 +134,10 @@ function resolveWorktreePath(pathLike: string): string {
   return resolve(process.cwd(), pathLike);
 }
 
-function findWorktreeByPath(entries: WorktreeEntry[], targetPath: string): WorktreeEntry | undefined {
+function findWorktreeByPath(
+  entries: WorktreeEntry[],
+  targetPath: string,
+): WorktreeEntry | undefined {
   return entries.find((entry) => resolve(entry.path) === targetPath);
 }
 
@@ -188,11 +196,16 @@ function pickLineFromPrompt(lines: string[]): string | undefined {
   process.stdout.write("\nEnter number to remove: ");
   const input = readFileSync(0, "utf-8").trim();
   const choice = Number.parseInt(input, 10);
-  if (!Number.isFinite(choice) || choice < 1 || choice > lines.length) return undefined;
+  if (!Number.isFinite(choice) || choice < 1 || choice > lines.length)
+    return undefined;
   return lines[choice - 1];
 }
 
-function getOpenPullRequests(hostname: string, owner: string, repo: string): PullRequestListItem[] {
+function getOpenPullRequests(
+  hostname: string,
+  owner: string,
+  repo: string,
+): PullRequestListItem[] {
   const output = runCapture("gh", [
     "api",
     "--hostname",
@@ -218,8 +231,18 @@ function getOpenPullRequests(hostname: string, owner: string, repo: string): Pul
   return prs;
 }
 
-function getPullRequestState(hostname: string, owner: string, repo: string, prNumber: number): PullRequestState {
-  const output = runCapture("gh", ["api", "--hostname", hostname, `/repos/${owner}/${repo}/pulls/${prNumber}`]);
+function getPullRequestState(
+  hostname: string,
+  owner: string,
+  repo: string,
+  prNumber: number,
+): PullRequestState {
+  const output = runCapture("gh", [
+    "api",
+    "--hostname",
+    hostname,
+    `/repos/${owner}/${repo}/pulls/${prNumber}`,
+  ]);
   const parsed = JSON.parse(output) as { state?: unknown };
   const state = parsed.state;
   if (state !== "open" && state !== "closed") {
@@ -274,7 +297,8 @@ function removeWorktreeByPath(path: string): Promise<void> {
         return;
       }
 
-      const message = stderr.trim() || stdout.trim() || `git worktree remove ${path} failed`;
+      const message =
+        stderr.trim() || stdout.trim() || `git worktree remove ${path} failed`;
       rejectPromise(new Error(message));
     });
   });
@@ -320,7 +344,9 @@ async function removeWorktreePaths(selectedPaths: string[]): Promise<void> {
   }
 
   if (failedCount > 0) {
-    throw new Error(`failed to remove ${failedCount} of ${selectedPaths.length} selected worktree(s).`);
+    throw new Error(
+      `failed to remove ${failedCount} of ${selectedPaths.length} selected worktree(s).`,
+    );
   }
 
   console.log("Done.");
@@ -341,12 +367,16 @@ async function runDeleteFlow(name: string): Promise<void> {
 
   const lines = [
     `All closed PRs\t${ALL_CLOSED_PRS_KEYWORD}\t`,
-    ...worktrees.map((entry) => `${entry.name}\t${entry.path}\t${entry.branch}`),
+    ...worktrees.map(
+      (entry) => `${entry.name}\t${entry.path}\t${entry.branch}`,
+    ),
   ];
   const previewCommand = `if [ ${shellQuote("{2}")} = ${shellQuote(ALL_CLOSED_PRS_KEYWORD)} ]; then echo 'Delete all worktrees for closed pull requests.'; else git -C ${shellQuote("{2}")} log --oneline --color --graph -20 2>/dev/null; fi`;
 
   const selectedLines = commandExists("fzf")
-    ? pickLineWithFzf(lines, "Select worktree(s) to remove: ", previewCommand, { multi: true })
+    ? pickLineWithFzf(lines, "Select worktree(s) to remove: ", previewCommand, {
+        multi: true,
+      })
     : (() => {
         const selected = pickLineFromPrompt(lines);
         return selected ? [selected] : undefined;
@@ -357,7 +387,9 @@ async function runDeleteFlow(name: string): Promise<void> {
     return;
   }
 
-  const selectedAllClosedPrs = selectedLines.some((line) => line.split("\t")[1]?.trim() === ALL_CLOSED_PRS_KEYWORD);
+  const selectedAllClosedPrs = selectedLines.some(
+    (line) => line.split("\t")[1]?.trim() === ALL_CLOSED_PRS_KEYWORD,
+  );
   if (selectedAllClosedPrs) {
     await runDeleteClosedPrWorktreesFlow();
     return;
@@ -373,8 +405,14 @@ async function runDeleteClosedPrWorktreesFlow(): Promise<void> {
   const repoRoot = runCapture("git", ["rev-parse", "--show-toplevel"]).trim();
   const worktrees = parseWorktreeList(repoRoot);
   const prWorktrees = worktrees
-    .map((entry) => ({ entry, prNumber: parsePrNumberFromWorktreeName(entry.name) }))
-    .filter((value): value is { entry: WorktreeEntry; prNumber: number } => value.prNumber !== undefined);
+    .map((entry) => ({
+      entry,
+      prNumber: parsePrNumberFromWorktreeName(entry.name),
+    }))
+    .filter(
+      (value): value is { entry: WorktreeEntry; prNumber: number } =>
+        value.prNumber !== undefined,
+    );
 
   if (prWorktrees.length === 0) {
     console.log("No PR worktrees found.");
@@ -389,7 +427,12 @@ async function runDeleteClosedPrWorktreesFlow(): Promise<void> {
 
   const closedPrPaths = new Set<string>();
   for (const prWorktree of prWorktrees) {
-    const state = getPullRequestState(hostname, owner, repo, prWorktree.prNumber);
+    const state = getPullRequestState(
+      hostname,
+      owner,
+      repo,
+      prWorktree.prNumber,
+    );
     if (state === "closed") {
       closedPrPaths.add(prWorktree.entry.path);
     }
@@ -401,16 +444,26 @@ async function runDeleteClosedPrWorktreesFlow(): Promise<void> {
     return;
   }
 
-  console.log(`Found ${selectedPaths.length} worktree(s) for closed pull requests.`);
+  console.log(
+    `Found ${selectedPaths.length} worktree(s) for closed pull requests.`,
+  );
   await removeWorktreePaths(selectedPaths);
 }
 
-async function runDeletePullRequestWorktreesFlow(pullRequestSelector: string): Promise<void> {
+async function runDeletePullRequestWorktreesFlow(
+  pullRequestSelector: string,
+): Promise<void> {
   const repoRoot = runCapture("git", ["rev-parse", "--show-toplevel"]).trim();
   const worktrees = parseWorktreeList(repoRoot);
   const prWorktrees = worktrees
-    .map((entry) => ({ entry, prNumber: parsePrNumberFromWorktreeName(entry.name) }))
-    .filter((value): value is { entry: WorktreeEntry; prNumber: number } => value.prNumber !== undefined);
+    .map((entry) => ({
+      entry,
+      prNumber: parsePrNumberFromWorktreeName(entry.name),
+    }))
+    .filter(
+      (value): value is { entry: WorktreeEntry; prNumber: number } =>
+        value.prNumber !== undefined,
+    );
 
   if (prWorktrees.length === 0) {
     console.log("No PR worktrees found.");
@@ -423,7 +476,9 @@ async function runDeletePullRequestWorktreesFlow(pullRequestSelector: string): P
   }
 
   const prNumberOverride =
-    pullRequestSelector && pullRequestSelector !== "pick" ? normalizePrNumber(pullRequestSelector) : "";
+    pullRequestSelector && pullRequestSelector !== "pick"
+      ? normalizePrNumber(pullRequestSelector)
+      : "";
 
   if (prNumberOverride) {
     const selectedPaths = prWorktrees
@@ -439,12 +494,20 @@ async function runDeletePullRequestWorktreesFlow(pullRequestSelector: string): P
 
   const lines = [
     `All closed PRs\t${ALL_CLOSED_PRS_KEYWORD}\t`,
-    ...prWorktrees.map((entry) => `${entry.entry.name}\t${entry.entry.path}\t${entry.entry.branch}`),
+    ...prWorktrees.map(
+      (entry) =>
+        `${entry.entry.name}\t${entry.entry.path}\t${entry.entry.branch}`,
+    ),
   ];
   const previewCommand = `if [ ${shellQuote("{2}")} = ${shellQuote(ALL_CLOSED_PRS_KEYWORD)} ]; then echo 'Delete all worktrees for closed pull requests.'; else git -C ${shellQuote("{2}")} log --oneline --color --graph -20 2>/dev/null; fi`;
 
   const selectedLines = commandExists("fzf")
-    ? pickLineWithFzf(lines, "Select PR worktree(s) to remove: ", previewCommand, { multi: true })
+    ? pickLineWithFzf(
+        lines,
+        "Select PR worktree(s) to remove: ",
+        previewCommand,
+        { multi: true },
+      )
     : (() => {
         const selected = pickLineFromPrompt(lines);
         return selected ? [selected] : undefined;
@@ -455,7 +518,9 @@ async function runDeletePullRequestWorktreesFlow(pullRequestSelector: string): P
     return;
   }
 
-  const selectedAllClosedPrs = selectedLines.some((line) => line.split("\t")[1]?.trim() === ALL_CLOSED_PRS_KEYWORD);
+  const selectedAllClosedPrs = selectedLines.some(
+    (line) => line.split("\t")[1]?.trim() === ALL_CLOSED_PRS_KEYWORD,
+  );
   if (selectedAllClosedPrs) {
     await runDeleteClosedPrWorktreesFlow();
     return;
@@ -496,9 +561,15 @@ function runPullRequestFlow(prNumberOverride: string): void {
       return;
     }
 
-    const lines = prs.map((pr) => `#${pr.number} ${pr.title}\t${pr.number}\t${pr.branch}`);
+    const lines = prs.map(
+      (pr) => `#${pr.number} ${pr.title}\t${pr.number}\t${pr.branch}`,
+    );
     const previewCommand = `gh pr view ${shellQuote("{2}")} 2>/dev/null | head -40`;
-    const selected = pickLineWithFzf(lines, "Select PR worktree: ", previewCommand)?.[0];
+    const selected = pickLineWithFzf(
+      lines,
+      "Select PR worktree: ",
+      previewCommand,
+    )?.[0];
 
     if (!selected) {
       console.log("No PR selected.");
@@ -517,10 +588,14 @@ function runPullRequestFlow(prNumberOverride: string): void {
 
   if (existsSync(resolvedWorktreePath)) {
     if (!existingWorktree) {
-      throw new Error(`worktree path '${worktreePath}' already exists but is not a registered git worktree.`);
+      throw new Error(
+        `worktree path '${worktreePath}' already exists but is not a registered git worktree.`,
+      );
     }
     if (!isGitStatusClean(resolvedWorktreePath)) {
-      throw new Error(`worktree '${worktreePath}' has uncommitted changes; clean it before rerunning.`);
+      throw new Error(
+        `worktree '${worktreePath}' has uncommitted changes; clean it before rerunning.`,
+      );
     }
     console.log(`Reusing worktree: ${worktreePath} ...`);
     process.chdir(resolvedWorktreePath);
@@ -533,7 +608,8 @@ function runPullRequestFlow(prNumberOverride: string): void {
   console.log(`Checking out PR #${selectedPr} ...`);
   runInherit("gh", ["pr", "checkout", selectedPr]);
   const hasMiseConfig =
-    existsSync(resolve(resolvedWorktreePath, "mise.toml")) || existsSync(resolve(resolvedWorktreePath, ".mise.toml"));
+    existsSync(resolve(resolvedWorktreePath, "mise.toml")) ||
+    existsSync(resolve(resolvedWorktreePath, ".mise.toml"));
   if (hasMiseConfig) {
     console.log("Trusting mise configuration ...");
     runInherit("mise", ["trust"]);
@@ -560,7 +636,8 @@ function runCreateFlow(name: string): void {
   console.log(`Creating worktree: ${worktreePath} ...`);
   runInherit("git", ["worktree", "add", worktreePath]);
   const hasMiseConfig =
-    existsSync(resolve(resolvedWorktreePath, "mise.toml")) || existsSync(resolve(resolvedWorktreePath, ".mise.toml"));
+    existsSync(resolve(resolvedWorktreePath, "mise.toml")) ||
+    existsSync(resolve(resolvedWorktreePath, ".mise.toml"));
   process.chdir(worktreePath);
   if (hasMiseConfig) {
     console.log("Trusting mise configuration ...");
@@ -580,18 +657,27 @@ async function runMain(): Promise<void> {
   const pullRequestRaw = (process.env["usage_pull_request"] ?? "").trim();
   const pullRequest = pullRequestRaw.length > 0 && pullRequestRaw !== "false";
   const name = (process.env["usage_name"] ?? "").trim();
-  const pullRequestSelector = pullRequestRaw === "true" ? "pick" : pullRequestRaw;
+  const pullRequestSelector =
+    pullRequestRaw === "true" ? "pick" : pullRequestRaw;
   const deleteAllClosedFromName = isAllClosedPrsKeyword(name);
-  const deleteAllClosedFromPullRequest = pullRequest && isAllClosedPrsKeyword(pullRequestSelector);
+  const deleteAllClosedFromPullRequest =
+    pullRequest && isAllClosedPrsKeyword(pullRequestSelector);
 
   if (pullRequest && name && !deleteFlag) {
-    throw new Error("do not provide [name] with --pull-request; pass the PR number to --pull-request.");
+    throw new Error(
+      "do not provide [name] with --pull-request; pass the PR number to --pull-request.",
+    );
   }
   if (deleteFlag && pullRequest && name) {
     throw new Error("do not provide [name] with --delete and --pull-request.");
   }
-  if (!deleteFlag && (deleteAllClosedFromName || deleteAllClosedFromPullRequest)) {
-    throw new Error(`${ALL_CLOSED_PRS_KEYWORD} can only be used with --delete.`);
+  if (
+    !deleteFlag &&
+    (deleteAllClosedFromName || deleteAllClosedFromPullRequest)
+  ) {
+    throw new Error(
+      `${ALL_CLOSED_PRS_KEYWORD} can only be used with --delete.`,
+    );
   }
 
   if (deleteFlag) {
@@ -608,9 +694,14 @@ async function runMain(): Promise<void> {
   }
   if (pullRequest) {
     if (isAllClosedPrsKeyword(pullRequestSelector)) {
-      throw new Error(`${ALL_CLOSED_PRS_KEYWORD} can only be used with --delete.`);
+      throw new Error(
+        `${ALL_CLOSED_PRS_KEYWORD} can only be used with --delete.`,
+      );
     }
-    const prNumber = pullRequestSelector === "pick" ? "" : normalizeOptionalPrNumber(pullRequestSelector);
+    const prNumber =
+      pullRequestSelector === "pick"
+        ? ""
+        : normalizeOptionalPrNumber(pullRequestSelector);
     runPullRequestFlow(prNumber);
     return;
   }
