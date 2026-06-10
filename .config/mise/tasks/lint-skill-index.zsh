@@ -1,9 +1,16 @@
 #!/usr/bin/env zsh
 #MISE description="Verify AGENTS.md skill index is in sync with .agents/skills/"
+#MISE alias="lint-skills-index"
+#MISE dir="{{cwd}}"
 
 set -euo pipefail
 
-repo_root="${MISE_PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
+if [[ -z "$repo_root" ]]; then
+    print -u2 -- "error: this task must be run inside a git repository"
+    exit 2
+fi
+
 agents_md="${repo_root}/AGENTS.md"
 skills_dir="${repo_root}/.agents/skills"
 
