@@ -1,45 +1,51 @@
 ---
 name: planning
-description: Produce execution-ready implementation plans for complex work. Use when tasks are multi-step, high-risk, ambiguous, or span multiple files/services.
+description: Produce deterministic execution plans with story artifacts ready for workflow-driven delivery. Use when tasks are multi-step, high-risk, ambiguous, or span multiple files/services.
 ---
 
 # Planning
 
-Use this skill as the canonical source for planning behavior and transition-to-execution readiness.
+Use this skill to produce execution-ready plans before implementation.
 
-## Required Planning Gates
+## Planning Loop
 
-Before execution, confirm all of the following:
+1. Explore relevant codepaths, docs, and constraints first.
+2. Enumerate ambiguous branches and unknowns explicitly.
+3. Interview the plan across the full design tree:
+   - Challenge assumptions directly, surface blind spots/edge cases/sequencing risks, and avoid passive transcription.
+   - Ask one question at a time and wait for feedback before continuing; only batch questions when they are fully independent, and limit each batch to at most three questions.
+   - Resolve decision dependencies one-by-one; do not advance while upstream decisions remain open.
+   - If a question can be answered by exploring the codebase, investigate first and only ask when uncertainty remains.
+   - For each question the agent asks the user, provide a recommended answer first.
+   - Base recommendations on concrete codebase/docs evidence when available; when evidence is unavailable, state the assumption explicitly before requesting confirmation or correction.
+4. Continue until all implementation-critical decisions are resolved (decisions that materially change execution steps, ordering, or scope), no unresolved upstream dependencies remain, and no open questions remain for final plan output.
+5. Once all open questions are resolved and before presenting final plan output, apply the canonical critique gate defined in `AGENTS.md`.
 
-1. **Exploration complete**: relevant codepaths, docs, and constraints are identified.
-2. **Unknowns handled**: unknowns are resolved or converted into explicit user questions.
-3. **Conversational planning complete**: planning interaction challenges assumptions, pressure-tests risks, and avoids passive transcription.
-4. **Critique pass complete**: every time the plan is updated, apply the canonical critique gate defined in `AGENTS.md` before presenting the updated plan to the user.
-5. **Deterministic sequence**: execution steps are ordered, concrete, and testable.
-6. **Failure protocol ready**: rollback/mitigation approach is clear for risky operations.
-
-## Conversational Peer Behavior
-
-- Act like a highly experienced peer reviewer, not a recorder.
-- Challenge assumptions directly and propose concrete corrections when assumptions are weak.
-- Surface blind spots, edge cases, and sequencing risks.
-- Ask focused clarifying questions when requirements are ambiguous.
-- Keep the planning loop interactive until execution steps are unambiguous.
-
-## Execution Guardrails
+## Execution Readiness and Guardrails
 
 - Do not start execution with unresolved decision branches.
 - Do not leave implementation-critical steps as `TBD` or "decide later."
-- If new unknowns appear during execution, stop and re-enter planning for that scope.
+- Ensure execution steps are ordered, concrete, and testable.
+- Ensure rollback/mitigation approach is clear before execution.
 
 ## Plan Output Requirements
 
 When producing or validating a plan, include only actionable execution instructions:
 
 1. Objective
-2. Ordered execution steps
-3. Explicit dependencies and sequencing constraints
+2. Deterministic story plan artifact:
+   - Format implementation work as story blocks that execution agents can follow without reinterpretation.
+   - Each story block must include: stable story key, dependencies, numbered implementation steps, acceptance checks, and rollback/mitigation notes.
+   - Keep story keys machine-parseable and execution order topologically valid.
+3. Execution handoff constraints:
+   - Declare sequencing constraints and concurrency boundaries required by execution workflow.
+   - Identify vertical integration checkpoints that execution must preserve as feedback anchors.
 4. Verification/acceptance checks
 
 All open questions must be resolved during the planning conversation before presenting final plan output.
-Do not include decision-making history, tradeoff history, or rationale narrative in final plan output.
+Do not include meta-commentary, decision-making history, tradeoff history, or rationale narrative in final plan output.
+
+## Execution Handoff
+
+Once the final plan artifact is accepted, load the `execution-workflow` skill to drive story delivery.
+Persist the accepted plan artifact under `.agents/projects/<project>/plan.md` using the `agentic-projects` skill before handoff.
