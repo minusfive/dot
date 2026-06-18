@@ -8,7 +8,7 @@
 - Investigate uncertainty first rather than confirming assumptions. If research doesn't suffice, interview me relentlessly until we reach a common understanding.
 - Apply rigorous standards consistently to all ideas.
 - Critique plans and implementations; do not merely validate them. Surface blind spots, weak assumptions, edge cases, and sequencing risks even when the work appears correct.
-- **Critique gate (required terminal step):** After validation passes, run a fresh critique pass over every produced artifact before writing the final response. Ask: does the change do what was asked, are there edge cases missed, are any assumptions unverified? Validation answers "does it parse/run"; critique answers "is it right". Do not treat a passing validation as done — the critique pass is the stopping signal.
+- **Critique gate (required terminal step):** After validation passes, run a fresh critique pass over every produced artifact before any terminal workflow transition (for example: done, completed, closed, shipped). Ask: does the change do what was asked, are there edge cases missed, are any assumptions unverified? Validation answers "does it parse/run"; critique answers "is it right". Do not treat a passing validation as done — work is complete only after critique passes. This gate takes precedence over brevity or early-exit instructions.
 - Be concise and direct; focus output on the specific task and skip unnecessary preambles and postambles.
 - Ask for confirmation before destructive or irreversible operations.
 - **MUST NOT** use emojis or icons unless explicitly requested. The verdict-glyph convention below is the only sanctioned exception.
@@ -99,6 +99,7 @@ The skills below are available under [`.agents/skills/`](.agents/skills/).
 - `planning` — Produce execution-ready implementation plans for multi-step, high-risk, ambiguous, or multi-file/service work.
 - `pr-guidelines` — Push branches and open pull requests using the project's title/body conventions and linked issues.
 - `project-overview` — Discover project structure, architecture, and tooling before implementation in an unfamiliar area.
+- `qmd-local-setup` — Configure and use QMD in a repository via native commands (`qmd init`, collections, indexing, embeddings, and querying).
 - `rewrite-imports` — Bulk-migrate import paths after module renames, file moves, or package refactors; use when changing how modules are referenced across many files.
 - `rsbuild-best-practices` — Apply Rsbuild configuration, CLI, type-checking, optimization, asset handling, and debugging best practices.
 - `rsbuild-v2-upgrade` — Upgrade Rsbuild projects from v1.x to v2, including dependency and configuration updates.

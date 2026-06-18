@@ -7,6 +7,12 @@ description: Execute deterministic story plans through dependency-aware workflow
 
 Use this skill after planning is complete and you need to execute an existing plan through issues, board cards, PRs, and merges.
 
+## Canonical lifecycle
+
+Use this lifecycle for every story and transition:
+
+`blocked -> todo -> research -> implement -> validate -> critique -> done`
+
 ## Workflow contract
 
 1. Treat the plan as the canonical source of truth.
@@ -35,16 +41,18 @@ Use this skill after planning is complete and you need to execute an existing pl
 
 ## Kanban lifecycle
 
-1. Track each story as an issue/card through a visible status flow (for example: todo -> research -> implement -> critique -> done).
+1. Track each story as an issue/card using the canonical lifecycle defined above.
 2. Use blocked status only with an explicit blocker reason and unblock condition.
 3. Keep issue/card status synchronized at each transition.
-4. Apply the critique gate before moving a story to done.
+4. Apply the critique gate at the `critique` state before any transition to `done`.
 
 ## Critique Gate
 
 1. Follow the canonical critique gate defined in `AGENTS.md`.
-2. Apply the gate at each story-to-done transition, not only at conversation end.
-3. When critique fails, move the story back to a prior state with documented findings and next-cycle actions.
+2. Apply the gate for every `critique -> done` transition, not only at conversation end.
+3. When critique fails, move the story to `research` with documented findings and next-cycle actions.
+4. Count each failed critique as one cycle for that story.
+5. If a story reaches 5 failed critique cycles without passing, move it to `blocked` with an explicit blocker reason and unblock condition.
 
 ## PR and verification discipline
 
@@ -63,9 +71,9 @@ Use this skill after planning is complete and you need to execute an existing pl
 
 When asked to produce an execution workflow, return:
 
-1. Story execution state map (ready, in-progress, blocked, critique, done).
+1. Story execution state map using the canonical lifecycle states, plus failed critique cycle count per story.
 2. Exact plan artifact path in use for this execution cycle.
-3. Dependency-aware next-action queue for ready stories.
+3. Dependency-aware next-action queue for stories in `todo` and `research`.
 4. Lane and merge plan for active stories (sequential, parallel, merged).
 5. Blockers and drift findings with required planning patches.
 6. Per-story acceptance, critique, and merge gate status.

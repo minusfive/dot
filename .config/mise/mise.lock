@@ -255,6 +255,10 @@ backend = "npm:@github/copilot"
 version = "11.15.0"
 backend = "npm:@mermaid-js/mermaid-cli"
 
+[[tools."npm:@tobilu/qmd"]]
+version = "2.5.3"
+backend = "npm:@tobilu/qmd"
+
 [[tools."npm:mcp-hub"]]
 version = "4.2.1"
 backend = "npm:mcp-hub"
