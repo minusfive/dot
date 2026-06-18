@@ -27,7 +27,7 @@ Required upstream references are listed alongside the work they govern: see [Ski
 - For non-trivial skill behavior edits, run a lightweight eval loop following [Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills): compare baseline vs updated behavior, grade assertions with evidence, and inspect pass-rate plus time/token deltas.
 - For description-focused edits, follow [Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions): use should-trigger and should-not-trigger query sets, run multiple trials, and prefer train/validation splits over single-set tuning.
 - Run linters following the `linting` skill.
-- For changes that touch the `AGENTS.md` skill index or any skill directory under `.agents/skills/`, run `mise run lint-skills-index` to verify the index and on-disk skills stay in sync.
+- For changes that touch the `AGENTS.md` skill index or any skill directory under `.agents/skills/`, run `mise run lint-skill-index` to verify the index and on-disk skills stay in sync.
 
 ## Critique
 
@@ -135,6 +135,7 @@ For small edits (rule wording tweaks, single-entry index updates), skip the load
 ### Authoring behavior
 
 - Keep `AGENTS.md` to rules that apply to all agents and all tasks, regardless of domain, language, or workflow, plus a skill index. Anything narrower belongs in a skill.
+- Keep the `AGENTS.md` Skills preamble behavioral. Put rationale and implementation context for skill catalogs (for example, discovery-model details) in this authoring skill, not in `AGENTS.md`.
 - Extract domain-, language-, or workflow-specific guidance into skills and reference them from the index.
 - Update the index in the same change that adds, renames, or removes a skill.
 - Pair every `AGENTS.md` with a `CLAUDE.md` at the same path whose entire contents are the literal string `@AGENTS.md` (and nothing else). Create, move, rename, and delete them in lockstep. This ensures Claude resolves to the same canonical entry point as other harnesses.
@@ -142,4 +143,4 @@ For small edits (rule wording tweaks, single-entry index updates), skip the load
 ### Required Skills section content
 
 - Use [`assets/agents-md-index-section.template.md`](assets/agents-md-index-section.template.md) as the canonical template for the `AGENTS.md` Skills section. Mirror its preamble verbatim, adapting only the skills-location reference to the active harness.
-- Populate the index from the actual skill directory: one entry per skill, using the skill's frontmatter `name` and a one-line summary derived from its `description`.
+- Populate the index from the actual skill directory: one entry per skill, using the skill's frontmatter `name` and an accurate one-line summary optimized for AGENTS.md context (it does not need to match the skill `description` verbatim).
