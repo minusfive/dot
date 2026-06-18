@@ -15,6 +15,7 @@ Required upstream references are listed alongside the work they govern: see [Ski
 - Audit for duplicate or conflicting instructions across all repository instruction entrypoints (top-level instruction files, skills, agent/subagent definitions).
 - Prefer a single canonical source and cross-reference it rather than duplicating the same guidance — this applies equally to skills, `AGENTS.md`, `CLAUDE.md`, and agent definitions.
 - When multiple files could host the same policy, treat the most specific skill as canonical and have broader files cross-reference it.
+- When a rule already exists canonically, reference the canonical instruction instead of restating the same normative rule in another instruction file unless the local file adds a necessary scoped delta.
 - Flag or remove drift-prone duplication that can diverge from real behavior over time.
 
 ## Validation
@@ -22,6 +23,9 @@ Required upstream references are listed alongside the work they govern: see [Ski
 - Validate skill metadata, structure, and behavior against the loaded specs.
 - Validate and audit each skill `description` for discoverability quality, including clear invocation cues and relevant trigger keywords, and avoid "how it works" wording.
 - When renaming or restructuring an instruction file or skill, search the repository for stale references and update them.
+- Run a duplication/conflict sweep for normative conventions across instruction entrypoints (for example: path conventions, naming rules, required artifacts, handoff contracts, and lifecycle states) and resolve conflicts before shipping.
+- For external documentation references, keep local guidance concise and project-specific and link to canonical upstream documentation instead of copying large reference material that can drift.
+- When changing canonical locations, naming conventions, or handoff contracts, include migration guidance (or an explicit no-migration decision) and update dependent references in the same change.
 - Verify every `assets/…` (or equivalent referenced-resource) path resolves to an existing file and that the asset's current contents still match how the body cites them.
 - Verify every concrete claim in the file before shipping: every command runs, every flag behaves as stated, every URL resolves, every directive, or syntax example matches current tool behavior. Inherited assumptions from a source skill or older docs do not count as verified.
 - For non-trivial skill behavior edits and description-focused edits, load `agent-instructions-evaluation` and follow its evaluation workflows before shipping.
@@ -36,6 +40,10 @@ The repository's general post-validation critique gate (defined in the top-level
 - Would a reasonable agent misread it?
 - Does it over- or under-constrain compared to my actual intent?
 - Is the canonical source still canonical after this edit?
+- Did this change restate a canonical instruction locally where a cross-reference should be used?
+- Are there unresolved duplicated or contradictory conventions across instruction entrypoints after this edit?
+- Did external documentation guidance stay link-first instead of copying drift-prone reference material?
+- If canonical locations, naming conventions, or handoff contracts changed, did I include migration guidance (or an explicit no-migration decision) and update dependents?
 - Does any rule contain authoring meta-commentary that belongs in the authoring skill?
 
 ## Authoring Style
@@ -117,6 +125,7 @@ Use the loaded specs as the active source of truth; derive requirements dynamica
 - Write rules as positive, imperative directives. State what to do; describe the desired end state. Reserve "do not X" or "X is wrong" framings for cases where the antipattern is concrete, plausible, high-risk, and not already excluded by a positive rule — instruction-file authoring contains several such antipatterns (e.g., assuming the harness auto-loads referenced assets, restating canonical rules in multiple entrypoints), so negative framings appear in this skill where the exception is met.
 - Negative rules carry two costs: they plant the anti-pattern in agent context (which can prompt the very behavior they forbid), and they can conflict with project-specific configuration (aliases, custom directories, custom commands) that legitimately uses the named token.
 - Defer to upstream documentation as the durable source of truth. When the underlying system supports configuration (custom paths, directories, environment names, command aliases), reference the docs and the project's configuration; do not enumerate defaults inline as if they were invariant.
+- For external documentation, prefer concise links to canonical sources and keep local instruction text focused on project-specific behavior and constraints.
 - Keep guidance language-, tool-, and version-agnostic where possible. State the rule generically and use language-specific or version-specific names only as examples, not as the rule itself.
 - Prefer linking to canonical documentation over restating it; restated facts drift, links do not (and broken links are caught by validation).
 

@@ -40,6 +40,7 @@ When producing or validating a plan, include only actionable execution instructi
 3. Execution handoff constraints:
    - Declare sequencing constraints and concurrency boundaries required by execution workflow.
    - Identify vertical integration checkpoints that execution must preserve as feedback anchors.
+   - Include the exact persisted plan artifact path in the handoff and require execution to consume that exact path (no default-path inference).
 4. Verification/acceptance checks
 
 All open questions must be resolved during the planning conversation before presenting final plan output.
@@ -48,4 +49,4 @@ Do not include meta-commentary, decision-making history, tradeoff history, or ra
 ## Execution Handoff
 
 Once the final plan artifact is accepted, load the `execution-workflow` skill to drive story delivery.
-Persist the accepted plan artifact under `.agents/projects/<project>/plan.md` using the `agentic-projects` skill before handoff.
+Persist the accepted plan artifact using the canonical location and naming conventions defined by the `agentic-projects` skill before handoff, and include that exact plan path as an explicit handoff field for execution.
