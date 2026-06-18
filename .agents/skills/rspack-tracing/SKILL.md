@@ -1,6 +1,6 @@
 ---
 name: rspack-tracing
-description: Comprehensive guide and toolkit for diagnosing Rspack build issues. Quickly identify where crashes/errors occur, or perform detailed performance profiling to resolve bottlenecks. Use when the user encounters build failures, slow builds, or wants to optimize Rspack performance.
+description: Diagnose Rspack performance bottlenecks and trace-based build-stage failures with tracing and profiling workflows. Use when users need hook-level timing analysis, trace inspection, or help locating slow or failing build stages.
 ---
 
 # Rspack Tracing & Performance Profiling
@@ -52,7 +52,7 @@ For detailed performance profiling (not just crash diagnosis), ask the user to r
 cd .rspack-profile-*/
 
 # Run the analysis script
-node ${CLAUDE_PLUGIN_ROOT}/skills/tracing/scripts/analyze_trace.js trace.json
+bun scripts/analyze_trace.js trace.json
 ```
 
 ### 4. Interpret Results

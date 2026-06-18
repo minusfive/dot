@@ -1,6 +1,6 @@
 ---
 name: agent-instructions-authoring
-description: Author, audit, and modify agent instructions and rule entrypoints — skills, AGENTS.md, CLAUDE.md, subagent/agent definitions, and any other file that instructs agent behavior. Use when creating, editing, renaming, or reviewing such files; when consolidating duplicated rules across them; or when validating skill metadata, discoverability, and structure.
+description: Use when creating, editing, auditing, or restructuring agent instruction entrypoints (`SKILL.md`, `AGENTS.md`, `CLAUDE.md`, subagent/agent definitions). Consolidate duplicate or conflicting rules, improve skill description discoverability, and validate metadata, assets, and cross-file consistency.
 ---
 
 # Agent Instructions Authoring
@@ -24,6 +24,8 @@ Required upstream references are listed alongside the work they govern: see [Ski
 - When renaming or restructuring an instruction file or skill, search the repository for stale references and update them.
 - Verify every `assets/…` (or equivalent referenced-resource) path resolves to an existing file and that the asset's current contents still match how the body cites them.
 - Verify every concrete claim in the file before shipping: every command runs, every flag behaves as stated, every URL resolves, every directive, or syntax example matches current tool behavior. Inherited assumptions from a source skill or older docs do not count as verified.
+- For non-trivial skill behavior edits, run a lightweight eval loop following [Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills): compare baseline vs updated behavior, grade assertions with evidence, and inspect pass-rate plus time/token deltas.
+- For description-focused edits, follow [Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions): use should-trigger and should-not-trigger query sets, run multiple trials, and prefer train/validation splits over single-set tuning.
 - Run linters following the `linting` skill.
 - For changes that touch the `AGENTS.md` skill index or any skill directory under `.agents/skills/`, run `mise run lint-skills-index` to verify the index and on-disk skills stay in sync.
 
@@ -45,6 +47,8 @@ The repository's general post-validation critique gate (defined in the top-level
 - Instruct agents to choose execution approach based on efficiency, cost, capability, and task requirements instead of fixed named components.
 - Prefer clear, specific, and deterministic instructions that can be delegated to lower-cost but capable subagents.
 - Prefer delegating concrete execution work over delegating open-ended "thinking" work to subagents.
+- Ground guidance in observed project reality and concrete failure modes (not generic "best practices"), per [Best practices for skill creators](https://agentskills.io/skill-creation/best-practices).
+- Keep high-value "gotchas" in the always-loaded body when they prevent common, costly mistakes; move bulky reference material to assets for progressive disclosure.
 - Follow `coding-guidelines` skill Markdown guidance.
 - Use Markdown links (`[text](url)`) instead of bare URLs.
 - Keep behavioral guidance and authoring meta-commentary separate. Behavioral rules tell executing agents what to do; meta-commentary (labels like "this is the canonical X", directives about how other files should reference the rule, taxonomy notes, audience asides) tells skill authors how to treat the rule. Meta-commentary belongs in the authoring skill (`agent-instructions-authoring`), not embedded in the behavioral rule itself.
@@ -97,6 +101,15 @@ Use the loaded specs as the active source of truth; derive requirements dynamica
 - Avoid descriptions that mostly explain what the skill does internally or how it works.
 - Keep descriptions concise but keyword-rich so selection systems can reliably match relevant requests — some harnesses use keyword matching, others use semantic selection; concrete task cues work for both.
 - Keep descriptions free of links, command examples, full path enumerations, and other content that belongs in the body. The `description` is a selector, not a summary.
+- Keep `description` length within the specification limit and validate trigger behavior using the workflow in [Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions).
+
+### Scripts in skills
+
+- When adding or modifying scripts referenced by a skill, follow [Using scripts in skills](https://agentskills.io/skill-creation/using-scripts).
+- Prefer one-off commands only for simple, stable invocations; move repeated or complex command logic into versioned scripts under `scripts/`.
+- Require non-interactive script interfaces (flags/env/stdin), explicit `--help` usage docs, clear actionable errors, structured stdout for machine-readable results, and diagnostics on stderr.
+- Require predictable exit-code behavior and safe defaults (`--dry-run`, explicit confirmation flags) for stateful or destructive operations.
+- State runtime prerequisites and version expectations explicitly in skill instructions when script behavior depends on them.
 
 ### Body authoring style
 

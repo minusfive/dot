@@ -1,6 +1,6 @@
 ---
 name: migrate-to-rslib
-description: Migrate tsc or tsup library projects to Rslib.
+description: Migrate tsc or tsup library projects to Rslib. Use when users ask to replace tsc/tsup library build pipelines with Rslib while keeping package behavior stable.
 ---
 
 # Migrate to Rslib

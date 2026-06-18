@@ -113,6 +113,6 @@ The description serves three audiences: search engines (Google snippet), AI syst
 
 ## Documentation
 
-- Frontmatter fields: <https://rspress.rs/api/config/config-frontmatter>
-- Basic config (`root` option): <https://rspress.rs/api/config/config-basic>
-- Full Rspress docs: <https://rspress.rs/llms.txt>
+- [Frontmatter fields](https://rspress.rs/api/config/config-frontmatter)
+- [Basic config (`root` option)](https://rspress.rs/api/config/config-basic)
+- [Full Rspress docs](https://rspress.rs/llms.txt)

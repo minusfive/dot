@@ -1,6 +1,6 @@
 ---
 name: rstest-debugging
-description: Debug Rstest issues systematically, including performance regressions. First determine whether the slowdown is in build startup or test execution, then run controlled config or code experiments and compare before/after timings.
+description: Debug Rstest performance issues and regressions. Use when Rstest is slower than expected, slower than Jest or Vitest, slower than a previous baseline, or when tests spend a long time before starting.
 ---
 
 # Rstest Debugging Workflow
@@ -187,6 +187,6 @@ Do not stack multiple “maybe faster” changes before measuring. That destroys
 
 ## References
 
-- <https://rstest.rs/guide/advanced/profiling>
-- <https://rstest.rs/guide/basic/reporters#verbose-reporter>
-- <https://rstest.rs/config/build/output>
+- [Rstest profiling guide](https://rstest.rs/guide/advanced/profiling)
+- [Verbose reporter reference](https://rstest.rs/guide/basic/reporters#verbose-reporter)
+- [Rstest output configuration](https://rstest.rs/config/build/output)

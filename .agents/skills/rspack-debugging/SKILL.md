@@ -1,6 +1,6 @@
 ---
 name: rspack-debugging
-description: Helps Rspack users and developers debug crashes or deadlocks/hangs in the Rspack build process using LLDB. Use this Skill when users encounter "Segmentation fault" errors during Rspack builds or when the build progress gets stuck.
+description: Debug Rspack crashes, hangs, deadlocks, and coredumps with LLDB-focused workflows. Use when users report segmentation faults, unstable HMR crashes, stuck build/devserver processes, or async deadlocks.
 ---
 
 # Rspack Debugging
@@ -24,7 +24,7 @@ Before starting, please ensure your environment meets the requirements.
    **Automatic Replacement Script**:
 
    ```bash
-   node ${CLAUDE_PLUGIN_ROOT}/skills/debugging/scripts/setup_debug_deps.cjs
+   bun scripts/setup_debug_deps.cjs
    ```
 
    Running the above script will automatically add `pnpm.overrides` configuration to `package.json`, pointing Rspack packages to their corresponding Debug versions. Afterwards, please be sure to run `pnpm install` to update dependencies.
@@ -79,6 +79,6 @@ When you successfully obtain a backtrace or a tracing log, you **MUST** save it 
 After debugging is complete, restore your `package.json` to use production packages:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/debugging/scripts/setup_debug_deps.cjs --restore
+bun scripts/setup_debug_deps.cjs --restore
 pnpm install
 ```

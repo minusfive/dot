@@ -1,6 +1,6 @@
 ---
 name: migrate-to-rsbuild
-description: Migrate webpack, Vite, create-react-app (CRA/CRACO), or Vue CLI projects to Rsbuild.
+description: Migrate webpack, Vite, create-react-app (CRA/CRACO), or Vue CLI projects to Rsbuild. Use when users ask to replace an existing build setup with Rsbuild while preserving current behavior.
 ---
 
 # Migrate to Rsbuild
