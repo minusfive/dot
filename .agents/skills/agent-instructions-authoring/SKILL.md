@@ -24,8 +24,7 @@ Required upstream references are listed alongside the work they govern: see [Ski
 - When renaming or restructuring an instruction file or skill, search the repository for stale references and update them.
 - Verify every `assets/…` (or equivalent referenced-resource) path resolves to an existing file and that the asset's current contents still match how the body cites them.
 - Verify every concrete claim in the file before shipping: every command runs, every flag behaves as stated, every URL resolves, every directive, or syntax example matches current tool behavior. Inherited assumptions from a source skill or older docs do not count as verified.
-- For non-trivial skill behavior edits, run a lightweight eval loop following [Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills): compare baseline vs updated behavior, grade assertions with evidence, and inspect pass-rate plus time/token deltas.
-- For description-focused edits, follow [Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions): use should-trigger and should-not-trigger query sets, run multiple trials, and prefer train/validation splits over single-set tuning.
+- For non-trivial skill behavior edits and description-focused edits, load `agent-instructions-evaluation` and follow its evaluation workflows before shipping.
 - Run linters following the `linting` skill.
 - For changes that touch the `AGENTS.md` skill index or any skill directory under `.agents/skills/`, run `mise run lint-skill-index` to verify the index and on-disk skills stay in sync.
 
@@ -101,7 +100,7 @@ Use the loaded specs as the active source of truth; derive requirements dynamica
 - Avoid descriptions that mostly explain what the skill does internally or how it works.
 - Keep descriptions concise but keyword-rich so selection systems can reliably match relevant requests — some harnesses use keyword matching, others use semantic selection; concrete task cues work for both.
 - Keep descriptions free of links, command examples, full path enumerations, and other content that belongs in the body. The `description` is a selector, not a summary.
-- Keep `description` length within the specification limit and validate trigger behavior using the workflow in [Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions).
+- Keep `description` length within the specification limit and validate trigger behavior using `agent-instructions-evaluation`.
 
 ### Scripts in skills
 

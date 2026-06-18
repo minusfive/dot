@@ -2,9 +2,10 @@
 
 ## Core Principles
 
+- IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning
 - Prioritize technical accuracy and facts over validating beliefs.
 - Provide honest, objective feedback even when it may not align with expectations.
-- Investigate uncertainty first rather than confirming assumptions.
+- Investigate uncertainty first rather than confirming assumptions. If research doesn't suffice, interview me relentlessly until we reach a common understanding.
 - Apply rigorous standards consistently to all ideas.
 - Critique plans and implementations; do not merely validate them. Surface blind spots, weak assumptions, edge cases, and sequencing risks even when the work appears correct.
 - **Critique gate (required terminal step):** After validation passes, run a fresh critique pass over every produced artifact before writing the final response. Ask: does the change do what was asked, are there edge cases missed, are any assumptions unverified? Validation answers "does it parse/run"; critique answers "is it right". Do not treat a passing validation as done — the critique pass is the stopping signal.
@@ -117,6 +118,7 @@ The skills below are available under [`.agents/skills/`](.agents/skills/).
 - `rstest-debugging` — Debug Rstest performance regressions when startup or execution is slower than expected and isolate root causes with controlled experiments.
 - `scripts` — Author and maintain setup, automation, and bootstrap shell/task scripts and install flows.
 - `security` — Apply security checks for secrets, credentials, permissions, external network access, dependency risk, and sensitive configuration; use during implementation and security review passes.
+- `agent-instructions-evaluation` — Evaluate agent-instruction behavior and discoverability with baseline comparisons, assertion grading, and benchmark-based iteration loops.
 - `task-orchestration` — Decide when to parallelize tool calls, when to dispatch subagents, which model tier suits each sub-task, and how to coordinate multi-step work via shared temporary artifacts.
 - `tanstack-cli` — Use TanStack CLI for app scaffolding, add-on management, docs lookup, and MCP migration whenever a project uses TanStack tools or the user asks for TanStack workflows.
 - `zsh` — Apply Zsh shell scripting conventions (error safety, logging helpers); use when authoring or modifying Zsh scripts.
