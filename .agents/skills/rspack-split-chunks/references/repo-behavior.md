@@ -38,7 +38,7 @@ If `name` does not exist:
 Effect:
 
 - same `name` collapses otherwise separate chunk combinations into one `ModuleGroup`
-- that can force broader sharing than the user expects
+- that can force broader sharing than I expect
 
 This is why a broad manual `name: "vendors"` can create over-shared chunks.
 
@@ -78,7 +78,7 @@ After a chunk is chosen, the plugin adds `idHint` to chunk id-name hints at [plu
 
 `idHint` participates in naming/id presentation, but it is not used to build the `ModuleGroup` key.
 
-This makes `idHint` a safer tool when the user wants chunk identity hints without changing grouping behavior.
+This makes `idHint` a safer tool when I want chunk identity hints without changing grouping behavior.
 
 ## 6. `enforce: true` removes several guardrails
 
@@ -141,7 +141,7 @@ So for application builds, the skill recommends:
 
 - start with `chunks: "all"`
 - keep the default cache groups
-- avoid `name` unless the user consciously wants one shared asset
+- avoid `name` unless I consciously want one shared asset
 
 ## 10. Why duplicate modules can still exist
 
@@ -158,7 +158,7 @@ Practical meaning:
 
 - a very small shared module may remain duplicated because extracting it would fail `minSize`
 - even with `minSize: 0`, `minSizeReduction` or request limits may still block the split
-- if the user insists on extracting it, they need to lower the relevant threshold or intentionally override guardrails
+- if I insist on extracting it, I need to lower the relevant threshold or intentionally override guardrails
 
 ## 11. Tree shaking is orthogonal to splitChunks
 

@@ -16,7 +16,7 @@ Use this skill to produce execution-ready plans before implementation.
    - Ask one question at a time and wait for feedback before continuing; only batch questions when they are fully independent, and limit each batch to at most three questions.
    - Resolve decision dependencies one-by-one; do not advance while upstream decisions remain open.
    - If a question can be answered by exploring the codebase, investigate first and only ask when uncertainty remains.
-   - For each question the agent asks the user, provide a recommended answer first.
+   - For each question you ask me, provide a recommended answer first.
    - Base recommendations on concrete codebase/docs evidence when available; when evidence is unavailable, state the assumption explicitly before requesting confirmation or correction.
 4. Continue until all implementation-critical decisions are resolved (decisions that materially change execution steps, ordering, or scope), no unresolved upstream dependencies remain, and no open questions remain for final plan output.
 5. Once all open questions are resolved and before presenting final plan output, apply the canonical critique gate defined in `AGENTS.md`.

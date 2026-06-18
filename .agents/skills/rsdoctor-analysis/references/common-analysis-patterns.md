@@ -32,7 +32,7 @@ Keep the response simple: name only coexisting known-family packages or other di
 
 ## Media Asset Analysis
 
-Use `assets media` or `bundle optimize` when checking oversized image, font, or video assets. Return recommendations only for assets that are actually oversized or relevant to the user's question.
+Use `assets media` or `bundle optimize` when checking oversized image, font, or video assets. Return recommendations only for assets that are actually oversized or relevant to my question.
 
 Image thresholds:
 
@@ -111,7 +111,7 @@ Use these as short recommendation candidates when Rsdoctor evidence points to bu
 
 ## Retained Module Tree-shaking Analysis
 
-Use `tree-shaking retained-modules` for first-pass tree-shaking evidence when the goal is to find retained emitted modules by reason category. Prefer it over broad `tree-shaking summary` when the user asks for top retained modules, CommonJS retention, barrel imports, side effects, or gzip-size priority.
+Use `tree-shaking retained-modules` for first-pass tree-shaking evidence when the goal is to find retained emitted modules by reason category. Prefer it over broad `tree-shaking summary` when I ask for top retained modules, CommonJS retention, barrel imports, side effects, or gzip-size priority.
 
 Recommended first-pass command shape:
 
@@ -128,12 +128,12 @@ rsdoctor-agent tree-shaking retained-modules \
 Guidance:
 
 1. Keep `--emitted-only` by default so findings map to shipped bundle impact.
-2. Use `--category cjs,barrel,side-effects` for optimization scans; narrow `--category` when the user asks about one class.
-3. Sort by `gzipSize` for bundle impact, unless the user asks for source or parsed size.
+2. Use `--category cjs,barrel,side-effects` for optimization scans; narrow `--category` when I ask about one class.
+3. Sort by `gzipSize` for bundle impact, unless I ask for source or parsed size.
 4. Keep `--limit` bounded. Use `--limit 10` for default analysis. Increase to `50` only for user-requested deep dives.
 5. Do not add `--compact`; `tree-shaking retained-modules` output size is controlled with `--limit` and `--filter`.
 6. Report rows as `Path | Package | Category | Gzip/Parsed Size | Chunks | Bailout | Recommendation`.
-7. Treat results as first-pass evidence. Use `modules issuer` only after the user asks to trace who imported a retained module.
+7. Treat results as first-pass evidence. Use `modules issuer` only after I ask to trace who imported a retained module.
 
 ## Common Questions
 
@@ -145,7 +145,7 @@ Example: "Why is `node_modules/rc-tree/lib/util.js` not tree-shaken?"
 - Use `tree-shaking summary` only when retained modules do not include the needed field or the question needs broader aggregate context.
 - Return the module's `bailoutReason`.
 - Explain the bailout in plain language.
-- Show `issuerPath` only when the user asks for chain tracing or when it is necessary to explain the issue.
+- Show `issuerPath` only when I ask for chain tracing or when it is necessary to explain the issue.
 
 ### Who imported a module?
 
@@ -172,7 +172,7 @@ Example: "Why is package X duplicated?"
 
 - Use duplicate package rule data (`E1001` / `E1002`) and package graph fields.
 - Show which chunks and modules contain the duplicate versions.
-- Explain the dependency path if the user asks to continue chain tracing.
+- Explain the dependency path if I ask to continue chain tracing.
 
 ### Which modules are not tree-shaken because of side effects?
 

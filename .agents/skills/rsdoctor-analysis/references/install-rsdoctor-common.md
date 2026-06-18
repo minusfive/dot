@@ -4,7 +4,7 @@ This document contains common steps that apply to both Rspack and Webpack projec
 
 ## Step 3: Locate the rsdoctor-data.json
 
-First, use the fast path to check whether `rsdoctor-data.json` already exists. If the user provided a path, check that path first. Otherwise check common build artifact/output locations before any package-manager, install, config, or build command:
+First, use the fast path to check whether `rsdoctor-data.json` already exists. If I provided a path, check that path first. Otherwise check common build artifact/output locations before any package-manager, install, config, or build command:
 
 - `dist/rsdoctor-data.json` (most common)
 - `output/rsdoctor-data.json`
@@ -17,7 +17,7 @@ For repeated analysis in the same repository, use a lightweight project-local ca
 
 When the runtime supports parallel execution, run independent local initialization checks concurrently: common path checks, bounded `rg --files` lookup, and local plugin-version file reads. Do not run `rsdoctor-agent` CLI checks until a real `rsdoctor-data.json` path exists. Treat plugin-version results as speculative until the data file is confirmed missing; never let parallel plugin checks trigger generation by themselves.
 
-If you cannot find the file, ask the user to provide the path to `rsdoctor-data.json`. If the file truly does not exist and generation/setup is required, check the installed `@rsdoctor/rspack-plugin` or `@rsdoctor/webpack-plugin` version before changing config or running a build. The `@rsdoctor/agent-cli` version does not prove plugin support for `RSDOCTOR_OUTPUT=json`.
+If you cannot find the file, ask me to provide the path to `rsdoctor-data.json`. If the file truly does not exist and generation/setup is required, check the installed `@rsdoctor/rspack-plugin` or `@rsdoctor/webpack-plugin` version before changing config or running a build. The `@rsdoctor/agent-cli` version does not prove plugin support for `RSDOCTOR_OUTPUT=json`.
 
 Required version gate (use exactly this if/else order):
 

@@ -16,7 +16,7 @@ Use this skill after planning is complete and you need to execute an existing pl
    - Numbered implementation steps
    - Acceptance checks
    - Rollback/mitigation notes
-3. Resolve the accepted plan artifact from `.agents/projects/<project>/plan.md` (or the user-provided equivalent path) before starting execution.
+3. Resolve the accepted plan artifact from `.agents/projects/<project>/plan.md` (or an equivalent path I provide) before starting execution.
 4. Do not rewrite story specs during execution; if plan fields are missing, inconsistent, or non-actionable, trigger the drift protocol and request a targeted planning update.
 5. Keep story execution in topological dependency order.
 
@@ -55,7 +55,7 @@ Use this skill after planning is complete and you need to execute an existing pl
 
 1. If execution discovers missing, inconsistent, or non-actionable plan fields, move the affected story to blocked immediately.
 2. Record the exact drift details and the minimum plan patch needed to resume execution.
-3. Do not silently improvise or rewrite the plan during execution; surface drift details to the user or orchestrator and load the `planning` skill to produce a targeted plan patch, then resume from blocked once the patch lands.
+3. Do not silently improvise or rewrite the plan during execution; surface drift details to me or the orchestrator and load the `planning` skill to produce a targeted plan patch, then resume from blocked once the patch lands.
 
 ## Output shape
 

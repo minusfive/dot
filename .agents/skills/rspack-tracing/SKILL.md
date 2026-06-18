@@ -18,7 +18,7 @@ Use this skill when you need to:
 
 ### 1. Capture a Trace
 
-First, ask the user to run their build with tracing enabled.
+First, ask me to run my build with tracing enabled.
 
 ```bash
 # Set environment variables for logging to a file
@@ -31,7 +31,7 @@ See [references/tracing-guide.md](references/tracing-guide.md) for more details 
 
 ### 2. Quick Diagnosis for Crashes/Errors
 
-If the user wants to identify **which stage a crash or error occurred in**, use `tail` to quickly view the last events without running the full analysis:
+If I want to identify **which stage a crash or error occurred in**, use `tail` to quickly view the last events without running the full analysis:
 
 ```bash
 # Navigate to the generated profile directory
@@ -45,7 +45,7 @@ The last events will show the span names and targets where the build stopped, he
 
 ### 3. Full Performance Analysis
 
-For detailed performance profiling (not just crash diagnosis), ask the user to run the bundled analysis script on the generated trace file.
+For detailed performance profiling (not just crash diagnosis), ask me to run the bundled analysis script on the generated trace file.
 
 ```bash
 # Navigate to the generated profile directory

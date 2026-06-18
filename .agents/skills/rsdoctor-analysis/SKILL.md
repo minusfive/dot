@@ -5,7 +5,7 @@ description: Use when analyzing Rspack/Webpack bundles from local `rsdoctor-data
 
 # Rsdoctor Analysis Assistant Skill
 
-Use the globally installed `rsdoctor-agent` CLI from `@rsdoctor/agent-cli` only after a real `rsdoctor-data.json` path exists. Keep analysis read-only unless the user explicitly asks for install/config setup.
+Use the globally installed `rsdoctor-agent` CLI from `@rsdoctor/agent-cli` only after a real `rsdoctor-data.json` path exists. Keep analysis read-only unless I explicitly ask for install/config setup.
 
 Response order (required): High-Priority Issues -> Proposed Solutions -> Optional Reference-Chain Follow-up Choices -> Next Deep-Dive Issue Categories (Not commands).
 
@@ -15,10 +15,10 @@ Response order (required): High-Priority Issues -> Proposed Solutions -> Optiona
 2. Locate `rsdoctor-data.json` fast: user-provided path, then `dist/rsdoctor-data.json`, `output/rsdoctor-data.json`, `static/rsdoctor-data.json`, `.rsdoctor/rsdoctor-data.json`, then one bounded `rg --files` search excluding `node_modules` and `.git`. Treat `manifest.json` only as an index.
 3. If data exists, skip all plugin version/config/build generation logic. Update cache when useful.
 4. If data is missing, stop analysis: do not run `rsdoctor-agent` analysis commands, do not run the Analysis Gate, and either ask for the data path or run the Generation Gate below only when setup/generation is required.
-5. After a real data file exists, run Analysis Gate at most once before the first `rsdoctor-agent` data-fetch command: verify global `@rsdoctor/agent-cli` with `npm view @rsdoctor/agent-cli version` and `rsdoctor-agent --version`; install latest only if missing/outdated, a version-related error occurs, or the user asks to refresh.
+5. After a real data file exists, run Analysis Gate at most once before the first `rsdoctor-agent` data-fetch command: verify global `@rsdoctor/agent-cli` with `npm view @rsdoctor/agent-cli version` and `rsdoctor-agent --version`; install latest only if missing/outdated, a version-related error occurs, or I ask to refresh.
 6. Fetch only the Default Evidence Set first; run independent fetches in parallel when possible; synthesize findings in the required response order.
 
-Performance rules: parallelize independent checks, cache only derived facts (`dataFile`, `dataFileMtime`, `pluginName`, `pluginVersion`, dependency/config/plugin modification times), and invalidate cache when paths disappear, modification times change, the user asks to refresh, or cached values fail. Speculative plugin checks must not trigger generation; use them only after confirming the data file is missing.
+Performance rules: parallelize independent checks, cache only derived facts (`dataFile`, `dataFileMtime`, `pluginName`, `pluginVersion`, dependency/config/plugin modification times), and invalidate cache when paths disappear, modification times change, I ask to refresh, or cached values fail. Speculative plugin checks must not trigger generation; use them only after confirming the data file is missing.
 
 ## Generation Gate
 

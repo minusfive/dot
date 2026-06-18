@@ -27,7 +27,7 @@ Return a blocker report with:
 
 1. Exact failed command(s).
 2. Error class (network/auth/registry/peer conflict/lockfile mismatch/permission).
-3. Concrete next command(s) for the user to run.
+3. Concrete next command(s) for me to run.
 4. Whether files were already changed.
 5. Resume point: "after dependencies are installed, continue from the deltas step".
 6. Install strategy used (`ni` or explicit manager fallback).

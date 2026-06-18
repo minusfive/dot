@@ -21,7 +21,7 @@ Copy this checklist and check off items as you complete them:
 - [ ] Step 2: Replace package scripts and CLI flags
 - [ ] Step 3: Rename and translate config file
 - [ ] Step 4: Migrate presets, plugins, rules, and ignores
-- [ ] Step 5: Preserve inline directives unless the user asks for `rslint-disable`
+- [ ] Step 5: Preserve inline directives unless I ask for `rslint-disable`
 - [ ] Step 6: Replace VS Code ESLint settings with Rslint settings
 - [ ] Step 7: Validate, then remove obsolete ESLint artifacts
 
@@ -190,7 +190,7 @@ console.log(value);
 
 Rslint supports both `eslint-` and `rslint-` directive prefixes, and they are equivalent.
 
-Only replace prefixes when the user explicitly asks to use `rslint-disable`. If replacement is requested, change directive prefixes in comments while preserving rule names and descriptions:
+Only replace prefixes when I explicitly ask to use `rslint-disable`. If replacement is requested, change directive prefixes in comments while preserving rule names and descriptions:
 
 | ESLint directive           | Rslint directive           |
 | -------------------------- | -------------------------- |
@@ -205,7 +205,7 @@ After replacing, grep for remaining directives:
 rg -n "eslint-(disable|enable)"
 ```
 
-Do not mutate string literals, docs, snapshots, or user-visible text unless the user asked for a full terminology change.
+Do not mutate string literals, docs, snapshots, or user-visible text unless I asked for a full terminology change.
 
 ## Step 6: Replace VS Code ESLint settings with Rslint settings
 

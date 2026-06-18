@@ -22,7 +22,7 @@ Follow the canonical hook-bypass policy in `AGENTS.md` (Tool Usage). For git spe
 
 ## Branch
 
-- Create a new branch using concise AND descriptive branch names from analysis. It is your job to generate the branch name, do not ask the user to provide it
+- Create a new branch using concise AND descriptive branch names from analysis. It is your job to generate the branch name, do not ask me to provide it
 
 ## Commit
 

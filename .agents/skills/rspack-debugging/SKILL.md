@@ -68,7 +68,7 @@ Identify your specific scenario and follow the corresponding linked guide.
 ## Saving Debug Artifacts
 
 **Critical Instruction for Agents**:
-When you successfully obtain a backtrace or a tracing log, you **MUST** save it to a local file in the user's project directory so it is preserved after the session.
+When you successfully obtain a backtrace or a tracing log, you **MUST** save it to a local file in my project directory so it is preserved after the session.
 
 1. **Create Directory**: Ensure a directory named `debug_artifacts` exists in the project root.
 2. **Save Backtraces**: Write the full output of `thread backtrace all` to `debug_artifacts/backtrace_<timestamp>.txt`.

@@ -18,7 +18,7 @@ Migrate lint tooling to Rslint with minimal behavior changes and clear validatio
 1. **Official docs first**: treat Rslint docs as source of truth for CLI, config, inline directives, VS Code settings, rules, and presets.
 2. **Smallest-change-first**: migrate package, command, config, and editor wiring before changing source files.
 3. **Preserve lint intent**: keep supported rule severities/options where Rslint supports them; call out unsupported rules/plugins instead of silently dropping behavior.
-4. **Do not rewrite inline directives by default**: Rslint supports `eslint-disable` and `rslint-disable`; replace prefixes only when the user asks.
+4. **Do not rewrite inline directives by default**: Rslint supports `eslint-disable` and `rslint-disable`; replace prefixes only when I ask.
 5. **Validate before cleanup**: keep old linter dependencies/config until the Rslint command passes for the migrated scope, then remove obsolete linter-only artifacts.
 
 ## Workflow

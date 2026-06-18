@@ -31,10 +31,10 @@ done
 
 ## 2. Agent Action: Attach and debug
 
-Ask the user for the **PID** of the stuck process. Once obtained, run:
+Ask me for the **PID** of the stuck process. Once obtained, run:
 
 ```bash
-# Replace <PID> with the actual number provided by the user
+# Replace <PID> with the actual number provided by me
 lldb -p <PID> --batch -o "thread backtrace all" -o "quit"
 ```
 

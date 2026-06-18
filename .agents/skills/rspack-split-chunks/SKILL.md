@@ -33,7 +33,7 @@ Read [`references/repo-behavior.md`](references/repo-behavior.md) when you need 
 
 ## What To Optimize For
 
-First identify which problem the user actually has:
+First identify which problem I actually have:
 
 - duplicated modules across entry or async boundaries
 - a route fetching a large shared chunk with mostly unused modules
@@ -48,7 +48,7 @@ Do not optimize all of these at once. Pick the primary goal and keep the rest as
 
 ### 1. Start from the safest production baseline
 
-Unless the user already has a measured problem that requires custom grouping, prefer:
+Unless I already have a measured problem that requires custom grouping, prefer:
 
 ```js
 optimization: {
@@ -96,7 +96,7 @@ Prefer these alternatives before adding `name`:
 - split one broad cache group into several focused cache groups
 - rely on `maxSize` to subdivide a big chunk instead of forcing a global name
 
-Use a fixed `name` only when the user explicitly wants one shared asset across multiple entries/routes and accepts the extra coupling.
+Use a fixed `name` only when I explicitly want one shared asset across multiple entries/routes and accept the extra coupling.
 
 ### 4. Preserve the built-in cache groups by default
 
@@ -135,7 +135,7 @@ This is usually safer than forcing one giant named vendor chunk, because it keep
 
 ### 7. Use `usedExports` deliberately
 
-If the user has multiple runtimes/entries and wants leaner shared chunks per runtime, prefer keeping `usedExports` enabled.
+If I have multiple runtimes/entries and want leaner shared chunks per runtime, prefer keeping `usedExports` enabled.
 
 If they set `usedExports: false`, expect broader sharing and potentially larger common chunks.
 
@@ -143,7 +143,7 @@ This is still not tree shaking. It only changes how splitChunks groups modules a
 
 ### 8. Treat `enforce: true` as an escape hatch
 
-`enforce: true` bypasses several normal guardrails. Use it only when the user intentionally wants a split regardless of `minSize`, `minChunks`, and request limits.
+`enforce: true` bypasses several normal guardrails. Use it only when I intentionally want a split regardless of `minSize`, `minChunks`, and request limits.
 
 If a config looks aggressive and hard to explain, check `enforce` before changing anything else.
 
@@ -200,7 +200,7 @@ Recommend:
 - keep `chunkIds: "deterministic"` or other stable id strategies elsewhere in the config
 - split broad groups into smaller focused groups only when the package boundaries are stable and important
 
-Use a fixed `name` only if the user explicitly prefers cache reuse over route isolation.
+Use a fixed `name` only if I explicitly prefer cache reuse over route isolation.
 
 ### Split a large shared chunk
 
@@ -223,7 +223,7 @@ Then tune:
 
 ### Keep an intentionally shared chunk
 
-Recommend a named chunk only when the user says something like:
+Recommend a named chunk only when I say something like:
 
 - "all pages should share one React vendor asset"
 - "I want one framework chunk for cache reuse across routes"

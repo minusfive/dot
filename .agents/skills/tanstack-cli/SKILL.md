@@ -1,11 +1,11 @@
 ---
 name: tanstack-cli
-description: Use TanStack CLI for app scaffolding, add-on management, docs lookup, and MCP migration whenever a project uses TanStack tools or the user asks for TanStack workflows.
+description: Use TanStack CLI for app scaffolding, add-on management, docs lookup, and MCP migration whenever a project uses TanStack tools or I ask for TanStack workflows.
 ---
 
 # TanStack CLI
 
-Use this skill when a repository uses TanStack tooling (for example `@tanstack/*` packages, TanStack Start/Router apps, or a `.tanstack.json` file), or when the user asks for TanStack CLI workflows.
+Use this skill when a repository uses TanStack tooling (for example `@tanstack/*` packages, TanStack Start/Router apps, or a `.tanstack.json` file), or when I ask for TanStack CLI workflows.
 
 ## Core Rules
 

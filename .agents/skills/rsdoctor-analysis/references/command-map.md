@@ -37,7 +37,7 @@ Option scopes:
 
 - `chunks list` -> List all chunks. Pagination: `--page-number`, `--page-size`
 - `chunks by-id --id <n>` -> Get chunk detail by numeric id
-- `chunks large` -> Find oversized chunks. High-noise in default analysis; avoid unless the user asks for chunk deep dive.
+- `chunks large` -> Find oversized chunks. High-noise in default analysis; avoid unless I ask for chunk deep dive.
 
 ## Modules
 
@@ -72,7 +72,7 @@ Option scopes:
 - `build summary` -> Build summary and costs
 - `build entrypoints` -> Entrypoints
 - `build config` -> Build config snapshot
-- `build optimize` -> Bundle optimization inputs. High-noise in default analysis; avoid unless the user asks for bundle optimization deep dive or default evidence is insufficient. Options: `--step`, `--side-effects-page-number`, `--side-effects-page-size` (recommend `--side-effects-page-size 10`).
+- `build optimize` -> Bundle optimization inputs. High-noise in default analysis; avoid unless I ask for bundle optimization deep dive or default evidence is insufficient. Options: `--step`, `--side-effects-page-number`, `--side-effects-page-size` (recommend `--side-effects-page-size 10`).
 
 ## Bundle
 

@@ -1,6 +1,6 @@
 ---
 name: rslib-modern-package
-description: Opinionated Rslib recommendations for modern JS/TS npm package design covering pure ESM, strict TypeScript, explicit exports, small stable APIs, pragmatic dependencies, accurate sideEffects, correct declarations, package validation, provenance, README.md, and AGENTS.md. Use when the user wants to make a JS/TS package more modern, check whether the current package setup is healthy, review package.json/exports/types/dependencies/docs/release readiness, or apply a modern library baseline.
+description: Opinionated Rslib recommendations for modern JS/TS npm package design covering pure ESM, strict TypeScript, explicit exports, small stable APIs, pragmatic dependencies, accurate sideEffects, correct declarations, package validation, provenance, README.md, and AGENTS.md. Use when I want to make a JS/TS package more modern, check whether the current package setup is healthy, review package.json/exports/types/dependencies/docs/release readiness, or apply a modern library baseline.
 ---
 
 # Rslib Modern Package
@@ -120,7 +120,7 @@ Default recommendation for new JS/TS libraries:
 
 12. **Prepare README.md and AGENTS.md before publishing**
     - Always check whether both files exist before publishing or modernizing a package.
-    - If either file is missing, recommend adding it; for implementation tasks, create a concise version unless the user asks not to.
+    - If either file is missing, recommend adding it; for implementation tasks, create a concise version unless I ask not to.
     - README.md should include: package name, one-sentence purpose, install/usage, key features or API links, supported environments, docs/related links, changelog or contribution link, and license.
     - AGENTS.md should include: stack, package contract, common commands, source layout, code style, validation commands, and release checklist.
     - Keep both files synchronized with `package.json#exports`, supported runtimes, and actual Rslib output.

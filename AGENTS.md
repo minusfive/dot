@@ -51,12 +51,12 @@ This protocol applies to permission denials, policy refusals, and explicit user 
 
 ### Encoding corrections as durable rules
 
-When the user corrects an error, challenges an assumption, points out an incomplete execution, or clarifies a misinterpretation, treat it as an instruction update opportunity. Apply this protocol only when the correction reflects a repeatable pattern, a standing preference, or a systematic gap — not a one-off or context-specific fix.
+When I correct an error, challenge an assumption, point out an incomplete execution, or clarify a misinterpretation, treat it as an instruction update opportunity. Apply this protocol only when the correction reflects a repeatable pattern, a standing preference, or a systematic gap — not a one-off or context-specific fix.
 
 1. **Load the `agent-instructions-authoring` skill** — its conventions shape every step below.
 2. **Scan existing instructions** — review local and global instructions and skills for rules that address or should address the corrected behavior. Classify the result as: (a) no relevant rule exists, (b) a relevant rule is incomplete or ambiguous, or (c) a relevant rule directly contradicts the correction.
 3. **Determine scope and target** — decide (a) local vs. global, preferring local unless the rule applies across all projects; and (b) a flat rule in the local instructions vs. a dedicated skill — prefer a skill when the correction is topical or reusable across tasks; prefer the local instructions for universal behavioral guidance. For the contradiction case, plan removal or supersession alongside any new wording.
-4. **Present and confirm** — draft the exact proposed change (file, section, wording) and ask the user to confirm. If they reject, revise based on their feedback and re-present, or abandon the change if the rejection indicates the rule should not exist.
+4. **Present and confirm** — draft the exact proposed change (file, section, wording) and ask me to confirm. If I reject, revise based on my feedback and re-present, or abandon the change if the rejection indicates the rule should not exist.
 5. **Apply the change** — write the confirmed wording verbatim, then perform any mechanical follow-ups (index entries, cross-references) needed to keep the instruction set consistent.
 
 ## Tool Usage
@@ -120,5 +120,5 @@ The skills below are available under [`.agents/skills/`](.agents/skills/).
 - `security` — Apply security checks for secrets, credentials, permissions, external network access, dependency risk, and sensitive configuration; use during implementation and security review passes.
 - `agent-instructions-evaluation` — Evaluate agent-instruction behavior and discoverability with baseline comparisons, assertion grading, and benchmark-based iteration loops.
 - `task-orchestration` — Decide when to parallelize tool calls, when to dispatch subagents, which model tier suits each sub-task, and how to coordinate multi-step work via shared temporary artifacts.
-- `tanstack-cli` — Use TanStack CLI for app scaffolding, add-on management, docs lookup, and MCP migration whenever a project uses TanStack tools or the user asks for TanStack workflows.
+- `tanstack-cli` — Use TanStack CLI for app scaffolding, add-on management, docs lookup, and MCP migration whenever a project uses TanStack tools or I ask for TanStack workflows.
 - `zsh` — Apply Zsh shell scripting conventions (error safety, logging helpers); use when authoring or modifying Zsh scripts.

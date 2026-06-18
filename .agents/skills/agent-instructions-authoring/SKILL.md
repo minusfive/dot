@@ -34,7 +34,7 @@ The repository's general post-validation critique gate (defined in the top-level
 
 - Does this rule conflict with another instruction entry point?
 - Would a reasonable agent misread it?
-- Does it over- or under-constrain compared to the user's actual intent?
+- Does it over- or under-constrain compared to my actual intent?
 - Is the canonical source still canonical after this edit?
 - Does any rule contain authoring meta-commentary that belongs in the authoring skill?
 
@@ -50,6 +50,8 @@ The repository's general post-validation critique gate (defined in the top-level
 - Keep high-value "gotchas" in the always-loaded body when they prevent common, costly mistakes; move bulky reference material to assets for progressive disclosure.
 - Follow `coding-guidelines` skill Markdown guidance.
 - Use Markdown links (`[text](url)`) instead of bare URLs.
+- Use me-style phrasing when referring to me in instruction text: write forms like `ask me`, `when I ask`, and `my`, and avoid third-person requester phrasing.
+- Use you-style phrasing when referring to the executing agent in instruction text: write forms like `you`, `your`, and `when you`, and avoid third-person agent phrasing.
 - Keep behavioral guidance and authoring meta-commentary separate. Behavioral rules tell executing agents what to do; meta-commentary (labels like "this is the canonical X", directives about how other files should reference the rule, taxonomy notes, audience asides) tells skill authors how to treat the rule. Meta-commentary belongs in the authoring skill (`agent-instructions-authoring`), not embedded in the behavioral rule itself.
 - When a skill has critique findings that apply only to its own domain, place them in a `## Critique` section that defers to the top-level critique gate and lists only the domain-specific checks. Do not restate the gate itself, and do not push domain-specific findings up into top-level instruction files (e.g., `AGENTS.md`).
 
@@ -69,7 +71,7 @@ When creating a new skill, renaming a skill, or changing frontmatter or director
 
 Compare each harness's frontmatter schema against the Agent Skills specification. Identify which fields are shared across harnesses, which are harness-specific extensions, and where any structural deviations exist.
 
-When a harness requires a structural deviation that cannot be expressed within the `SKILL.md` format, surface the conflict to the user and present ordered alternatives — a harness-specific companion file or accepting a capability gap on that harness.
+When a harness requires a structural deviation that cannot be expressed within the `SKILL.md` format, surface the conflict to me and present ordered alternatives — a harness-specific companion file or accepting a capability gap on that harness.
 
 Use the loaded specs as the active source of truth; derive requirements dynamically from the references and current repository state rather than static assumptions. For description rewrites, body wording changes, or other non-structural edits, skip the load.
 

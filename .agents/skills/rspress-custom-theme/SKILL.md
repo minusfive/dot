@@ -1,6 +1,6 @@
 ---
 name: rspress-custom-theme
-description: Customize Rspress themes using CSS variables, Layout slots, component wrapping, or component ejection. Use when a user wants to change the look and feel of an Rspress site, override theme components, add custom navigation/sidebar/footer content, inject global providers, or modify the default Rspress theme in any way. Also use when a user mentions theme/index.tsx, Layout slots, BEM class overrides, or rspress eject.
+description: Customize Rspress themes using CSS variables, Layout slots, component wrapping, or component ejection. Use when I want to change the look and feel of an Rspress site, override theme components, add custom navigation/sidebar/footer content, inject global providers, or modify the default Rspress theme in any way. Also use when I mention theme/index.tsx, Layout slots, BEM class overrides, or rspress eject.
 ---
 
 # Rspress Custom Theme
@@ -9,11 +9,11 @@ Guide for customizing Rspress (v2) themes. Rspress offers four levels of customi
 
 ## Workflow
 
-1. **Understand the user's goal** — what do they want to change? (colors, layout, inject content, replace a component entirely?)
+1. **Understand my goal** — what do I want to change? (colors, layout, inject content, replace a component entirely?)
 2. **Pick the right level** using the decision flow below
 3. **Set up `theme/index.tsx`** if needed (Levels 1A, 3, 4 all need it)
 4. **Implement** following the patterns in this skill and reference files
-5. **Verify** the user's Rspress version is v2 (imports use `@rspress/core/*` not `rspress/*`)
+5. **Verify** my Rspress version is v2 (imports use `@rspress/core/*` not `rspress/*`)
 
 ## Decision Flow
 

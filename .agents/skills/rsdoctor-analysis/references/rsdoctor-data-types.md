@@ -4,7 +4,7 @@ Use this reference when a task requires understanding raw `rsdoctor-data.json` f
 
 ## Source of Truth
 
-Read type definitions from the published npm package `@rsdoctor/types`. Do not use local repository `dist/` artifacts unless the user explicitly asks for local development branch behavior.
+Read type definitions from the published npm package `@rsdoctor/types`. Do not use local repository `dist/` artifacts unless I explicitly ask for local development branch behavior.
 
 Brief JSON output has this wrapper shape:
 
@@ -23,7 +23,7 @@ The core payload type is `SDK.BuilderStoreData`.
 
 Prefer the npm registry/package interface.
 
-Use the latest published package unless the user gives a specific Rsdoctor package version or asks to match an installed project version.
+Use the latest published package unless I give a specific Rsdoctor package version or ask to match an installed project version.
 
 ```bash
 npm view @rsdoctor/types version dist.tarball --json

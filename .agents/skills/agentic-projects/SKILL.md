@@ -16,7 +16,7 @@ Run the colocated script to initialize or update:
 
 ## Workspace contents and usage
 
-- `PROMPT.md`: canonical project prompt + working instructions for the agent.
+- `PROMPT.md`: canonical project prompt + working instructions for you.
 - `plans/<plan-name>.md`: one file per plan iteration or variant. Use for persisted planning history and persisted subagents orchestration synchronization artifacts that should be versioned.
 - `research/<research-item-name>.md`: one file per research artifact or finding.
 - `tmp/`: ephemeral artifacts (large outputs, reusable temp scripts, intermediate data, non-persisted subagents orchestration synchronization artifacts). Delete contents when project is complete.
