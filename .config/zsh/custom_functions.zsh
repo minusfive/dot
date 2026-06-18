@@ -1,5 +1,8 @@
 #!/usr/bin/env zsh
 
+# Load once at startup so the prompt hook path avoids repeated module checks.
+zmodload -F zsh/terminfo b:echoti 2>/dev/null || true
+
 function git_branch_or_short_sha() {
     local repo_root="$1"
     local git_ref
@@ -76,6 +79,33 @@ function reset_terminal_title() {
     if [ "$TERM_PROGRAM" = "WezTerm" ] && command -v wezterm >/dev/null 2>&1; then
         wezterm cli set-tab-title ""
     fi
+}
+
+# Terminal recovery used by the precmd hook and manual `ztfix` command.
+# Keeps repair conservative: only restore the states commonly leaked by crashed TUIs.
+function _ztfix_repair_terminal_state() {
+    [[ -o interactive ]] || return 0
+    [[ -t 0 && -t 1 ]] || return 0
+
+    # Restore core line-editing behavior without broad `stty sane` resets.
+    stty echo icanon opost isig -raw -cbreak 2>/dev/null || true
+    # Disable leaked mouse modes + bracketed paste, and ensure cursor is visible.
+    printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?2004l\e[?25h' 2>/dev/null || true
+
+    # Reset application cursor-key mode (DECCKM) if terminfo support is available.
+    if (( $+builtins[echoti] )); then
+        echoti rmkx 2>/dev/null || true
+    fi
+
+    # Pop Kitty keyboard protocol state when running in known supporting terminals.
+    if [[ -n "${KITTY_WINDOW_ID:-}" || "${TERM_PROGRAM:-}" == "WezTerm" ]]; then
+        printf '\e[<u' 2>/dev/null || true
+    fi
+}
+
+# Manual escape hatch when terminal state breaks mid-session.
+function ztfix() {
+    _ztfix_repair_terminal_state
 }
 
 function read_dot_profile() {

@@ -131,6 +131,12 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
+# Run terminal-state recovery before each prompt to clean up leaked TUI modes.
+if (( $+functions[_ztfix_repair_terminal_state] )); then
+    autoload -Uz add-zsh-hook
+    add-zsh-hook precmd _ztfix_repair_terminal_state
+fi
+
 # User configuration
 
 # Remove ESC delay
