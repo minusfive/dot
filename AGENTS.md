@@ -99,7 +99,8 @@ The skills below are available under [`.agents/skills/`](.agents/skills/).
 - `planning` — Produce execution-ready implementation plans for multi-step, high-risk, ambiguous, or multi-file/service work.
 - `pr-guidelines` — Push branches and open pull requests using the project's title/body conventions and linked issues.
 - `project-overview` — Discover project structure, architecture, and tooling before implementation in an unfamiliar area.
-- `qmd-local-setup` — Configure and use QMD in a repository via native commands (`qmd init`, collections, indexing, embeddings, and querying).
+- `qmd-setup` — Set up QMD in a repository with repository scanning, collection planning, YAML-defined collections, and approval-gated execution.
+- `qmd-usage` — Search and retrieve indexed markdown knowledge with QMD, including structured query authoring and source-grounded answers.
 - `rewrite-imports` — Bulk-migrate import paths after module renames, file moves, or package refactors; use when changing how modules are referenced across many files.
 - `rsbuild-best-practices` — Apply Rsbuild configuration, CLI, type-checking, optimization, asset handling, and debugging best practices.
 - `rsbuild-v2-upgrade` — Upgrade Rsbuild projects from v1.x to v2, including dependency and configuration updates.
