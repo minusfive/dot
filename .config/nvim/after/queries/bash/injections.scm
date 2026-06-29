@@ -38,21 +38,21 @@
   ; Extend the range one byte to the right, to include the trailing newline.
   ; see https://github.com/neovim/neovim/discussions/36669#discussioncomment-15054154
   (#offset! @injection.content 0 7 0 1)
-  (#set! injection.combined)
+  ; (#set! injection.combined)
   (#set! injection.language "kdl"))
 
 ; #[USAGE] format
 ((comment) @injection.content
   (#lua-match? @injection.content "^#%[USAGE%] ")
   (#offset! @injection.content 0 9 0 1)
-  (#set! injection.combined)
+  ; (#set! injection.combined)
   (#set! injection.language "kdl"))
 
 ; # [USAGE] format
 ((comment) @injection.content
   (#lua-match? @injection.content "^# %[USAGE%] ")
   (#offset! @injection.content 0 10 0 1)
-  (#set! injection.combined)
+  ; (#set! injection.combined)
   (#set! injection.language "kdl"))
 
 ; NOTE: on neovim >= 0.12, you can use the multi node pattern instead of
