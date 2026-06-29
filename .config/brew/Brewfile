@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-tap 'buo/cask-upgrade' # auto-upgrade casks
+tap 'buo/cask-upgrade', trusted: true # auto-upgrade casks
 
 brew 'bat' # `cat` replacement
 brew 'btop' # `htop` replacement
@@ -9,6 +9,7 @@ brew 'coreutils' # GNU core utilities
 brew 'dockutil' # CLI for MacOS Dock management
 brew 'eza' # `ls` replacement
 brew 'fd' # `find` replacement
+brew 'findutils' # GNU find utilities
 brew 'fzf' # Fuzzy finder
 brew 'gh' # GitHub CLI
 brew 'git' # Version control
@@ -52,6 +53,7 @@ cask 'obsidian' # Note-taking
 cask 'wezterm@nightly', args: { no_quarantine: true, greedy_latest: true } # Terminal emulator
 
 mas '1Password for Safari', id: 1_569_813_296
+mas 'Yubico Authenticator', id: 1_497_506_650
 
 if ENV['HOMEBREW_PROFILE'] == 'personal' # Personal profile
   cask 'discord' # Chat

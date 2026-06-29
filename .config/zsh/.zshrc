@@ -251,8 +251,11 @@ compinit
 # End of Docker CLI completions
 
 path=(
-    # Coreutils
+    # coreutils
     $(brew --prefix coreutils)/libexec/gnubin
+
+    # findutils
+    $(brew --prefix findutils)/libexec/gnubin
 
     # git diff-highlight
     $(brew --prefix git)/share/git-core/contrib/diff-highlight
