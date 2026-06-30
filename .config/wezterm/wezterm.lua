@@ -189,6 +189,22 @@ local function resizePane(opts)
   }
 end
 
+---Spawns a new tab and places it immediately to the right of the current tab.
+local function spawnTabNextToCurrent()
+  return wezterm.action_callback(function(window, pane)
+    local active_tab_index = 0
+    for _, tab_info in ipairs(window:mux_window():tabs_with_info()) do
+      if tab_info.is_active then
+        active_tab_index = tab_info.index
+        break
+      end
+    end
+
+    window:perform_action(act.SpawnTab("CurrentPaneDomain"), pane)
+    window:perform_action(act.MoveTab(active_tab_index + 1), pane)
+  end)
+end
+
 config.keys = {
   activateOrSplitPane({ mods = "CMD", direction = "Right" }),
   activateOrSplitPane({ mods = "CMD", direction = "Left" }),
@@ -210,6 +226,7 @@ config.keys = {
 
   { key = "p", mods = "CMD", action = act.ActivateCommandPalette },
 
+  { key = "t", mods = "CMD", action = spawnTabNextToCurrent() },
   { key = "t", mods = "CMD|OPT", action = act.ShowTabNavigator },
 
   { key = "w", mods = "CMD", action = act.CloseCurrentPane({ confirm = true }) },
