@@ -9,6 +9,7 @@ local WindowManager = {
   ---@class WindowManagerOptions
   options = {
     enableFocusedWindowHighlight = false,
+    enableMouseFollowsFocus = false,
     appNamesForFilters = {
       -- toFocusMostRecentWindow = { "Microsoft Teams" },
       terminals = { "Terminal", "WezTerm", "Ghostty", "Kitty" },
@@ -316,7 +317,7 @@ end
 ---@param window hs.window
 ---@param appName string
 local function focusedWindowWatcher(window, appName)
-  mouseFollowsFocus(window)
+  if WindowManager.options.enableMouseFollowsFocus then mouseFollowsFocus(window) end
   focusMostRecentAppWindow(window, appName)
 end
 
