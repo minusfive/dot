@@ -31,7 +31,7 @@ prettier = "latest"
 tree-sitter = "latest"
 markdownlint-cli2 = "latest"
 
-"npm:@mermaid-js/mermaid-cli" = "latest"
+"npm:@mermaid-js/mermaid-cli" = { version = "latest", install_env = { PUPPETEER_SKIP_DOWNLOAD = "1" } }
 "npm:mcp-hub" = "latest"
 "npm:@github/copilot" = "latest"
 "npm:@tobilu/qmd" = "latest"
