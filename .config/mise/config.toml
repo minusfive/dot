@@ -15,6 +15,24 @@ python.uv_venv_create_args = ["--seed"]
 terminal_progress = false
 lockfile = true
 
+[bootstrap.repos]
+# Oh My Zsh theme: fast, feature-rich prompt with instant prompt support.
+"~/.config/oh-my-zsh/custom/themes/powerlevel10k" = { url = "https://github.com/romkatv/powerlevel10k.git" }
+# Syntax highlighting while typing commands.
+"~/.config/oh-my-zsh/custom/plugins/fast-syntax-highlighting" = { url = "https://github.com/zdharma-continuum/fast-syntax-highlighting.git" }
+# Fish-like command history suggestions.
+"~/.config/oh-my-zsh/custom/plugins/zsh-autosuggestions" = { url = "https://github.com/zsh-users/zsh-autosuggestions.git" }
+# FZF-powered completion menu for tab completion.
+"~/.config/oh-my-zsh/custom/plugins/fzf-tab" = { url = "https://github.com/Aloxaf/fzf-tab.git" }
+# Extra completion sources and integrations for fzf-tab.
+"~/.config/oh-my-zsh/custom/plugins/fzf-tab-source" = { url = "https://github.com/Freed-Wu/fzf-tab-source.git" }
+# Vim-style editing mode for Zsh with rich motion/text-object behavior.
+"~/.config/oh-my-zsh/custom/plugins/zsh-vi-mode" = { url = "https://github.com/jeffreytse/zsh-vi-mode.git" }
+# Updates Oh My Zsh custom plugins/themes during normal update flow.
+"~/.config/oh-my-zsh/custom/plugins/ohmyzsh-full-autoupdate" = { url = "https://github.com/Pilaton/OhMyZsh-full-autoupdate.git" }
+# Personal LazyVim fork used for local plugin development.
+"~/dev/personal/nvim-plugins/LazyVim" = { url = "git@github.com:minusfive/LazyVim.git", ref = "minusfive" }
+
 [tools]
 rust = "nightly"
 cargo-binstall = "latest"

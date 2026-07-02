@@ -9,33 +9,50 @@ set -euo pipefail
 # used to contain variables and functions in a local scope
 function {
     local __context="MISE"
-    local __proceed="$__install_mise_dev_tools"
+    local __run_steps="$__install_mise_dev_tools"
 
-    if [[ "$__proceed" == true ]]; then
+    if [[ "$__run_steps" != true ]]; then
         echo "\n"
-        _v_log_info $__context "Installing, updating and pruning $(_v_fmt_u mise) dev tools..."
-        _v_confirm_proceed
-    fi
-
-    if [[ "$__proceed" != true ]]; then
-        echo "\n"
-        _v_log_warn $__context "Skipping, updating and pruning $(_v_fmt_u mise) dev tools installation"
+        _v_log_warn $__context "Skipping dev tools installation"
+        _v_log_warn $__context "Skipping bootstrap repos"
         return 0
     fi
 
-    if [[ $(command -v mise) != "" ]]; then
+    if [[ $(command -v mise) == "" ]]; then
         echo "\n"
+        _v_log_error $__context "$(_v_fmt_u mise) not found"
+        exit 1
+    fi
+
+    echo "\n"
+    local __proceed=true
+    _v_log_info $__context "Installing, updating and pruning dev tools..."
+    _v_confirm_proceed
+    if [[ "$__proceed" == true ]]; then
+        _v_log_info $__context "Installing, updating and pruning dev tools..."
         mise prune
         mise install
         mise upgrade
         mise reshim -f
 
         if [[ $? = 0 ]]; then
-            _v_log_ok $__context "$(_v_fmt_u mise) dev tools installed, updated and pruned"
+            _v_log_ok $__context "Dev tools installed, updated and pruned"
         fi
     else
-        echo "\n"
-        _v_log_error $__context "$(_v_fmt_u mise) not found"
-        exit 1
+        _v_log_warn $__context "Skipping dev tools installation"
+    fi
+
+    __proceed=true
+    _v_log_info $__context "Bootstrapping repos..."
+    _v_confirm_proceed
+    if [[ "$__proceed" == true ]]; then
+        _v_log_info $__context "Bootstrapping repos..."
+        mise bootstrap repos apply --yes
+
+        if [[ $? = 0 ]]; then
+            _v_log_ok $__context "Bootstrap repos applied"
+        fi
+    else
+        _v_log_warn $__context "Skipping bootstrap repos"
     fi
 }
