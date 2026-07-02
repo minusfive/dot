@@ -3,6 +3,8 @@
 # Load once at startup so the prompt hook path avoids repeated module checks.
 zmodload -F zsh/terminfo b:echoti 2>/dev/null || true
 
+typeset -g _DOT_LAST_TAB_TITLE=""
+
 function git_branch_or_short_sha() {
     local repo_root="$1"
     local git_ref
@@ -66,16 +68,23 @@ function set_terminal_title() {
     title="$icon_dir $project_name"
     git_ref="$(git_branch_or_short_sha "$project_root")"
     if [ -n "$git_ref" ]; then
-        title="$title @ $git_ref"
+        title="$title  $git_ref"
     fi
 
     if [ "$TERM_PROGRAM" = "WezTerm" ] && command -v wezterm >/dev/null 2>&1; then
+        if [[ "${_DOT_LAST_TAB_TITLE:-}" == "$title" ]]; then
+            return
+        fi
+
         wezterm cli set-tab-title "$title"
+        _DOT_LAST_TAB_TITLE="$title"
     fi
 }
 
 # Reset terminal title
 function reset_terminal_title() {
+    _DOT_LAST_TAB_TITLE=""
+
     if [ "$TERM_PROGRAM" = "WezTerm" ] && command -v wezterm >/dev/null 2>&1; then
         wezterm cli set-tab-title ""
     fi

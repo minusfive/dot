@@ -131,10 +131,15 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
-# Run terminal-state recovery before each prompt to clean up leaked TUI modes.
+# Run terminal maintenance before each prompt.
+autoload -Uz add-zsh-hook
 if (( $+functions[_ztfix_repair_terminal_state] )); then
-    autoload -Uz add-zsh-hook
+    add-zsh-hook -d precmd _ztfix_repair_terminal_state 2>/dev/null
     add-zsh-hook precmd _ztfix_repair_terminal_state
+fi
+if (( $+functions[set_terminal_title] )); then
+    add-zsh-hook -d precmd set_terminal_title 2>/dev/null
+    add-zsh-hook precmd set_terminal_title
 fi
 
 # User configuration
