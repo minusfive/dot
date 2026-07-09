@@ -5,6 +5,11 @@ zmodload -F zsh/terminfo b:echoti 2>/dev/null || true
 
 typeset -g _DOT_LAST_TAB_TITLE=""
 
+function _set_tab_title_osc1() {
+    [[ -t 1 ]] || return 0
+    printf '\e]1;%s\a' "$1"
+}
+
 function git_branch_or_short_sha() {
     local repo_root="$1"
     local git_ref
@@ -71,23 +76,18 @@ function set_terminal_title() {
         title="$title  $git_ref"
     fi
 
-    if [ "$TERM_PROGRAM" = "WezTerm" ] && command -v wezterm >/dev/null 2>&1; then
-        if [[ "${_DOT_LAST_TAB_TITLE:-}" == "$title" ]]; then
-            return
-        fi
-
-        wezterm cli set-tab-title "$title"
-        _DOT_LAST_TAB_TITLE="$title"
+    if [[ "${_DOT_LAST_TAB_TITLE:-}" == "$title" ]]; then
+        return
     fi
+
+    _set_tab_title_osc1 "$title"
+    _DOT_LAST_TAB_TITLE="$title"
 }
 
 # Reset terminal title
 function reset_terminal_title() {
     _DOT_LAST_TAB_TITLE=""
-
-    if [ "$TERM_PROGRAM" = "WezTerm" ] && command -v wezterm >/dev/null 2>&1; then
-        wezterm cli set-tab-title ""
-    fi
+    _set_tab_title_osc1 ""
 }
 
 # Terminal recovery used by the precmd hook and manual `ztfix` command.

@@ -4,8 +4,8 @@ typeset -aU fpath
 typeset -aU manpath
 
 # wezterm shell integration
-if [[ "$TERM" == "wezterm" && -f $XDG_CONFIG_HOME/wezterm/shell-integration.sh ]]; then
-    source $XDG_CONFIG_HOME/wezterm/shell-integration.sh
+if [[ "$TERM" == "wezterm" && -f $XDG_CONFIG_HOME/wezterm/shell-integration.zsh ]]; then
+    source $XDG_CONFIG_HOME/wezterm/shell-integration.zsh
 fi
 
 # Load custom functions
@@ -140,6 +140,7 @@ fi
 if (( $+functions[set_terminal_title] )); then
     add-zsh-hook -d precmd set_terminal_title 2>/dev/null
     add-zsh-hook precmd set_terminal_title
+    set_terminal_title
 fi
 
 # User configuration

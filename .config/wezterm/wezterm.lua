@@ -60,7 +60,9 @@ ctp.tab_bar.inactive_tab_hover.fg_color = catppuccin.colors.mocha.subtext1
 ctp.tab_bar.inactive_tab_hover.intensity = "Bold"
 wezterm.on("format-tab-title", function(tab, _, _, cfg, hover)
   local title = tab.tab_title
-  if (not title) or #title <= 0 then title = tab.active_pane.title end
+  local active_pane_title = tab.active_pane and tab.active_pane.title or ""
+
+  if (not title) or #title <= 0 then title = active_pane_title end
 
   local theme_cfg = tab.is_active and ctp.tab_bar.active_tab
     or (hover and ctp.tab_bar.inactive_tab_hover or ctp.tab_bar.inactive_tab)
@@ -129,16 +131,15 @@ config.enable_csi_u_key_encoding = false
 config.color_schemes = { ["Catppuccin Mocha (minusfive)"] = ctp }
 config.color_scheme = "Catppuccin Mocha (minusfive)"
 
---- Show active workspace in the status area
---- wezterm.on("update-right-status", function(window, pane)
---- 	window:set_right_status(window:active_workspace())
---- end)
-
---- Show which key table is active in the status area
-wezterm.on("update-right-status", function(window)
-  local name = window:active_key_table()
-  if name then name = "TABLE: " .. name end
-  window:set_right_status(name or "")
+--- Show which key table is active in the status area and keep tab title synced
+--- with the focused pane title.
+wezterm.on("update-status", function(window)
+  --- Show active keybinding table or workspace in the status area
+  if window then
+    local name = window:active_key_table()
+    if name then name = "TABLE: " .. name end
+    window:set_right_status(name or "")
+  end
 end)
 
 --- Key mappings
