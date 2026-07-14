@@ -58,11 +58,20 @@ ctp.tab_bar.inactive_tab.fg_color = catppuccin.colors.mocha.overlay2
 ctp.tab_bar.inactive_tab.intensity = "Half"
 ctp.tab_bar.inactive_tab_hover.fg_color = catppuccin.colors.mocha.subtext1
 ctp.tab_bar.inactive_tab_hover.intensity = "Bold"
+
 wezterm.on("format-tab-title", function(tab, _, _, cfg, hover)
+  local max_tab_title_length = 46
+  local ellipsis = "…"
   local title = tab.tab_title
   local active_pane_title = tab.active_pane and tab.active_pane.title or ""
 
   if (not title) or #title <= 0 then title = active_pane_title end
+  local truncated_title = wezterm.truncate_right(title, max_tab_title_length)
+  if truncated_title ~= title then
+    title = wezterm.truncate_right(title, max_tab_title_length - 1) .. ellipsis
+  else
+    title = truncated_title
+  end
 
   local theme_cfg = tab.is_active and ctp.tab_bar.active_tab
     or (hover and ctp.tab_bar.inactive_tab_hover or ctp.tab_bar.inactive_tab)
