@@ -60,7 +60,8 @@ ctp.tab_bar.inactive_tab_hover.fg_color = catppuccin.colors.mocha.subtext1
 ctp.tab_bar.inactive_tab_hover.intensity = "Bold"
 
 wezterm.on("format-tab-title", function(tab, _, _, cfg, hover)
-  local max_tab_title_length = 46
+  local tab_max_width = (cfg and cfg.tab_max_width) or 50
+  local max_tab_title_length = math.max(1, tab_max_width - 4)
   local ellipsis = "…"
   local title = tab.tab_title
   local active_pane_title = tab.active_pane and tab.active_pane.title or ""
