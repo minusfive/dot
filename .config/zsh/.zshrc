@@ -137,11 +137,11 @@ if (( $+functions[_ztfix_repair_terminal_state] )); then
     add-zsh-hook -d precmd _ztfix_repair_terminal_state 2>/dev/null
     add-zsh-hook precmd _ztfix_repair_terminal_state
 fi
-if (( $+functions[set_terminal_title] )); then
-    add-zsh-hook -d precmd set_terminal_title 2>/dev/null
-    add-zsh-hook precmd set_terminal_title
-    set_terminal_title
-fi
+function p10k-on-pre-prompt() {
+    if (( $+functions[set_terminal_title] )); then
+        set_terminal_title
+    fi
+}
 
 # User configuration
 

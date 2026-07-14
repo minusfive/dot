@@ -131,8 +131,7 @@ config.enable_csi_u_key_encoding = false
 config.color_schemes = { ["Catppuccin Mocha (minusfive)"] = ctp }
 config.color_scheme = "Catppuccin Mocha (minusfive)"
 
---- Show which key table is active in the status area and keep tab title synced
---- with the focused pane title.
+--- Show which key table is active in the status area
 wezterm.on("update-status", function(window)
   --- Show active keybinding table or workspace in the status area
   if window then

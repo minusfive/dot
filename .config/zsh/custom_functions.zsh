@@ -4,75 +4,83 @@
 zmodload -F zsh/terminfo b:echoti 2>/dev/null || true
 
 typeset -g _DOT_LAST_TAB_TITLE=""
+typeset -g _DOT_TITLE_PROJECT_ROOT=""
+typeset -g _DOT_TITLE_PROJECT_NAME=""
+typeset -g _DOT_TITLE_ICON=" "
 
 function _set_tab_title_osc1() {
     [[ -t 1 ]] || return 0
     printf '\e]1;%s\a' "$1"
 }
 
-function git_branch_or_short_sha() {
-    local repo_root="$1"
-    local git_ref
+function _dot_detect_project_root() {
+    local current_dir="$PWD"
 
-    if [ ! -e "$repo_root/.git" ]; then
-        return
-    fi
-
-    git_ref="$(git -C "$repo_root" symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
-    if [ -z "$git_ref" ]; then
-        git_ref="$(git -C "$repo_root" rev-parse --short HEAD 2>/dev/null || true)"
-    fi
-
-    if [ -n "$git_ref" ]; then
-        echo "$git_ref"
-    fi
-}
-
-# Set terminal title
-function set_terminal_title() {
-    local icon_dir=" "
-    local start_dir current_dir project_root project_name package_json tsconfig detected_project_name git_ref title
-
-    start_dir="$PWD"
-    current_dir="$start_dir"
-    project_root=""
-
-    while [ -n "$current_dir" ] && [ "$current_dir" != "/" ]; do
-        if [ -e "$current_dir/.git" ]; then
-            icon_dir="󰊢 "
-            project_root="$current_dir"
-            break
+    while [[ -n "$current_dir" && "$current_dir" != "/" ]]; do
+        if [[ -e "$current_dir/.git" ]]; then
+            print -r -- "$current_dir"
+            return 0
         fi
 
-        current_dir="$(dirname "$current_dir")"
+        current_dir="${current_dir:h}"
     done
 
-    if [ -z "$project_root" ]; then
-        project_root="$start_dir"
+    print -r -- "$PWD"
+}
+
+function _dot_update_title_project_cache() {
+    local project_root package_json tsconfig detected_project_name project_name icon_dir
+    project_root="$(_dot_detect_project_root)"
+
+    if [[ "$_DOT_TITLE_PROJECT_ROOT" == "$project_root" ]]; then
+        return 0
     fi
 
     package_json="$project_root/package.json"
     tsconfig="$project_root/tsconfig.json"
-    project_name="$(basename "$project_root")"
+    project_name="${project_root:t}"
+    icon_dir=" "
 
-    if [ -f "$package_json" ]; then
+    if [[ "$project_root" == "$HOME" ]]; then
+        icon_dir="󰋜 "
+    fi
+
+    if [[ -f "$package_json" ]]; then
         icon_dir="󰌞 "
 
-        if command -v jq >/dev/null 2>&1; then
+        if (( $+commands[jq] )); then
             detected_project_name="$(jq -r '.name // empty' "$package_json" 2>/dev/null || true)"
-            if [ -n "$detected_project_name" ]; then
+            if [[ -n "$detected_project_name" ]]; then
                 project_name="$detected_project_name"
             fi
         fi
     fi
 
-    if [ -f "$tsconfig" ]; then
+    if [[ -f "$tsconfig" ]]; then
         icon_dir="󰛦 "
     fi
 
-    title="$icon_dir $project_name"
-    git_ref="$(git_branch_or_short_sha "$project_root")"
-    if [ -n "$git_ref" ]; then
+    _DOT_TITLE_PROJECT_ROOT="$project_root"
+    _DOT_TITLE_PROJECT_NAME="$project_name"
+    _DOT_TITLE_ICON="$icon_dir"
+}
+
+# Set terminal title
+function set_terminal_title() {
+    local git_ref title
+
+    _dot_update_title_project_cache
+    title="$_DOT_TITLE_ICON $_DOT_TITLE_PROJECT_NAME"
+
+    if [[ -n ${VCS_STATUS_LOCAL_BRANCH:-} ]]; then
+        git_ref="${(V)VCS_STATUS_LOCAL_BRANCH}"
+    elif [[ -n ${VCS_STATUS_TAG:-} ]]; then
+        git_ref="${(V)VCS_STATUS_TAG}"
+    elif [[ -n ${VCS_STATUS_COMMIT:-} ]]; then
+        git_ref="${VCS_STATUS_COMMIT[1,8]}"
+    fi
+
+    if [[ -n "$git_ref" ]]; then
         title="$title  $git_ref"
     fi
 
