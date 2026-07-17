@@ -23,8 +23,6 @@ type PullRequestListItem = {
   branch: string;
 };
 
-type PullRequestState = "open" | "closed";
-
 const ALL_CLOSED_PRS_KEYWORD = "ALL_CLOSED_PRS";
 
 function getErrorMessage(error: unknown): string {
@@ -231,24 +229,34 @@ function getOpenPullRequests(
   return prs;
 }
 
-function getPullRequestState(
+function getClosedPullRequests(
   hostname: string,
   owner: string,
   repo: string,
-  prNumber: number,
-): PullRequestState {
+): PullRequestListItem[] {
   const output = runCapture("gh", [
     "api",
     "--hostname",
     hostname,
-    `/repos/${owner}/${repo}/pulls/${prNumber}`,
+    `/repos/${owner}/${repo}/pulls?state=closed&per_page=100`,
   ]);
-  const parsed = JSON.parse(output) as { state?: unknown };
-  const state = parsed.state;
-  if (state !== "open" && state !== "closed") {
-    throw new Error(`could not resolve state for PR #${prNumber}.`);
+  const parsed = JSON.parse(output) as Array<Record<string, unknown>>;
+  const prs: PullRequestListItem[] = [];
+
+  for (const pr of parsed) {
+    const number = pr["number"];
+    if (typeof number !== "number") continue;
+    const title = String(pr["title"] ?? "")
+      .replaceAll("\t", " ")
+      .trim();
+    const head = pr["head"] as { ref?: unknown } | undefined;
+    const branch = String(head?.ref ?? "")
+      .replaceAll("\t", " ")
+      .trim();
+    prs.push({ number, title, branch });
   }
-  return state;
+
+  return prs;
 }
 
 function removeWorktree(name: string): void {
@@ -404,20 +412,6 @@ async function runDeleteClosedPrWorktreesFlow(): Promise<void> {
 
   const repoRoot = runCapture("git", ["rev-parse", "--show-toplevel"]).trim();
   const worktrees = parseWorktreeList(repoRoot);
-  const prWorktrees = worktrees
-    .map((entry) => ({
-      entry,
-      prNumber: parsePrNumberFromWorktreeName(entry.name),
-    }))
-    .filter(
-      (value): value is { entry: WorktreeEntry; prNumber: number } =>
-        value.prNumber !== undefined,
-    );
-
-  if (prWorktrees.length === 0) {
-    console.log("No PR worktrees found.");
-    return;
-  }
 
   const context = resolveUpstreamContext();
   const { hostname, owner, repo } = context;
@@ -425,16 +419,34 @@ async function runDeleteClosedPrWorktreesFlow(): Promise<void> {
     throw new Error("resolve-upstream returned incomplete repository context.");
   }
 
+  const closedPrs = getClosedPullRequests(hostname, owner, repo);
+  if (closedPrs.length === 0) {
+    console.log("No closed pull requests found.");
+    return;
+  }
+
+  const closedPrNumbers = new Set(closedPrs.map((pr) => pr.number));
+  const closedPrBranches = new Set(
+    closedPrs.map((pr) => pr.branch).filter(Boolean),
+  );
+  const openPrBranches = new Set(
+    getOpenPullRequests(hostname, owner, repo)
+      .map((pr) => pr.branch)
+      .filter(Boolean),
+  );
   const closedPrPaths = new Set<string>();
-  for (const prWorktree of prWorktrees) {
-    const state = getPullRequestState(
-      hostname,
-      owner,
-      repo,
-      prWorktree.prNumber,
-    );
-    if (state === "closed") {
-      closedPrPaths.add(prWorktree.entry.path);
+  for (const worktree of worktrees) {
+    const prNumber = parsePrNumberFromWorktreeName(worktree.name);
+    if (prNumber && closedPrNumbers.has(prNumber)) {
+      closedPrPaths.add(worktree.path);
+      continue;
+    }
+    if (
+      worktree.branch &&
+      closedPrBranches.has(worktree.branch) &&
+      !openPrBranches.has(worktree.branch)
+    ) {
+      closedPrPaths.add(worktree.path);
     }
   }
 
