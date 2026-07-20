@@ -170,13 +170,101 @@ local directionMap = {
 ---@field key? string
 ---@field mods? string
 
+---@param axis "x" | "y"
+---@return "Left" | "Up"
+local function axisPreviousDirection(axis)
+  if axis == "x" then return "Left" end
+  return "Up"
+end
+
+---@param axis "x" | "y"
+---@return "Right" | "Down"
+local function axisNextDirection(axis)
+  if axis == "x" then return "Right" end
+  return "Down"
+end
+
+---Walk panes aligned on the same axis as the active pane.
+---@param pane Pane
+---@param axis "x" | "y"
+---@param window Window
+---@param tab MuxTab
+---@param fn? fun(candidate: Pane): Pane
+---@return Pane[]
+local function walkSiblingPanes(pane, axis, window, tab, fn)
+  local siblings = { fn and fn(pane) or pane }
+  local previous_direction = axisPreviousDirection(axis)
+  local next_direction = axisNextDirection(axis)
+  local max_iter = 20
+  local initial_pane_index = 0
+
+  for _, pane_info in ipairs(tab:panes_with_info()) do
+    if pane_info.is_active then
+      initial_pane_index = pane_info.index or 0
+      break
+    end
+  end
+
+  for _, step in ipairs({ "prev", "next" }) do
+    local move_direction = step == "prev" and previous_direction or next_direction
+    local last_pane = tab:active_pane()
+    window:perform_action(act.ActivatePaneDirection(move_direction), last_pane)
+    local current_pane = tab:active_pane()
+    local i = 0
+
+    while current_pane:pane_id() ~= last_pane:pane_id() and i < max_iter do
+      if step == "prev" then
+        table.insert(siblings, 1, fn and fn(current_pane) or current_pane)
+      else
+        table.insert(siblings, fn and fn(current_pane) or current_pane)
+      end
+
+      last_pane = tab:active_pane()
+      window:perform_action(act.ActivatePaneDirection(move_direction), last_pane)
+      current_pane = tab:active_pane()
+      i = i + 1
+    end
+
+    window:perform_action(act.ActivatePaneByIndex(initial_pane_index), tab:active_pane())
+  end
+
+  return siblings
+end
+
+---Rebalances pane sizes equally across a single axis.
+---@param window Window
+---@param pane Pane
+---@param axis "x" | "y"
+local function rebalancePaneAxis(window, pane, axis)
+  local tab = pane:tab()
+  local previous_direction = axisPreviousDirection(axis)
+  local next_direction = axisNextDirection(axis)
+  local siblings = walkSiblingPanes(pane, axis, window, tab)
+
+  if #siblings <= 1 then return end
+
+  local tab_size_key = axis == "x" and "cols" or "rows"
+  local target_size = math.floor(tab:get_size()[tab_size_key] / #siblings)
+  local pane_size_key = axis == "x" and "cols" or "viewport_rows"
+
+  walkSiblingPanes(pane, axis, window, tab, function(candidate)
+    local pane_size = candidate:get_dimensions()[pane_size_key]
+    local delta = pane_size - target_size
+    if delta ~= 0 then
+      local direction = delta < 0 and next_direction or previous_direction
+      window:perform_action(act.AdjustPaneSize({ direction, math.abs(delta) }), candidate)
+    end
+    return candidate
+  end)
+end
+
 ---Tries to activate a pane in the given direction, or splits the current pane in that direction.
 ---@param opts DirectionalKeybinding
 local function activateOrSplitPane(opts)
   return {
     key = opts.key or (opts.direction .. "Arrow"),
     mods = opts.mods,
-    action = wezterm.action_callback(function(_, pane)
+    action = wezterm.action_callback(function(window, pane)
       local pane_at_direction = pane:tab():get_pane_direction(opts.direction)
 
       if pane_at_direction then
@@ -185,8 +273,53 @@ local function activateOrSplitPane(opts)
       end
 
       pane:split({ direction = directionMap[opts.direction] })
+      local axis = (opts.direction == "Left" or opts.direction == "Right") and "x" or "y"
+      rebalancePaneAxis(window, pane, axis)
     end),
   }
+end
+
+---Closes current pane and rebalances the remaining layout shortly after.
+local function closeAndRebalancePane()
+  ---Waits until the target pane is gone, then rebalances.
+  ---@param window Window
+  ---@param closed_pane_id integer
+  ---@param attempts_left integer
+  local function rebalanceAfterPaneClosed(window, closed_pane_id, attempts_left)
+    if attempts_left <= 0 then return end
+
+    local tab = window:active_tab()
+    if not tab then return end
+
+    local still_exists = false
+    for _, info in ipairs(tab:panes_with_info()) do
+      if info.pane:pane_id() == closed_pane_id then
+        still_exists = true
+        break
+      end
+    end
+
+    if still_exists then
+      wezterm.time.call_after(0.05, function()
+        rebalanceAfterPaneClosed(window, closed_pane_id, attempts_left - 1)
+      end)
+      return
+    end
+
+    local active_pane = tab:active_pane()
+    if not active_pane then return end
+
+    rebalancePaneAxis(window, active_pane, "x")
+    rebalancePaneAxis(window, active_pane, "y")
+  end
+
+  return wezterm.action_callback(function(window, pane)
+    local closing_pane_id = pane:pane_id()
+    window:perform_action(act.CloseCurrentPane({ confirm = true }), pane)
+    wezterm.time.call_after(0.05, function()
+      rebalanceAfterPaneClosed(window, closing_pane_id, 400)
+    end)
+  end)
 end
 
 ---Resizes pane in the given direction.
@@ -239,7 +372,7 @@ config.keys = {
   { key = "t", mods = "CMD", action = spawnTabNextToCurrent() },
   { key = "t", mods = "CMD|OPT", action = act.ShowTabNavigator },
 
-  { key = "w", mods = "CMD", action = act.CloseCurrentPane({ confirm = true }) },
+  { key = "w", mods = "CMD", action = closeAndRebalancePane() },
   { key = "w", mods = "CMD|SHIFT", action = act.CloseCurrentTab({ confirm = true }) },
 
   { key = "l", mods = "CMD", action = act.ShowLauncherArgs({ flags = "LAUNCH_MENU_ITEMS|TABS|WORKSPACES" }) },
