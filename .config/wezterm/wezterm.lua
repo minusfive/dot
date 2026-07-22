@@ -59,16 +59,18 @@ ctp.tab_bar.inactive_tab.intensity = "Half"
 ctp.tab_bar.inactive_tab_hover.fg_color = catppuccin.colors.mocha.subtext1
 ctp.tab_bar.inactive_tab_hover.intensity = "Bold"
 
-wezterm.on("format-tab-title", function(tab, _, _, cfg, hover)
-  local tab_max_width = (cfg and cfg.tab_max_width) or 50
-  local max_tab_title_length = math.max(1, tab_max_width - 4)
+wezterm.on("format-tab-title", function(tab, _, _, cfg, hover, max_width)
   local ellipsis = "…"
   local title = tab.tab_title
   local active_pane_title = tab.active_pane and tab.active_pane.title or ""
+  local tab_index_text = " " .. (tab.tab_index + 1) .. " "
+  local separator = "🮇"
 
   if (not title) or #title <= 0 then title = active_pane_title end
+  local reserved_width = wezterm.column_width(tab_index_text) + wezterm.column_width(separator) + 1
+  local max_tab_title_length = math.max(1, max_width - reserved_width)
   local truncated_title = wezterm.truncate_right(title, max_tab_title_length)
-  if truncated_title ~= title then
+  if truncated_title ~= title and max_tab_title_length > 1 then
     title = wezterm.truncate_right(title, max_tab_title_length - 1) .. ellipsis
   else
     title = truncated_title
@@ -81,12 +83,12 @@ wezterm.on("format-tab-title", function(tab, _, _, cfg, hover)
   return {
     { Attribute = { Intensity = "Half" } },
     { Foreground = { Color = idx_color } },
-    { Text = " " .. (tab.tab_index + 1) .. " " },
+    { Text = tab_index_text },
     { Foreground = { Color = theme_cfg.fg_color } },
     { Attribute = { Intensity = theme_cfg.intensity } },
     { Text = title .. " " },
     { Foreground = { Color = cfg.colors.split } },
-    { Text = "🮇" },
+    { Text = separator },
   }
 end)
 
