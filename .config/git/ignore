@@ -81,3 +81,9 @@ node_modules/
 
 # OpenCode
 .config/opencode/package-lock.json
+
+# Agent instruction evaluation outputs
+**/.agents/skills/**/evals/**/outputs/
+
+# Agentic project workspaces
+**/.agents/projects/*/

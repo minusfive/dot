@@ -17,10 +17,17 @@ Run the colocated script to initialize or update:
 ## Workspace contents and usage
 
 - `PROMPT.md`: canonical project prompt + working instructions for you.
-- `plans/<plan-name>.md`: one file per plan iteration or variant. Use for persisted planning history and persisted subagents orchestration synchronization artifacts that should be versioned.
+- `plans/<plan-name>.md`: one file per plan iteration or variant. Use for persisted planning history and persisted subagents orchestration synchronization artifacts.
 - `research/<research-item-name>.md`: one file per research artifact or finding.
 - `tmp/`: ephemeral artifacts (large outputs, reusable temp scripts, intermediate data, non-persisted subagents orchestration synchronization artifacts). Delete contents when project is complete.
 - `.gitignore`: ignores `tmp/*` so temporary artifacts are not committed.
+
+## Version control
+
+- Agentic project workspaces are ignored by default.
+- Check in a project only when I explicitly ask you to persist it with the repository.
+- Use `git add -f` with `PROMPT.md`, `plans/`, and `research/` paths for the project.
+- Keep `tmp/` out of the index.
 
 ## Invocation
 

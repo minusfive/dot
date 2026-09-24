@@ -22,7 +22,10 @@ Follow the canonical hook-bypass policy in `AGENTS.md` (Tool Usage). For git spe
 
 ## Branch
 
-- Create a new branch using concise AND descriptive branch names from analysis. It is your job to generate the branch name, do not ask me to provide it
+- Inspect the current worktree branch before you create or switch branches.
+- If the current worktree is on a non-main branch, keep commits and pushes on that branch.
+- Do not create or switch branches from a non-main worktree unless I explicitly ask you to do so.
+- If the current worktree is on `main` or is detached, create a concise and descriptive branch unless I explicitly ask you to use another branch.
 
 ## Commit
 
