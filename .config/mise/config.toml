@@ -12,3 +12,6 @@ python.uv_venv_create_args = ["--seed"]
 terminal_progress = false
 lockfile = true
 minimum_release_age = "7d"
+
+[tools]
+pitchfork = "latest"

@@ -285,6 +285,10 @@ backend = "npm:@tobilu/qmd"
 version = "4.2.1"
 backend = "npm:mcp-hub"
 
+[[tools."npm:mermaid-formatter"]]
+version = "0.3.0"
+backend = "npm:mermaid-formatter"
+
 [[tools.opencode]]
 version = "1.18.25"
 backend = "aqua:anomalyco/opencode"
@@ -343,6 +347,40 @@ url_api = "https://api.github.com/repos/anomalyco/opencode/releases/assets/53331
 checksum = "sha256:831e213e5f454d6e8b26f0fb24c7b3d42b40e47d73d154672a9192702eb08416"
 url = "https://github.com/anomalyco/opencode/releases/download/v1.18.25/opencode-windows-x64.zip"
 url_api = "https://api.github.com/repos/anomalyco/opencode/releases/assets/533315557"
+
+[[tools.pitchfork]]
+version = "2.23.0"
+backend = "aqua:jdx/pitchfork"
+
+[tools.pitchfork."platforms.linux-arm64"]
+checksum = "sha256:f3917d35991bb5c1bcb9e0f40f21ade55c2b9d2a81c580e8035ea5cbf24d2820"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.23.0/pitchfork-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/jdx/pitchfork/releases/assets/530648398"
+
+[tools.pitchfork."platforms.linux-x64"]
+checksum = "sha256:e2d932de87fbf1faeec38ea2b1534bedaf305938456f92fdd35cabeb17ea79ca"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.23.0/pitchfork-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/jdx/pitchfork/releases/assets/530647237"
+
+[tools.pitchfork."platforms.linux-x64-baseline"]
+checksum = "sha256:e2d932de87fbf1faeec38ea2b1534bedaf305938456f92fdd35cabeb17ea79ca"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.23.0/pitchfork-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/jdx/pitchfork/releases/assets/530647237"
+
+[tools.pitchfork."platforms.macos-arm64"]
+checksum = "sha256:8e206fa6d8dc5032dd19ffd2847898b8b1bbd883a69a22c073aea782fef8c7a7"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.23.0/pitchfork-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/jdx/pitchfork/releases/assets/530652428"
+
+[tools.pitchfork."platforms.windows-x64"]
+checksum = "sha256:f531f4c3449d757bb8e300a7b190dad40cc9aa9946612bfd10f28391a96c2711"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.23.0/pitchfork-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/jdx/pitchfork/releases/assets/530657294"
+
+[tools.pitchfork."platforms.windows-x64-baseline"]
+checksum = "sha256:f531f4c3449d757bb8e300a7b190dad40cc9aa9946612bfd10f28391a96c2711"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.23.0/pitchfork-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/jdx/pitchfork/releases/assets/530657294"
 
 [[tools.prettier]]
 version = "3.9.6"
