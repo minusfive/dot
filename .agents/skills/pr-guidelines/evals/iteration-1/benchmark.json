@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skill": "pr-guidelines",
+  "iteration": 1,
+  "runs_per_case": 2,
+  "metrics": {
+    "with_change": {
+      "assertions_passed": 18,
+      "assertions_total": 18,
+      "pass_rate": 1.0,
+      "total_tokens": null,
+      "duration_ms": null,
+      "telemetry_available": false
+    },
+    "old_version": {
+      "assertions_passed": 4,
+      "assertions_total": 18,
+      "pass_rate": 0.2222222222,
+      "total_tokens": null,
+      "duration_ms": null,
+      "telemetry_available": false
+    },
+    "delta": {
+      "pass_rate": 0.7777777778,
+      "total_tokens": null,
+      "duration_ms": null
+    }
+  },
+  "calculation_note": "Pass rates count each assertion for each of two runs. Token and duration deltas are unavailable because the isolated task-agent harness did not expose telemetry; timing records mark this as unsupported."
+}

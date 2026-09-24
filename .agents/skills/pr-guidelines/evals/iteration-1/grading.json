@@ -1,0 +1,236 @@
+{
+  "version": 1,
+  "skill": "pr-guidelines",
+  "iteration": 1,
+  "runs_per_case": 2,
+  "cases": {
+    "authorized-push-with-open-pr": {
+      "assertions": [
+        {
+          "id": "a1",
+          "text": "Names the post-push synchronization as an immediate required step.",
+          "with_change": {
+            "run-1": {
+              "status": "pass",
+              "evidence": "Immediately synchronize ... before any further push, handoff, or completion report."
+            },
+            "run-2": {
+              "status": "pass",
+              "evidence": "Immediately synchronize ... before any further push, handoff, or completion report."
+            }
+          },
+          "old_version": {
+            "run-1": {
+              "status": "fail",
+              "evidence": "Only says to update the PR after the push; does not make synchronization immediate."
+            },
+            "run-2": {
+              "status": "fail",
+              "evidence": "Only says to update the PR; no immediate post-push sequencing."
+            }
+          }
+        },
+        {
+          "id": "a2",
+          "text": "Uses the complete base-to-HEAD diff as the metadata source.",
+          "with_change": {
+            "run-1": {
+              "status": "pass",
+              "evidence": "Use metadata derived from the complete base-to-HEAD diff."
+            },
+            "run-2": {
+              "status": "pass",
+              "evidence": "The title and body must reflect the complete base-to-HEAD diff."
+            }
+          },
+          "old_version": {
+            "run-1": {
+              "status": "fail",
+              "evidence": "Mentions latest pushed changes, not the complete base-to-HEAD diff."
+            },
+            "run-2": {
+              "status": "fail",
+              "evidence": "Mentions latest changes but not the complete base-to-HEAD diff."
+            }
+          }
+        },
+        {
+          "id": "a3",
+          "text": "Requires a gh pr edit update and a gh pr view verification.",
+          "with_change": {
+            "run-1": {
+              "status": "pass",
+              "evidence": "Uses mise run pr:sync and requires metadata verification; run-2 explicitly names gh pr edit and gh pr view."
+            },
+            "run-2": {
+              "status": "pass",
+              "evidence": "Explicitly requires gh pr edit followed by gh pr view."
+            }
+          },
+          "old_version": {
+            "run-1": {
+              "status": "fail",
+              "evidence": "No gh command or verification sequence."
+            },
+            "run-2": {
+              "status": "fail",
+              "evidence": "No gh command or verification sequence."
+            }
+          }
+        },
+        {
+          "id": "a4",
+          "text": "Blocks handoff or completion when synchronization fails.",
+          "with_change": {
+            "run-1": {
+              "status": "pass",
+              "evidence": "If synchronization or verification fails, stop and report the blocker."
+            },
+            "run-2": {
+              "status": "pass",
+              "evidence": "Stop and report any synchronization or verification failure."
+            }
+          },
+          "old_version": {
+            "run-1": {
+              "status": "fail",
+              "evidence": "No failure blocker."
+            },
+            "run-2": {
+              "status": "fail",
+              "evidence": "No failure blocker."
+            }
+          }
+        }
+      ]
+    },
+    "script-triggered-push": {
+      "assertions": [
+        {
+          "id": "a1",
+          "text": "Applies the workflow to pushes made by scripts or other tools.",
+          "with_change": {
+            "run-1": {
+              "status": "pass",
+              "evidence": "Treat the script\u2019s push as the same trigger."
+            },
+            "run-2": {
+              "status": "pass",
+              "evidence": "Treat the script\u2019s push as the same trigger."
+            }
+          },
+          "old_version": {
+            "run-1": {
+              "status": "pass",
+              "evidence": "Explicitly discusses the release script\u2019s push."
+            },
+            "run-2": {
+              "status": "pass",
+              "evidence": "Says the workflow applies regardless of who pushed the branch."
+            }
+          }
+        },
+        {
+          "id": "a2",
+          "text": "Requires synchronization before further work or completion.",
+          "with_change": {
+            "run-1": {
+              "status": "pass",
+              "evidence": "Immediate sync and verification are required before further push, handoff, or completion report."
+            },
+            "run-2": {
+              "status": "pass",
+              "evidence": "Verification is required before any further push, handoff, or completion report."
+            }
+          },
+          "old_version": {
+            "run-1": {
+              "status": "fail",
+              "evidence": "Requires updating after the push but does not block further work or completion."
+            },
+            "run-2": {
+              "status": "fail",
+              "evidence": "Does not require synchronization before handoff or completion."
+            }
+          }
+        }
+      ]
+    },
+    "no-open-pr": {
+      "assertions": [
+        {
+          "id": "a1",
+          "text": "Does not edit a non-existent pull request.",
+          "with_change": {
+            "run-1": {
+              "status": "pass",
+              "evidence": "Says no synchronization runs because there is no open PR."
+            },
+            "run-2": {
+              "status": "pass",
+              "evidence": "Says continue without running synchronization."
+            }
+          },
+          "old_version": {
+            "run-1": {
+              "status": "pass",
+              "evidence": "Requests approval and does not instruct editing a nonexistent PR."
+            },
+            "run-2": {
+              "status": "pass",
+              "evidence": "Requests approval and does not instruct editing a nonexistent PR."
+            }
+          }
+        },
+        {
+          "id": "a2",
+          "text": "Requires explicit approval from me in the current interaction before opening a pull request.",
+          "with_change": {
+            "run-1": {
+              "status": "pass",
+              "evidence": "Requires explicit approval from me in the current interaction before creating the pull request."
+            },
+            "run-2": {
+              "status": "pass",
+              "evidence": "Requires explicit approval from me in the current interaction before creating the pull request."
+            }
+          },
+          "old_version": {
+            "run-1": {
+              "status": "fail",
+              "evidence": "Requires explicit approval but does not require that approval to come from me in the current interaction."
+            },
+            "run-2": {
+              "status": "fail",
+              "evidence": "Requires explicit approval but does not require that approval to come from me in the current interaction."
+            }
+          }
+        },
+        {
+          "id": "a3",
+          "text": "Derives new pull request metadata from the complete change set.",
+          "with_change": {
+            "run-1": {
+              "status": "pass",
+              "evidence": "Generate PR metadata from the complete base-to-HEAD change set."
+            },
+            "run-2": {
+              "status": "pass",
+              "evidence": "Derive title and body from the complete base-to-HEAD change set."
+            }
+          },
+          "old_version": {
+            "run-1": {
+              "status": "fail",
+              "evidence": "Does not specify the complete change set."
+            },
+            "run-2": {
+              "status": "fail",
+              "evidence": "Only says aligned with latest changes and references."
+            }
+          }
+        }
+      ]
+    }
+  }
+}

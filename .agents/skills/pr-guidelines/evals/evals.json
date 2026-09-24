@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "skill": "pr-guidelines",
+  "cases": [
+    {
+      "id": "authorized-push-with-open-pr",
+      "prompt": "I authorized a push to a branch that has an open pull request. The push succeeded. What must you do next?",
+      "expected_output": "Immediately synchronize the pull request title and body from the complete base-to-HEAD diff, then verify the title, body, open state, branch, and head commit.",
+      "assertions": [
+        "Names the post-push synchronization as an immediate required step.",
+        "Uses the complete base-to-HEAD diff as the metadata source.",
+        "Requires a gh pr edit update and a gh pr view verification.",
+        "Blocks handoff or completion when synchronization fails."
+      ]
+    },
+    {
+      "id": "script-triggered-push",
+      "prompt": "A release script pushed the branch instead of the agent. Does the pull request metadata workflow still apply?",
+      "expected_output": "Yes. Treat the script push as the same trigger and synchronize before any further push, handoff, or completion report.",
+      "assertions": [
+        "Applies the workflow to pushes made by scripts or other tools.",
+        "Requires synchronization before further work or completion."
+      ]
+    },
+    {
+      "id": "no-open-pr",
+      "prompt": "The authorized push succeeded, but the branch has no open pull request. If a pull request is needed, who must approve its creation, and when may it be created?",
+      "expected_output": "Do not run the synchronization update. If opening a pull request is needed, ask me for explicit approval in the current interaction, then create it with metadata derived from the complete change set.",
+      "assertions": [
+        "Does not edit a non-existent pull request.",
+        "Requires explicit approval from me in the current interaction before opening a pull request.",
+        "Derives new pull request metadata from the complete change set."
+      ]
+    }
+  ]
+}

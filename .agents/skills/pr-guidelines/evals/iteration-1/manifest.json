@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skill": "pr-guidelines",
+  "iteration": 1,
+  "with_change_source": "working tree .agents/skills/pr-guidelines/SKILL.md",
+  "old_version_source": "git show HEAD:.agents/skills/pr-guidelines/SKILL.md",
+  "baseline_commit": "2f3a01cce7abdb0bb429fdf82aaee178203099ee",
+  "behavior_cases": "../evals.json",
+  "isolation": "Each saved response came from a separate isolated task-agent context; two runs per case and configuration are retained.",
+  "discoverability": "../discoverability/queries.json",
+  "discoverability_execution": "Unsupported: no selector harness exposed; no trigger or telemetry data fabricated."
+}

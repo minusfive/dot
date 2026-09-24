@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "skill": "pr-guidelines",
+  "iteration": 1,
+  "human_review": [
+    {
+      "id": "f1",
+      "severity": "positive",
+      "config": "with_change",
+      "note": "Updated responses consistently identify immediate synchronization, complete-diff metadata, gh pr edit/gh pr view verification, and failure blocking."
+    },
+    {
+      "id": "f2",
+      "severity": "positive",
+      "config": "with_change",
+      "note": "Updated no-open-PR responses preserve the approval gate and require approval from me in the current interaction before creation."
+    },
+    {
+      "id": "f3",
+      "severity": "negative",
+      "config": "old_version",
+      "note": "Baseline responses omit the explicit sync task, gh pr edit/gh pr view verification, complete base-to-HEAD sourcing, blocker behavior, or the current-interaction approver requirement as applicable."
+    },
+    {
+      "id": "f4",
+      "severity": "limitation",
+      "config": "all",
+      "note": "No selector harness was available, so discoverability trigger rates were not executed and no model outputs were fabricated."
+    },
+    {
+      "id": "f5",
+      "severity": "limitation",
+      "config": "all",
+      "note": "The isolated response harness exposed text only; per-run timing files retain required fields as null with an unsupported status."
+    }
+  ],
+  "recommendation": "Keep the updated skill behavior. Before a release decision, rerun discoverability and telemetry measurements with a selector-capable harness."
+}

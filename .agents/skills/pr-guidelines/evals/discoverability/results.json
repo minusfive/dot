@@ -1,0 +1,16 @@
+{
+  "status": "unsupported",
+  "runs_per_query": 0,
+  "trigger_rate_threshold": 0.5,
+  "reason": "No skill-selector/discoverability harness is exposed in this environment. The available isolated agent contexts can answer behavior cases but cannot report which skill the runtime selected. No trigger outputs were fabricated.",
+  "train": {
+    "query_count": 12,
+    "trigger_rate": null,
+    "pass_rate": null
+  },
+  "validation": {
+    "query_count": 8,
+    "trigger_rate": null,
+    "pass_rate": null
+  }
+}

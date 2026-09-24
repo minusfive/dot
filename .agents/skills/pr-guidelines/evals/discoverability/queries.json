@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "skill": "pr-guidelines",
+  "threshold": 0.5,
+  "queries": [
+    {
+      "id": "q01",
+      "split": "train",
+      "label": "should-trigger",
+      "prompt": "I am about to push this feature branch. Check the open PR and keep its title and body in sync afterward.",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": ["Select pr-guidelines because this is a push with PR metadata synchronization."]
+    },
+    {
+      "id": "q02",
+      "split": "train",
+      "label": "should-trigger",
+      "prompt": "The push completed. Please update the pull request description from the full diff and verify the head SHA.",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": ["Select pr-guidelines for post-push PR metadata update and verification."]
+    },
+    {
+      "id": "q03",
+      "split": "train",
+      "label": "should-trigger",
+      "prompt": "Before I push, tell me what the PR workflow requires when an open PR may already exist.",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": ["Select pr-guidelines for pre-push open-PR inspection and post-push synchronization."]
+    },
+    {
+      "id": "q04",
+      "split": "train",
+      "label": "should-trigger",
+      "prompt": "A bot pushed the branch. Do we need to synchronize the open pull request now?",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": ["Select pr-guidelines because tool/script pushes are in scope."]
+    },
+    {
+      "id": "q05",
+      "split": "train",
+      "label": "should-trigger",
+      "prompt": "There is no open PR after my authorized push. Explain the approval rule before creating one.",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": [
+        "Select pr-guidelines for no-open-PR approval handling, including approval from me in the current interaction."
+      ]
+    },
+    {
+      "id": "q06",
+      "split": "train",
+      "label": "should-trigger",
+      "prompt": "Prepare the title and body for this branch PR using the complete base-to-HEAD change set.",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": ["Select pr-guidelines for PR metadata derived from the complete diff."]
+    },
+    {
+      "id": "q07",
+      "split": "train",
+      "label": "should-trigger",
+      "prompt": "The sync task failed after the push. What must happen before handoff?",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": ["Select pr-guidelines for synchronization failure blocking rules."]
+    },
+    {
+      "id": "q08",
+      "split": "train",
+      "label": "should-trigger",
+      "prompt": "Can a release script push without the agent updating the PR title and body?",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": ["Select pr-guidelines because script-triggered pushes remain in scope."]
+    },
+    {
+      "id": "q09",
+      "split": "train",
+      "label": "should-not-trigger",
+      "prompt": "Create a conventional commit message for these staged files.",
+      "expected_skill": "commit-guidelines",
+      "expected_trigger": false,
+      "expected_assertions": ["Do not select pr-guidelines; this is commit-message work with no PR push context."]
+    },
+    {
+      "id": "q10",
+      "split": "train",
+      "label": "should-not-trigger",
+      "prompt": "Review this pull request for security vulnerabilities in its authentication code.",
+      "expected_skill": "security",
+      "expected_trigger": false,
+      "expected_assertions": [
+        "Do not select pr-guidelines; the request is a security review, not PR metadata synchronization."
+      ]
+    },
+    {
+      "id": "q11",
+      "split": "train",
+      "label": "overlap-routing",
+      "prompt": "Perform a critique of these agent instructions and report routing problems.",
+      "expected_skill": "critique-workflow",
+      "expected_trigger": false,
+      "expected_assertions": [
+        "Route to critique-workflow, not pr-guidelines, because no push or PR metadata action is requested."
+      ]
+    },
+    {
+      "id": "q12",
+      "split": "train",
+      "label": "overlap-routing",
+      "prompt": "Evaluate this AGENTS.md skill routing with repeatable assertions and a baseline.",
+      "expected_skill": "agent-instructions-evaluation",
+      "expected_trigger": false,
+      "expected_assertions": [
+        "Route to agent-instructions-evaluation, not pr-guidelines, because this is an instruction evaluation task."
+      ]
+    },
+    {
+      "id": "q13",
+      "split": "validation",
+      "label": "should-trigger",
+      "prompt": "I pushed from CI and the open PR still has the old summary. Synchronize it and verify everything.",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": ["Select pr-guidelines for CI push and metadata synchronization."]
+    },
+    {
+      "id": "q14",
+      "split": "validation",
+      "label": "should-trigger",
+      "prompt": "If no pull request exists for this branch, can I open one automatically after pushing?",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": [
+        "Select pr-guidelines for explicit approval from me in the current interaction before PR creation."
+      ]
+    },
+    {
+      "id": "q15",
+      "split": "validation",
+      "label": "should-trigger",
+      "prompt": "What gh commands should the PR sync task use to update and then verify the open PR?",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": ["Select pr-guidelines for gh pr edit and gh pr view synchronization verification."]
+    },
+    {
+      "id": "q16",
+      "split": "validation",
+      "label": "should-not-trigger",
+      "prompt": "How do I rebase my branch and resolve its merge conflicts?",
+      "expected_skill": "none",
+      "expected_trigger": false,
+      "expected_assertions": [
+        "Do not select pr-guidelines; this is branch conflict resolution without PR metadata work."
+      ]
+    },
+    {
+      "id": "q17",
+      "split": "validation",
+      "label": "should-not-trigger",
+      "prompt": "Write release notes that summarize the commits in this repository.",
+      "expected_skill": "none",
+      "expected_trigger": false,
+      "expected_assertions": ["Do not select pr-guidelines; release-note writing is not the PR sync workflow."]
+    },
+    {
+      "id": "q18",
+      "split": "validation",
+      "label": "overlap-routing",
+      "prompt": "Audit this pull request body for clear technical English, but do not change metadata.",
+      "expected_skill": "simple-english",
+      "expected_trigger": false,
+      "expected_assertions": [
+        "Route to simple-english, not pr-guidelines, because the request is prose editing without push synchronization."
+      ]
+    },
+    {
+      "id": "q19",
+      "split": "validation",
+      "label": "overlap-routing",
+      "prompt": "Open a pull request for my branch and also check whether the instructions need evaluation.",
+      "expected_skill": "pr-guidelines",
+      "expected_trigger": true,
+      "expected_assertions": [
+        "Select pr-guidelines for the requested PR creation workflow; instruction evaluation is secondary."
+      ]
+    },
+    {
+      "id": "q20",
+      "split": "validation",
+      "label": "should-not-trigger",
+      "prompt": "Push my branch to the remote and do not interact with any pull request.",
+      "expected_skill": "none",
+      "expected_trigger": false,
+      "expected_assertions": ["Do not select pr-guidelines because the prompt explicitly excludes PR interaction."]
+    }
+  ]
+}
