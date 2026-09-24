@@ -28,7 +28,39 @@ if [[ ${#existing_files[@]} -eq 0 ]]; then
     exit 0
 fi
 
-matches="$(grep -nH -- '<!--' "${existing_files[@]}" || true)"
+matches="$(
+    for file in "${existing_files[@]}"; do
+        awk '
+            {
+                marker = ""
+                if (match($0, /^[[:space:]]{0,3}(```+|~~~+)/)) {
+                    marker = substr($0, RSTART, RLENGTH)
+                }
+
+                if (marker != "") {
+                    sub(/^[[:space:]]+/, "", marker)
+                    rest = substr($0, RSTART + RLENGTH)
+
+                    if (!in_fence) {
+                        in_fence = 1
+                        fence_char = substr(marker, 1, 1)
+                        fence_length = length(marker)
+                        next
+                    }
+
+                    if (substr(marker, 1, 1) == fence_char && length(marker) >= fence_length && rest ~ /^[[:space:]]*$/) {
+                        in_fence = 0
+                        next
+                    }
+                }
+
+                if (!in_fence && index($0, "<!--") > 0) {
+                    print FILENAME ":" FNR ":" $0
+                }
+            }
+        ' "$file"
+    done
+)"
 if [[ -n "$matches" ]]; then
     print -u2 -- "HTML comments are not allowed in Markdown files."
     print -u2 -- "$matches"

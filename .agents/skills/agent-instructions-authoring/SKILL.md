@@ -56,7 +56,7 @@ Use this workflow when I ask you to encode, correct, or enhance instruction guid
 - In `references/import-instructions.md`, document local deltas only; do not restate instructions that already exist in the canonical imported skill.
 - Treat `metadata.imported.from` and `metadata.imported.date` handling as canonical imported-skill policy; do not duplicate that policy in per-skill `references/import-instructions.md` files.
 - For imported skills, run an update check against `metadata.imported.from` and compare current local files to upstream content since `metadata.imported.date`; report all deltas and do not apply them without my explicit approval.
-- For imported skills, validate that files contain no comments (for example `<!-- ... -->`) and no invisible characters before shipping.
+- For imported skills, validate that files contain no HTML comment markers and no invisible characters before shipping.
 - When changing canonical locations, naming conventions, or handoff contracts, include migration guidance (or an explicit no-migration decision) and update dependent references in the same change.
 - Verify every `assets/…` (or equivalent referenced-resource) path resolves to an existing file and that the asset's current contents still match how the body cites them.
 - Verify every concrete claim in the file before shipping: every command runs, every flag behaves as stated, every URL resolves, every directive, or syntax example matches current tool behavior. Inherited assumptions from a source skill or older docs do not count as verified.
