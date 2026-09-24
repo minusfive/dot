@@ -26,14 +26,14 @@
     "type": "command",
     "command": "~/.claude/statusline-command.sh"
   },
-  "forceLoginMethod": "console",
   "syntaxHighlightingDisabled": false,
   "effortLevel": "high",
+  "skipWorkflowUsageWarning": true,
+  "theme": "auto",
   "editorMode": "vim",
   "skipAutoPermissionPrompt": true,
   "additionalDirectories": [
     "./.agents",
     "~/.agents"
-  ],
-  "skipWorkflowUsageWarning": true
+  ]
 }
