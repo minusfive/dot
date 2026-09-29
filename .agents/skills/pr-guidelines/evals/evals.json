@@ -31,6 +31,27 @@
         "Requires explicit approval from me in the current interaction before opening a pull request.",
         "Derives new pull request metadata from the complete change set."
       ]
+    },
+    {
+      "id": "multi-commit-pr-metadata",
+      "prompt": "The branch contains four commits. The latest commit only fixes wording, but the first three add the feature and its tests. I pushed the branch with an open pull request. What source must you use for the title and body, and what must you verify?",
+      "expected_output": "Use the complete base-to-HEAD pull request diff, not the latest commit or commit message. Verify the complete changed-path manifest, then update and verify the title, body, open state, branch, and head commit.",
+      "assertions": [
+        "Uses the complete base-to-HEAD diff as the source.",
+        "Explicitly rejects the latest commit and commit message as substitutes.",
+        "Requires a complete changed-path manifest.",
+        "Requires metadata and head-commit verification after the update."
+      ]
+    },
+    {
+      "id": "avoid-commit-autofill",
+      "prompt": "Create a draft pull request for a branch with several commits. Which autofill options are valid for the title and description?",
+      "expected_output": "Do not use commit autofill. Inspect the complete base-to-HEAD diff, create a changed-path manifest, and draft metadata from all functional areas before creating the pull request.",
+      "assertions": [
+        "Rejects gh pr create commit autofill options.",
+        "Requires inspection of the complete diff before creation.",
+        "Requires metadata to cover all functional areas."
+      ]
     }
   ]
 }
