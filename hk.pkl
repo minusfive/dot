@@ -1,13 +1,15 @@
-amends "package://github.com/jdx/hk/releases/download/v1.45.0/hk@1.45.0#/Config.pkl"
-import "package://github.com/jdx/hk/releases/download/v1.45.0/hk@1.45.0#/Builtins.pkl"
+amends "package://github.com/jdx/hk/releases/download/v2.1.0/hk@2.1.0#/Config.pkl"
 
-local non_security_excludes = List(
-  ".config/hammerspoon/Spoons/EmmyLua.spoon/annotations/**",
-  ".config/hammerspoon/Spoons/EmmyLua.spoon/docs.json",
-  ".config/yazi/flavors/**",
-  ".config/yazi/plugins/**",
-  ".config/nvim/lua/config/logos.lua",
-)
+import "package://github.com/jdx/hk/releases/download/v2.1.0/hk@2.1.0#/Builtins.pkl"
+
+local non_security_excludes =
+  List(
+    ".config/hammerspoon/Spoons/EmmyLua.spoon/annotations/**",
+    ".config/hammerspoon/Spoons/EmmyLua.spoon/docs.json",
+    ".config/yazi/flavors/**",
+    ".config/yazi/plugins/**",
+    ".config/nvim/lua/config/logos.lua",
+  )
 
 local checks = new Mapping<String, Step> {
   ["check_added_large_files"] = (Builtins.check_added_large_files) {
@@ -64,7 +66,7 @@ local linters = new Mapping<String, Step> {
 
   ["betterleaks"] = (Builtins.betterleaks) {
     batch = true
-    prefix = "mise x --"
+    prefix = List("mise", "x", "--")
   }
 
   ["shellcheck"] = (Builtins.shellcheck) {
@@ -72,7 +74,7 @@ local linters = new Mapping<String, Step> {
   }
 
   ["sort_package_json"] = (Builtins.sort_package_json) {
-    prefix = "bunx"
+    prefix = List("bunx")
     exclude = non_security_excludes
   }
 

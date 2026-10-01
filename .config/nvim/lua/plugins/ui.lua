@@ -147,7 +147,7 @@ return {
           cond = require("lazy.status").has_updates,
           color = function() return { fg = Snacks.util.color("Special") } end,
         },
-        "kulala",
+        -- "kulala",
       }
 
       opts.sections.lualine_y = {
