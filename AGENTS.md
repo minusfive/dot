@@ -96,7 +96,7 @@ The skills below are available under [`.agents/skills/`](.agents/skills/). **MUS
 - `pr-guidelines` — Push branches, keep open pull requests current, and open pull requests using the project's title/body conventions and linked issues.
 - `project-overview` — Discover project structure, architecture, and tooling before implementation in an unfamiliar area.
 - `qmd-setup` — Set up QMD in a repository with repository scanning, collection planning, YAML-defined collections, and approval-gated execution.
-- `qmd-usage` — Search and retrieve indexed markdown knowledge with QMD, including structured query authoring and source-grounded answers.
+- `qmd-usage` — Use QMD for local research and indexed Markdown: notes, documentation, wikis, and source-grounded answers.
 - `rewrite-imports` — Bulk-update import paths after module moves or renames. Use when a refactor changes module references across many files.
 - `rsbuild-best-practices` — Apply Rsbuild configuration, CLI, type-checking, optimization, asset handling, and debugging best practices.
 - `rsbuild-v2-upgrade` — Upgrade Rsbuild projects from v1.x to v2, including dependency and configuration updates.

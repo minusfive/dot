@@ -1,6 +1,6 @@
 ---
 name: qmd-usage
-description: Search local markdown knowledge bases, notes, docs, and wikis with QMD. Use when users ask to find notes, retrieve documents, inspect a wiki, or answer from indexed markdown.
+description: Search indexed local Markdown with QMD when it is available. Use for local research, notes, documentation, wikis, and source-grounded answers.
 license: MIT
 compatibility: Requires `qmd` to already be available on PATH, or a configured QMD MCP server.
 metadata:
