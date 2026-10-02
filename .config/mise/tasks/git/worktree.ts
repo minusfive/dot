@@ -461,6 +461,11 @@ async function runDeleteClosedPrWorktreesFlow(): Promise<void> {
 }
 
 async function runDeletePullRequestWorktreesFlow(pullRequestSelector: string): Promise<void> {
+  if (isAllClosedPrsKeyword(pullRequestSelector)) {
+    await runDeleteClosedPrWorktreesFlow();
+    return;
+  }
+
   const repoRoot = runCapture("git", ["rev-parse", "--show-toplevel"]).trim();
   const worktrees = parseWorktreeList(repoRoot);
   const prWorktrees = worktrees
@@ -472,11 +477,6 @@ async function runDeletePullRequestWorktreesFlow(pullRequestSelector: string): P
 
   if (prWorktrees.length === 0) {
     console.log("No PR worktrees found.");
-    return;
-  }
-
-  if (isAllClosedPrsKeyword(pullRequestSelector)) {
-    await runDeleteClosedPrWorktreesFlow();
     return;
   }
 
@@ -555,7 +555,7 @@ function runPullRequestFlow(prNumberOverride: string): void {
     }
 
     const lines = prs.map((pr) => `#${pr.number} ${pr.title}\t${pr.number}\t${pr.branch}`);
-    const previewCommand = `gh pr view ${shellQuote("{2}")} 2>/dev/null | head -40`;
+    const previewCommand = `gh pr view --hostname ${shellQuote(hostname)} ${shellQuote("{2}")} 2>/dev/null | head -40`;
     const selected = pickLineWithFzf(lines, "Select PR worktree: ", previewCommand)?.[0];
 
     if (!selected) {
@@ -589,7 +589,7 @@ function runPullRequestFlow(prNumberOverride: string): void {
   }
 
   console.log(`Checking out PR #${selectedPr} ...`);
-  runInherit("gh", ["pr", "checkout", selectedPr]);
+  runInherit("gh", ["pr", "checkout", "--hostname", hostname, selectedPr]);
   const hasMiseConfig =
     existsSync(resolve(resolvedWorktreePath, "mise.toml")) ||
     existsSync(resolve(resolvedWorktreePath, ".mise.toml")) ||
