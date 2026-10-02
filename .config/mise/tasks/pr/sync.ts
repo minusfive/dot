@@ -60,13 +60,13 @@ async function gitValue(args: string[]): Promise<string> {
   return (await run("git", args)).trim();
 }
 
-async function getPullRequest(hostname: string, number?: string): Promise<PullRequest> {
+async function getPullRequest(repository: string, selector: string): Promise<PullRequest> {
   const args = [
     "pr",
     "view",
-    "--hostname",
-    hostname,
-    ...(number ? [number] : []),
+    "--repo",
+    repository,
+    selector,
     "--json",
     "number,title,body,state,headRefName,headRefOid",
   ];
@@ -94,9 +94,9 @@ function canonicalizeBody(value: string): string {
   return value.replaceAll("\r\n", "\n").replace(/\n+$/, "");
 }
 
-async function getPullRequestFiles(hostname: string, number: number): Promise<string[]> {
+async function getPullRequestFiles(repository: string, number: number): Promise<string[]> {
   return canonicalizeFileList(
-    await run("gh", ["pr", "diff", "--hostname", hostname, String(number), "--name-only"]),
+    await run("gh", ["pr", "diff", "--repo", repository, String(number), "--name-only"]),
   );
 }
 
@@ -111,7 +111,8 @@ async function main(): Promise<void> {
     throw new Error("a --change-set-file is required");
   }
 
-  const { hostname } = resolveUpstreamContext();
+  const { hostname, owner, repo } = resolveUpstreamContext();
+  const repository = `${hostname}/${owner}/${repo}`;
   const body = await readFile(BODY_FILE, "utf8");
   if (!body.trim()) {
     throw new Error(`pull request body file is empty: ${BODY_FILE}`);
@@ -127,7 +128,7 @@ async function main(): Promise<void> {
   }
 
   const localHead = await gitValue(["rev-parse", "HEAD"]);
-  const pullRequest = await getPullRequest(hostname, PR_NUMBER || undefined);
+  const pullRequest = await getPullRequest(repository, PR_NUMBER || branch);
 
   if (pullRequest.state !== "OPEN") {
     throw new Error(`pull request #${pullRequest.number} is not open`);
@@ -141,7 +142,7 @@ async function main(): Promise<void> {
     );
   }
 
-  const serverFiles = await getPullRequestFiles(hostname, pullRequest.number);
+  const serverFiles = await getPullRequestFiles(repository, pullRequest.number);
   if (serverFiles.length === 0) {
     throw new Error(`pull request #${pullRequest.number} has no changed files`);
   }
@@ -160,12 +161,12 @@ async function main(): Promise<void> {
 
   await run(
     "gh",
-    ["pr", "edit", "--hostname", hostname, String(pullRequest.number), "--title", TITLE, "--body-file", "-"],
+    ["pr", "edit", "--repo", repository, String(pullRequest.number), "--title", TITLE, "--body-file", "-"],
     body,
   );
 
-  const verified = await getPullRequest(hostname, String(pullRequest.number));
-  const verifiedFiles = await getPullRequestFiles(hostname, pullRequest.number);
+  const verified = await getPullRequest(repository, String(pullRequest.number));
+  const verifiedFiles = await getPullRequestFiles(repository, pullRequest.number);
   const mismatches = [
     verified.state === "OPEN" ? undefined : `state=${verified.state}`,
     verified.headRefName === branch ? undefined : `branch=${verified.headRefName}`,

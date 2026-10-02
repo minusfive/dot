@@ -424,6 +424,7 @@ async function runDeleteClosedPrWorktreesFlow(): Promise<void> {
   if (!hostname || !owner || !repo) {
     throw new Error("resolve-upstream returned incomplete repository context.");
   }
+  const repository = `${hostname}/${owner}/${repo}`;
 
   const closedPrs = getClosedPullRequests(hostname, owner, repo);
   if (closedPrs.length === 0) {
@@ -555,7 +556,7 @@ function runPullRequestFlow(prNumberOverride: string): void {
     }
 
     const lines = prs.map((pr) => `#${pr.number} ${pr.title}\t${pr.number}\t${pr.branch}`);
-    const previewCommand = `gh pr view --hostname ${shellQuote(hostname)} ${shellQuote("{2}")} 2>/dev/null | head -40`;
+    const previewCommand = `gh pr view --repo ${shellQuote(repository)} ${shellQuote("{2}")} 2>/dev/null | head -40`;
     const selected = pickLineWithFzf(lines, "Select PR worktree: ", previewCommand)?.[0];
 
     if (!selected) {
@@ -589,7 +590,7 @@ function runPullRequestFlow(prNumberOverride: string): void {
   }
 
   console.log(`Checking out PR #${selectedPr} ...`);
-  runInherit("gh", ["pr", "checkout", "--hostname", hostname, selectedPr]);
+  runInherit("gh", ["pr", "checkout", "--repo", repository, selectedPr]);
   const hasMiseConfig =
     existsSync(resolve(resolvedWorktreePath, "mise.toml")) ||
     existsSync(resolve(resolvedWorktreePath, ".mise.toml")) ||
