@@ -424,7 +424,6 @@ async function runDeleteClosedPrWorktreesFlow(): Promise<void> {
   if (!hostname || !owner || !repo) {
     throw new Error("resolve-upstream returned incomplete repository context.");
   }
-  const repository = `${hostname}/${owner}/${repo}`;
 
   const closedPrs = getClosedPullRequests(hostname, owner, repo);
   if (closedPrs.length === 0) {
@@ -544,6 +543,7 @@ function runPullRequestFlow(prNumberOverride: string): void {
   if (!hostname || !owner || !repo) {
     throw new Error("resolve-upstream returned incomplete repository context.");
   }
+  const repository = `${hostname}/${owner}/${repo}`;
 
   let selectedPr = prNumberOverride;
 
