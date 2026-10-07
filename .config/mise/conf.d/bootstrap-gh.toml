@@ -1,7 +1,9 @@
 [bootstrap.files."~/dev/personal/mise.toml"]
-source = "../files/dev/personal/mise.toml"
+source = "../files/dev/profile.mise.toml"
+template = true
 mode = "0644"
 
 [bootstrap.files."~/dev/work/mise.toml"]
-source = "../files/dev/work/mise.toml"
+source = "../files/dev/profile.mise.toml"
+template = true
 mode = "0644"

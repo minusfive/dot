@@ -1,0 +1,2 @@
+[env]
+GH_CONFIG_DIR = "{{ env.HOME }}/.config/gh/{{ target | dirname | basename }}"
