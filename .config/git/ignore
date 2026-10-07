@@ -5,6 +5,7 @@
 *.repro
 tmp/
 .zsh_history.LOCK
+.config/gh/work/
 
 # Compiled source
 *.com

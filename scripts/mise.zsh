@@ -59,6 +59,19 @@ function {
     fi
 
     __proceed=true
+    _v_log_info $__context "Applying workspace mise configuration..."
+    _v_confirm_proceed
+    if [[ "$__proceed" == true ]]; then
+        mise bootstrap files apply --yes
+        mise trust --yes "$HOME/dev/personal/mise.toml"
+        mise trust --yes "$HOME/dev/work/mise.toml"
+
+        _v_log_ok $__context "Workspace mise configuration applied"
+    else
+        _v_log_warn $__context "Skipping workspace mise configuration"
+    fi
+
+    __proceed=true
     _v_log_info $__context "Installing, updating and pruning dev tools..."
     _v_confirm_proceed
     if [[ "$__proceed" == true ]]; then

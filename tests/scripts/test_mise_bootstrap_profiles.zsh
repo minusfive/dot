@@ -34,6 +34,14 @@ cd "$__root_dir"
 [[ -f ".config/mise/conf.d/bootstrap-repos.toml" ]] || fail "missing .config/mise/conf.d/bootstrap-repos.toml"
 [[ -f ".config/mise/conf.d/bootstrap-packages.toml" ]] || fail "missing .config/mise/conf.d/bootstrap-packages.toml"
 [[ -f ".config/mise/conf.d/bootstrap-packages.personal.toml" ]] || fail "missing .config/mise/conf.d/bootstrap-packages.personal.toml"
+[[ -f ".config/mise/conf.d/bootstrap-gh.toml" ]] || fail "missing .config/mise/conf.d/bootstrap-gh.toml"
+[[ -f ".config/mise/files/workspace-personal-mise.toml" ]] || fail "missing personal workspace mise source"
+[[ -f ".config/mise/files/workspace-work-mise.toml" ]] || fail "missing work workspace mise source"
+[[ -f ".config/gh/personal/hosts.yml" ]] || fail "missing tracked personal gh hosts"
+if grep -qF "oauth_token:" ".config/gh/personal/hosts.yml"; then
+    fail "personal gh hosts must not contain an oauth token"
+fi
+git check-ignore -q --no-index ".config/gh/work/hosts.yml" || fail "work gh hosts should be ignored"
 [[ -f ".config/mise/conf.d/tools.toml" ]] || fail "missing .config/mise/conf.d/tools.toml"
 [[ ! -f ".config/mise/mise.personal.toml" ]] || fail ".config/mise/mise.personal.toml should be removed"
 
@@ -46,6 +54,9 @@ grep -qF 'if [[ $(command -v mise) == "" ]]; then' scripts/mise.zsh || fail "mis
 local __apply_line="$(line_of "mise bootstrap packages apply --yes")"
 local __pkg_upgrade_line="$(line_of "mise bootstrap packages upgrade --yes")"
 local __pkg_prune_line="$(line_of "mise bootstrap packages prune --yes")"
+local __files_apply_line="$(line_of "mise bootstrap files apply --yes")"
+local __personal_trust_line="$(line_of 'mise trust --yes "$HOME/dev/personal/mise.toml"')"
+local __work_trust_line="$(line_of 'mise trust --yes "$HOME/dev/work/mise.toml"')"
 local __mise_prune_line="$(line_of "mise prune")"
 local __install_line="$(line_of "mise install")"
 local __upgrade_line="$(line_of "mise upgrade")"
@@ -54,6 +65,9 @@ local __reshim_line="$(line_of "mise reshim -f")"
 [[ -n "$__apply_line" ]] || fail "missing package apply step"
 [[ -n "$__pkg_upgrade_line" ]] || fail "missing package upgrade step"
 [[ -n "$__pkg_prune_line" ]] || fail "missing package prune step"
+[[ -n "$__files_apply_line" ]] || fail "missing workspace mise configuration step"
+[[ -n "$__personal_trust_line" ]] || fail "missing personal mise config trust step"
+[[ -n "$__work_trust_line" ]] || fail "missing work mise config trust step"
 [[ -n "$__mise_prune_line" ]] || fail "missing mise prune step"
 [[ -n "$__install_line" ]] || fail "missing mise install step"
 [[ -n "$__upgrade_line" ]] || fail "missing mise upgrade step"
@@ -61,7 +75,10 @@ local __reshim_line="$(line_of "mise reshim -f")"
 
 if ! (( __apply_line < __pkg_upgrade_line &&
     __pkg_upgrade_line < __pkg_prune_line &&
-    __pkg_prune_line < __mise_prune_line &&
+    __pkg_prune_line < __files_apply_line &&
+    __files_apply_line < __personal_trust_line &&
+    __personal_trust_line < __work_trust_line &&
+    __work_trust_line < __mise_prune_line &&
     __mise_prune_line < __install_line &&
     __install_line < __upgrade_line &&
     __upgrade_line < __reshim_line )); then
@@ -128,6 +145,7 @@ cp .config/mise/miserc.toml "$__tmp_config_home/mise/miserc.toml"
 cp .config/mise/conf.d/bootstrap-repos.toml "$__tmp_config_home/mise/conf.d/bootstrap-repos.toml"
 cp .config/mise/conf.d/bootstrap-packages.toml "$__tmp_config_home/mise/conf.d/bootstrap-packages.toml"
 cp .config/mise/conf.d/bootstrap-packages.personal.toml "$__tmp_config_home/mise/conf.d/bootstrap-packages.personal.toml"
+cp .config/mise/conf.d/bootstrap-gh.toml "$__tmp_config_home/mise/conf.d/bootstrap-gh.toml"
 cp .config/mise/conf.d/tools.toml "$__tmp_config_home/mise/conf.d/tools.toml"
 printf '[env]\nMISE_PROFILE_SMOKE_WORK = "1"\n' > "$__tmp_config_home/mise/config.work.toml"
 printf '\n[env]\nMISE_PROFILE_SMOKE_BASE = "1"\n' >> "$__tmp_config_home/mise/config.toml"
