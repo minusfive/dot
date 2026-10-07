@@ -12,5 +12,5 @@ mode = "0644"
 mode = "0755"
 
 [bootstrap.files."~/.config/gh/personal/hosts.yml"]
-source = "../../gh/personal/hosts.yml"
+source = "../../../home/.config/gh/personal/hosts.yml"
 mode = "0644"

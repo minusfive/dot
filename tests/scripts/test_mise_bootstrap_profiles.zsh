@@ -37,8 +37,8 @@ cd "$__root_dir"
 [[ -f ".config/mise/conf.d/bootstrap-gh.toml" ]] || fail "missing .config/mise/conf.d/bootstrap-gh.toml"
 [[ -f "home/dev/profile.mise.toml" ]] || fail "missing shared profile mise source"
 [[ ! -e ".config/mise/files" ]] || fail "obsolete mise files directory should be removed"
-[[ -f ".config/gh/personal/hosts.yml" ]] || fail "missing tracked personal gh hosts"
-if grep -qF "oauth_token:" ".config/gh/personal/hosts.yml"; then
+[[ -f "home/.config/gh/personal/hosts.yml" ]] || fail "missing tracked personal gh hosts"
+if grep -qF "oauth_token:" "home/.config/gh/personal/hosts.yml"; then
     fail "personal gh hosts must not contain an oauth token"
 fi
 git check-ignore -q --no-index ".config/gh/work/hosts.yml" || fail "work gh hosts should be ignored"
@@ -101,7 +101,7 @@ grep -qF "adopt = true" .config/mise/conf.d/bootstrap-packages.toml || fail "boo
 grep -qF 'source = "../../../home/dev/profile.mise.toml"' .config/mise/conf.d/bootstrap-gh.toml || fail "workspace profile source should use the managed home tree"
 grep -qF '[bootstrap.directories."~/.config/gh/personal"]' .config/mise/conf.d/bootstrap-gh.toml || fail "personal gh config directory should be managed by mise bootstrap"
 grep -qF '[bootstrap.files."~/.config/gh/personal/hosts.yml"]' .config/mise/conf.d/bootstrap-gh.toml || fail "personal gh hosts should be managed by mise bootstrap"
-grep -qF 'source = "../../gh/personal/hosts.yml"' .config/mise/conf.d/bootstrap-gh.toml || fail "personal gh hosts source missing"
+grep -qF 'source = "../../../home/.config/gh/personal/hosts.yml"' .config/mise/conf.d/bootstrap-gh.toml || fail "personal gh hosts source missing"
 grep -qF 'mode = "0644"' .config/mise/conf.d/bootstrap-gh.toml || fail "personal gh hosts mode missing"
 if grep -qF "[bootstrap.brew]" .config/mise/config.toml; then
     fail "bootstrap.brew should live in conf.d/bootstrap-packages.toml"
