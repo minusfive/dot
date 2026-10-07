@@ -65,7 +65,6 @@ mise.local.toml
 ^/\.ai
 ^/\.mcp\.json
 tmp$
-^/\.config/gh
 ^/\.config/wezterm/AGENTS\.md
 ^/\.config/wezterm/CLAUDE\.md
 ^/\.config/wezterm/research

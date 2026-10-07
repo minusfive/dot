@@ -91,7 +91,6 @@ __task_listing="$(XDG_CONFIG_HOME="$__root_dir/.config" DOT_PROFILE=work mise -C
 print -r -- "$__task_listing" | grep -q '^setup[[:space:]]' || fail "local setup task should be discoverable from scripts/tasks"
 print -r -- "$__task_listing" | grep -q '^check[[:space:]]' || fail "local check task should be discoverable from scripts/tasks"
 grep -qF '^/\.mise' .stow-local-ignore || fail ".stow-local-ignore should ignore .mise"
-grep -qF '^/\.config/gh' .stow-local-ignore || fail ".stow-local-ignore should ignore gh config"
 grep -qF '^/home' .stow-local-ignore || fail ".stow-local-ignore should ignore managed home sources"
 grep -qF "env = [\"{{ env.DOT_PROFILE | default(value='work') }}\"]" .config/mise/miserc.toml || fail "miserc profile bridge missing default work fallback"
 grep -qF "env_conf_d = true" .config/mise/miserc.toml || fail "miserc env_conf_d should be enabled"
