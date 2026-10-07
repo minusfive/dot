@@ -3,6 +3,8 @@
 *.swp
 *.out
 *.repro
+tmp/
+.zsh_history.LOCK
 
 # Compiled source
 *.com
