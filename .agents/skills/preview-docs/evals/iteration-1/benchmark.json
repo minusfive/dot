@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skill": "preview-docs",
+  "iteration": 1,
+  "runs_per_case": 2,
+  "metrics": {
+    "with_change": {
+      "assertions_passed": 26,
+      "assertions_total": 26,
+      "pass_rate": 1.0,
+      "total_tokens": null,
+      "duration_ms": null,
+      "telemetry_available": false
+    },
+    "old_version": {
+      "assertions_passed": 0,
+      "assertions_total": 26,
+      "pass_rate": 0.0,
+      "total_tokens": null,
+      "duration_ms": null,
+      "telemetry_available": false
+    },
+    "delta": {
+      "pass_rate": 1.0,
+      "total_tokens": null,
+      "duration_ms": null
+    }
+  },
+  "calculation_note": "Pass rates count each assertion for each of two instruction-level reasoning passes. Token and duration data are unavailable because the evaluator did not expose telemetry."
+}

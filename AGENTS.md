@@ -87,13 +87,14 @@ The skills below are available under [`.agents/skills/`](.agents/skills/). **MUS
 - `migrate-to-rslib` — Migrate TypeScript library build pipelines from tsc or tsup to Rslib while keeping package behavior stable.
 - `migrate-to-rslint` — Migrate ESLint or other lint setups to Rslint, including config, scripts, and editor integration.
 - `migrate-to-rstest` — Migrate Jest or Vitest test suites and configuration to Rstest equivalents.
-- `mise-tasks` — Create, update, run, or debug mise task workflows.
+- `mise-tasks` — Create, update, run, debug, discover, or show help for mise task workflows.
 - `mise-bootstrap` — Use when bootstrapping machines with `mise` or changing bootstrap config, packages, files, repos, dotfiles, services, firewall, compose, macOS defaults, LaunchAgents, systemd, user settings, shell activation, or remote hosts.
 - `nvim` — Apply LazyVim Neovim configuration rules when working with config files, plugins, or Lua modules.
 - `node-npm-bun` — Run Node package-manager tasks across bun and npm. Use when installing dependencies, running scripts, or invoking Node CLIs, while following project standards.
 - `opencode-copilot-multipliers` — Sync GitHub Copilot model alias multiplier labels in the OpenCode config with current `github/docs` paid multipliers.
 - `planning` — Produce execution-ready implementation plans for multi-step, high-risk, ambiguous, or multi-file/service work.
 - `pr-guidelines` — Push branches, keep open pull requests current, and open pull requests using the project's title/body conventions and linked issues.
+- `preview-docs` — Manage Markdown preview servers by listing, starting, selecting, refreshing, reconciling, or stopping previews.
 - `project-overview` — Discover project structure, architecture, and tooling before implementation in an unfamiliar area.
 - `qmd-setup` — Set up QMD in a repository with repository scanning, collection planning, YAML-defined collections, and approval-gated execution.
 - `qmd-usage` — Use QMD for local research and indexed Markdown: notes, documentation, wikis, and source-grounded answers.

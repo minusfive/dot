@@ -1,20 +1,19 @@
 ---
 name: mise-tasks
-description: Create, update, run, or debug mise tasks (file tasks and TOML tasks), including task interfaces, usage directives, and output behavior. Use when working on a mise-managed task workflow.
+description: Create, update, run, debug, discover, or show help for mise tasks, including task interfaces, usage directives, and output behavior.
 ---
 
 # Mise Tasks
 
-Use this skill when adding, modifying, or invoking [mise](https://mise.jdx.dev/) tasks in any project that adopts mise as its task runner.
+Use this skill whenever a request mentions a mise task or asks for task discovery, help, usage, flags, execution, authoring, or debugging.
 
 This skill complements the `scripts` skill (broader script authoring, testing, and integration workflow). When both apply, prefer the more specific rule here for task-runner specifics and defer to `scripts` for general script structure.
 
 ## Discovery and Execution
 
-- Prefer CLI for discovery/help: list tasks with [`mise tasks`](https://mise.jdx.dev/cli/tasks.html) (alias `mise tasks ls`) and inspect a task with `mise tasks info <task>`.
-- Treat the `mise-run_task` MCP tool as execution-only; pass a task name and do not use it for `mise` subcommands such as `mise tasks`.
+- Use the mise CLI for discovery and help: list tasks with [`mise tasks`](https://mise.jdx.dev/cli/tasks.html) (alias `mise tasks ls`), inspect a task with `mise tasks info <task>`, and render task help with `mise run <task> --help` (or `-h`).
+- Treat the `mise-run_task` MCP tool as execution-only. Pass a task name to execute a task. Do not use it for mise subcommands, task discovery, help, or metadata.
 - Execute tasks by invoking the task runner directly (prefer the `mise-run_task` MCP tool when available; otherwise use `mise run <task>`).
-- Render task help with `mise run <task> --help` (or `-h`). See [`mise run`](https://mise.jdx.dev/cli/run.html) and [running tasks](https://mise.jdx.dev/tasks/running-tasks.html).
 - When your harness exposes direct MCP resource reads and you need structured metadata, read `mise://tasks` (for example, `source`, `config_sources`, and dependency fields).
 
 ## MCP Limitations and Fallbacks

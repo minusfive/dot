@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "skill": "preview-docs",
+  "iteration": 1,
+  "human_review": [
+    {
+      "id": "f1",
+      "severity": "positive",
+      "config": "with_change",
+      "note": "The reduced skill keeps lifecycle ownership, task-output pass-through, and task-owned state parsing without naming an execution mechanism or argument syntax."
+    },
+    {
+      "id": "f2",
+      "severity": "positive",
+      "config": "with_change",
+      "note": "The index summary covers the complete preview lifecycle."
+    },
+    {
+      "id": "f3",
+      "severity": "limitation",
+      "config": "all",
+      "note": "The evaluation used two instruction-level reasoning passes because no process-isolated model or selector harness was available. No runtime output behavior was claimed."
+    }
+  ],
+  "recommendation": "Keep the reduced guidance. Re-run runtime and selector evaluations when those harnesses are available."
+}
