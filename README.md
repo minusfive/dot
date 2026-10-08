@@ -24,19 +24,46 @@ cd ~/dev/dot
 ./scripts/init.zsh
 ```
 
-## Global files
+## Global files and configuration
 
-Global AI instructions and related configuration use the `home/` source tree. Each path mirrors its target under `$HOME`.
+Use `home/` as the source tree for files that mise manages under `$HOME`. Mirror each target path below `home/`.
 
-- `home/AGENTS.md` links to both `~/AGENTS.md` and `~/CLAUDE.md`.
-- `home/.agents/` provides global agent skills.
-- `home/.claude/` provides Claude settings, skills, and the Claude statusline command.
-- `home/.copilot/` provides Copilot instructions and the Copilot statusline command.
-- `home/.config/opencode/` provides the tracked OpenCode configuration files.
+For example, use `home/.config/example/config.toml` as the source for `~/.config/example/config.toml`.
 
-The OpenCode tool manages its own manifests, dependencies, and runtime files under `~/.config/opencode/`. The repository does not manage those files.
+### Mise-managed files
 
-The declarations are in [`.config/mise/conf.d/bootstrap-dotfiles.toml`](./.config/mise/conf.d/bootstrap-dotfiles.toml). Inspect or apply them with:
+Use `[dotfiles]` for user files that mise must link, copy, template, track, or remove. Store the source under `home/` and declare the target in a mise configuration file under [`.config/mise/conf.d/`](./.config/mise/conf.d/).
+
+Use `symlink` for one file:
+
+```toml
+[dotfiles]
+"~/.config/example/config.toml" = { source = "../../../home/.config/example/config.toml", mode = "symlink" }
+```
+
+Use `symlink-each` for a directory that also contains files managed by another tool. Mise links only files in the source tree and leaves other target files in place:
+
+```toml
+[dotfiles]
+"~/.config/example" = { source = "../../../home/.config/example", mode = "symlink-each" }
+```
+
+Read the [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.html) for other modes and source options.
+
+Use `[bootstrap.files]` when a bootstrap resource needs a copied or rendered file, explicit permissions, or a template. Use `[bootstrap.directories]` when a bootstrap resource only needs a directory with defined permissions:
+
+```toml
+[bootstrap.directories."~/.config/example"]
+mode = "0755"
+
+[bootstrap.files."~/.config/example/generated.toml"]
+source = "../../../home/.config/example/generated.toml"
+mode = "0644"
+```
+
+Read the [mise bootstrap documentation](https://mise.jdx.dev/bootstrap.html) for bootstrap phases and resource types.
+
+Inspect or apply mise-managed files with:
 
 ```sh
 mise bootstrap dotfiles status
@@ -44,9 +71,19 @@ mise bootstrap dotfiles apply --dry-run
 mise bootstrap dotfiles apply
 ```
 
-Other files under `home/` can provide sources for mise bootstrap resources, such as the profile and GitHub configuration files in [`home/`](./home/).
+Inspect or apply bootstrap files and directories with:
 
-Non-migrated application configuration remains managed by GNU Stow. The [`.stowrc`](./.stowrc) file sets `$HOME` as the target, and [`.stow-local-ignore`](./.stow-local-ignore) defines exclusions. Run the link step from the repository root:
+```sh
+mise bootstrap files status
+mise bootstrap files apply --dry-run
+mise bootstrap files apply
+```
+
+Use one management system for each target. Do not declare the same target in both mise and GNU Stow.
+
+### Legacy GNU Stow files
+
+Non-migrated configuration remains managed by GNU Stow. The [`.stowrc`](./.stowrc) file sets `$HOME` as the target, and [`.stow-local-ignore`](./.stow-local-ignore) defines exclusions. Run the link step from the repository root:
 
 ```sh
 ./scripts/init.zsh --link
@@ -58,7 +95,7 @@ You can also preview the legacy links with:
 stow -nvR .
 ```
 
-Do not add new global AI files to the Stow surface. Add them under `home/` and declare their targets in the mise configuration instead.
+Add new global files under `home/` and declare their targets with mise. Keep legacy Stow declarations for targets that have not migrated.
 
 ## Programs
 
