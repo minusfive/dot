@@ -1,0 +1,159 @@
+{
+  "version": 1,
+  "skill": "preview-docs",
+  "iteration": 1,
+  "runs_per_case": 2,
+  "cases": {
+    "preview-docs-links-only-format": {
+      "assertions": {
+        "a1": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes name the global `md:preview` task."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Both baseline passes only inspect available preview tooling."
+          }
+        },
+        "a2": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes return task output unchanged."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes do not promise unchanged output."
+          }
+        },
+        "a3": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Returning task output unchanged preserves task ordering."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes do not establish task ordering."
+          }
+        },
+        "a4": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes leave state parsing to the task."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes do not assign state parsing to the task."
+          }
+        }
+      }
+    },
+    "preview-docs-no-results": {
+      "assertions": {
+        "a1": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes name the global `md:preview` task."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes only inspect available listing tooling."
+          }
+        },
+        "a2": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes forward the no-results output unchanged."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes do not promise verbatim no-results output."
+          }
+        },
+        "a3": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes leave state parsing to the task."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes do not assign state parsing to the task."
+          }
+        }
+      }
+    },
+    "preview-docs-running-only": {
+      "assertions": {
+        "a1": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes use task output as authoritative."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes do not identify task output as authoritative."
+          }
+        },
+        "a2": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes avoid state parsing and reconstruction."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes do not prohibit state parsing."
+          }
+        }
+      }
+    },
+    "preview-docs-reconcile": {
+      "assertions": {
+        "a1": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes delegate reconciliation to `md:preview`."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes only inspect available tooling."
+          }
+        },
+        "a2": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes leave state parsing to the task."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes do not assign state parsing to the task."
+          }
+        }
+      }
+    },
+    "preview-docs-directory-selection": {
+      "assertions": {
+        "a1": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes delegate directory selection to `md:preview`."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes only plan to find a file and start a preview."
+          }
+        },
+        "a2": {
+          "with_change": {
+            "status": "pass",
+            "evidence": "Both current-skill passes leave discovery and state management to the task."
+          },
+          "old_version": {
+            "status": "fail",
+            "evidence": "Baseline passes do not assign discovery or state management to the task."
+          }
+        }
+      }
+    }
+  },
+  "evidence_note": "The evaluator produced instruction-level transcripts and did not invoke a preview task. The grading covers guidance presence, not runtime output."
+}

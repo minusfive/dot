@@ -11,7 +11,7 @@
 //USAGE flag "--reconcile" help="Reconcile preview state: stop stale/duplicate servers and exit."
 //USAGE flag "--kill-all" help="Stop all running gh markdown-preview servers and exit."
 //USAGE flag "--list" help="List running preview servers and exit."
-//USAGE flag "--format <format>" help="Output format for --list: json or markdown." default="json"
+//USAGE flag "--format <format>" help="Output format for --list: json or markdown." default="markdown"
 
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { basename, relative, resolve } from "node:path";
@@ -124,7 +124,7 @@ function parsePort(raw: string): number {
 }
 
 function parseListFormat(raw: string | undefined): PreviewListFormat {
-  const normalized = (raw ?? "json").trim().toLowerCase();
+  const normalized = (raw ?? "markdown").trim().toLowerCase();
   if (normalized === "json" || normalized === "markdown") return normalized;
   throw new Error(`invalid --format value: ${raw ?? "(empty)"}. Expected one of: json, markdown`);
 }
@@ -775,7 +775,7 @@ async function main(): Promise<void> {
       return;
     }
     if (listFormat === "markdown") {
-      console.log(servers.map((server) => `- [${server.docTitle}](${server.browserUrl})`).join("\n"));
+      console.log(servers.map((server) => `- [${server.sourceUrl}](${server.browserUrl})`).join("\n"));
       return;
     }
     console.log(JSON.stringify(servers, null, 2));

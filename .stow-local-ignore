@@ -68,6 +68,7 @@ tmp$
 ^/\.config/wezterm/AGENTS\.md
 ^/\.config/wezterm/CLAUDE\.md
 ^/\.config/wezterm/research
+^/home
 
 # lefthook
 ^/\.lefthook

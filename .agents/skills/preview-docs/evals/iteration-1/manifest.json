@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skill": "preview-docs",
+  "with_change_source": "working tree .agents/skills/preview-docs/SKILL.md",
+  "old_version_source": "skill absent at baseline commit",
+  "baseline_commit": "278dd22677e18cf27536337e53e861efbf620d2e",
+  "behavior_cases": "../evals.json",
+  "isolation": "Two independent instruction-level reasoning passes were completed for each case and configuration. The available evaluator did not provide process-isolated model runs.",
+  "discoverability": "Not executed; this change does not modify the skill description or routing keywords."
+}

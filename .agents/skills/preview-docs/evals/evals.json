@@ -1,0 +1,100 @@
+{
+  "suite": "preview-docs",
+  "cases": [
+    {
+      "id": "preview-docs-links-only-format",
+      "prompt": "show me links for all running preview docs",
+      "expected_output": [
+        "uses the `md:preview` task to list running previews",
+        "uses task output as the source of truth",
+        "returns task-rendered markdown without reformatting",
+        "preserves task list ordering for returned links"
+      ],
+      "assertions": [
+        {
+          "id": "a1",
+          "text": "Names the global `md:preview` task as the lifecycle owner."
+        },
+        {
+          "id": "a2",
+          "text": "Returns list output without parsing or reformatting it."
+        },
+        {
+          "id": "a3",
+          "text": "Preserves the task-provided ordering."
+        },
+        {
+          "id": "a4",
+          "text": "Leaves preview-state parsing to the task."
+        }
+      ]
+    },
+    {
+      "id": "preview-docs-no-results",
+      "prompt": "list running preview servers when none are running",
+      "expected_output": ["forwards the task no-results message verbatim"],
+      "assertions": [
+        {
+          "id": "a1",
+          "text": "Uses the global `md:preview` task for the list operation."
+        },
+        {
+          "id": "a2",
+          "text": "Forwards the task no-results message without reformatting it."
+        },
+        {
+          "id": "a3",
+          "text": "Leaves preview-state parsing to the task."
+        }
+      ]
+    },
+    {
+      "id": "preview-docs-running-only",
+      "prompt": "show preview server links from the preview task output",
+      "expected_output": ["uses task output as the source of truth", "does not reimplement preview-state parsing"],
+      "assertions": [
+        {
+          "id": "a1",
+          "text": "Uses task output as the source of truth."
+        },
+        {
+          "id": "a2",
+          "text": "Does not parse or reconstruct preview state."
+        }
+      ]
+    },
+    {
+      "id": "preview-docs-reconcile",
+      "prompt": "reconcile stale markdown preview servers after a document moved",
+      "expected_output": ["invokes the `md:preview` reconcile operation", "does not reimplement preview-state parsing"],
+      "assertions": [
+        {
+          "id": "a1",
+          "text": "Delegates stale-preview reconciliation to the global `md:preview` task."
+        },
+        {
+          "id": "a2",
+          "text": "Leaves preview-state parsing to the task."
+        }
+      ]
+    },
+    {
+      "id": "preview-docs-directory-selection",
+      "prompt": "start a markdown preview by selecting a file from the docs directory",
+      "expected_output": [
+        "uses the global `md:preview` directory-selection operation",
+        "does not implement file discovery or preview-state management in skill logic"
+      ],
+      "assertions": [
+        {
+          "id": "a1",
+          "text": "Delegates directory selection to the global `md:preview` task."
+        },
+        {
+          "id": "a2",
+          "text": "Does not implement file discovery or preview-state management."
+        }
+      ]
+    }
+  ]
+}
