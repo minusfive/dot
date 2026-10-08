@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skill": "agent-instructions-evaluation",
+  "iteration": 1,
+  "summary": [
+    "The current version defines both project and session temporary fallbacks.",
+    "The current version preserves durable specifications and accepted reports without treating the full evals directory as disposable.",
+    "The old version leaves the evaluation root and tracking policy ambiguous."
+  ],
+  "telemetry": "Token and duration values were unavailable from the task-agent harness.",
+  "workspace": "external isolated evaluation workspace"
+}

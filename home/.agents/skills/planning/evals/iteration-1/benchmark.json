@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skill": "planning",
+  "iteration": 1,
+  "runs_per_case": 1,
+  "run_summary": {
+    "with_skill": {
+      "assertions_passed": 6,
+      "assertions_total": 6,
+      "pass_rate": 1.0,
+      "total_tokens": null,
+      "duration_ms": null,
+      "telemetry_available": false
+    },
+    "old_skill": {
+      "assertions_passed": 2,
+      "assertions_total": 6,
+      "pass_rate": 0.3333333333333333,
+      "total_tokens": null,
+      "duration_ms": null,
+      "telemetry_available": false
+    }
+  },
+  "delta": {
+    "pass_rate": 0.6666666666666667,
+    "total_tokens": null,
+    "duration_ms": null
+  },
+  "calculation_note": "Real isolated runs completed. The task-agent harness did not expose token or duration telemetry."
+}

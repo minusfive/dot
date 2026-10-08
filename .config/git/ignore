@@ -87,5 +87,12 @@ node_modules/
 # Agent instruction evaluation outputs
 **/.agents/skills/**/evals/**/outputs/
 
+# Agent instruction evaluation iteration workspaces
+**/.agents/skills/**/evals/iteration-*/*
+!**/.agents/skills/**/evals/iteration-*/benchmark.json
+!**/.agents/skills/**/evals/iteration-*/feedback.json
+!**/.agents/skills/**/evals/iteration-*/manifest.json
+!**/.agents/skills/**/evals/iteration-*/grading.json
+
 # Agentic project workspaces
 **/.agents/projects/*/

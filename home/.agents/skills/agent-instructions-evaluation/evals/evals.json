@@ -1,0 +1,33 @@
+{
+  "skill_name": "agent-instructions-evaluation",
+  "evals": [
+    {
+      "id": "project-eval-workspace",
+      "prompt": "Evaluate a changed skill inside an existing agentic project.",
+      "expected_output": "The durable test spec stays in the skill, while generated results use a separate canonical workspace.",
+      "assertions": [
+        "Keeps evals/evals.json as the durable test specification.",
+        "Uses a separate workspace with the canonical with_skill and old_skill run layout."
+      ]
+    },
+    {
+      "id": "session-eval-workspace",
+      "prompt": "Evaluate a changed skill without an agentic project.",
+      "expected_output": "The durable test spec stays in the skill, while generated results use a separate canonical workspace.",
+      "assertions": [
+        "Keeps evals/evals.json as the durable test specification.",
+        "Uses a separate workspace with the canonical with_skill and old_skill run layout."
+      ]
+    },
+    {
+      "id": "durable-eval-history",
+      "prompt": "Maintain tracked eval specifications and benchmark history in a repository.",
+      "expected_output": "The durable test spec remains tracked, while generated runs use the canonical workspace layout.",
+      "assertions": [
+        "Keeps evals/evals.json as a tracked skill asset.",
+        "Uses a separate workspace for generated runs.",
+        "Uses the canonical per-run and iteration-level report layout."
+      ]
+    }
+  ]
+}

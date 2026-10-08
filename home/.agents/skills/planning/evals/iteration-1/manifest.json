@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skill": "planning",
+  "iteration": 1,
+  "with_skill_source": "home/.agents/skills/planning/SKILL.md",
+  "old_skill_source": "HEAD:home/.agents/skills/planning/SKILL.md",
+  "workspace": "external isolated evaluation workspace",
+  "isolation": "Each run used a separate isolated task-agent context.",
+  "telemetry_available": false,
+  "cases": ["P1", "P2", "P3"]
+}

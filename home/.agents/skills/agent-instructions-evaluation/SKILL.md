@@ -22,30 +22,35 @@ user requests.
 
 ## Instruction Behavior Eval Loop
 
-1. Create an eval spec (`evals/evals.json`) under the changed instruction scope
-   with realistic test cases. Each case should include `prompt`,
-   `expected_output`, and optional input `files`. Start with 2-3 cases, then
-   expand.
-2. Run each case in isolated context twice:
+1. Create or update the tracked eval spec at `evals/evals.json`. Each case
+   should include `prompt`, `expected_output`, and optional input `files`.
+   Start with 2-3 cases, then expand.
+2. Use a separate workspace for iteration results. Keep generated run artifacts
+   out of the skill directory.
+3. Run each case in isolated context twice:
    - with updated instructions
    - with a baseline (without the changed instructions, or a snapshot of the
      previous version when iterating on an existing entrypoint)
-3. Store outputs per case and config under
-   `.../iteration-N/<eval-id>/{with_change,without_change}/outputs/` (or
-   `old_version/` instead of `without_change/` for version-to-version
+4. Store outputs per case and config under
+   `<workspace>/iteration-N/<eval-id>/{with_skill,without_skill}/outputs/`
+   (or `old_skill/` instead of `without_skill/` for version-to-version
    comparisons).
-4. Capture `timing.json` for each run with `total_tokens` and `duration_ms`.
-5. Add `assertions` to each eval case after first outputs are available.
+5. Capture `timing.json` for each run under its
+   `<workspace>/iteration-N/<eval-id>/<configuration>/` directory with
+   `total_tokens` and `duration_ms`.
+6. Add `assertions` to each eval case after first outputs are available.
    Assertions must be specific and verifiable.
-6. Grade each assertion as pass/fail with concrete evidence in `grading.json`.
-   Prefer scripted checks for mechanical assertions (file existence, valid JSON,
-   row counts, dimensions, etc.).
-7. Aggregate run metrics into `benchmark.json` with per-config pass rate,
-   time/tokens, and delta.
-8. Apply a human review pass over outputs and save actionable notes (for
-   example, `feedback.json`) to catch quality issues outside strict assertions.
-9. Iterate instructions based on failed assertions, human feedback, and
-   execution transcripts. Focus on generalizable fixes, not one-off patches.
+7. Grade each assertion as pass/fail with concrete evidence in the matching
+   run directory's `grading.json`. Prefer scripted checks for mechanical
+   assertions (file existence, valid JSON, row counts, dimensions, and more).
+8. Aggregate run metrics into
+   `<workspace>/iteration-N/benchmark.json` with per-config pass rate, time,
+   token use, and delta.
+9. Apply a human review pass over outputs and save actionable notes in
+   `<workspace>/iteration-N/feedback.json` to catch quality issues outside
+   strict assertions.
+10. Iterate instructions based on failed assertions, human feedback, and
+    execution transcripts. Focus on generalizable fixes, not one-off patches.
 
 ## Discoverability and Trigger Eval Loop
 

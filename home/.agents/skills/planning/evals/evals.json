@@ -1,0 +1,32 @@
+{
+  "skill_name": "planning",
+  "evals": [
+    {
+      "id": "migration-boundary-matrix",
+      "prompt": "Plan a multi-boundary dotfile migration with Stow, mise, shell, editor, runtime state, and secrets.",
+      "expected_output": "A plan with a complete boundary matrix and no discovery work left for execution.",
+      "assertions": [
+        "The plan records exact files, target paths, ownership mode, runtime exclusions, code coupling, validation commands, rollback, and final disposition.",
+        "The execution stories contain no discovery task or unresolved implementation-critical decision."
+      ]
+    },
+    {
+      "id": "scope-proportional-matrix",
+      "prompt": "Plan a one-file configuration-key rename with one focused test.",
+      "expected_output": "A small matrix covers the fixed file and test scope without a repository-wide inventory.",
+      "assertions": [
+        "The plan uses a matrix sized to the fixed scope.",
+        "The plan does not invent a full repository inventory."
+      ]
+    },
+    {
+      "id": "multi-service-cutover",
+      "prompt": "Plan an ambiguous multi-service cutover with shared credentials and generated runtime files.",
+      "expected_output": "The plan resolves credential ownership, generated-state exclusions, sequencing, validation, and rollback before handoff.",
+      "assertions": [
+        "Shared credentials and generated runtime files have explicit ownership and exclusion decisions.",
+        "The execution order, validation gates, and rollback actions are concrete."
+      ]
+    }
+  ]
+}

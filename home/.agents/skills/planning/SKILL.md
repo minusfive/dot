@@ -20,6 +20,8 @@ Use this skill to produce execution-ready plans before implementation.
    - Base recommendations on concrete codebase/docs evidence when available; when evidence is unavailable, state the assumption explicitly before requesting confirmation or correction.
 4. Continue until all implementation-critical decisions are resolved (decisions that materially change execution steps, ordering, or scope), no unresolved upstream dependencies remain, and no open questions remain for final plan output.
 5. Once all open questions are resolved and before presenting final plan output, apply the canonical critique gate defined in `AGENTS.md`.
+6. Before finalizing the plan, complete and persist a research matrix sized to the implementation scope. State the exact files, target paths, ownership mode, runtime exclusions, code coupling, validation commands, rollback, and final disposition. Do not create a full repository inventory when the scope is already fixed.
+7. Do not leave discovery tasks or implementation-critical decisions in story steps. Execution can run named validation commands and report drift. If a required fact is unknown, keep the work in planning and resolve it before handoff.
 
 ## Execution Readiness and Guardrails
 

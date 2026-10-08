@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skill": "agent-instructions-evaluation",
+  "iteration": 1,
+  "with_skill_source": "home/.agents/skills/agent-instructions-evaluation/SKILL.md",
+  "old_skill_source": "HEAD:home/.agents/skills/agent-instructions-evaluation/SKILL.md",
+  "workspace": "external isolated evaluation workspace",
+  "isolation": "Each run used a separate isolated task-agent context.",
+  "telemetry_available": false,
+  "cases": ["S1", "S2", "S3"]
+}
