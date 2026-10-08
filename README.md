@@ -40,7 +40,7 @@ Mise uses two related resource models:
 
 The [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.html) and [mise bootstrap documentation](https://mise.jdx.dev/bootstrap.html) define the available resource modes and bootstrap phases.
 
-The `--mise` initialization interface applies the package, file, repository, and dotfile phases. The `--link` interface remains available for configuration that still uses GNU Stow.
+The `--mise` initialization interface updates mise itself, then applies the package, file, repository, and dotfile phases. The `--link` interface remains available for configuration that still uses GNU Stow.
 
 Non-migrated configuration remains managed by GNU Stow. The [`.stowrc`](./.stowrc) file defines `$HOME` as the target, and [`.stow-local-ignore`](./.stow-local-ignore) defines exclusions. A target belongs to one management system at a time.
 

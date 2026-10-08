@@ -14,7 +14,7 @@ function {
 
     if [[ "$__run_steps" != true ]]; then
         echo "\n"
-        _v_log_warn $__context "Skipping package bootstrap, dev tools installation, bootstrap repos, and dotfiles"
+        _v_log_warn $__context "Skipping mise update, package bootstrap, dev tools installation, bootstrap repos, and dotfiles"
         return 0
     fi
 
@@ -46,6 +46,17 @@ function {
     echo "\n"
     local __proceed=true
     _v_log_info $__context "$(_v_color_fg green MISE_ENV)=$(_v_color_fg yellow "'$MISE_ENV'")"
+    _v_log_info $__context "Updating mise..."
+    _v_confirm_proceed
+    if [[ "$__proceed" == true ]]; then
+        mise self-update --yes
+
+        _v_log_ok $__context "Mise updated"
+    else
+        _v_log_warn $__context "Skipping mise update"
+    fi
+
+    __proceed=true
     _v_log_info $__context "Applying package bootstrap..."
     _v_confirm_proceed
     if [[ "$__proceed" == true ]]; then

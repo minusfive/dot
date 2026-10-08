@@ -27,6 +27,7 @@ local __packages_line="$(line_of "mise bootstrap packages apply --yes")"
 local __files_line="$(line_of "mise bootstrap files apply --yes")"
 local __personal_trust_line="$(line_of 'mise trust --yes "$HOME/dev/personal/mise.toml"')"
 local __work_trust_line="$(line_of 'mise trust --yes "$HOME/dev/work/mise.toml"')"
+local __self_update_line="$(line_of "mise self-update --yes")"
 local __prune_line="$(line_of "mise prune")"
 local __install_line="$(line_of "mise install")"
 local __upgrade_line="$(line_of "mise upgrade")"
@@ -35,6 +36,7 @@ local __repos_line="$(line_of "mise bootstrap repos apply --yes")"
 local __dotfiles_line="$(line_of "mise bootstrap dotfiles apply --yes")"
 
 for __line in \
+    "$__self_update_line" \
     "$__packages_line" \
     "$__files_line" \
     "$__personal_trust_line" \
@@ -48,7 +50,8 @@ for __line in \
     [[ -n "$__line" ]] || fail "missing mise initialization step"
 done
 
-if ! (( __packages_line < __files_line &&
+if ! (( __self_update_line < __packages_line &&
+    __packages_line < __files_line &&
     __files_line < __personal_trust_line &&
     __personal_trust_line < __work_trust_line &&
     __work_trust_line < __prune_line &&
