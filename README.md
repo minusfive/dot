@@ -34,6 +34,8 @@ For example, use `home/.config/example/config.toml` as the source for `~/.config
 
 Use `[dotfiles]` for user files that mise must link, copy, template, track, or remove. Store the source under `home/` and declare the target in a mise configuration file under [`.config/mise/conf.d/`](./.config/mise/conf.d/).
 
+Name files in `conf.d/` by logical boundary. Use names such as `bootstrap-gh.toml` for one tool and `bootstrap-ai.toml` for one related group of tools.
+
 Use `symlink` for one file:
 
 ```toml
