@@ -26,6 +26,9 @@ cd ~/dev/dot
 
 ## Global files and configuration
 
+> [!NOTE]
+> This configuration is moving from GNU Stow to mise. Both systems remain in use while the migration continues.
+
 The `home/` directory is a source tree for files that belong under `$HOME`. Its layout mirrors the target layout, so the source location also describes the installed location.
 
 Mise declarations live in [`.config/mise/conf.d/`](./.config/mise/conf.d/). Files are grouped by logical boundary, such as `bootstrap-gh.toml` for GitHub resources and `bootstrap-ai.toml` for shared AI resources. This keeps each bootstrap area small and independently understandable.
