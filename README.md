@@ -26,78 +26,20 @@ cd ~/dev/dot
 
 ## Global files and configuration
 
-Use `home/` as the source tree for files that mise manages under `$HOME`. Mirror each target path below `home/`.
+The `home/` directory is a source tree for files that belong under `$HOME`. Its layout mirrors the target layout, so the source location also describes the installed location.
 
-For example, use `home/.config/example/config.toml` as the source for `~/.config/example/config.toml`.
+Mise declarations live in [`.config/mise/conf.d/`](./.config/mise/conf.d/). Files are grouped by logical boundary, such as `bootstrap-gh.toml` for GitHub resources and `bootstrap-ai.toml` for shared AI resources. This keeps each bootstrap area small and independently understandable.
 
-### Mise-managed files
+Mise uses two related resource models:
 
-Use `[dotfiles]` for user files that mise must link, copy, template, track, or remove. Store the source under `home/` and declare the target in a mise configuration file under [`.config/mise/conf.d/`](./.config/mise/conf.d/).
+- `[dotfiles]` describes user files that mise links, copies, templates, tracks, or removes. Its `symlink-each` mode lets a managed source tree coexist with files that an application owns itself.
+- `[bootstrap.files]` describes files that bootstrap creates or renders. `[bootstrap.directories]` describes directory state such as permissions.
 
-Name files in `conf.d/` by logical boundary. Use names such as `bootstrap-gh.toml` for one tool and `bootstrap-ai.toml` for one related group of tools.
+The [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.html) and [mise bootstrap documentation](https://mise.jdx.dev/bootstrap.html) define the available resource modes and bootstrap phases.
 
-Use `symlink` for one file:
+The `--mise` initialization interface applies the package, file, repository, and dotfile phases. The `--link` interface remains available for configuration that still uses GNU Stow.
 
-```toml
-[dotfiles]
-"~/.config/example/config.toml" = { source = "../../../home/.config/example/config.toml", mode = "symlink" }
-```
-
-Use `symlink-each` for a directory that also contains files managed by another tool. Mise links only files in the source tree and leaves other target files in place:
-
-```toml
-[dotfiles]
-"~/.config/example" = { source = "../../../home/.config/example", mode = "symlink-each" }
-```
-
-Read the [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.html) for other modes and source options.
-
-Use `[bootstrap.files]` when a bootstrap resource needs a copied or rendered file, explicit permissions, or a template. Use `[bootstrap.directories]` when a bootstrap resource only needs a directory with defined permissions:
-
-```toml
-[bootstrap.directories."~/.config/example"]
-mode = "0755"
-
-[bootstrap.files."~/.config/example/generated.toml"]
-source = "../../../home/.config/example/generated.toml"
-mode = "0644"
-```
-
-Read the [mise bootstrap documentation](https://mise.jdx.dev/bootstrap.html) for bootstrap phases and resource types.
-
-Inspect or apply mise-managed files with:
-
-```sh
-mise bootstrap dotfiles status
-mise bootstrap dotfiles apply --dry-run
-mise bootstrap dotfiles apply
-```
-
-Inspect or apply bootstrap files and directories with:
-
-```sh
-mise bootstrap files status
-mise bootstrap files apply --dry-run
-mise bootstrap files apply
-```
-
-Use one management system for each target. Do not declare the same target in both mise and GNU Stow.
-
-### Legacy GNU Stow files
-
-Non-migrated configuration remains managed by GNU Stow. The [`.stowrc`](./.stowrc) file sets `$HOME` as the target, and [`.stow-local-ignore`](./.stow-local-ignore) defines exclusions. Run the link step from the repository root:
-
-```sh
-./scripts/init.zsh --link
-```
-
-You can also preview the legacy links with:
-
-```sh
-stow -nvR .
-```
-
-Add new global files under `home/` and declare their targets with mise. Keep legacy Stow declarations for targets that have not migrated.
+Non-migrated configuration remains managed by GNU Stow. The [`.stowrc`](./.stowrc) file defines `$HOME` as the target, and [`.stow-local-ignore`](./.stow-local-ignore) defines exclusions. A target belongs to one management system at a time.
 
 ## Programs
 
