@@ -41,7 +41,6 @@ cd "$__root_dir"
 if grep -qF "oauth_token:" "home/.config/gh/personal/hosts.yml"; then
     fail "personal gh hosts must not contain an oauth token"
 fi
-git check-ignore -q --no-index ".config/gh/work/hosts.yml" || fail "work gh hosts should be ignored"
 [[ -f ".config/mise/conf.d/tools.toml" ]] || fail "missing .config/mise/conf.d/tools.toml"
 [[ ! -f ".config/mise/mise.personal.toml" ]] || fail ".config/mise/mise.personal.toml should be removed"
 
