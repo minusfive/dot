@@ -1,0 +1,7 @@
+[dotfiles]
+"~/AGENTS.md" = { source = "../../../home/AGENTS.md", mode = "symlink" }
+"~/CLAUDE.md" = { source = "../../../home/AGENTS.md", mode = "symlink" }
+"~/.agents" = { source = "../../../home/.agents", mode = "symlink-each" }
+"~/.claude" = { source = "../../../home/.claude", mode = "symlink-each" }
+"~/.copilot" = { source = "../../../home/.copilot", mode = "symlink-each" }
+"~/.config/opencode" = { source = "../../../home/.config/opencode", mode = "symlink-each" }

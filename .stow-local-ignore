@@ -63,6 +63,9 @@ mise.local.toml
 
 # AI
 ^/\.ai
+^/\.agents
+^/\.claude
+^/\.copilot
 ^/\.mcp\.json
 tmp$
 ^/\.config/wezterm/AGENTS\.md

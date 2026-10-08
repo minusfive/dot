@@ -5,7 +5,7 @@ set -euo pipefail
 
 local __test_dir="$(realpath "$(dirname "$0")")"
 local __root_dir="$(dirname "$(dirname "$__test_dir")")"
-local __script="$__root_dir/.copilot/statusline-context.sh"
+local __script="$__root_dir/home/.copilot/statusline-context.sh"
 
 cd "$__root_dir"
 

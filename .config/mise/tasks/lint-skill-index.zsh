@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-#MISE description="Verify AGENTS.md skill index is in sync with .agents/skills/"
+#MISE description="Verify home AGENTS.md skill index is in sync with home/.agents/skills/"
 #MISE alias="lint-skills-index"
 #MISE dir="{{cwd}}"
 
@@ -11,8 +11,8 @@ if [[ -z "$repo_root" ]]; then
     exit 2
 fi
 
-agents_md="${repo_root}/AGENTS.md"
-skills_dir="${repo_root}/.agents/skills"
+agents_md="${repo_root}/home/AGENTS.md"
+skills_dir="${repo_root}/home/.agents/skills"
 
 if [[ ! -f "$agents_md" ]]; then
     print -u2 -- "error: ${agents_md} not found"
@@ -59,7 +59,7 @@ if [[ "$in_index_count" != "$in_index_unique_count" ]]; then
 fi
 
 if ! diff <(print -r -- "$on_disk") <(print -r -- "$in_index_unique") >/dev/null; then
-    print -u2 -- "AGENTS.md skill index out of sync with .agents/skills/"
+    print -u2 -- "home/AGENTS.md skill index out of sync with home/.agents/skills/"
     print -u2 -- "--- on-disk ---"
     print -u2 -r -- "$on_disk"
     print -u2 -- "--- in-index ---"
@@ -223,4 +223,4 @@ while IFS= read -r skill; do
     fi
 done <<< "$on_disk"
 
-print -- "AGENTS.md skill index is in sync and passed integrity checks."
+print -- "home/AGENTS.md skill index is in sync and passed integrity checks."
