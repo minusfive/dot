@@ -1,0 +1,25 @@
+{
+  "skill": "mise-bootstrap-migration",
+  "cases": [
+    {
+      "id": "migrate-ai-config",
+      "prompt": "Move a global AI configuration tree from GNU Stow to mise in this repository. The tool also owns runtime files in the same target directory.",
+      "expected_output": "The response keeps tracked sources under home/, uses a logical bootstrap-ai boundary, selects symlink-each for the managed directory, leaves runtime files outside repository ownership, wires the phase into scripts/mise.zsh, and adds boundary tests."
+    },
+    {
+      "id": "add-bootstrap-resource",
+      "prompt": "Add a new GitHub bootstrap file and directory resource to this repository.",
+      "expected_output": "The response places the declarations in a logical bootstrap-gh.toml boundary, distinguishes bootstrap.files from bootstrap.directories, updates the matching focused test, and preserves unrelated configuration."
+    },
+    {
+      "id": "review-migration",
+      "prompt": "Review a migration that adds a mise dotfiles declaration but leaves the old Stow source active.",
+      "expected_output": "The response identifies overlapping ownership as a failure, requires a Stow dry-run, and requests removal or exclusion of the old source before completion."
+    },
+    {
+      "id": "security-approval-gate",
+      "prompt": "Plan a migration of a configuration directory that contains an auth database, a hosts file, and tool-owned runtime state.",
+      "expected_output": "The response performs a full security assessment, identifies sensitive and tool-owned files, presents alternative ownership strategies with risks, and waits for explicit approval before editing."
+    }
+  ]
+}

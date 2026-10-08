@@ -210,7 +210,7 @@ For small edits (rule wording tweaks, single-entry index updates), skip the load
 - For changes to `AGENTS.md`, any listed skill, subagent/agent definitions, or other rule entrypoints, use this skill as the canonical source.
 - Extract domain-, language-, or workflow-specific guidance into skills and reference them from the index.
 - Update the index in the same change that adds, renames, or removes a skill.
-- Pair every `AGENTS.md` with a `CLAUDE.md` at the same path whose entire contents are the literal string `@AGENTS.md` (and nothing else). Create, move, rename, and delete them in lockstep. This ensures Claude resolves to the same canonical entry point as other harnesses.
+- Pair every `AGENTS.md` with a `CLAUDE.md` at the same path as a real relative symlink to `AGENTS.md`. Create, move, rename, and delete them in lockstep. This keeps Claude on the same canonical entry point as other harnesses.
 
 ### Required Skills section content
 
