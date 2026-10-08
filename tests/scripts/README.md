@@ -26,17 +26,35 @@ Integration tests for BetterDisplay script execution:
 - ✅ Error handling for missing BetterDisplay app
 - ⚠️ User interaction simulation (limited)
 
-### mise Bootstrap Profile Smoke Test
+### mise Configuration Tests
 
-#### `test_mise_bootstrap_profiles.zsh`
+#### `test_mise_config.zsh`
 
-Smoke tests for the migration from Brewfile-owned package state to mise-owned package state:
+Tests global mise configuration, profile selection, task discovery, and initialization phase ordering.
 
-- mise installer bridge and PATH refresh checks in `scripts/mise.zsh`
-- package and tool phase ordering checks
-- shared vs personal package split checks
-- profile bridge checks from `DOT_PROFILE` to `MISE_ENV`
-- work vs personal config-loading behavior checks
+#### `test_mise_bootstrap_ai.zsh`
+
+Tests the AI dotfiles source tree, mise declarations, Stow boundaries, and managed target ownership.
+
+#### `test_mise_bootstrap_gh.zsh`
+
+Tests GitHub bootstrap files, directories, source paths, permissions, and token-free configuration.
+
+#### `test_mise_bootstrap_packages.zsh`
+
+Tests shared package, cask, Mac App Store, and Homebrew bootstrap configuration.
+
+#### `test_mise_bootstrap_packages_personal.zsh`
+
+Tests personal package and cask separation from shared package configuration.
+
+#### `test_mise_bootstrap_repos.zsh`
+
+Tests repository bootstrap declarations.
+
+#### `test_mise_tools.zsh`
+
+Tests the development tool configuration.
 
 ## Running Tests
 
@@ -46,7 +64,13 @@ Smoke tests for the migration from Brewfile-owned package state to mise-owned pa
 # From project root
 ./tests/scripts/test_betterdisplay.zsh
 ./tests/scripts/test_betterdisplay_integration.zsh
-./tests/scripts/test_mise_bootstrap_profiles.zsh
+./tests/scripts/test_mise_config.zsh
+./tests/scripts/test_mise_bootstrap_ai.zsh
+./tests/scripts/test_mise_bootstrap_gh.zsh
+./tests/scripts/test_mise_bootstrap_packages.zsh
+./tests/scripts/test_mise_bootstrap_packages_personal.zsh
+./tests/scripts/test_mise_bootstrap_repos.zsh
+./tests/scripts/test_mise_tools.zsh
 ```
 
 ### Run Individual Test Categories

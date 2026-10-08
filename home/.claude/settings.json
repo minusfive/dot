@@ -32,8 +32,5 @@
   "theme": "auto",
   "editorMode": "vim",
   "skipAutoPermissionPrompt": true,
-  "additionalDirectories": [
-    "./.agents",
-    "~/.agents"
-  ]
+  "additionalDirectories": ["./.agents", "~/.agents"]
 }

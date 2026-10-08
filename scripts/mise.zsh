@@ -14,7 +14,7 @@ function {
 
     if [[ "$__run_steps" != true ]]; then
         echo "\n"
-        _v_log_warn $__context "Skipping package bootstrap, dev tools installation, and bootstrap repos"
+        _v_log_warn $__context "Skipping package bootstrap, dev tools installation, bootstrap repos, and dotfiles"
         return 0
     fi
 
@@ -94,5 +94,16 @@ function {
         _v_log_ok $__context "Bootstrap repos applied"
     else
         _v_log_warn $__context "Skipping bootstrap repos"
+    fi
+
+    __proceed=true
+    _v_log_info $__context "Applying mise dotfiles..."
+    _v_confirm_proceed
+    if [[ "$__proceed" == true ]]; then
+        mise bootstrap dotfiles apply --yes
+
+        _v_log_ok $__context "Mise dotfiles applied"
+    else
+        _v_log_warn $__context "Skipping mise dotfiles"
     fi
 }
