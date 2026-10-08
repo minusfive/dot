@@ -44,6 +44,16 @@
       ]
     },
     {
+      "id": "pr-title-commit-format",
+      "prompt": "The existing pull request title is `Improve previews and directory-scoped GitHub auth`, but the repository uses commitlint with Conventional Commits. What must you do before synchronizing the pull request?",
+      "expected_output": "Treat the pull request title as a commit header. Replace the existing title with a compliant title such as `feat(mise): improve preview and GitHub auth`, validate it with the repository commitlint command, and then synchronize the pull request.",
+      "assertions": [
+        "Treats the pull request title as a commit header.",
+        "Rejects preserving the non-conforming existing title.",
+        "Requires validation with the repository commitlint command before synchronization."
+      ]
+    },
+    {
       "id": "avoid-commit-autofill",
       "prompt": "Create a draft pull request for a branch with several commits. Which autofill options are valid for the title and description?",
       "expected_output": "Do not use commit autofill. Inspect the complete base-to-HEAD diff, create a changed-path manifest, and draft metadata from all functional areas before creating the pull request.",

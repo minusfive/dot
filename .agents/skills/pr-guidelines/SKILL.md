@@ -19,6 +19,8 @@ description: Use before every authorized push when a branch has or may have an o
 - Inspect every changed path and the relevant patch before drafting the title or body.
 - Group all changed paths into their functional areas. Use those areas to draft the title and body.
 - Keep the title focused on the complete change set.
+- Treat the pull request title as a commit header. Validate it with the repository's commitlint rules before synchronization.
+- If the existing title fails validation, replace it with a compliant title derived from the complete change set.
 - Keep the body focused on the complete change set, relevant context, reviewer notes, and test status.
 - Do not use `gh pr create --fill`, `--fill-first`, or `--fill-verbose` for pull request metadata.
 - Do not use the latest commit, the latest commit message, or a commit list as a substitute for the complete diff.
@@ -46,6 +48,7 @@ The synchronization task must:
 ## 3: Pull request content
 
 - PR title and message formatting **MUST** follow the same guidelines as commits.
+- Run the repository's configured commitlint command against the proposed title before running `pr:sync`.
 - The pull request body must include a brief summary of the complete change set and relevant context or notes for the reviewer.
 - **MUST NOT** include commit messages in the pull request body. Commit messages are already visible in the pull request history and become stale.
 - Reference related issues or pull requests where relevant.
