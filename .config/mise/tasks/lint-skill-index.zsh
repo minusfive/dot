@@ -1,18 +1,28 @@
 #!/usr/bin/env zsh
-#MISE description="Verify home AGENTS.md skill index is in sync with home/.agents/skills/"
-#MISE alias="lint-skills-index"
+#MISE description="Verify an AGENTS.md skill index is in sync with its .agents/skills/"
+#USAGE flag "--base-path <path>" help="Directory to validate; defaults to the current project root"
 #MISE dir="{{cwd}}"
 
 set -euo pipefail
 
-repo_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
-if [[ -z "$repo_root" ]]; then
+project_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
+if [[ -z "$project_root" ]]; then
     print -u2 -- "error: this task must be run inside a git repository"
     exit 2
 fi
 
-agents_md="${repo_root}/home/AGENTS.md"
-skills_dir="${repo_root}/home/.agents/skills"
+base_path="${usage_base_path:-$project_root}"
+if [[ "$base_path" != /* ]]; then
+    base_path="${project_root}/${base_path}"
+fi
+
+if ! base_path=$(cd "$base_path" 2>/dev/null && pwd -P); then
+    print -u2 -- "error: base path '${usage_base_path:-.}' does not exist"
+    exit 2
+fi
+
+agents_md="${base_path}/AGENTS.md"
+skills_dir="${base_path}/.agents/skills"
 
 if [[ ! -f "$agents_md" ]]; then
     print -u2 -- "error: ${agents_md} not found"
@@ -59,7 +69,7 @@ if [[ "$in_index_count" != "$in_index_unique_count" ]]; then
 fi
 
 if ! diff <(print -r -- "$on_disk") <(print -r -- "$in_index_unique") >/dev/null; then
-    print -u2 -- "home/AGENTS.md skill index out of sync with home/.agents/skills/"
+    print -u2 -- "AGENTS.md skill index out of sync with .agents/skills/ in ${base_path}"
     print -u2 -- "--- on-disk ---"
     print -u2 -r -- "$on_disk"
     print -u2 -- "--- in-index ---"
@@ -223,4 +233,4 @@ while IFS= read -r skill; do
     fi
 done <<< "$on_disk"
 
-print -- "home/AGENTS.md skill index is in sync and passed integrity checks."
+print -- "AGENTS.md skill index is in sync with .agents/skills/ in ${base_path}."

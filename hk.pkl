@@ -64,6 +64,14 @@ local linters = new Mapping<String, Step> {
     check = "mise run lint-no-html-comments -- {{files}}"
   }
 
+  ["lint_skill_index"] = new Step {
+    check = "mise run lint-skill-index"
+  }
+
+  ["lint_home_skill_index"] = new Step {
+    check = "mise run lint-skill-index --base-path home"
+  }
+
   ["betterleaks"] = (Builtins.betterleaks) {
     batch = true
     prefix = List("mise", "x", "--")

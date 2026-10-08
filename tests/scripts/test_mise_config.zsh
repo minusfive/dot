@@ -68,6 +68,11 @@ local __task_listing
 __task_listing="$(XDG_CONFIG_HOME="$__root_dir/.config" DOT_PROFILE=work mise -C "$__root_dir" tasks ls)"
 print -r -- "$__task_listing" | grep -q '^setup[[:space:]]' || fail "setup task is not discoverable"
 print -r -- "$__task_listing" | grep -q '^check[[:space:]]' || fail "check task is not discoverable"
+print -r -- "$__task_listing" | grep -q '^lint-skill-index[[:space:]]' || fail "lint-skill-index task is not discoverable"
+mise run lint-skill-index >/dev/null || fail "root skill index validation failed"
+mise run lint-skill-index --base-path home >/dev/null || fail "home skill index validation failed"
+grep -qF '["lint_skill_index"]' hk.pkl || fail "root skill index hook is missing"
+grep -qF '["lint_home_skill_index"]' hk.pkl || fail "home skill index hook is missing"
 
 grep -qF "env = [\"{{ env.DOT_PROFILE | default(value='work') }}\"]" .config/mise/miserc.toml || fail "profile bridge is missing"
 grep -qF "env_conf_d = true" .config/mise/miserc.toml || fail "env_conf_d is not enabled"

@@ -50,13 +50,16 @@ Use this skill when you move global configuration into the `home/` source tree o
 - Preserve the existing phase order unless the resource has a dependency that requires a different position.
 - Add a confirmation step that matches the neighboring phases.
 - Update the skip message when the new phase changes the scope of the initialization flow.
+- Apply the complete mise bootstrap with `./scripts/init.zsh --mise`.
+- Use direct `mise bootstrap` commands only for targeted status or dry-run validation.
+- Apply remaining GNU Stow configuration with `./scripts/init.zsh --link`.
 
 ## Stow transitions
 
 - Inspect `.stowrc` and `.stow-local-ignore` before changing ownership.
 - Remove or ignore the old Stow source only after the new mise source exists.
 - Preserve local files that the tool owns.
-- Use `stow -nvR .` before and after the transition.
+- Use `stow -nvR .` before and after the transition for non-mutating ownership validation.
 - Stop when the dry-run proposes a migrated target or a conflicting local file.
 
 ## Tests
@@ -81,7 +84,6 @@ Run the focused tests for each changed boundary. Then run:
 
 - Validate the repo-only skill frontmatter and Markdown.
 - `mise run check`
-- `mise run lint-skill-index`
 - `mise bootstrap dotfiles status`
 - `mise bootstrap dotfiles apply --dry-run`
 - `stow -nvR .`

@@ -19,8 +19,7 @@ description: Author and maintain setup, automation, and bootstrap scripts. Use w
 
 ## Environment Configuration Detection
 
-- Check for mise configuration files (`mise.toml`, `.config/mise/config.toml`) before package or runtime operations and use them when present.
-- Treat `Brewfile` as legacy in this repository unless a script explicitly consumes it.
+- Check for mise configuration files before package or runtime operations and use them when present.
 - If neither exists, use the package/runtime manager already adopted by the project.
 - Avoid introducing a second package or runtime manager without a clear reason.
 
@@ -78,13 +77,11 @@ When a task requires a script for execution:
 - Save new scripts in the project's reusable script location.
 - Write script documentation optimized for AI agents (see `coding-guidelines` skill).
 
-## Machine Portability (dot repositories)
-
-When working in a dot repository intended to be checked out on multiple machines:
+## Path Portability
 
 - Never embed absolute paths (e.g., `/Users/username/…`) in any script, config, or task file.
-- Reference paths relative to the file itself (e.g., `../../utils/git.js`) or relative to `~` (e.g., `~/dev/personal/dot`).
-- In mise `task_config.includes`, use a path relative to the config file (e.g., `["tasks"]`) rather than an absolute or `~`-based path where possible.
+- Reference paths relative to the file itself (e.g., `../../utils/git.js`) or relative to `~` (e.g., `~/path/to/project`).
+- In mise `task_config.includes`, use a path relative to the config file (e.g., `["tasks"]`) rather than an absolute or `~`-based path.
 
 ## Cross-references
 

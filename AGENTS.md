@@ -7,6 +7,7 @@
 - Wire new bootstrap phases into `scripts/mise.zsh` when `scripts/init.zsh --mise` must apply them.
 - Keep tool-owned runtime files outside tracked sources and mise declarations.
 - Split tests by bootstrap boundary and run the focused tests before the aggregate checks.
+- Run `mise run check` after changing instructions or skills; it validates both the root and `home/` skill indexes.
 - Preserve unrelated worktree changes.
 
 ## Skills
