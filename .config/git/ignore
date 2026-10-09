@@ -66,6 +66,11 @@ Last.fm
 
 # mise
 mise.local.toml
+mise.*.local.toml
+miserc.local.toml
+miserc.*.local.toml
+config.local.toml
+config.*.local.toml
 
 # zsh
 .zsh_history

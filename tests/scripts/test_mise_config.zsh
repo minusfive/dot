@@ -77,6 +77,26 @@ grep -qF '["lint_home_skill_index"]' hk.pkl || fail "home skill index hook is mi
 grep -qF "env = [\"{{ env.DOT_PROFILE | default(value='work') }}\"]" .config/mise/miserc.toml || fail "profile bridge is missing"
 grep -qF "env_conf_d = true" .config/mise/miserc.toml || fail "env_conf_d is not enabled"
 grep -qF 'minimum_release_age = "7d"' .config/mise/config.toml || fail "minimum release age is missing"
+grep -qF '[settings.dotfiles]' .config/mise/config.toml || fail "dotfiles settings are missing"
+grep -qF 'relative_symlinks = true' .config/mise/config.toml || fail "relative symlinks are not enabled"
+for __local_pattern in \
+    'mise.local.toml' \
+    'mise.*.local.toml' \
+    'miserc.local.toml' \
+    'miserc.*.local.toml' \
+    'config.local.toml' \
+    'config.*.local.toml'; do
+    grep -qF "$__local_pattern" .config/git/ignore || fail "missing global Git ignore pattern: $__local_pattern"
+done
+for __local_file in \
+    'mise.local.toml' \
+    'mise.personal.local.toml' \
+    'miserc.local.toml' \
+    'miserc.personal.local.toml' \
+    'config.local.toml' \
+    'config.personal.local.toml'; do
+    git check-ignore -q --no-index "$__local_file" || fail "Git does not ignore local config: $__local_file"
+done
 grep -qF '^/\.mise' .stow-local-ignore || fail "Stow should ignore .mise"
 grep -qF '^/home' .stow-local-ignore || fail "Stow should ignore home sources"
 

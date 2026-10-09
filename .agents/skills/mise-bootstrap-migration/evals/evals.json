@@ -4,22 +4,120 @@
     {
       "id": "migrate-ai-config",
       "prompt": "Move a global AI configuration tree from GNU Stow to mise in this repository. The tool also owns runtime files in the same target directory.",
-      "expected_output": "The response keeps tracked sources under home/, uses a logical bootstrap-ai boundary, selects symlink-each for the managed directory, leaves runtime files outside repository ownership, wires the phase into scripts/mise.zsh, and adds boundary tests."
+      "expected_output": "The response keeps tracked sources under home/, uses a logical bootstrap-ai boundary, selects symlink-each for the managed directory, leaves runtime files outside repository ownership, reuses the existing mise dotfiles phase when it already applies the declaration, and adds boundary tests.",
+      "assertions": [
+        "Names a source path under home/.",
+        "Uses a bootstrap-ai declaration boundary.",
+        "Uses symlink-each for the mixed managed/runtime directory.",
+        "Keeps runtime files outside mise declarations.",
+        "Does not add a redundant initialization phase when the existing dotfiles phase applies the declaration."
+      ]
     },
     {
       "id": "add-bootstrap-resource",
       "prompt": "Add a new GitHub bootstrap file and directory resource to this repository.",
-      "expected_output": "The response places the declarations in a logical bootstrap-gh.toml boundary, distinguishes bootstrap.files from bootstrap.directories, updates the matching focused test, and preserves unrelated configuration."
+      "expected_output": "The response places the declarations in a logical bootstrap-gh.toml boundary, distinguishes bootstrap.files from bootstrap.directories, updates the matching focused test, and preserves unrelated configuration.",
+      "assertions": [
+        "Uses bootstrap-gh.toml or an equivalent GitHub-specific boundary.",
+        "Uses bootstrap.files for file content.",
+        "Uses bootstrap.directories for directory state.",
+        "Names a focused test for the boundary.",
+        "Preserves unrelated configuration."
+      ]
     },
     {
       "id": "review-migration",
       "prompt": "Review a migration that adds a mise dotfiles declaration but leaves the old Stow source active.",
-      "expected_output": "The response identifies overlapping ownership as a failure, requires a Stow dry-run, and requests removal or exclusion of the old source before completion."
+      "expected_output": "The response identifies overlapping ownership as a failure, requires a Stow dry-run, and requests removal or exclusion of the old source before completion.",
+      "assertions": [
+        "Labels simultaneous Stow and mise ownership as a failure.",
+        "Requires stow -nvR . or an equivalent non-mutating ownership check.",
+        "Requires removal or narrow exclusion of the old Stow source."
+      ]
     },
     {
       "id": "security-approval-gate",
       "prompt": "Plan a migration of a configuration directory that contains an auth database, a hosts file, and tool-owned runtime state.",
-      "expected_output": "The response performs a full security assessment, identifies sensitive and tool-owned files, presents alternative ownership strategies with risks, and waits for explicit approval before editing."
+      "expected_output": "The response performs a full security assessment, identifies sensitive and tool-owned files, presents alternative ownership strategies with risks, and waits for explicit approval before editing.",
+      "assertions": [
+        "Identifies the auth database and runtime files as sensitive.",
+        "Keeps secrets and runtime files outside tracked sources.",
+        "Presents more than one ownership strategy with risks.",
+        "Requests explicit approval before editing or applying the migration."
+      ]
+    },
+    {
+      "id": "parent-symlink-cutover",
+      "prompt": "Migrate one file from a Stow-managed configuration directory to a mise dotfile declaration. The home target is currently a symlink to the repository directory.",
+      "expected_output": "The response inspects the actual parent target, recognizes that a child declaration would write through the Stow symlink, migrates the ownership boundary, verifies the link target, detaches it safely, and runs pre- and post-transition dry runs.",
+      "assertions": [
+        "Inspects the actual parent target before selecting a mise mode.",
+        "Explains the write-through risk from the parent Stow symlink.",
+        "Verifies the symlink target before detaching it.",
+        "Runs non-mutating ownership checks before and after the transition."
+      ]
+    },
+    {
+      "id": "ignored-runtime-boundary",
+      "prompt": "A database and WAL files are ignored by Git but remain inside the physical Stow source tree. Plan the migration safety fix.",
+      "expected_output": "The response treats Git ignore state as insufficient, adds a narrow Stow exclusion, confirms the files are not managed by the dry run, keeps them outside mise and tracked sources, and does not use stow adoption.",
+      "assertions": [
+        "States that Git ignore rules do not control Stow ownership.",
+        "Adds a narrow Stow exclusion.",
+        "Checks the exclusion with a Stow dry run.",
+        "Keeps the runtime files outside mise declarations and tracked sources.",
+        "Rejects stow adoption for the runtime files."
+      ]
+    },
+    {
+      "id": "plan-source-of-truth",
+      "prompt": "A migration has a research matrix and a roadmap with completed discovery stories. Prepare it for execution.",
+      "expected_output": "The response inlines the implementation-critical matrix decisions into the plan, removes completed discovery and decision stories, keeps only actionable stories, and gives execution the exact plan path without requiring scope rediscovery.",
+      "assertions": [
+        "Embeds source paths, targets, modes, exclusions, coupling, tests, rollback, and disposition in the plan.",
+        "Removes completed discovery or decision stories.",
+        "Leaves only actionable mutation and validation stories.",
+        "Provides the exact persisted plan path in the handoff.",
+        "Does not require execution to rediscover scope from a separate matrix."
+      ]
+    },
+    {
+      "id": "symlink-review-plan",
+      "prompt": "The migration plan requires symlinks so application changes remain visible in the working tree for review before the user decides whether to commit them.",
+      "expected_output": "The response uses symlink or symlink-each declarations and keeps the changes visible in the repository source.",
+      "assertions": [
+        "Uses symlink or symlink-each for the migrated targets.",
+        "Uses only symlink-based ownership in the plan.",
+        "States that live changes remain visible for user review before commit.",
+        "Sets dotfiles.relative_symlinks to true.",
+        "Inspects the init scripts and records the required invocation change or no-change decision."
+      ]
+    },
+    {
+      "id": "removed-tool-cleanup",
+      "prompt": "Remove a tool whose mise dotfile declaration and symlinked configuration still exist on the machine.",
+      "expected_output": "The response previews and applies mise dotfile unapply before deleting the declaration, uses an absent declaration when the target must not exist, reapplies and checks status, removes stale symlink sources, and validates Stow ownership.",
+      "assertions": [
+        "Runs mise bootstrap dotfiles unapply --dry-run while the declaration still exists.",
+        "Applies unapply before deleting the declaration or source.",
+        "Uses mode absent when the target must not exist on every machine.",
+        "Checks mise dot status and a post-cleanup dry run.",
+        "Runs a Stow dry run and rejects lingering removed-tool ownership."
+      ]
+    },
+    {
+      "id": "machine-module-cleanup",
+      "prompt": "Design a multi-machine mise setup where optional resources live in machine modules selected by one tracked Tera miserc.toml template that reads DOT_PROFILE. Explain how to remove one module without leaving resources behind.",
+      "expected_output": "The response keeps module declarations on disk, removes the module from local env selection, previews and applies mise bootstrap unapply for that module, handles packages and repositories separately, uses absent state where needed, and validates the remaining configuration.",
+      "assertions": [
+        "Uses per-package or logical-boundary config.<module>.toml files.",
+        "Uses one tracked Tera miserc.toml template with profile conditionals.",
+        "Uses the active miserc.toml linked to the repository source.",
+        "Keeps the module declaration until bootstrap unapply completes.",
+        "Previews and applies mise bootstrap unapply for the module.",
+        "Handles packages and repositories as separate cleanup paths.",
+        "Runs post-cleanup status and dry-run checks."
+      ]
     }
   ]
 }
