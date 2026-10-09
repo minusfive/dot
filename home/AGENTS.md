@@ -13,7 +13,9 @@
 - Be concise and direct; focus output on the specific task and skip unnecessary preambles and postambles.
 - For shared prose and tone conventions across authored content, follow `writing-style`.
 - Ask for confirmation before destructive or irreversible operations.
-- When the worktree is not `main`, assume I want changes committed and pushed on the current branch unless I tell you otherwise.
+- Commit or push changes only when I explicitly request that action in the current turn.
+- Treat earlier permission as expired after the turn unless I explicitly state that it persists.
+- Treat committing and pushing as separate actions. Permission for one does not authorize the other.
 - **MUST NOT** use emojis or icons unless explicitly requested.
 
 ## Verdict Classification Output

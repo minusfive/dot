@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skill": "agent-instructions-evaluation",
+  "iteration": 2,
+  "with_skill_source": "home/.agents/skills/agent-instructions-evaluation/SKILL.md",
+  "old_skill_source": "HEAD:home/.agents/skills/agent-instructions-evaluation/SKILL.md",
+  "workspace": "external isolated evaluation workspace",
+  "isolation": "Each run used a separate isolated task-agent context.",
+  "telemetry_available": false,
+  "behavior_cases": "../../../skills/agent-instructions-evaluation/evals/evals.json",
+  "cases": ["project-eval-workspace", "session-eval-workspace", "durable-eval-history"]
+}

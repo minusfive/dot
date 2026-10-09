@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skill": "planning",
+  "iteration": 1,
+  "summary": [
+    "The current version adds a complete matrix and removes discovery from execution.",
+    "The current version remains proportional for a one-file change.",
+    "The old version already handled high-risk cutover sequencing, so that case is non-discriminating for one assertion group."
+  ],
+  "telemetry": "Token and duration values were unavailable from the task-agent harness.",
+  "workspace": "external isolated evaluation workspace"
+}

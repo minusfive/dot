@@ -1,0 +1,35 @@
+{
+  "skill_name": "readme-maintenance",
+  "evals": [
+    {
+      "id": "bootstrap-boundary-change",
+      "prompt": "Move a managed configuration directory from GNU Stow to mise. The source path and ownership model change, but the user-facing setup command stays the same.",
+      "expected_output": "The response updates README.md in the same change. It explains the new source path, ownership boundary, and reason for the migration without copying the full migration procedure.",
+      "assertions": [
+        "Updates README.md in the same change.",
+        "Explains the changed source path.",
+        "Explains the changed ownership boundary.",
+        "Explains why the migration matters to readers.",
+        "Does not copy the full migration procedure into README.md.",
+        "Keeps README.md focused on reader-facing facts."
+      ]
+    },
+    {
+      "id": "primary-tool-change",
+      "prompt": "Replace the primary bootstrap tool and update the development workflow. Review the repository README as part of the change.",
+      "expected_output": "The response updates the setup and development sections, describes the new primary tool and its role, links to canonical tool documentation, and removes stale commands or tool claims.",
+      "assertions": [
+        "Updates setup or development guidance.",
+        "Describes the new primary tool and its role.",
+        "Adds a canonical link for the primary tool.",
+        "Removes stale commands or tool claims."
+      ]
+    },
+    {
+      "id": "internal-only-change",
+      "prompt": "Rename an internal test helper and update its assertions. The repository layout, setup commands, tools, and user workflow do not change.",
+      "expected_output": "The response leaves README.md unchanged because the change does not affect reader setup, understanding, or workflow.",
+      "assertions": ["Leaves README.md unchanged.", "Explains that the change has no reader-facing effect."]
+    }
+  ]
+}

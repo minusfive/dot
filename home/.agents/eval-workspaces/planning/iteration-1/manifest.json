@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skill": "planning",
+  "iteration": 1,
+  "with_skill_source": "home/.agents/skills/planning/SKILL.md",
+  "old_skill_source": "HEAD:home/.agents/skills/planning/SKILL.md",
+  "workspace": "external isolated evaluation workspace",
+  "isolation": "Each run used a separate isolated task-agent context.",
+  "telemetry_available": false,
+  "behavior_cases": "../../../skills/planning/evals/evals.json",
+  "cases": ["migration-boundary-matrix", "scope-proportional-matrix", "multi-service-cutover"]
+}

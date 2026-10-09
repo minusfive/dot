@@ -13,5 +13,8 @@ terminal_progress = false
 lockfile = true
 minimum_release_age = "7d"
 
+[settings.dotfiles]
+relative_symlinks = true
+
 [tools]
 pitchfork = "latest"

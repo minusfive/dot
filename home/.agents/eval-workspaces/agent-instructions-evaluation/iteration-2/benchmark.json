@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "skill": "agent-instructions-evaluation",
+  "iteration": 2,
+  "run_summary": {
+    "with_skill": {
+      "assertions_passed": 6,
+      "assertions_total": 6,
+      "pass_rate": 1.0,
+      "total_tokens": null,
+      "duration_ms": null,
+      "telemetry_available": false
+    },
+    "old_skill": {
+      "assertions_passed": 3,
+      "assertions_total": 6,
+      "pass_rate": 0.5,
+      "total_tokens": null,
+      "duration_ms": null,
+      "telemetry_available": false
+    }
+  },
+  "delta": {
+    "pass_rate": 0.5,
+    "total_tokens": null,
+    "duration_ms": null
+  }
+}

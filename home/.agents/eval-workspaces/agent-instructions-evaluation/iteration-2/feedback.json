@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skill": "agent-instructions-evaluation",
+  "iteration": 2,
+  "summary": [
+    "The simplified skill preserves the durable spec and canonical workspace layout.",
+    "The simplified skill removes repository-specific temporary-path assumptions.",
+    "The old skill leaves the workspace root and run naming ambiguous."
+  ],
+  "telemetry": "Token and duration values were unavailable from the task-agent harness."
+}

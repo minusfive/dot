@@ -77,12 +77,45 @@ grep -qF '["lint_home_skill_index"]' hk.pkl || fail "home skill index hook is mi
 grep -qF "env = [\"{{ env.DOT_PROFILE | default(value='work') }}\"]" .config/mise/miserc.toml || fail "profile bridge is missing"
 grep -qF "env_conf_d = true" .config/mise/miserc.toml || fail "env_conf_d is not enabled"
 grep -qF 'minimum_release_age = "7d"' .config/mise/config.toml || fail "minimum release age is missing"
+grep -qF '[settings.dotfiles]' .config/mise/config.toml || fail "dotfiles settings are missing"
+grep -qF 'relative_symlinks = true' .config/mise/config.toml || fail "relative symlinks are not enabled"
+for __local_pattern in \
+    'mise.local.toml' \
+    'mise.*.local.toml' \
+    'miserc.local.toml' \
+    'miserc.*.local.toml' \
+    'config.local.toml' \
+    'config.*.local.toml'; do
+    grep -qF "$__local_pattern" .config/git/ignore || fail "missing global Git ignore pattern: $__local_pattern"
+done
+
+# Stow installs this source file as Git's global excludes file.
+local __tmp_stow_home
+__tmp_stow_home="$(mktemp -d)"
+trap 'rm -rf "$__tmp_stow_home"' EXIT
+mkdir -p "$__tmp_stow_home/.config"
+stow -R . --dir="$__root_dir" --target="$__tmp_stow_home" >/dev/null || fail "Stow bootstrap failed"
+local __global_ignore="$__tmp_stow_home/.config/git/ignore"
+[[ -f "$__global_ignore" ]] || fail "Stow did not install the global Git ignore file"
+[[ "$(realpath "$__global_ignore")" == "$(realpath ".config/git/ignore")" ]] || fail "global Git ignore source is incorrect"
+
+for __local_file in \
+    'mise.local.toml' \
+    'mise.personal.local.toml' \
+    'miserc.local.toml' \
+    'miserc.personal.local.toml' \
+    'config.local.toml' \
+    'config.personal.local.toml'; do
+    HOME="$__tmp_stow_home" XDG_CONFIG_HOME="$__tmp_stow_home/.config" \
+        git check-ignore -q --no-index "$__local_file" ||
+        fail "bootstrapped global Git ignore does not ignore local config: $__local_file"
+done
 grep -qF '^/\.mise' .stow-local-ignore || fail "Stow should ignore .mise"
 grep -qF '^/home' .stow-local-ignore || fail "Stow should ignore home sources"
 
 local __tmp_config_home
 __tmp_config_home="$(mktemp -d)"
-trap 'rm -rf "$__tmp_config_home"' EXIT
+trap 'rm -rf "$__tmp_stow_home" "$__tmp_config_home"' EXIT
 mkdir -p "$__tmp_config_home/mise/conf.d"
 cp .config/mise/config.toml "$__tmp_config_home/mise/config.toml"
 cp .config/mise/miserc.toml "$__tmp_config_home/mise/miserc.toml"
