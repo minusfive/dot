@@ -7,5 +7,6 @@
   "workspace": "external isolated evaluation workspace",
   "isolation": "Each run used a separate isolated task-agent context.",
   "telemetry_available": false,
-  "cases": ["P1", "P2", "P3"]
+  "behavior_cases": "../../../skills/planning/evals/evals.json",
+  "cases": ["migration-boundary-matrix", "scope-proportional-matrix", "multi-service-cutover"]
 }

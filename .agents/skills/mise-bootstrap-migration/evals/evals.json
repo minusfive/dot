@@ -1,6 +1,6 @@
 {
-  "skill": "mise-bootstrap-migration",
-  "cases": [
+  "skill_name": "mise-bootstrap-migration",
+  "evals": [
     {
       "id": "migrate-ai-config",
       "prompt": "Move a global AI configuration tree from GNU Stow to mise in this repository. The tool also owns runtime files in the same target directory.",

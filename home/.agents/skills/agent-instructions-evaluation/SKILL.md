@@ -3,6 +3,8 @@ name: agent-instructions-evaluation
 description: Evaluate agent-instruction behavior and discoverability with repeatable baselines, assertion grading, benchmark deltas, and iteration loops. Use when revising skills, AGENTS.md, CLAUDE.md, or agent-definition instructions.
 ---
 
+Canonical reference: [Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills)
+
 # Agent Instructions Evaluation
 
 Use this skill when validating quality for new or updated agent-instruction
@@ -22,7 +24,10 @@ user requests.
 
 ## Instruction Behavior Eval Loop
 
-1. Create or update the tracked eval spec at `evals/evals.json`. Each case
+1. Create or update the tracked eval spec at `evals/evals.json` with the
+   canonical `skill_name` and `evals` top-level keys. Give every case a stable,
+   descriptive kebab-case `id` that names the behavior under test. Reuse the
+   exact case IDs in workspace paths, manifests, and report keys. Each case
    should include `prompt`, `expected_output`, and optional input `files`.
    Start with 2-3 cases, then expand.
 2. Use a separate workspace for iteration results. Keep generated run artifacts

@@ -3,7 +3,7 @@
   "skill": "agent-instructions-evaluation",
   "iteration": 2,
   "cases": {
-    "S1": {
+    "project-eval-workspace": {
       "with_skill": {
         "passed": 2,
         "failed": 0,
@@ -15,7 +15,7 @@
         "total": 2
       }
     },
-    "S2": {
+    "session-eval-workspace": {
       "with_skill": {
         "passed": 2,
         "failed": 0,
@@ -27,7 +27,7 @@
         "total": 2
       }
     },
-    "S3": {
+    "durable-eval-history": {
       "with_skill": {
         "passed": 2,
         "failed": 0,

@@ -1,6 +1,6 @@
 {
-  "skill": "readme-maintenance",
-  "cases": [
+  "skill_name": "readme-maintenance",
+  "evals": [
     {
       "id": "bootstrap-boundary-change",
       "prompt": "Move a managed configuration directory from GNU Stow to mise. The source path and ownership model change, but the user-facing setup command stays the same.",
