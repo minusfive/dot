@@ -30,7 +30,9 @@ Integration tests for BetterDisplay script execution:
 
 #### `test_mise_config.zsh`
 
-Tests global mise configuration, profile selection, task discovery, and initialization phase ordering.
+Tests global mise configuration, profile selection, task discovery, initialization phase ordering, and Git ignore bootstrap behavior.
+
+The source file `.config/git/ignore` is not a repository `.gitignore`. GNU Stow links it to `$XDG_CONFIG_HOME/git/ignore`, where Git reads the global excludes file. The test uses a temporary home to verify that Stow installs this source file and that its patterns affect Git.
 
 #### `test_mise_bootstrap_ai.zsh`
 
