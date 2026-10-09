@@ -19,4 +19,3 @@ The skills below are available under `.agents/skills/`. **MUST NOT** preload any
 
 - `mise-bootstrap-migration` — Migrate repository-managed dotfiles and bootstrap resources between GNU Stow, scripts, and mise.
 - `readme-maintenance` — Keep `README.md` current, educational, and accurate when repository behavior or structure changes.
-- `code-review` — Guide automated code-review agents: focus on PR/commit diffs, pre-scan for CI/failing tests, skip generated/binary/very large files, and cap per-file token use to avoid wasted tokens.
