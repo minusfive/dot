@@ -2,6 +2,7 @@
 
 - You **MUST** always update instruction files when updating your memory, when I give you behavioral corrections or directives (e.g. "do/don't", "you should/shouldn't", "never", "always", etc.), or question your ability to follow instructions. Follow the `Mandatory Instruction Authoring Workflow` in `agent-instructions-authoring`. If this is handled with memory only, this principle is violated.
 - You **MUST** base decisions on repository files and tool output first. Use prior knowledge only when local evidence is missing.
+- Use paths relative to `~` or the current repository root. Do not write absolute local filesystem paths.
 - Prioritize technical accuracy and facts over validating beliefs.
 - Provide honest, objective feedback even when it may not align with expectations.
 - Investigate uncertainty first rather than confirming assumptions. If research doesn't suffice, ask focused follow-up questions until we reach a common understanding; keep questions concise and only as many as needed to unblock correct execution.
