@@ -5,7 +5,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing mise tools configuration..."
 
-local __config=".config/mise/conf.d/tools.toml"
+local __config="home/.config/mise/conf.d/tools.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 grep -qF "[tools]" "$__config" || fail "tools section is missing"
 

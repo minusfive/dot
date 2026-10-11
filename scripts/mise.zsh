@@ -22,7 +22,7 @@ function {
         _v_log_warn $__context "Invalid DOT_PROFILE '$__profile'; falling back to 'work'"
         __profile="work"
     fi
-    export MISE_ENV="$__profile"
+    unset MISE_ENV
 
     if [[ $(command -v mise) == "" ]]; then
         echo "\n"
@@ -45,7 +45,7 @@ function {
 
     echo "\n"
     local __proceed=true
-    _v_log_info $__context "$(_v_color_fg green MISE_ENV)=$(_v_color_fg yellow "'$MISE_ENV'")"
+    _v_log_info $__context "$(_v_color_fg green DOT_PROFILE)=$(_v_color_fg yellow "'$__profile'")"
     _v_log_info $__context "Updating mise..."
     _v_confirm_proceed
     if [[ "$__proceed" == true ]]; then
@@ -67,6 +67,17 @@ function {
         _v_log_ok $__context "Package bootstrap applied"
     else
         _v_log_warn $__context "Skipping package bootstrap"
+    fi
+
+    __proceed=true
+    _v_log_info $__context "Applying mise dotfiles..."
+    _v_confirm_proceed
+    if [[ "$__proceed" == true ]]; then
+        mise bootstrap dotfiles apply --yes
+
+        _v_log_ok $__context "Mise dotfiles applied"
+    else
+        _v_log_warn $__context "Skipping mise dotfiles"
     fi
 
     __proceed=true
@@ -107,14 +118,4 @@ function {
         _v_log_warn $__context "Skipping bootstrap repos"
     fi
 
-    __proceed=true
-    _v_log_info $__context "Applying mise dotfiles..."
-    _v_confirm_proceed
-    if [[ "$__proceed" == true ]]; then
-        mise bootstrap dotfiles apply --yes
-
-        _v_log_ok $__context "Mise dotfiles applied"
-    else
-        _v_log_warn $__context "Skipping mise dotfiles"
-    fi
 }

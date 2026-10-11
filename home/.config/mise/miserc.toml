@@ -1,0 +1,6 @@
+{% if env.DOT_PROFILE | default(value='work') == 'personal' %}
+env = ["personal", "mise", "copilot", "agents", "claude", "opencode"]
+{% else %}
+env = ["work", "mise", "copilot", "agents", "claude", "opencode"]
+{% endif %}
+env_conf_d = true

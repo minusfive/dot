@@ -5,7 +5,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing repository bootstrap configuration..."
 
-local __config=".config/mise/conf.d/bootstrap-repos.toml"
+local __config="home/.config/mise/conf.d/bootstrap-repos.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 grep -qF "[bootstrap.repos]" "$__config" || fail "repository bootstrap section is missing"
 

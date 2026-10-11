@@ -1,10 +1,10 @@
 [bootstrap.files."~/dev/personal/mise.toml"]
-source = "../../../home/dev/profile.mise.toml"
+source = "~/dev/personal/dot/home/dev/profile.mise.toml"
 template = true
 mode = "0644"
 
 [bootstrap.files."~/dev/work/mise.toml"]
-source = "../../../home/dev/profile.mise.toml"
+source = "~/dev/personal/dot/home/dev/profile.mise.toml"
 template = true
 mode = "0644"
 
@@ -12,5 +12,5 @@ mode = "0644"
 mode = "0755"
 
 [bootstrap.files."~/.config/gh/personal/hosts.yml"]
-source = "../../../home/.config/gh/personal/hosts.yml"
+source = "~/dev/personal/dot/home/.config/gh/personal/hosts.yml"
 mode = "0644"

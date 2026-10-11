@@ -34,9 +34,21 @@ Tests global mise configuration, profile selection, task discovery, initializati
 
 The source file `.config/git/ignore` is not a repository `.gitignore`. GNU Stow links it to `$XDG_CONFIG_HOME/git/ignore`, where Git reads the global excludes file. The test uses a temporary home to verify that Stow installs this source file and that its patterns affect Git.
 
-#### `test_mise_bootstrap_ai.zsh`
+#### `test_mise_bootstrap_copilot.zsh`
 
-Tests the AI dotfiles source tree, mise declarations, Stow boundaries, and managed target ownership.
+Tests the Copilot module declaration, direct shared-instructions source, statusline link, and runtime preservation.
+
+#### `test_mise_bootstrap_agents.zsh`
+
+Tests the shared agent files, durable evaluation metadata, relative links, and generated-output exclusions.
+
+#### `test_mise_bootstrap_claude.zsh`
+
+Tests the Claude settings, canonical shared skills source, statusline link, generated-output exclusion, and runtime preservation.
+
+#### `test_mise_bootstrap_opencode.zsh`
+
+Tests the tracked OpenCode configuration and plugin links while preserving target-local runtime dependencies.
 
 #### `test_mise_bootstrap_gh.zsh`
 
@@ -75,7 +87,10 @@ Tests hidden project creation and promotion to a checked-in workspace.
 ./tests/scripts/test_betterdisplay.zsh
 ./tests/scripts/test_betterdisplay_integration.zsh
 ./tests/scripts/test_mise_config.zsh
-./tests/scripts/test_mise_bootstrap_ai.zsh
+./tests/scripts/test_mise_bootstrap_copilot.zsh
+./tests/scripts/test_mise_bootstrap_agents.zsh
+./tests/scripts/test_mise_bootstrap_claude.zsh
+./tests/scripts/test_mise_bootstrap_opencode.zsh
 ./tests/scripts/test_mise_bootstrap_gh.zsh
 ./tests/scripts/test_mise_bootstrap_packages.zsh
 ./tests/scripts/test_mise_bootstrap_packages_personal.zsh

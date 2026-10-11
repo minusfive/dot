@@ -5,8 +5,8 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing personal package bootstrap configuration..."
 
-local __config=".config/mise/conf.d/bootstrap-packages.personal.toml"
-local __shared=".config/mise/conf.d/bootstrap-packages.toml"
+local __config="home/.config/mise/conf.d/bootstrap-packages.personal.toml"
+local __shared="home/.config/mise/conf.d/bootstrap-packages.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 
 for __cask in discord softraid whatsapp; do

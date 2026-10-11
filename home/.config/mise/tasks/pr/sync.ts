@@ -95,9 +95,7 @@ function canonicalizeBody(value: string): string {
 }
 
 async function getPullRequestFiles(repository: string, number: number): Promise<string[]> {
-  return canonicalizeFileList(
-    await run("gh", ["pr", "diff", "--repo", repository, String(number), "--name-only"]),
-  );
+  return canonicalizeFileList(await run("gh", ["pr", "diff", "--repo", repository, String(number), "--name-only"]));
 }
 
 async function main(): Promise<void> {

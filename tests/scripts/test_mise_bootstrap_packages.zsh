@@ -5,7 +5,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing shared package bootstrap configuration..."
 
-local __config=".config/mise/conf.d/bootstrap-packages.toml"
+local __config="home/.config/mise/conf.d/bootstrap-packages.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 grep -qF "[bootstrap.brew]" "$__config" || fail "Homebrew bootstrap section is missing"
 grep -qF "adopt = true" "$__config" || fail "Homebrew adoption is missing"

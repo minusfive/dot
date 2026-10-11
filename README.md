@@ -56,7 +56,7 @@ remains the source of truth.
 
 The `home/` directory is a source tree for files that belong under `$HOME`. Its layout mirrors the target layout, so the source location also describes the installed location.
 
-Mise declarations live in [`.config/mise/conf.d/`](./.config/mise/conf.d/). Files are grouped by logical boundary, such as `bootstrap-gh.toml` for GitHub resources and `bootstrap-ai.toml` for shared AI resources. This keeps each bootstrap area small and independently understandable.
+Mise declarations live in [`home/.config/mise/conf.d/`](./home/.config/mise/conf.d/) and are linked into `~/.config/mise/`. Files are grouped by logical boundary, such as `bootstrap-gh.toml` for GitHub resources and `module.copilot.toml` for Copilot resources. This keeps each bootstrap area small and independently understandable.
 
 Mise uses two related resource models:
 
@@ -71,7 +71,7 @@ Non-migrated configuration remains managed by GNU Stow. The [`.stowrc`](./.stowr
 
 ## Programs
 
-System package state is managed by [mise-en-place](https://mise.jdx.dev), with shared machine configuration in [~/.config/mise/config.toml](./.config/mise/config.toml) and [~/.config/mise/conf.d/](./.config/mise/conf.d/), and repo-local tooling in [./.mise/config.toml](./.mise/config.toml) and [./.mise/conf.d/](./.mise/conf.d/). This includes Homebrew formulae, Homebrew casks, and Mac App Store apps. [Homebrew](https://brew.sh) is now only an optional bootstrap helper, while development tooling and setup flows continue through `mise` and the [Zsh scripts](./scripts/).
+System package state is managed by [mise-en-place](https://mise.jdx.dev), with shared machine configuration in [home/.config/mise/config.toml](./home/.config/mise/config.toml) and [home/.config/mise/conf.d/](./home/.config/mise/conf.d/), and repo-local tooling in [./.mise/config.toml](./.mise/config.toml) and [./.mise/conf.d/](./.mise/conf.d/). This includes Homebrew formulae, Homebrew casks, and Mac App Store apps. [Homebrew](https://brew.sh) is now only an optional bootstrap helper, while development tooling and setup flows continue through `mise` and the [Zsh scripts](./scripts/).
 
 ---
 
