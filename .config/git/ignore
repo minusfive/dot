@@ -61,9 +61,6 @@ Last.fm
 # VSCode
 .vscode
 
-# Copilot
-.config/github-copilot
-
 # mise
 mise.local.toml
 mise.*.local.toml

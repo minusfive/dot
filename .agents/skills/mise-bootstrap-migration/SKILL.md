@@ -23,6 +23,9 @@ Use this skill when you move global configuration into the `home/` source tree o
 - Do not add repo-only skills to the global `home/AGENTS.md` skill index.
 - Leave unrelated worktree changes untouched.
 - Read the current bootstrap configuration and tests before you edit them.
+- Treat `.DS_Store` as auto-generated macOS metadata. Exclude it from
+  migration scope and inventory rows by default. It must not block deletion
+  of an otherwise approved source directory.
 
 ## Planning and handoff
 
@@ -32,6 +35,10 @@ Use this skill when you move global configuration into the `home/` source tree o
   coupling, focused tests, validation commands, rollback, and disposition.
 - Remove completed discovery and decision stories from the executable plan.
   Leave only approved mutation and validation stories.
+- Treat the persisted roadmap as authoritative for migration scope and
+  decisions. Use research artifacts to record findings and evidence.
+- When a research artifact differs from the roadmap, follow the roadmap. Do not
+  block execution on a research-artifact decision.
 - Keep the exact plan path in the execution handoff. Do not make execution
   rediscover scope from a separate research matrix.
 - Record research artifacts as supporting evidence, not as hidden prerequisites
@@ -97,16 +104,26 @@ Use this skill when you move global configuration into the `home/` source tree o
 - Add a confirmation step that matches the neighboring phases.
 - Update the skip message when the new phase changes the scope of the initialization flow.
 - Apply the complete mise bootstrap with `./scripts/init.zsh --mise`.
+- Use `./scripts/init.zsh --mise` as an intentional full-flow integration test
+  when the migration must verify end-to-end initialization wiring. Keep that
+  test separate from target-scoped boundary apply commands.
 - Use direct `mise bootstrap` commands only for targeted status or dry-run validation.
 - Apply remaining GNU Stow configuration with `./scripts/init.zsh --link`.
 
 ## Stow transitions
 
 - Inspect `.stowrc` and `.stow-local-ignore` before changing ownership.
+- For every boundary, copy the source first, run a target-scoped mise dry run,
+  remove only the confirmed Stow link, move preserved non-trackable runtime
+  files into the detached target, apply the mise links, and validate the new
+  owner. Keep the old source and owner until the new owner passes its checks.
 - Remove or ignore the old Stow source only after the new mise source exists.
 - Verify and detach an old parent-directory symlink before applying per-file
   mise entries below that directory.
 - Preserve local files that the tool owns.
+- Keep migration changes uncommitted until all focused tests, aggregate checks,
+  target-scoped dry runs, full-init integration checks, and ownership checks
+  pass.
 - Use `stow -nvR .` before and after the transition for non-mutating ownership validation.
 - Treat ignored files as unmanaged only after the Stow dry run confirms that
   Stow ignores them. Git ignore rules alone do not protect physical files.
@@ -128,7 +145,7 @@ Use this skill when you move global configuration into the `home/` source tree o
 
 ## Machine modules
 
-- Keep modules per package or logical boundary in `config.<module>.toml`
+- Keep modules per package or logical boundary in `module.<module>.toml`
   environment files. Do not combine unrelated resources into one machine-role
   module.
 - Keep one tracked `miserc.toml` Tera template with profile conditionals.
