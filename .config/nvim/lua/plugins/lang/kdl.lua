@@ -1,4 +1,4 @@
--- used by Zellij
+-- Example KDL consumer: Zellij configuration.
 return {
   {
     "nvim-treesitter/nvim-treesitter",

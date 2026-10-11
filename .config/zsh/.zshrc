@@ -215,9 +215,6 @@ if [[ -f "$XDG_CONFIG_HOME/wezterm/shell-completion.zsh" ]]; then
     source "$XDG_CONFIG_HOME/wezterm/shell-completion.zsh"
 fi
 
-# Multiplexers
-export ZELLIJ_CONFIG_DIR="$XDG_CONFIG_HOME/zellij"
-
 # Lazygit
 export LG_CONFIG_FILE="$XDG_CONFIG_HOME/lazygit/config.yml,$XDG_CONFIG_HOME/lazygit/theme.yml"
 
