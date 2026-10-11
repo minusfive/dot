@@ -14,7 +14,7 @@
 - Mise mode: `bootstrap package resources`
 - Environment selector: `personal-packages` in the personal profile branch
 - Dependencies: `MIG-MODULE-packages`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest

@@ -14,7 +14,7 @@
 - Mise mode: `tool versions`
 - Environment selector: `tools`
 - Dependencies: `MIG-MODULE-packages`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest

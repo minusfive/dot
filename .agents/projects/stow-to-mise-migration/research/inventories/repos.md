@@ -14,7 +14,7 @@
 - Mise mode: `bootstrap repos`
 - Environment selector: `repos`
 - Dependencies: `MIG-MODULE-packages`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest

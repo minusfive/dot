@@ -14,7 +14,7 @@
 - Mise mode: `symlink-each`
 - Environment selector: `zsh` in both profile branches
 - Dependencies: `MIG-MODULE-bat, MIG-MODULE-btop, MIG-MODULE-delta`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest

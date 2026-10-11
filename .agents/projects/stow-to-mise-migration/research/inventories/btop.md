@@ -14,7 +14,7 @@
 - Mise mode: `symlink-each`
 - Environment selector: `btop`
 - Dependencies: `MIG-MODULE-mise`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest

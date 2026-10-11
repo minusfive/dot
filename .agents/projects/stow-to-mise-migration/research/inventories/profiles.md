@@ -14,7 +14,7 @@
 - Mise mode: `template`
 - Environment selector: `profiles`
 - Dependencies: `MIG-MODULE-gh`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest

@@ -43,7 +43,7 @@ Each module story owns one inventory file and one approval record.
 - Authorization SSoT: each story's approval record; its inventory mirrors the
   record's `Approval state`.
 - Status: `blocked`
-- Current blocker: `MIG-MODULE-gh` approval is pending.
+- Current blocker: Plan execution remains blocked by the project instruction; no story approval is pending.
 
 No migration mutation is authorized until the required approval record is
 complete for that story.
