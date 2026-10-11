@@ -10,6 +10,7 @@ Options:
   --project       Project name (letters, numbers, dot, underscore, hyphen)
   --prompt        Initial prompt text
   --prompt-file   File containing initial prompt text
+  --promoted      Create the project under .agents/projects/ instead of the hidden default
   --force         Overwrite existing PROMPT.md
   --repo-root     Repository root (defaults to current git repo root)
   --help          Show help
@@ -24,6 +25,7 @@ err() {
 project_name=""
 prompt_text=""
 prompt_file=""
+promoted=false
 force=false
 repo_root=""
 
@@ -43,6 +45,10 @@ while [[ $# -gt 0 ]]; do
       [[ $# -ge 2 ]] || err "--prompt-file requires a value"
       prompt_file="$2"
       shift 2
+      ;;
+    --promoted)
+      promoted=true
+      shift
       ;;
     --force)
       force=true
@@ -90,12 +96,15 @@ fi
 [[ -n "$repo_root" ]] || err "Not inside a git repository (or provide --repo-root)"
 [[ -d "$repo_root" ]] || err "Repository root does not exist: $repo_root"
 
-project_dir="$repo_root/.agents/projects/$project_name"
+projects_dir="$repo_root/.agents/projects.local"
+if [[ "$promoted" == true ]]; then
+  projects_dir="$repo_root/.agents/projects"
+fi
+project_dir="$projects_dir/$project_name"
 plans_dir="$project_dir/plans"
 research_dir="$project_dir/research"
 tmp_dir="$project_dir/tmp"
 prompt_md="$project_dir/PROMPT.md"
-project_gitignore="$project_dir/.gitignore"
 
 mkdir -p "$plans_dir" "$research_dir" "$tmp_dir"
 
@@ -118,11 +127,6 @@ $prompt_text
 - Delete temporary files in \`tmp/\` when the project is complete.
 EOF
 
-cat >"$project_gitignore" <<'EOF'
-# Ignore temporary project artifacts
-tmp/*
-EOF
-
 printf 'Initialized project workspace: %s\n' "$project_dir"
 printf 'Created/updated: %s\n' "$prompt_md"
-printf 'Ensured: %s %s %s %s\n' "$plans_dir" "$research_dir" "$tmp_dir" "$project_gitignore"
+printf 'Ensured: %s %s %s\n' "$plans_dir" "$research_dir" "$tmp_dir"

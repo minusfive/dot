@@ -1,6 +1,6 @@
 ---
 name: agentic-projects
-description: Organize per-repo agentic project workspaces under .agents/projects/<project-name>. Use when initializing or maintaining project prompts, plans, research, and temporary artifacts.
+description: Organize hidden or promoted per-repo agentic project workspaces. Use when creating, moving, maintaining, or promoting project prompts, plans, research, and temporary artifacts.
 allowed-tools: Bash(bash ~/.agents/skills/agentic-projects/scripts/manage-agentic-project.sh)
 metadata:
   scripts: scripts/manage-agentic-project.sh
@@ -12,7 +12,7 @@ Manual trigger only.
 
 Run the colocated script to initialize or update:
 
-`.agents/projects/<project-name>/`
+`.agents/projects.local/<project-name>/`
 
 ## Workspace contents and usage
 
@@ -20,14 +20,15 @@ Run the colocated script to initialize or update:
 - `plans/<plan-name>.md`: one file per plan iteration or variant. Use for persisted planning history and persisted subagents orchestration synchronization artifacts.
 - `research/<research-item-name>.md`: one file per research artifact or finding.
 - `tmp/`: ephemeral artifacts (large outputs, reusable temp scripts, intermediate data, non-persisted subagents orchestration synchronization artifacts). Delete contents when project is complete.
-- `.gitignore`: ignores `tmp/*` so temporary artifacts are not committed.
 
 ## Version control
 
-- Agentic project workspaces are ignored by default.
+- Create hidden projects under `.agents/projects.local/<project-name>/` by default. The global Git ignore rule excludes this directory.
+- Promote a project for check-in by moving it to `.agents/projects/<project-name>/`.
+- Keep promoted project files under normal repository and global ignore rules. Do not use `git add -f` for a promoted project.
+- Keep `tmp/` out of promoted projects with a project-specific `.gitignore` only when no repository-level rule already excludes it.
+- Remove a project-specific `.gitignore` when the project remains under `.agents/projects.local/` and the global rule already excludes the entire project.
 - Check in a project only when I explicitly ask you to persist it with the repository.
-- Use `git add -f` with `PROMPT.md`, `plans/`, and `research/` paths for the project.
-- Keep `tmp/` out of the index.
 
 ## Invocation
 

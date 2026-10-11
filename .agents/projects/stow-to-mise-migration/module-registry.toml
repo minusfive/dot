@@ -1,0 +1,181 @@
+version = 1
+plan = ".agents/projects/stow-to-mise-migration/plans/migration-roadmap-v1.md"
+inventory_template = ".agents/projects/stow-to-mise-migration/templates/module-inventory.md"
+story_template = ".agents/projects/stow-to-mise-migration/templates/module-story.md"
+agent_prompt_template = ".agents/projects/stow-to-mise-migration/templates/module-migration-agent-prompt.md"
+
+# Module entries are alphabetical. The roadmap defines execution order.
+
+[[module]]
+key = "1password"
+story = "MIG-MODULE-1password"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/1password.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "agents"
+story = "MIG-MODULE-agents"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/agents.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "bat"
+story = "MIG-MODULE-bat"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/bat.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "betterdisplay"
+story = "MIG-MODULE-betterdisplay"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/betterdisplay.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "btop"
+story = "MIG-MODULE-btop"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/btop.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "claude"
+story = "MIG-MODULE-claude"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/claude.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "copilot"
+story = "MIG-MODULE-copilot"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/copilot.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "delta"
+story = "MIG-MODULE-delta"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/delta.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "fd"
+story = "MIG-MODULE-fd"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/fd.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "fzf"
+story = "MIG-MODULE-fzf"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/fzf.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "gh"
+story = "MIG-MODULE-gh"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/gh.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "ghostty"
+story = "MIG-MODULE-ghostty"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/ghostty.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "git"
+story = "MIG-MODULE-git"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/git.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "hammerspoon"
+story = "MIG-MODULE-hammerspoon"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/hammerspoon.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "harper"
+story = "MIG-MODULE-harper"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/harper.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "lazygit"
+story = "MIG-MODULE-lazygit"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/lazygit.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "mise"
+story = "MIG-MODULE-mise"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/mise.md"
+dependencies = []
+
+[[module]]
+key = "nvim"
+story = "MIG-MODULE-nvim"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/nvim.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "opencode"
+story = "MIG-MODULE-opencode"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/opencode.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "packages"
+story = "MIG-MODULE-packages"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/packages.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "personal-packages"
+story = "MIG-MODULE-personal-packages"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/personal-packages.md"
+dependencies = ["MIG-MODULE-packages"]
+
+[[module]]
+key = "profiles"
+story = "MIG-MODULE-profiles"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/profiles.md"
+dependencies = ["MIG-MODULE-gh"]
+
+[[module]]
+key = "repos"
+story = "MIG-MODULE-repos"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/repos.md"
+dependencies = ["MIG-MODULE-packages"]
+
+[[module]]
+key = "ripgrep"
+story = "MIG-MODULE-ripgrep"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/ripgrep.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "tmux"
+story = "MIG-MODULE-tmux"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/tmux.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "tools"
+story = "MIG-MODULE-tools"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/tools.md"
+dependencies = ["MIG-MODULE-packages"]
+
+[[module]]
+key = "wezterm"
+story = "MIG-MODULE-wezterm"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/wezterm.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "yazi"
+story = "MIG-MODULE-yazi"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/yazi.md"
+dependencies = ["MIG-MODULE-mise"]
+
+[[module]]
+key = "zsh"
+story = "MIG-MODULE-zsh"
+inventory = ".agents/projects/stow-to-mise-migration/research/inventories/zsh.md"
+dependencies = ["MIG-MODULE-bat", "MIG-MODULE-btop", "MIG-MODULE-delta"]

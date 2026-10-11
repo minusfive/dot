@@ -76,7 +76,7 @@ The skills below are available under [`.agents/skills/`](.agents/skills/). **MUS
 ### Index
 
 - `agent-instructions-authoring` — Create, update, and review skills and agent instruction files, including `AGENTS.md` and `CLAUDE.md`. Use when fixing conflicting rules, removing duplicates, or tightening writing-style enforcement.
-- `agentic-projects` — Organize per-repo agentic project workspaces under `.agents/projects/<project>/` (prompts, plans, research, temporary artifacts).
+- `agentic-projects` — Create hidden project workspaces under `.agents/projects.local/` and promote selected projects to `.agents/projects/` for check-in.
 - `coding-guidelines` — Apply repository coding standards when adding features, fixing bugs, refactoring, updating tests, or resolving lint/type/build issues.
 - `critique-workflow` — Run critique, review, and audit workflows for agent instructions and prose, with verdicts and writing-style enforcement.
 - `commit-guidelines` — Create branches and commits from local diffs using project commit-message conventions (Conventional Commits, commitlint).
