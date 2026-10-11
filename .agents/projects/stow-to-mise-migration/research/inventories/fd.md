@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/fd.md`
 - Current declaration: `.config/fd` (implicit in Stow package `.`)
-- New declaration: `home/.config/mise/conf.d/module.fd.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.fd.toml`
 - Current owner: `stow`
 - New owner: `mise`
 - Target root: `~/.config/fd`
@@ -19,9 +19,9 @@
 
 ## Scope manifest
 
-| Source path         | Tracked | Ignored | Current owner | Current target        | Target disposition | New source path          | New target            | New mode       | Notes                                                                    |
-| ------------------- | ------- | ------- | ------------- | --------------------- | ------------------ | ------------------------ | --------------------- | -------------- | ------------------------------------------------------------------------ |
-| `.config/fd/ignore` | `yes`   | `no`    | `stow`        | `~/.config/fd/ignore` | `migrate`          | `home/.config/fd/ignore` | `~/.config/fd/ignore` | `symlink-each` | The only source file. Its fd ignore rules are `.git` and `node_modules`. |
+| Source path         | Tracked | Ignored | Current owner | Current target        | Target disposition | New source path                             | New target            | New mode       | Notes                                                                    |
+| ------------------- | ------- | ------- | ------------- | --------------------- | ------------------ | ------------------------------------------- | --------------------- | -------------- | ------------------------------------------------------------------------ |
+| `.config/fd/ignore` | `yes`   | `no`    | `stow`        | `~/.config/fd/ignore` | `migrate`          | `~/dev/personal/dot/home/.config/fd/ignore` | `~/.config/fd/ignore` | `symlink-each` | The only source file. Its fd ignore rules are `.git` and `node_modules`. |
 
 ## Local and runtime inventory
 
@@ -56,7 +56,7 @@ rules.
 - New owner apply command: `mise -E fd bootstrap dotfiles apply --yes`
 - Duplicate-owner check: `test -z "$(stow -nvR . 2>&1 | grep -F -- '.config/fd' || true)" && mise -E fd bootstrap dotfiles status | grep -F -- '.config/fd/ignore'`
 - Target-content disposition check: `test -d "$HOME/.config/fd" && test -z "$(find -P "$HOME/.config/fd" -mindepth 1 -maxdepth 1 ! -name ignore -print -quit)"`
-- Relative-link check: `python3 -c 'from pathlib import Path; p = Path.home() / ".config/fd/ignore"; assert p.is_symlink() and not p.readlink().is_absolute() and p.resolve() == Path.cwd() / "home/.config/fd/ignore"'`
+- Relative-link check: `python3 -c 'from pathlib import Path; p = Path.home() / ".config/fd/ignore"; assert p.is_symlink() and not p.readlink().is_absolute() and p.resolve() == Path.home() / "dev/personal/dot/home/.config/fd/ignore"'`
 
 ## Coupling
 
@@ -85,7 +85,7 @@ rules.
 - Target smoke test:
   - `fd --version >/dev/null && test -r "$HOME/.config/fd/ignore" && test -L "$HOME/.config/fd/ignore"`
 - Security or token check:
-  - `test -f .config/fd/ignore && test -f home/.config/fd/ignore && ! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' .config/fd/ignore home/.config/fd/ignore`
+  - `test -f .config/fd/ignore && test -f ~/dev/personal/dot/home/.config/fd/ignore && ! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' .config/fd/ignore ~/dev/personal/dot/home/.config/fd/ignore`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -108,7 +108,7 @@ rules.
   - `.agents/projects/stow-to-mise-migration/module-registry.toml` records
     `fd` and its dependency on `MIG-MODULE-mise`.
   - The roadmap and this inventory specify `.config/fd/ignore` ->
-    `home/.config/fd/ignore`, target `~/.config/fd`, and `symlink-each`.
+    `~/dev/personal/dot/home/.config/fd/ignore`, target `~/.config/fd`, and `symlink-each`.
   - `stow -nvR .` currently proposes unlinking and relinking the existing fd directory symlink; no fd-specific conflict was reported.
 - Residual risk:
   - `low`; the boundary has one tracked, non-sensitive file and no unmanaged target content, but cutover must remove only the recorded whole-directory symlink before mise applies per-file links.

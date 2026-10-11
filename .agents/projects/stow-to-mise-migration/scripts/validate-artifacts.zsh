@@ -303,7 +303,8 @@ function main {
 
     local -a __shared_stories=(MIG-90)
     local -a __story_ids=("${(@f)$(awk -F '"' '/^story = / {print $2}' "$__registry")}")
-    local __approval __approval_story __approval_module __approval_inventory __line
+    local __approval __approval_story __approval_module __approval_inventory
+    local __approval_state __final_decision __line
     local __registry_key="" __registry_story=""
     typeset -A __registry_module_for_story
     while IFS= read -r __line; do
@@ -350,10 +351,26 @@ function main {
                 exit 1
             }
         fi
-        grep -qF -- "- Approval state: \`pending\`" "$__approval_dir/$__approval.md" || {
-            print -u2 "Approval record is not pending: $__approval"
-            exit 1
-        }
+        __approval_state="$(sed -n 's/^- Approval state: `\([^`]*\)`.*/\1/p' "$__approval_dir/$__approval.md")"
+        __final_decision="$(sed -n 's/^- Final decision: `\([^`]*\)`.*/\1/p' "$__approval_dir/$__approval.md")"
+        case "$__approval_state" in
+            pending)
+                [[ "$__final_decision" == "pending" ]] || {
+                    print -u2 "Pending approval has an invalid final decision: $__approval"
+                    exit 1
+                }
+                ;;
+            approved)
+                [[ "$__final_decision" == "approved for execution" ]] || {
+                    print -u2 "Approved record has an invalid final decision: $__approval"
+                    exit 1
+                }
+                ;;
+            *)
+                print -u2 "Approval record has an invalid state: $__approval"
+                exit 1
+                ;;
+        esac
     done
 
     print "Migration artifact validation passed."

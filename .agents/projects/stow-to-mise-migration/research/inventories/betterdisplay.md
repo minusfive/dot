@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/betterdisplay.md`
 - Current declaration: `.stowrc` implicit package-root ownership via `scripts/symlink.zsh`; BetterDisplay behavior is coupled through `scripts/betterdisplay.zsh`
-- New declaration: `home/.config/mise/conf.d/module.betterdisplay.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.betterdisplay.toml`
 - Current owner: `Stow + script`
 - New owner: `mise + script`
 - Target root: `~/.config/BetterDisplay`
@@ -19,11 +19,11 @@
 
 ## Scope manifest
 
-| Source path                          | Tracked | Ignored | Current owner   | Current target                                  | Target disposition | New source path                           | New target                                      | New mode       | Notes                                                                                                                                                                   |
-| ------------------------------------ | ------- | ------- | --------------- | ----------------------------------------------- | ------------------ | ----------------------------------------- | ----------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.config/BetterDisplay/config.plist` | `yes`   | `no`    | `Stow + script` | `~/.config/BetterDisplay/config.plist`          | `migrate`          | `home/.config/BetterDisplay/config.plist` | `~/.config/BetterDisplay/config.plist`          | `symlink-each` | Apple binary plist; preserve its machine-specific display configuration and filtered identifier fields without printing plist contents.                                 |
-| `.config/BetterDisplay/README.md`    | `yes`   | `no`    | `Stow`          | `~/.config/BetterDisplay/README.md`             | `repository-only`  | `home/.config/BetterDisplay/README.md`    | `none`                                          | `none`         | Preserve the README in the `home/` source tree, remove its deployed target entry, and do not add it to the mise declaration.                                            |
-| `none`                               | `no`    | `no`    | `script`        | `~/.config/BetterDisplay/config.backup.*.plist` | `preserve`         | `none`                                    | `~/.config/BetterDisplay/config.backup.*.plist` | `none`         | No backup files are present in the current target scan. Preserve any future backups as target-only runtime files; never copy them into `home/` or declare them in mise. |
+| Source path                          | Tracked | Ignored | Current owner   | Current target                                  | Target disposition | New source path                                              | New target                                      | New mode       | Notes                                                                                                                                                                                      |
+| ------------------------------------ | ------- | ------- | --------------- | ----------------------------------------------- | ------------------ | ------------------------------------------------------------ | ----------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `.config/BetterDisplay/config.plist` | `yes`   | `no`    | `Stow + script` | `~/.config/BetterDisplay/config.plist`          | `migrate`          | `~/dev/personal/dot/home/.config/BetterDisplay/config.plist` | `~/.config/BetterDisplay/config.plist`          | `symlink-each` | Apple binary plist; preserve its machine-specific display configuration and filtered identifier fields without printing plist contents.                                                    |
+| `.config/BetterDisplay/README.md`    | `yes`   | `no`    | `Stow`          | `~/.config/BetterDisplay/README.md`             | `repository-only`  | `~/dev/personal/dot/home/.config/BetterDisplay/README.md`    | `none`                                          | `none`         | Preserve the README in the `~/dev/personal/dot/home/` source tree, remove its deployed target entry, and do not add it to the mise declaration.                                            |
+| `none`                               | `no`    | `no`    | `script`        | `~/.config/BetterDisplay/config.backup.*.plist` | `preserve`         | `none`                                                       | `~/.config/BetterDisplay/config.backup.*.plist` | `none`         | No backup files are present in the current target scan. Preserve any future backups as target-only runtime files; never copy them into `~/dev/personal/dot/home/` or declare them in mise. |
 
 ## Local and runtime inventory
 
@@ -65,16 +65,16 @@ installations. Values were not printed.
 - New owner apply command: `mise -E betterdisplay bootstrap dotfiles apply --yes`
 - Duplicate-owner check: `! stow -nvR . 2>&1 | grep -F -- '.config/BetterDisplay' && mise -E betterdisplay bootstrap dotfiles status | grep -F -- '.config/BetterDisplay/config.plist'`
 - Target-content disposition check: `test -d "$HOME/.config/BetterDisplay" && test -L "$HOME/.config/BetterDisplay/config.plist" && ! test -e "$HOME/.config/BetterDisplay/README.md" && ! find -P "$HOME/.config/BetterDisplay" -mindepth 1 -maxdepth 1 ! -name 'config.plist' ! -name 'config.backup.*.plist' -print -quit | grep -q .`
-- Relative-link check: `python3 -c 'from pathlib import Path; p = Path.home() / ".config/BetterDisplay/config.plist"; assert p.is_symlink() and not p.readlink().is_absolute() and p.resolve() == Path.cwd() / "home/.config/BetterDisplay/config.plist"'`
+- Relative-link check: `python3 -c 'from pathlib import Path; p = Path.home() / ".config/BetterDisplay/config.plist"; assert p.is_symlink() and not p.readlink().is_absolute() and p.resolve() == Path.home() / "dev/personal/dot/home/.config/BetterDisplay/config.plist"'`
 
 ## Coupling
 
 - Scripts:
   - `scripts/init.zsh` sets `__manage_betterdisplay` for `-d|--display` and sources `scripts/betterdisplay.zsh`.
   - `scripts/betterdisplay.zsh` currently sets `__config_dir="$__dotfiles_dir/.config/BetterDisplay"` and `__config_file="$__config_dir/config.plist"`.
-  - On export, the script creates the source directory if needed, runs `defaults export pro.betterdisplay.BetterDisplay /tmp/BetterDisplay_export.plist`, then moves the temporary export over `__config_file`. After migration, export must write to the tracked `home/` source or its resolved source path, not replace the deployed mise symlink.
+  - On export, the script creates the source directory if needed, runs `defaults export pro.betterdisplay.BetterDisplay /tmp/BetterDisplay_export.plist`, then moves the temporary export over `__config_file`. After migration, export must write to the tracked `~/dev/personal/dot/home/` source or its resolved source path, not replace the deployed mise symlink.
   - On import, the script reads `__config_file`; if BetterDisplay is running, it asks for confirmation, quits the app with `osascript`, waits two seconds, and runs `defaults import pro.betterdisplay.BetterDisplay "$__config_file"`.
-  - Before import, `__backup_current_settings` writes `config.backup.$(date +%Y%m%d_%H%M%S).plist` under the current `__config_dir`. This must change to the physical target runtime directory so backups remain target-only and never enter `home/`.
+  - Before import, `__backup_current_settings` writes `config.backup.$(date +%Y%m%d_%H%M%S).plist` under the current `__config_dir`. This must change to the physical target runtime directory so backups remain target-only and never enter `~/dev/personal/dot/home/`.
 - Environment variables:
   - `__dotfiles_dir` is supplied by the dynamic scope of `scripts/init.zsh`; `__manage_betterdisplay` controls whether the script runs.
   - `HOME` is used to locate `~/Applications/BetterDisplay.app` and the installed target.
@@ -114,7 +114,7 @@ installations. Values were not printed.
 ## Rollback
 
 - Preserve before cutover:
-  - `.config/BetterDisplay/config.plist`, `home/.config/BetterDisplay/config.plist`, the current `~/.config/BetterDisplay` symlink target, and any `~/.config/BetterDisplay/config.backup.*.plist` files outside the repository.
+  - `.config/BetterDisplay/config.plist`, `~/dev/personal/dot/home/.config/BetterDisplay/config.plist`, the current `~/.config/BetterDisplay` symlink target, and any `~/.config/BetterDisplay/config.backup.*.plist` files outside the repository.
 - Rollback dry run:
   - `mise -E betterdisplay bootstrap dotfiles unapply --dry-run && stow -nvR .`
 - Rollback apply:
@@ -128,7 +128,7 @@ installations. Values were not printed.
 - Decision evidence:
   - `.config/BetterDisplay/config.plist` and `.config/BetterDisplay/README.md` are the only tracked, non-ignored source files.
   - `~/.config/BetterDisplay` is the expected relative whole-directory Stow symlink, and its source and target `config.plist` hashes match.
-  - The roadmap specifies `home/.config/BetterDisplay/config.plist` as the mise-managed source/target pair, `symlink-each`, and a repository-only README with no deployed symlink.
+  - The roadmap specifies `~/dev/personal/dot/home/.config/BetterDisplay/config.plist` as the mise-managed source/target pair, `symlink-each`, and a repository-only README with no deployed symlink.
   - The README documents UUID and `storedIdentifier@(...)` display-specific settings; filtered plist inspection confirms identifier fields without exposing plist contents.
 - Residual risk:
   - `medium`; display identifiers and EDID data are machine-specific, and the current script writes both the exported config and pre-import backups through the Stow source directory. The script path split and target-only backup rule must be implemented before cutover.

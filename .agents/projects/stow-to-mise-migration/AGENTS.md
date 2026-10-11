@@ -36,6 +36,9 @@ Use other research files as background evidence.
 - Keep dependency fields in the roadmap and inventories for human-readable
   story context. Treat `module-registry.toml` as the canonical dependency
   graph, and require the artifact validator to compare all three views.
+- Use explicit `~/dev/personal/dot/home/...` source paths for mise declarations
+  loaded from `~/.config/mise/conf.d`. Do not set `dotfiles.root` for this
+  migration.
 - Keep `MIG-MODULE-mise` blocked until
   `DEC-mise-control-plane-transition-mechanism` records the approved cutover
   mechanism.
@@ -98,7 +101,7 @@ to discover, classify, choose, or decide migration behavior.
 ## Safety
 
 - Keep credentials, databases, WAL files, histories, completion dumps, caches,
-  dependencies, and generated output outside `home/`.
+  dependencies, and generated output outside `~/dev/personal/dot/home/`.
 - Do not print credential-bearing contents or runtime database contents.
 - Preserve local runtime files before removing a parent Stow link.
 - Do not copy a sensitive runtime file without erasing and checking the old

@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/<module>.md`
 - Current declaration: `<path or none>`
-- New declaration: `home/.config/mise/conf.d/module.<module>.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.<module>.toml`
 - Current owner: `<stow|mise|script|none|mixed>`
 - New owner: `<mise|stow|none>`
 - Target root: `<path or none>`

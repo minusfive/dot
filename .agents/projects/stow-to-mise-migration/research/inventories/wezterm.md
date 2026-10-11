@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/wezterm.md`
 - Current declaration: `.stowrc` implicit package-root ownership; no wezterm-specific declaration
-- New declaration: `home/.config/mise/conf.d/module.wezterm.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.wezterm.toml`
 - Current owner: `Stow`
 - New owner: `mise`
 - Target root: `~/.config/wezterm`
@@ -19,14 +19,14 @@
 
 ## Scope manifest
 
-| Source path                                  | Tracked | Ignored | Current owner   | Current target                            | Target disposition | New source path                              | New target                                | New mode       | Notes                                                                                                                                                                                                                 |
-| -------------------------------------------- | ------- | ------- | --------------- | ----------------------------------------- | ------------------ | -------------------------------------------- | ----------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.config/wezterm/wezterm.lua`                | `yes`   | `no`    | `Stow`          | `~/.config/wezterm/wezterm.lua`           | `migrate`          | `home/.config/wezterm/wezterm.lua`           | `~/.config/wezterm/wezterm.lua`           | `symlink-each` | Stable WezTerm configuration. It uses a remote Catppuccin plugin and the machine path `wezterm.home_dir .. "/dev"`.                                                                                                   |
-| `.config/wezterm/shell-completion.zsh`       | `yes`   | `no`    | `Stow`          | `~/.config/wezterm/shell-completion.zsh`  | `migrate`          | `home/.config/wezterm/shell-completion.zsh`  | `~/.config/wezterm/shell-completion.zsh`  | `symlink-each` | Tracked Zsh completion hook; preserve the `wezterm shell-completion --shell zsh` behavior.                                                                                                                            |
-| `.config/wezterm/shell-integration.zsh`      | `yes`   | `no`    | `Stow`          | `~/.config/wezterm/shell-integration.zsh` | `migrate`          | `home/.config/wezterm/shell-integration.zsh` | `~/.config/wezterm/shell-integration.zsh` | `symlink-each` | Tracked Zsh integration hook; preserve the `WEZTERM_EXECUTABLE_DIR` resource lookup.                                                                                                                                  |
-| `.config/wezterm/AGENTS.md`                  | `yes`   | `no`    | `Stow-excluded` | `~/.config/wezterm/AGENTS.md`             | `repository-only`  | `none`                                       | `none`                                    | `none`         | Repository-local instructions. `.stow-local-ignore` excludes this path; keep it in `.config/wezterm`, not `home/`.                                                                                                    |
-| `.config/wezterm/CLAUDE.md`                  | `yes`   | `no`    | `Stow-excluded` | `~/.config/wezterm/CLAUDE.md`             | `repository-only`  | `none`                                       | `none`                                    | `none`         | Repository-local instruction symlink to `AGENTS.md`. `.stow-local-ignore` excludes this path; keep it in `.config/wezterm`, not `home/`.                                                                              |
-| `~/.config/wezterm` (current parent symlink) | `no`    | `no`    | `Stow`          | `~/.config/wezterm`                       | `remove`           | `none`                                       | `none`                                    | `none`         | Whole-directory relative symlink to `../dev/personal/dot/.config/wezterm`; it currently exposes managed files, repository-only files, research, and temporary backups. Remove only after the recorded dry run passes. |
+| Source path                                  | Tracked | Ignored | Current owner   | Current target                            | Target disposition | New source path                                                 | New target                                | New mode       | Notes                                                                                                                                                                                                                 |
+| -------------------------------------------- | ------- | ------- | --------------- | ----------------------------------------- | ------------------ | --------------------------------------------------------------- | ----------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.config/wezterm/wezterm.lua`                | `yes`   | `no`    | `Stow`          | `~/.config/wezterm/wezterm.lua`           | `migrate`          | `~/dev/personal/dot/home/.config/wezterm/wezterm.lua`           | `~/.config/wezterm/wezterm.lua`           | `symlink-each` | Stable WezTerm configuration. It uses a remote Catppuccin plugin and the machine path `wezterm.home_dir .. "/dev"`.                                                                                                   |
+| `.config/wezterm/shell-completion.zsh`       | `yes`   | `no`    | `Stow`          | `~/.config/wezterm/shell-completion.zsh`  | `migrate`          | `~/dev/personal/dot/home/.config/wezterm/shell-completion.zsh`  | `~/.config/wezterm/shell-completion.zsh`  | `symlink-each` | Tracked Zsh completion hook; preserve the `wezterm shell-completion --shell zsh` behavior.                                                                                                                            |
+| `.config/wezterm/shell-integration.zsh`      | `yes`   | `no`    | `Stow`          | `~/.config/wezterm/shell-integration.zsh` | `migrate`          | `~/dev/personal/dot/home/.config/wezterm/shell-integration.zsh` | `~/.config/wezterm/shell-integration.zsh` | `symlink-each` | Tracked Zsh integration hook; preserve the `WEZTERM_EXECUTABLE_DIR` resource lookup.                                                                                                                                  |
+| `.config/wezterm/AGENTS.md`                  | `yes`   | `no`    | `Stow-excluded` | `~/.config/wezterm/AGENTS.md`             | `repository-only`  | `none`                                                          | `none`                                    | `none`         | Repository-local instructions. `.stow-local-ignore` excludes this path; keep it in `.config/wezterm`, not `~/dev/personal/dot/home/`.                                                                                 |
+| `.config/wezterm/CLAUDE.md`                  | `yes`   | `no`    | `Stow-excluded` | `~/.config/wezterm/CLAUDE.md`             | `repository-only`  | `none`                                                          | `none`                                    | `none`         | Repository-local instruction symlink to `AGENTS.md`. `.stow-local-ignore` excludes this path; keep it in `.config/wezterm`, not `~/dev/personal/dot/home/`.                                                           |
+| `~/.config/wezterm` (current parent symlink) | `no`    | `no`    | `Stow`          | `~/.config/wezterm`                       | `remove`           | `none`                                                          | `none`                                    | `none`         | Whole-directory relative symlink to `../dev/personal/dot/.config/wezterm`; it currently exposes managed files, repository-only files, research, and temporary backups. Remove only after the recorded dry run passes. |
 
 ## Local and runtime inventory
 
@@ -58,7 +58,7 @@ Stow link is detached.
 - New owner apply command: `mise -E wezterm bootstrap dotfiles apply --yes`
 - Duplicate-owner check: `! stow -nvR . 2>&1 | grep -F -- '.config/wezterm' && mise -E wezterm bootstrap dotfiles status | grep -F -- '.config/wezterm/'`
 - Target-content disposition check: `find -P "$HOME/.config/wezterm" -mindepth 1 -maxdepth 1 ! -name wezterm.lua ! -name shell-completion.zsh ! -name shell-integration.zsh -print -quit`
-- Relative-link check: `python3 -c 'from pathlib import Path; root = Path.home() / ".config/wezterm"; expected = Path.cwd() / "home/.config/wezterm"; names = ("wezterm.lua", "shell-completion.zsh", "shell-integration.zsh"); assert all((root / name).is_symlink() and not (root / name).readlink().is_absolute() and (root / name).resolve() == expected / name for name in names)'`
+- Relative-link check: `python3 -c 'from pathlib import Path; root = Path.home() / ".config/wezterm"; expected = Path.home() / "dev/personal/dot/home/.config/wezterm"; names = ("wezterm.lua", "shell-completion.zsh", "shell-integration.zsh"); assert all((root / name).is_symlink() and not (root / name).readlink().is_absolute() and (root / name).resolve() == expected / name for name in names)'`
 
 ## Coupling
 
@@ -87,9 +87,9 @@ Stow link is detached.
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_wezterm.zsh` (planned module test; not present in the current baseline)
 - Target smoke test:
-  - `zsh -n home/.config/wezterm/shell-completion.zsh && zsh -n home/.config/wezterm/shell-integration.zsh && wezterm --config-file ~/.config/wezterm/wezterm.lua show-keys`
+  - `zsh -n ~/dev/personal/dot/home/.config/wezterm/shell-completion.zsh && zsh -n ~/dev/personal/dot/home/.config/wezterm/shell-integration.zsh && wezterm --config-file ~/.config/wezterm/wezterm.lua show-keys`
 - Security or token check:
-  - `! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' .config/wezterm/wezterm.lua .config/wezterm/shell-completion.zsh .config/wezterm/shell-integration.zsh home/.config/wezterm/wezterm.lua home/.config/wezterm/shell-completion.zsh home/.config/wezterm/shell-integration.zsh`
+  - `! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' .config/wezterm/wezterm.lua .config/wezterm/shell-completion.zsh .config/wezterm/shell-integration.zsh ~/dev/personal/dot/home/.config/wezterm/wezterm.lua ~/dev/personal/dot/home/.config/wezterm/shell-completion.zsh ~/dev/personal/dot/home/.config/wezterm/shell-integration.zsh`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -103,7 +103,7 @@ Stow link is detached.
 - Rollback apply:
   - `mise -E wezterm bootstrap dotfiles unapply --yes && test ! -e "$HOME/.config/wezterm" -o -L "$HOME/.config/wezterm" && stow -vR .`
 - Stop condition:
-  - Stop if the target is not the recorded whole-directory Stow link before cutover, if any unmanaged target content is found, if mise or Stow reports a conflict, if repository-only files or research state are copied into `home/`, or if a sensitive/runtime file appears in the migrated source set.
+  - Stop if the target is not the recorded whole-directory Stow link before cutover, if any unmanaged target content is found, if mise or Stow reports a conflict, if repository-only files or research state are copied into `~/dev/personal/dot/home/`, or if a sensitive/runtime file appears in the migrated source set.
 
 ## Findings and decisions
 

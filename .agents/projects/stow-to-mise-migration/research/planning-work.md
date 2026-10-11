@@ -30,6 +30,9 @@ pending-decisions document has no pending decision.
   - `DEC-tmux-runtime-classification`: the tmux inventory classifies TPM as an
     external, unmanaged runtime dependency and defers plugin-load validation
     until TPM is installed.
+  - `DEC-mise-control-plane-source-resolution`: use explicit
+    `~/dev/personal/dot/home/...` source paths for declarations loaded from
+    `~/.config/mise`; do not set `dotfiles.root`.
 - Exit condition: every decision has a recorded resolution and no record has
   status `pending`.
 
@@ -52,8 +55,8 @@ pending-decisions document has no pending decision.
     status and dry-run results, source manifests, metadata-only target
     manifests, and pre-existing differences.
   - All mutation stories, including `MIG-90`, have approval records with
-    exact inventory-bound scopes. Approval state remains `pending`; no
-    migration mutation is authorized.
+    exact inventory-bound scopes. Stories 1 to 5 are approved for execution;
+    later stories and `MIG-90` remain pending.
 - Exit condition: the baseline record is complete and every mutation story has
   an approval record with an exact recorded scope.
 
@@ -74,15 +77,32 @@ pending-decisions document has no pending decision.
     strict sequential order are recorded in
     `plans/migration-roadmap-v1.md`.
   - `.agents/projects/stow-to-mise-migration/scripts/validate-artifacts.zsh`
-    passed and checked roadmap coverage, dependency agreement across the
-    roadmap, inventories, and registry, approval identity, and pending
+    accepts the approved story prefix and checks the remaining pending
     approval gates.
   - The exact execution handoff path is
     `.agents/projects/stow-to-mise-migration/plans/migration-roadmap-v1.md`.
-    The current request approves this roadmap handoff only; all story approval
-    records remain pending and the roadmap remains blocked against mutation.
+    The current request approves stories 1 to 5; the roadmap remains blocked
+    until the story 1 source-path and focused-test updates pass.
 - Exit condition: the user approves
   `plans/migration-roadmap-v1.md` for execution.
+
+### `PLAN-05`: Resolve mise source-path cutover drift
+
+- Status: `complete`
+- Document: `.agents/projects/stow-to-mise-migration/research/pending-decisions.md`
+- Scope:
+  - determine how relocated mise declarations resolve sources from the
+    physical `~/.config/mise` target;
+  - update the roadmap, mise inventory, declarations, tests, and rollback
+    evidence with the selected portable mechanism; and
+  - rerun the artifact validator before resuming story execution.
+- Evidence:
+  - Story 1 was rolled back after the copied aggregate declarations reported
+    their legacy relative source values missing from the new target.
+  - The selected replacement uses explicit
+    `~/dev/personal/dot/home/...` source paths and does not set `dotfiles.root`.
+- Exit condition: `DEC-mise-control-plane-source-resolution` is resolved and
+  all affected execution artifacts agree.
 
 ## Planning rules
 

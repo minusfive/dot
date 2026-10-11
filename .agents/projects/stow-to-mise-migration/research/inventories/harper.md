@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/harper.md`
 - Current declaration: `.stowrc` implicit package-root ownership; no Harper-specific declaration
-- New declaration: `home/.config/mise/conf.d/module.harper.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.harper.toml`
 - Current owner: `Stow`
 - New owner: `mise`
 - Target root: `~/.config/harper`
@@ -19,9 +19,9 @@
 
 ## Scope manifest
 
-| Source path                            | Tracked | Ignored | Current owner | Current target                           | Target disposition | New source path                             | New target                               | New mode       | Notes                                                                        |
-| -------------------------------------- | ------- | ------- | ------------- | ---------------------------------------- | ------------------ | ------------------------------------------- | ---------------------------------------- | -------------- | ---------------------------------------------------------------------------- |
-| `.config/harper/dictionaries/user.txt` | `yes`   | `no`    | `Stow`        | `~/.config/harper/dictionaries/user.txt` | `migrate`          | `home/.config/harper/dictionaries/user.txt` | `~/.config/harper/dictionaries/user.txt` | `symlink-each` | Personal user dictionary. Do not copy its contents into migration artifacts. |
+| Source path                            | Tracked | Ignored | Current owner | Current target                           | Target disposition | New source path                                                | New target                               | New mode       | Notes                                                                        |
+| -------------------------------------- | ------- | ------- | ------------- | ---------------------------------------- | ------------------ | -------------------------------------------------------------- | ---------------------------------------- | -------------- | ---------------------------------------------------------------------------- |
+| `.config/harper/dictionaries/user.txt` | `yes`   | `no`    | `Stow`        | `~/.config/harper/dictionaries/user.txt` | `migrate`          | `~/dev/personal/dot/home/.config/harper/dictionaries/user.txt` | `~/.config/harper/dictionaries/user.txt` | `symlink-each` | Personal user dictionary. Do not copy its contents into migration artifacts. |
 
 ## Local and runtime inventory
 
@@ -54,7 +54,7 @@ contents during validation.
 - New owner apply command: `mise -E harper bootstrap dotfiles apply --yes`
 - Duplicate-owner check: `! stow -nvR . 2>&1 | grep -F -- '.config/harper' && mise -E harper bootstrap dotfiles status | grep -F -- '.config/harper/dictionaries/user.txt'`
 - Target-content disposition check: `find -P "$HOME/.config/harper" -mindepth 1 -maxdepth 1 ! -name dictionaries -print -quit`
-- Relative-link check: `python3 -c 'from pathlib import Path; p = Path.home() / ".config/harper/dictionaries/user.txt"; assert p.is_symlink() and not p.readlink().is_absolute() and p.resolve() == Path.cwd() / "home/.config/harper/dictionaries/user.txt"'`
+- Relative-link check: `python3 -c 'from pathlib import Path; p = Path.home() / ".config/harper/dictionaries/user.txt"; assert p.is_symlink() and not p.readlink().is_absolute() and p.resolve() == Path.home() / "dev/personal/dot/home/.config/harper/dictionaries/user.txt"'`
 
 ## Coupling
 
@@ -78,7 +78,7 @@ contents during validation.
 - Target smoke test:
   - `nvim --headless '+qa' && test -r "$HOME/.config/harper/dictionaries/user.txt" && test -L "$HOME/.config/harper/dictionaries/user.txt"`
 - Security or token check:
-  - `! grep -Eiq 'AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY' .config/harper/dictionaries/user.txt home/.config/harper/dictionaries/user.txt 2>/dev/null`
+  - `! grep -Eiq 'AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY' .config/harper/dictionaries/user.txt ~/dev/personal/dot/home/.config/harper/dictionaries/user.txt 2>/dev/null`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`

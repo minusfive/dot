@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/ghostty.md`
 - Current declaration: `.stowrc` plus the root Stow package (`stow -vR .`)
-- New declaration: `home/.config/mise/conf.d/module.ghostty.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.ghostty.toml`
 - Current owner: `stow`
 - New owner: `mise`
 - Target root: `~/.config/ghostty`
@@ -19,12 +19,12 @@
 
 ## Scope manifest
 
-| Source path                                                | Tracked | Ignored | Current owner | Current target                                               | Target disposition | New source path                                                 | New target                                                   | New mode       | Notes                                                                    |
-| ---------------------------------------------------------- | ------- | ------- | ------------- | ------------------------------------------------------------ | ------------------ | --------------------------------------------------------------- | ------------------------------------------------------------ | -------------- | ------------------------------------------------------------------------ |
-| `.config/ghostty/config`                                   | `yes`   | `no`    | `stow`        | `~/.config/ghostty/config`                                   | `migrate`          | `home/.config/ghostty/config`                                   | `~/.config/ghostty/config`                                   | `symlink-each` | Tracked Ghostty configuration; line 5 references the target shader path. |
-| `.config/ghostty/shaders/cursor_smear.glsl`                | `yes`   | `no`    | `stow`        | `~/.config/ghostty/shaders/cursor_smear.glsl`                | `migrate`          | `home/.config/ghostty/shaders/cursor_smear.glsl`                | `~/.config/ghostty/shaders/cursor_smear.glsl`                | `symlink-each` | Tracked shader; preserve the `shaders/` directory layout.                |
-| `.config/ghostty/shaders/cursor_smear_fade.glsl`           | `yes`   | `no`    | `stow`        | `~/.config/ghostty/shaders/cursor_smear_fade.glsl`           | `migrate`          | `home/.config/ghostty/shaders/cursor_smear_fade.glsl`           | `~/.config/ghostty/shaders/cursor_smear_fade.glsl`           | `symlink-each` | Tracked shader; preserve the `shaders/` directory layout.                |
-| `.config/ghostty/shaders/cursor_synesthaxia(tweened).glsl` | `yes`   | `no`    | `stow`        | `~/.config/ghostty/shaders/cursor_synesthaxia(tweened).glsl` | `migrate`          | `home/.config/ghostty/shaders/cursor_synesthaxia(tweened).glsl` | `~/.config/ghostty/shaders/cursor_synesthaxia(tweened).glsl` | `symlink-each` | Tracked shader named by the `custom-shader` setting.                     |
+| Source path                                                | Tracked | Ignored | Current owner | Current target                                               | Target disposition | New source path                                                                    | New target                                                   | New mode       | Notes                                                                    |
+| ---------------------------------------------------------- | ------- | ------- | ------------- | ------------------------------------------------------------ | ------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------ | -------------- | ------------------------------------------------------------------------ |
+| `.config/ghostty/config`                                   | `yes`   | `no`    | `stow`        | `~/.config/ghostty/config`                                   | `migrate`          | `~/dev/personal/dot/home/.config/ghostty/config`                                   | `~/.config/ghostty/config`                                   | `symlink-each` | Tracked Ghostty configuration; line 5 references the target shader path. |
+| `.config/ghostty/shaders/cursor_smear.glsl`                | `yes`   | `no`    | `stow`        | `~/.config/ghostty/shaders/cursor_smear.glsl`                | `migrate`          | `~/dev/personal/dot/home/.config/ghostty/shaders/cursor_smear.glsl`                | `~/.config/ghostty/shaders/cursor_smear.glsl`                | `symlink-each` | Tracked shader; preserve the `shaders/` directory layout.                |
+| `.config/ghostty/shaders/cursor_smear_fade.glsl`           | `yes`   | `no`    | `stow`        | `~/.config/ghostty/shaders/cursor_smear_fade.glsl`           | `migrate`          | `~/dev/personal/dot/home/.config/ghostty/shaders/cursor_smear_fade.glsl`           | `~/.config/ghostty/shaders/cursor_smear_fade.glsl`           | `symlink-each` | Tracked shader; preserve the `shaders/` directory layout.                |
+| `.config/ghostty/shaders/cursor_synesthaxia(tweened).glsl` | `yes`   | `no`    | `stow`        | `~/.config/ghostty/shaders/cursor_synesthaxia(tweened).glsl` | `migrate`          | `~/dev/personal/dot/home/.config/ghostty/shaders/cursor_synesthaxia(tweened).glsl` | `~/.config/ghostty/shaders/cursor_synesthaxia(tweened).glsl` | `symlink-each` | Tracked shader named by the `custom-shader` setting.                     |
 
 ## Local and runtime inventory
 

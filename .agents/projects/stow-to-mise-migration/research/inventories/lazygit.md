@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/lazygit.md`
 - Current declaration: `.stowrc` (`--target=~`), applied by `scripts/symlink.zsh`
-- New declaration: `home/.config/mise/conf.d/module.lazygit.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.lazygit.toml`
 - Current owner: `Stow`
 - New owner: `mise`
 - Target root: `~/.config/lazygit`
@@ -19,10 +19,10 @@
 
 ## Scope manifest
 
-| Source path                  | Tracked | Ignored | Current owner | Current target                 | Target disposition | New source path                   | New target                     | New mode       | Notes                                                        |
-| ---------------------------- | ------- | ------- | ------------- | ------------------------------ | ------------------ | --------------------------------- | ------------------------------ | -------------- | ------------------------------------------------------------ |
-| `.config/lazygit/config.yml` | `yes`   | `no`    | `Stow`        | `~/.config/lazygit/config.yml` | `migrate`          | `home/.config/lazygit/config.yml` | `~/.config/lazygit/config.yml` | `symlink-each` | Stable repository-owned configuration; preserve mode `0644`. |
-| `.config/lazygit/theme.yml`  | `yes`   | `no`    | `Stow`        | `~/.config/lazygit/theme.yml`  | `migrate`          | `home/.config/lazygit/theme.yml`  | `~/.config/lazygit/theme.yml`  | `symlink-each` | Stable repository-owned theme; preserve mode `0644`.         |
+| Source path                  | Tracked | Ignored | Current owner | Current target                 | Target disposition | New source path                                      | New target                     | New mode       | Notes                                                        |
+| ---------------------------- | ------- | ------- | ------------- | ------------------------------ | ------------------ | ---------------------------------------------------- | ------------------------------ | -------------- | ------------------------------------------------------------ |
+| `.config/lazygit/config.yml` | `yes`   | `no`    | `Stow`        | `~/.config/lazygit/config.yml` | `migrate`          | `~/dev/personal/dot/home/.config/lazygit/config.yml` | `~/.config/lazygit/config.yml` | `symlink-each` | Stable repository-owned configuration; preserve mode `0644`. |
+| `.config/lazygit/theme.yml`  | `yes`   | `no`    | `Stow`        | `~/.config/lazygit/theme.yml`  | `migrate`          | `~/dev/personal/dot/home/.config/lazygit/theme.yml`  | `~/.config/lazygit/theme.yml`  | `symlink-each` | Stable repository-owned theme; preserve mode `0644`.         |
 
 ## Local and runtime inventory
 
@@ -51,7 +51,7 @@ credential-bearing contents. Record metadata, references, and target paths only.
 - New owner dry-run command: `mise -E lazygit dot apply --dry-run ~/.config/lazygit`
 - New owner apply command: `mise -E lazygit dot apply --yes ~/.config/lazygit`
 - Duplicate-owner check: `test ! -e .config/lazygit && ! stow -nvR . 2>&1 | grep -F '.config/lazygit' && mise -E lazygit dot status ~/.config/lazygit`
-- Target-content disposition check: `test -d "$HOME/.config/lazygit" && test ! -L "$HOME/.config/lazygit" && test "$(realpath "$HOME/.config/lazygit/config.yml")" = "$(realpath "home/.config/lazygit/config.yml")" && test "$(realpath "$HOME/.config/lazygit/theme.yml")" = "$(realpath "home/.config/lazygit/theme.yml")"`
+- Target-content disposition check: `test -d "$HOME/.config/lazygit" && test ! -L "$HOME/.config/lazygit" && test "$(realpath "$HOME/.config/lazygit/config.yml")" = "$(realpath "$HOME/dev/personal/dot/home/.config/lazygit/config.yml")" && test "$(realpath "$HOME/.config/lazygit/theme.yml")" = "$(realpath "$HOME/dev/personal/dot/home/.config/lazygit/theme.yml")"`
 - Relative-link check: `case "$(readlink "$HOME/.config/lazygit/config.yml")" in /*) exit 1;; esac; case "$(readlink "$HOME/.config/lazygit/theme.yml")" in /*) exit 1;; esac`
 
 ## Coupling

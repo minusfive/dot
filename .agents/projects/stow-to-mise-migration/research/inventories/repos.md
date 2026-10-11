@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/repos.md`
 - Current declaration: `.config/mise/conf.d/bootstrap-repos.toml`
-- New declaration: `home/.config/mise/conf.d/module.repos.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.repos.toml`
 - Current owner: `mise`
 - New owner: `mise`
 - Target root: `none`
@@ -62,7 +62,7 @@ content-level review is approved.
 - Old owner cleanup command: `mise bootstrap unapply repos --dry-run` (unapply does not remove repositories; it only reports that repository cleanup is separate)
 - New owner dry-run command: `mise bootstrap repos apply --dry-run`
 - New owner apply command: `mise bootstrap repos apply --yes`
-- Duplicate-owner check: `test "$(git grep -lE 'powerlevel10k|fast-syntax-highlighting|zsh-autosuggestions|fzf-tab|fzf-tab-source|zsh-vi-mode|ohmyzsh-full-autoupdate|LazyVim' -- .config/mise home/.config/mise 2>/dev/null | grep -E 'bootstrap-repos|module\.repos' | wc -l | tr -d ' ')" -eq 1`
+- Duplicate-owner check: `test "$(git grep -lE 'powerlevel10k|fast-syntax-highlighting|zsh-autosuggestions|fzf-tab|fzf-tab-source|zsh-vi-mode|ohmyzsh-full-autoupdate|LazyVim' -- .config/mise ~/dev/personal/dot/home/.config/mise 2>/dev/null | grep -E 'bootstrap-repos|module\.repos' | wc -l | tr -d ' ')" -eq 1`
 - Target-content disposition check: `XDG_CONFIG_HOME="$PWD/.config" mise -C "$PWD" bootstrap repos status`
 - Relative-link check: `for path in "$HOME/.config/oh-my-zsh/custom/themes/powerlevel10k" "$HOME/.config/oh-my-zsh/custom/plugins/fast-syntax-highlighting" "$HOME/.config/oh-my-zsh/custom/plugins/zsh-autosuggestions" "$HOME/.config/oh-my-zsh/custom/plugins/fzf-tab" "$HOME/.config/oh-my-zsh/custom/plugins/fzf-tab-source" "$HOME/.config/oh-my-zsh/custom/plugins/zsh-vi-mode" "$HOME/.config/oh-my-zsh/custom/plugins/ohmyzsh-full-autoupdate" "$HOME/dev/personal/nvim-plugins/LazyVim"; do test ! -L "$path"; done`
 
@@ -111,7 +111,7 @@ not replace, copy, or delete the existing Git checkouts during the cutover.
 ## Rollback
 
 - Preserve before cutover:
-  - `.config/mise/conf.d/bootstrap-repos.toml`, the proposed `home/.config/mise/conf.d/module.repos.toml`, and the eight existing physical Git checkouts with their remotes, refs, and clean-status result.
+  - `.config/mise/conf.d/bootstrap-repos.toml`, the proposed `~/dev/personal/dot/home/.config/mise/conf.d/module.repos.toml`, and the eight existing physical Git checkouts with their remotes, refs, and clean-status result.
 - Rollback dry run:
   - Restore the saved `.config/mise/conf.d/bootstrap-repos.toml` declaration, then run `mise bootstrap repos apply --dry-run`.
 - Rollback apply:

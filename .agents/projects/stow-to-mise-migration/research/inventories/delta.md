@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/delta.md`
 - Current declaration: `.stowrc` (`--target=~`), applied by `scripts/symlink.zsh`
-- New declaration: `home/.config/mise/conf.d/module.delta.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.delta.toml`
 - Current owner: `stow`
 - New owner: `mise`
 - Target root: `~/.config/delta`
@@ -19,9 +19,9 @@
 
 ## Scope manifest
 
-| Source path                                 | Tracked | Ignored | Current owner | Current target                                | Target disposition | New source path                                  | New target                                    | New mode       | Notes                                                                                       |
-| ------------------------------------------- | ------- | ------- | ------------- | --------------------------------------------- | ------------------ | ------------------------------------------------ | --------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
-| `.config/delta/themes/catppuccin.gitconfig` | `yes`   | `no`    | `stow`        | `~/.config/delta/themes/catppuccin.gitconfig` | `migrate`          | `home/.config/delta/themes/catppuccin.gitconfig` | `~/.config/delta/themes/catppuccin.gitconfig` | `symlink-each` | The only tracked source file. No ignored or non-ignored untracked source files are present. |
+| Source path                                 | Tracked | Ignored | Current owner | Current target                                | Target disposition | New source path                                                     | New target                                    | New mode       | Notes                                                                                       |
+| ------------------------------------------- | ------- | ------- | ------------- | --------------------------------------------- | ------------------ | ------------------------------------------------------------------- | --------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
+| `.config/delta/themes/catppuccin.gitconfig` | `yes`   | `no`    | `stow`        | `~/.config/delta/themes/catppuccin.gitconfig` | `migrate`          | `~/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig` | `~/.config/delta/themes/catppuccin.gitconfig` | `symlink-each` | The only tracked source file. No ignored or non-ignored untracked source files are present. |
 
 ## Local and runtime inventory
 
@@ -52,8 +52,8 @@ during this inventory or its validation.
 - New owner dry-run command: `mise -E delta dot apply --dry-run ~/.config/delta`
 - New owner apply command: `mise -E delta dot apply ~/.config/delta`
 - Duplicate-owner check: `test ! -e .config/delta && ! stow -nvR . 2>&1 | grep -F '.config/delta' && mise -E delta dot status ~/.config/delta`
-- Target-content disposition check: `test -d "$HOME/.config/delta" && test ! -L "$HOME/.config/delta" && test -L "$HOME/.config/delta/themes/catppuccin.gitconfig" && test "$(realpath "$HOME/.config/delta/themes/catppuccin.gitconfig")" = "$(realpath "home/.config/delta/themes/catppuccin.gitconfig")"`
-- Relative-link check: `test "$(readlink "$HOME/.config/delta/themes/catppuccin.gitconfig")" = "../../../dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig"`
+- Target-content disposition check: `test -d "$HOME/.config/delta" && test ! -L "$HOME/.config/delta" && test -L "$HOME/.config/delta/themes/catppuccin.gitconfig" && test "$(realpath "$HOME/.config/delta/themes/catppuccin.gitconfig")" = "$(realpath "$HOME/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig")"`
+- Relative-link check: `link="$(readlink "$HOME/.config/delta/themes/catppuccin.gitconfig")" && test "${link#/}" = "$link" && test "$(realpath "$HOME/.config/delta/themes/catppuccin.gitconfig")" = "$(realpath "$HOME/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig")"`
 
 The baseline `stow -nvR .` reports `UNLINK: .config/delta` followed by
 `LINK: .config/delta => ../dev/personal/dot/.config/delta`, confirming the
@@ -63,7 +63,7 @@ after the new source exists and the mise dry run names the intended target.
 ## Coupling
 
 - Scripts:
-  - `scripts/zsh.zsh:106-113` checks for `delta` and runs `wget -O "$XDG_CONFIG_HOME/delta/themes/catppuccin.gitconfig"` against the Catppuccin download URL. Do not run this update during migration research or validation. After migration, the target path resolves to the tracked `home/.config` source. This command can write through the symlink and mutate the tracked theme.
+  - `scripts/zsh.zsh:106-113` checks for `delta` and runs `wget -O "$XDG_CONFIG_HOME/delta/themes/catppuccin.gitconfig"` against the Catppuccin download URL. Do not run this update during migration research or validation. After migration, the target path resolves to the tracked `~/dev/personal/dot/home/.config` source. This command can write through the symlink and mutate the tracked theme.
 - Environment variables:
   - `XDG_CONFIG_HOME` supplies the target configuration root used by `scripts/zsh.zsh`. The expected delta target is `~/.config/delta`.
 - Includes or external paths:
@@ -82,7 +82,7 @@ after the new source exists and the mise dry run names the intended target.
   - `git ls-files --error-unmatch .config/delta/themes/catppuccin.gitconfig`
   - `zsh -n scripts/zsh.zsh`
   - `git diff --check -- .agents/projects/stow-to-mise-migration/research/inventories/delta.md`
-  - After the source move: `git ls-files --error-unmatch home/.config/delta/themes/catppuccin.gitconfig`
+  - After the source move: `git ls-files --error-unmatch ~/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig`
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_delta.zsh` (planned module test; it is
     not present in the current tree.)
@@ -90,8 +90,8 @@ after the new source exists and the mise dry run names the intended target.
   - `delta --version`
   - `test -f "$HOME/.config/delta/themes/catppuccin.gitconfig" && git config --global --get core.pager | grep -Fx delta && git config --global --get interactive.diffFilter | grep -Fx 'delta --color-only' && git config --global --get include.path | grep -Fx '~/.config/delta/themes/catppuccin.gitconfig'`
 - Security or token check:
-  - `! git grep -l -I -E '(token|password|secret|credential|private[ -]?key)' -- .config/delta home/.config/delta`
-  - `git ls-files --others --ignored --exclude-standard -- .config/delta home/.config/delta`
+  - `! git grep -l -I -E '(token|password|secret|credential|private[ -]?key)' -- .config/delta ~/dev/personal/dot/home/.config/delta`
+  - `git ls-files --others --ignored --exclude-standard -- .config/delta ~/dev/personal/dot/home/.config/delta`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -118,6 +118,6 @@ after the new source exists and the mise dry run names the intended target.
     `delta` with dependency `MIG-MODULE-mise`.
   - `.config/git/config`, `.config/mise/conf.d/tools.toml`, `.config/mise/mise.lock`, `scripts/zsh.zsh`, and the target `readlink` result establish the Git, tool, script, and ownership coupling.
 - Residual risk:
-  - `scripts/zsh.zsh` writes the downloaded Catppuccin theme directly to the target path. With mise per-file links, that path would write through to the tracked `home/` source. Migration validation must not run the refresh, and any future theme update needs explicit review.
+  - `scripts/zsh.zsh` writes the downloaded Catppuccin theme directly to the target path. With mise per-file links, that path would write through to the tracked `~/dev/personal/dot/home/` source. Migration validation must not run the refresh, and any future theme update needs explicit review.
 - Open blocker:
   - Migration approval remains pending. Do not download or modify the theme.

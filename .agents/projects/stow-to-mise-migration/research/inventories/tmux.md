@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/tmux.md`
 - Current declaration: `.stowrc` implicit package-root ownership; no tmux-specific declaration
-- New declaration: `home/.config/mise/conf.d/module.tmux.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.tmux.toml`
 - Current owner: `Stow`
 - New owner: `mise`
 - Target root: `~/.config/tmux`
@@ -19,9 +19,9 @@
 
 ## Scope manifest
 
-| Source path              | Tracked | Ignored | Current owner | Current target             | Target disposition | New source path               | New target                 | New mode       | Notes                                                                             |
-| ------------------------ | ------- | ------- | ------------- | -------------------------- | ------------------ | ----------------------------- | -------------------------- | -------------- | --------------------------------------------------------------------------------- |
-| `.config/tmux/tmux.conf` | `yes`   | `no`    | `Stow`        | `~/.config/tmux/tmux.conf` | `migrate`          | `home/.config/tmux/tmux.conf` | `~/.config/tmux/tmux.conf` | `symlink-each` | The only source file. It declares TPM plugins and runs `~/.tmux/plugins/tpm/tpm`. |
+| Source path              | Tracked | Ignored | Current owner | Current target             | Target disposition | New source path                                  | New target                 | New mode       | Notes                                                                             |
+| ------------------------ | ------- | ------- | ------------- | -------------------------- | ------------------ | ------------------------------------------------ | -------------------------- | -------------- | --------------------------------------------------------------------------------- |
+| `.config/tmux/tmux.conf` | `yes`   | `no`    | `Stow`        | `~/.config/tmux/tmux.conf` | `migrate`          | `~/dev/personal/dot/home/.config/tmux/tmux.conf` | `~/.config/tmux/tmux.conf` | `symlink-each` | The only source file. It declares TPM plugins and runs `~/.tmux/plugins/tpm/tpm`. |
 
 ## Local and runtime inventory
 
@@ -45,7 +45,7 @@ git check-ignore -v .config/tmux/tmux.conf
 ```
 
 The `.config/tmux` boundary has no matching `.stow-local-ignore` or Git ignore
-rule. The future `home/.config/tmux` source is excluded from Stow by the
+rule. The future `~/dev/personal/dot/home/.config/tmux` source is excluded from Stow by the
 existing `^/home` rule. The `.config/zsh/.zcompdump` file has an `_tmux`
 completion reference, but it is generated runtime state outside this boundary
 and is ignored by the global Git ignore file.
@@ -59,7 +59,7 @@ and is ignored by the global Git ignore file.
 - New owner apply command: `mise -E tmux bootstrap dotfiles apply --yes`
 - Duplicate-owner check: `! stow -nvR . 2>&1 | grep -F -- '.config/tmux' && mise -E tmux bootstrap dotfiles status | grep -F -- '.config/tmux/tmux.conf'`
 - Target-content disposition check: `find -P "$HOME/.config/tmux" -mindepth 1 -maxdepth 1 ! -name tmux.conf -print -quit`
-- Relative-link check: `python3 -c 'from pathlib import Path; p = Path.home() / ".config/tmux/tmux.conf"; assert p.is_symlink() and not p.readlink().is_absolute() and p.resolve() == Path.cwd() / "home/.config/tmux/tmux.conf"'`
+- Relative-link check: `python3 -c 'from pathlib import Path; p = Path.home() / ".config/tmux/tmux.conf"; assert p.is_symlink() and not p.readlink().is_absolute() and p.resolve() == Path.home() / "dev/personal/dot/home/.config/tmux/tmux.conf"'`
 
 ## Coupling
 
@@ -92,7 +92,7 @@ and is ignored by the global Git ignore file.
   - `socket="dot-tmux-parse-$$"; tmux -L "$socket" -f "$HOME/.config/tmux/tmux.conf" -C start-server >/dev/null 2>&1; status=$?; tmux -L "$socket" kill-server >/dev/null 2>&1 || true; exit "$status"`
   - Defer plugin-load validation until TPM is installed.
 - Security or token check:
-  - `! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' .config/tmux/tmux.conf home/.config/tmux/tmux.conf`
+  - `! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' .config/tmux/tmux.conf ~/dev/personal/dot/home/.config/tmux/tmux.conf`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`

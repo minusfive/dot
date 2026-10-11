@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/fzf.md`
 - Current declaration: `.config/fzf`
-- New declaration: `home/.config/mise/conf.d/module.fzf.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.fzf.toml`
 - Current owner: `stow`
 - New owner: `mise`
 - Target root: `~/.config/fzf`
@@ -19,9 +19,9 @@
 
 ## Scope manifest
 
-| Source path            | Tracked | Ignored | Current owner | Current target           | Target disposition | New source path             | New target               | New mode       | Notes                                                                                                                  |
-| ---------------------- | ------- | ------- | ------------- | ------------------------ | ------------------ | --------------------------- | ------------------------ | -------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `.config/fzf/fzf.conf` | `yes`   | `no`    | `stow`        | `~/.config/fzf/fzf.conf` | `migrate`          | `home/.config/fzf/fzf.conf` | `~/.config/fzf/fzf.conf` | `symlink-each` | Sole tracked file in the `.config/fzf` boundary; the current target is reached through a whole-directory Stow symlink. |
+| Source path            | Tracked | Ignored | Current owner | Current target           | Target disposition | New source path                                | New target               | New mode       | Notes                                                                                                                  |
+| ---------------------- | ------- | ------- | ------------- | ------------------------ | ------------------ | ---------------------------------------------- | ------------------------ | -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `.config/fzf/fzf.conf` | `yes`   | `no`    | `stow`        | `~/.config/fzf/fzf.conf` | `migrate`          | `~/dev/personal/dot/home/.config/fzf/fzf.conf` | `~/.config/fzf/fzf.conf` | `symlink-each` | Sole tracked file in the `.config/fzf` boundary; the current target is reached through a whole-directory Stow symlink. |
 
 ## Local and runtime inventory
 
@@ -64,13 +64,13 @@ target paths only.
 - Other modules:
   - `none`
 - User-facing behavior:
-  - Preserve the fzf defaults loaded from `~/.config/fzf/fzf.conf`; `symlink-each` keeps live target edits visible in the tracked `home/` source.
+  - Preserve the fzf defaults loaded from `~/.config/fzf/fzf.conf`; `symlink-each` keeps live target edits visible in the tracked `~/dev/personal/dot/home/` source.
 
 ## Validation
 
 - Syntax or source checks:
   - `git ls-files --error-unmatch .config/fzf/fzf.conf`
-  - `cmp -s .config/fzf/fzf.conf home/.config/fzf/fzf.conf`
+  - `cmp -s .config/fzf/fzf.conf ~/dev/personal/dot/home/.config/fzf/fzf.conf`
   - `grep -nF 'FZF_DEFAULT_OPTS_FILE' .config/zsh/.zshrc`
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_fzf.zsh` (planned module test; include

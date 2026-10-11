@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/btop.md`
 - Current declaration: `.stowrc` (`--target=~`) with `.config/btop` as a repository-root Stow source, applied by `scripts/symlink.zsh`
-- New declaration: `home/.config/mise/conf.d/module.btop.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.btop.toml`
 - Current owner: `stow`
 - New owner: `mise`
 - Target root: `~/.config/btop`
@@ -19,10 +19,10 @@
 
 ## Scope manifest
 
-| Source path                                  | Tracked | Ignored | Current owner | Current target                                 | Target disposition | New source path                                   | New target                                     | New mode       | Notes                                                                  |
-| -------------------------------------------- | ------- | ------- | ------------- | ---------------------------------------------- | ------------------ | ------------------------------------------------- | ---------------------------------------------- | -------------- | ---------------------------------------------------------------------- |
-| `.config/btop/btop.conf`                     | `yes`   | `no`    | `stow`        | `~/.config/btop/btop.conf`                     | `migrate`          | `home/.config/btop/btop.conf`                     | `~/.config/btop/btop.conf`                     | `symlink-each` | Active btop configuration; selects the Catppuccin Mocha theme.         |
-| `.config/btop/themes/catppuccin_mocha.theme` | `yes`   | `no`    | `stow`        | `~/.config/btop/themes/catppuccin_mocha.theme` | `migrate`          | `home/.config/btop/themes/catppuccin_mocha.theme` | `~/.config/btop/themes/catppuccin_mocha.theme` | `symlink-each` | Active public theme source; keep the existing filename and theme name. |
+| Source path                                  | Tracked | Ignored | Current owner | Current target                                 | Target disposition | New source path                                                      | New target                                     | New mode       | Notes                                                                  |
+| -------------------------------------------- | ------- | ------- | ------------- | ---------------------------------------------- | ------------------ | -------------------------------------------------------------------- | ---------------------------------------------- | -------------- | ---------------------------------------------------------------------- |
+| `.config/btop/btop.conf`                     | `yes`   | `no`    | `stow`        | `~/.config/btop/btop.conf`                     | `migrate`          | `~/dev/personal/dot/home/.config/btop/btop.conf`                     | `~/.config/btop/btop.conf`                     | `symlink-each` | Active btop configuration; selects the Catppuccin Mocha theme.         |
+| `.config/btop/themes/catppuccin_mocha.theme` | `yes`   | `no`    | `stow`        | `~/.config/btop/themes/catppuccin_mocha.theme` | `migrate`          | `~/dev/personal/dot/home/.config/btop/themes/catppuccin_mocha.theme` | `~/.config/btop/themes/catppuccin_mocha.theme` | `symlink-each` | Active public theme source; keep the existing filename and theme name. |
 
 ## Local and runtime inventory
 
@@ -55,13 +55,13 @@ git ls-files --others --exclude-standard -- .config/btop
 - New owner dry-run command: `mise -C . -E btop dot apply --dry-run ~/.config/btop`
 - New owner apply command: `mise -C . -E btop dot apply --yes ~/.config/btop`
 - Duplicate-owner check: `if stow -nvR . 2>&1 | grep -F -- '.config/btop'; then exit 1; fi`
-- Target-content disposition check: `target="${XDG_CONFIG_HOME:-$HOME/.config}/btop"; test -f "$target/btop.conf" && test -f "$target/themes/catppuccin_mocha.theme"; comm -23 <(find -H "$target" -type f -print | sed "s#^$target/##" | sort) <(find home/.config/btop -type f -print | sed 's#^home/.config/btop/##' | sort)`; the `comm` result must be empty.
-- Relative-link check: `for path in ~/.config/btop/btop.conf ~/.config/btop/themes/catppuccin_mocha.theme; do test -L "$path" || exit 1; case "$(readlink "$path")" in /*) exit 1;; esac; done; test "$(realpath ~/.config/btop/btop.conf)" = "$(pwd)/home/.config/btop/btop.conf"; test "$(realpath ~/.config/btop/themes/catppuccin_mocha.theme)" = "$(pwd)/home/.config/btop/themes/catppuccin_mocha.theme"`
+- Target-content disposition check: `target="${XDG_CONFIG_HOME:-$HOME/.config}/btop"; source="$HOME/dev/personal/dot/home/.config/btop"; test -f "$target/btop.conf" && test -f "$target/themes/catppuccin_mocha.theme"; comm -23 <(find -H "$target" -type f -print | sed "s#^$target/##" | sort) <(find "$source" -type f -print | sed "s#^$source/##" | sort)`; the `comm` result must be empty.
+- Relative-link check: `for path in ~/.config/btop/btop.conf ~/.config/btop/themes/catppuccin_mocha.theme; do test -L "$path" || exit 1; case "$(readlink "$path")" in /*) exit 1;; esac; done; test "$(realpath ~/.config/btop/btop.conf)" = "$HOME/dev/personal/dot/home/.config/btop/btop.conf"; test "$(realpath ~/.config/btop/themes/catppuccin_mocha.theme)" = "$HOME/dev/personal/dot/home/.config/btop/themes/catppuccin_mocha.theme"`
 
 ## Coupling
 
 - Scripts:
-  - `scripts/zsh.zsh` updates the btop theme at line 99 when `btop` is installed. Before the ownership cutover, the destination is `$XDG_CONFIG_HOME/btop/themes/catppuccin_mocha.theme`; update it to `"$__dotfiles_dir/home/.config/btop/themes/catppuccin_mocha.theme"` so the public download writes to the tracked source, not the deployed target.
+  - `scripts/zsh.zsh` updates the btop theme at line 99 when `btop` is installed. Before the ownership cutover, the destination is `$XDG_CONFIG_HOME/btop/themes/catppuccin_mocha.theme`; update it to `"$__dotfiles_dir/~/dev/personal/dot/home/.config/btop/themes/catppuccin_mocha.theme"` so the public download writes to the tracked source, not the deployed target.
   - `scripts/symlink.zsh` currently runs `stow -vR .` and creates the whole-directory target link; it must not recreate `~/.config/btop` after the Stow source is retired.
   - `scripts/mise.zsh` already runs `mise bootstrap dotfiles apply --yes` after package, file, repository, and tool work; no new initialization phase is required.
 - Environment variables:
@@ -78,7 +78,7 @@ git ls-files --others --exclude-standard -- .config/btop
 - Syntax or source checks:
   - `git ls-files -- .config/btop` must list exactly `btop.conf` and `themes/catppuccin_mocha.theme`.
   - `git ls-files --others --ignored --exclude-standard -- .config/btop` and `git ls-files --others --exclude-standard -- .config/btop` must produce no output.
-  - After staging the new source, `test -f home/.config/btop/btop.conf && test -f home/.config/btop/themes/catppuccin_mocha.theme && grep -Fq 'color_theme = "catppuccin_mocha"' home/.config/btop/btop.conf`.
+  - After staging the new source, `test -f ~/dev/personal/dot/home/.config/btop/btop.conf && test -f ~/dev/personal/dot/home/.config/btop/themes/catppuccin_mocha.theme && grep -Fq 'color_theme = "catppuccin_mocha"' ~/dev/personal/dot/home/.config/btop/btop.conf`.
   - `zsh -n scripts/zsh.zsh` must pass after the download destination is changed.
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_btop.zsh` is planned and is not present
@@ -86,7 +86,7 @@ git ls-files --others --exclude-standard -- .config/btop
 - Target smoke test:
   - `mise -C . -E btop dot status ~/.config/btop` and `btop --help >/dev/null`. A full interactive TUI smoke test is deferred because this inventory runs non-interactively.
 - Security or token check:
-  - `git grep -nEi '(token|password|secret|private[_-]?key)' -- .config/btop home/.config/btop` must return no matches. Do not print theme or configuration contents beyond non-sensitive validation output.
+  - `git grep -nEi '(token|password|secret|private[_-]?key)' -- .config/btop ~/dev/personal/dot/home/.config/btop` must return no matches. Do not print theme or configuration contents beyond non-sensitive validation output.
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -100,7 +100,7 @@ git ls-files --others --exclude-standard -- .config/btop
 - Rollback apply:
   - `mise -C . -E btop dot unapply --yes ~/.config/btop`; after the target is absent, restore the prior link with `ln -s ../dev/personal/dot/.config/btop ~/.config/btop`.
 - Stop condition:
-  - Stop before detaching Stow if the target is not the recorded relative symlink, contains unmanaged or target-only files, or the mise dry run names a target outside `~/.config/btop` or a source outside `home/.config/btop`.
+  - Stop before detaching Stow if the target is not the recorded relative symlink, contains unmanaged or target-only files, or the mise dry run names a target outside `~/.config/btop` or a source outside `~/dev/personal/dot/home/.config/btop`.
 
 ## Findings and decisions
 
@@ -112,6 +112,6 @@ git ls-files --others --exclude-standard -- .config/btop
   - `git ls-files -- .config/btop` found two tracked files; the ignored and untracked-file checks returned no paths.
   - `~/.config/btop` is the expected whole-directory Stow symlink to `.config/btop`.
 - Residual risk:
-  - The current `scripts/zsh.zsh` download writes through the Stow target into the repository. It must be redirected to the new `home/.config/btop` source before the old symlink is detached. The public download remains mutable custom network code.
+  - The current `scripts/zsh.zsh` download writes through the Stow target into the repository. It must be redirected to the new `~/dev/personal/dot/home/.config/btop` source before the old symlink is detached. The public download remains mutable custom network code.
 - Open blocker:
   - Explicit migration approval is required before changing ownership.

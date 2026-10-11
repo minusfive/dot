@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/1password.md`
 - Current declaration: `.config/1Password/ssh/agent.toml`
-- New declaration: `home/.config/mise/conf.d/module.1password.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.1password.toml`
 - Current owner: `stow`
 - New owner: `mise`
 - Target root: `~/.config/1Password`
@@ -19,9 +19,9 @@
 
 ## Scope manifest
 
-| Source path                        | Tracked | Ignored | Current owner | Current target                       | Target disposition | New source path                         | New target                           | New mode       | Notes                                                                                                                                                                   |
-| ---------------------------------- | ------- | ------- | ------------- | ------------------------------------ | ------------------ | --------------------------------------- | ------------------------------------ | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.config/1Password/ssh/agent.toml` | `yes`   | `no`    | `stow`        | `~/.config/1Password/ssh/agent.toml` | `migrate`          | `home/.config/1Password/ssh/agent.toml` | `~/.config/1Password/ssh/agent.toml` | `symlink-each` | Tracked 1Password SSH agent configuration. It contains vault references, which are intentionally not reproduced here; no private-key material is stored in this source. |
+| Source path                        | Tracked | Ignored | Current owner | Current target                       | Target disposition | New source path                                            | New target                           | New mode       | Notes                                                                                                                                                                   |
+| ---------------------------------- | ------- | ------- | ------------- | ------------------------------------ | ------------------ | ---------------------------------------------------------- | ------------------------------------ | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.config/1Password/ssh/agent.toml` | `yes`   | `no`    | `stow`        | `~/.config/1Password/ssh/agent.toml` | `migrate`          | `~/dev/personal/dot/home/.config/1Password/ssh/agent.toml` | `~/.config/1Password/ssh/agent.toml` | `symlink-each` | Tracked 1Password SSH agent configuration. It contains vault references, which are intentionally not reproduced here; no private-key material is stored in this source. |
 
 ## Local and runtime inventory
 
@@ -55,8 +55,8 @@ file contents were inspected or recorded.
 - Old owner cleanup command: `test "$(readlink "$HOME/.config/1Password")" = "../dev/personal/dot/.config/1Password" && rm "$HOME/.config/1Password"`
 - New owner dry-run command: `MISE_ENV=work mise bootstrap dotfiles apply --dry-run`
 - New owner apply command: `MISE_ENV=work mise bootstrap dotfiles apply --yes`
-- Duplicate-owner check: `if stow -nvR . 2>&1 | grep -Fq '.config/1Password'; then exit 1; fi; grep -R -nF '~/.config/1Password' home/.config/mise/conf.d 2>/dev/null`
-- Target-content disposition check: `test -d "$HOME/.config/1Password" && test ! -L "$HOME/.config/1Password" && python3 -c 'from pathlib import Path; target = Path.home()/".config/1Password/ssh/agent.toml"; source = Path("home/.config/1Password/ssh/agent.toml").resolve(); assert target.is_symlink() and target.resolve() == source'`
+- Duplicate-owner check: `if stow -nvR . 2>&1 | grep -Fq '.config/1Password'; then exit 1; fi; grep -R -nF '~/.config/1Password' ~/dev/personal/dot/home/.config/mise/conf.d 2>/dev/null`
+- Target-content disposition check: `test -d "$HOME/.config/1Password" && test ! -L "$HOME/.config/1Password" && python3 -c 'from pathlib import Path; target = Path.home()/".config/1Password/ssh/agent.toml"; source = Path.home()/"dev/personal/dot/home/.config/1Password/ssh/agent.toml"; assert target.is_symlink() and target.resolve() == source'`
 - Relative-link check: `test -L "$HOME/.config/1Password/ssh/agent.toml" && case "$(readlink "$HOME/.config/1Password/ssh/agent.toml")" in /*) exit 1;; *) exit 0;; esac`
 
 ## Coupling
@@ -90,8 +90,8 @@ file contents were inspected or recorded.
   - `test -S "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock" && ssh -G github.com >/dev/null`
   - `test -f "$HOME/.ssh/1Password/config"`
 - Security or token check:
-  - `! grep -REq 'BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY' .config/1Password home/.config/1Password 2>/dev/null`
-  - `! grep -REiq '(^|[^[:alnum:]])(token|password|secret|credential)[[:space:]]*=' .config/1Password home/.config/1Password 2>/dev/null`
+  - `! grep -REq 'BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY' .config/1Password ~/dev/personal/dot/home/.config/1Password 2>/dev/null`
+  - `! grep -REiq '(^|[^[:alnum:]])(token|password|secret|credential)[[:space:]]*=' .config/1Password ~/dev/personal/dot/home/.config/1Password 2>/dev/null`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`

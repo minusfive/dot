@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/bat.md`
 - Current declaration: `.stowrc` (`--target=~`) with `.config/bat` as a repository-root Stow source
-- New declaration: `home/.config/mise/conf.d/module.bat.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.bat.toml`
 - Current owner: `stow`
 - New owner: `mise`
 - Target root: `~/.config/bat`
@@ -19,10 +19,10 @@
 
 ## Scope manifest
 
-| Source path                                   | Tracked | Ignored | Current owner | Current target                                  | Target disposition | New source path                                    | New target                                      | New mode       | Notes                                                                |
-| --------------------------------------------- | ------- | ------- | ------------- | ----------------------------------------------- | ------------------ | -------------------------------------------------- | ----------------------------------------------- | -------------- | -------------------------------------------------------------------- |
-| `.config/bat/config`                          | `yes`   | `no`    | `stow`        | `~/.config/bat/config`                          | `migrate`          | `home/.config/bat/config`                          | `~/.config/bat/config`                          | `symlink-each` | Selects the `Catppuccin Mocha` bat theme.                            |
-| `.config/bat/themes/Catppuccin Mocha.tmTheme` | `yes`   | `no`    | `stow`        | `~/.config/bat/themes/Catppuccin Mocha.tmTheme` | `migrate`          | `home/.config/bat/themes/Catppuccin Mocha.tmTheme` | `~/.config/bat/themes/Catppuccin Mocha.tmTheme` | `symlink-each` | Tracked theme source; do not download or modify it during inventory. |
+| Source path                                   | Tracked | Ignored | Current owner | Current target                                  | Target disposition | New source path                                                       | New target                                      | New mode       | Notes                                                                |
+| --------------------------------------------- | ------- | ------- | ------------- | ----------------------------------------------- | ------------------ | --------------------------------------------------------------------- | ----------------------------------------------- | -------------- | -------------------------------------------------------------------- |
+| `.config/bat/config`                          | `yes`   | `no`    | `stow`        | `~/.config/bat/config`                          | `migrate`          | `~/dev/personal/dot/home/.config/bat/config`                          | `~/.config/bat/config`                          | `symlink-each` | Selects the `Catppuccin Mocha` bat theme.                            |
+| `.config/bat/themes/Catppuccin Mocha.tmTheme` | `yes`   | `no`    | `stow`        | `~/.config/bat/themes/Catppuccin Mocha.tmTheme` | `migrate`          | `~/dev/personal/dot/home/.config/bat/themes/Catppuccin Mocha.tmTheme` | `~/.config/bat/themes/Catppuccin Mocha.tmTheme` | `symlink-each` | Tracked theme source; do not download or modify it during inventory. |
 
 ## Local and runtime inventory
 
@@ -57,7 +57,7 @@ target paths only.
 - New owner dry-run command: `mise -E bat bootstrap dotfiles apply --dry-run`
 - New owner apply command: `mise -E bat bootstrap dotfiles apply --yes`
 - Duplicate-owner check: `if stow -nvR . 2>&1 | grep -Fq '.config/bat'; then exit 1; fi`
-- Target-content disposition check: `target="${XDG_CONFIG_HOME:-$HOME/.config}/bat"; test -f "$target/config" && test -f "$target/themes/Catppuccin Mocha.tmTheme" && test -z "$(comm -23 <(find -H "$target" -type f -print | sed "s#^$target/##" | sort) <(find home/.config/bat -type f -print | sed 's#^home/.config/bat/##' | sort))"`
+- Target-content disposition check: `target="${XDG_CONFIG_HOME:-$HOME/.config}/bat"; source="$HOME/dev/personal/dot/home/.config/bat"; test -f "$target/config" && test -f "$target/themes/Catppuccin Mocha.tmTheme" && test -z "$(comm -23 <(find -H "$target" -type f -print | sed "s#^$target/##" | sort) <(find "$source" -type f -print | sed "s#^$source/##" | sort))"`
 - Relative-link check: `target="${XDG_CONFIG_HOME:-$HOME/.config}/bat"; find "$target" -type l -exec readlink {} \; | grep -q '^/' && exit 1 || true`
 
 ## Coupling
@@ -66,7 +66,7 @@ target paths only.
   - `scripts/zsh.zsh`: the bat theme refresh currently writes through
     `$(bat --config-dir)` to `~/.config/bat/themes/Catppuccin Mocha.tmTheme`.
     The migration must point the download at the tracked
-    `home/.config/bat/themes/Catppuccin Mocha.tmTheme` source instead. Keep
+    `~/dev/personal/dot/home/.config/bat/themes/Catppuccin Mocha.tmTheme` source instead. Keep
     `bat cache --build` for standalone `./scripts/init.zsh --zsh` runs.
   - `scripts/symlink.zsh`: the `stow -vR .` phase currently owns the
     whole-directory target; it must not recreate the target after the Stow
@@ -103,7 +103,7 @@ target paths only.
 
 - Syntax or source checks:
   - `test -f .config/bat/config && test -f '.config/bat/themes/Catppuccin Mocha.tmTheme'`
-  - `test -f home/.config/bat/config && test -f 'home/.config/bat/themes/Catppuccin Mocha.tmTheme'`
+  - `test -f "$HOME/dev/personal/dot/home/.config/bat/config" && test -f "$HOME/dev/personal/dot/home/.config/bat/themes/Catppuccin Mocha.tmTheme"`
   - `zsh -n scripts/zsh.zsh`
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_bat.zsh` (planned; assert the bat source
@@ -113,7 +113,7 @@ target paths only.
 - Target smoke test:
   - `bat --list-themes | grep -Fx 'Catppuccin Mocha'`
 - Security or token check:
-  - `! git grep -nEi '(password|secret|token|api[_-]?key|private[_-]?key)' -- .config/bat home/.config/bat`
+  - `! git grep -nEi '(password|secret|token|api[_-]?key|private[_-]?key)' -- .config/bat ~/dev/personal/dot/home/.config/bat`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`

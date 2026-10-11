@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/packages.md`
 - Current declaration: `.config/mise/conf.d/bootstrap-packages.toml`
-- New declaration: `home/.config/mise/conf.d/module.packages.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.packages.toml`
 - Current owner: `mise`
 - New owner: `mise`
 - Target root: `none`
@@ -19,10 +19,10 @@
 
 ## Scope manifest
 
-| Source path                                            | Tracked | Ignored | Current owner | Current target | Target disposition | New source path                                          | New target | New mode                      | Notes                                                                                              |
-| ------------------------------------------------------ | ------- | ------- | ------------- | -------------- | ------------------ | -------------------------------------------------------- | ---------- | ----------------------------- | -------------------------------------------------------------------------------------------------- |
-| `.config/mise/conf.d/bootstrap-packages.toml`          | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `home/.config/mise/conf.d/module.packages.toml`          | `none`     | `bootstrap package resources` | Shared Homebrew formulas, Homebrew casks, Mac App Store apps, and `[bootstrap.brew] adopt = true`. |
-| `.config/mise/conf.d/bootstrap-packages.personal.toml` | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `home/.config/mise/conf.d/module.personal-packages.toml` | `none`     | `bootstrap package resources` | Coupled profile-only cask additions. The personal profile selects this separate module.            |
+| Source path                                            | Tracked | Ignored | Current owner | Current target | Target disposition | New source path                                                             | New target | New mode                      | Notes                                                                                              |
+| ------------------------------------------------------ | ------- | ------- | ------------- | -------------- | ------------------ | --------------------------------------------------------------------------- | ---------- | ----------------------------- | -------------------------------------------------------------------------------------------------- |
+| `.config/mise/conf.d/bootstrap-packages.toml`          | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/module.packages.toml`          | `none`     | `bootstrap package resources` | Shared Homebrew formulas, Homebrew casks, Mac App Store apps, and `[bootstrap.brew] adopt = true`. |
+| `.config/mise/conf.d/bootstrap-packages.personal.toml` | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/module.personal-packages.toml` | `none`     | `bootstrap package resources` | Coupled profile-only cask additions. The personal profile selects this separate module.            |
 
 ## Package manifest
 
@@ -126,7 +126,7 @@ repository inventory.
 - Old owner cleanup command: `mise bootstrap packages prune --dry-run`
 - New owner dry-run command: `mise bootstrap packages apply --dry-run`
 - New owner apply command: `mise bootstrap packages apply --yes`
-- Duplicate-owner check: `grep -rhoE '"(brew|brew-cask|mas):[^"]+"' .config/mise/conf.d home/.config/mise/conf.d 2>/dev/null | sort | uniq -d`
+- Duplicate-owner check: `grep -rhoE '"(brew|brew-cask|mas):[^"]+"' .config/mise/conf.d ~/dev/personal/dot/home/.config/mise/conf.d 2>/dev/null | sort | uniq -d`
 - Target-content disposition check: `mise bootstrap packages apply --dry-run`
 - Relative-link check: `not applicable, package resources do not create dotfile links`
 

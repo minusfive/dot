@@ -7,7 +7,7 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/ripgrep.md`
 - Current declaration: `.stowrc`
-- New declaration: `home/.config/mise/conf.d/module.ripgrep.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.ripgrep.toml`
 - Current owner: `stow`
 - New owner: `mise`
 - Target root: `~/.config/ripgrep`
@@ -19,9 +19,9 @@
 
 ## Scope manifest
 
-| Source path                  | Tracked | Ignored | Current owner | Current target                                                       | Target disposition | New source path                   | New target                     | New mode       | Notes                                                                                        |
-| ---------------------------- | ------- | ------- | ------------- | -------------------------------------------------------------------- | ------------------ | --------------------------------- | ------------------------------ | -------------- | -------------------------------------------------------------------------------------------- |
-| `.config/ripgrep/.ripgreprc` | `yes`   | `no`    | `stow`        | `~/.config/ripgrep/.ripgreprc` through the current directory symlink | `migrate`          | `home/.config/ripgrep/.ripgreprc` | `~/.config/ripgrep/.ripgreprc` | `symlink-each` | Preserve the existing ripgrep options and keep the live target linked to the tracked source. |
+| Source path                  | Tracked | Ignored | Current owner | Current target                                                       | Target disposition | New source path                                      | New target                     | New mode       | Notes                                                                                        |
+| ---------------------------- | ------- | ------- | ------------- | -------------------------------------------------------------------- | ------------------ | ---------------------------------------------------- | ------------------------------ | -------------- | -------------------------------------------------------------------------------------------- |
+| `.config/ripgrep/.ripgreprc` | `yes`   | `no`    | `stow`        | `~/.config/ripgrep/.ripgreprc` through the current directory symlink | `migrate`          | `~/dev/personal/dot/home/.config/ripgrep/.ripgreprc` | `~/.config/ripgrep/.ripgreprc` | `symlink-each` | Preserve the existing ripgrep options and keep the live target linked to the tracked source. |
 
 ## Local and runtime inventory
 
@@ -106,4 +106,4 @@ target paths only.
 - Residual risk:
   - The cutover must detach the existing whole-directory symlink before applying per-file mise links; an unexpected local target entry must not be removed.
 - Open blocker:
-  - Migration approval and creation of `home/.config/ripgrep/.ripgreprc` plus `home/.config/mise/conf.d/module.ripgrep.toml` remain pending.
+  - Migration approval and creation of `~/dev/personal/dot/home/.config/ripgrep/.ripgreprc` plus `~/dev/personal/dot/home/.config/mise/conf.d/module.ripgrep.toml` remain pending.

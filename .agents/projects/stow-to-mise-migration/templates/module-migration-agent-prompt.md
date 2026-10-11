@@ -42,7 +42,7 @@ inventory, migration scope, and cleanup blockers by default. Do not add a
   credential stores, token-bearing host files, shell history, or private keys.
 - Use metadata, file names, references, checksums, and command results instead.
 - If a path is mixed, separate relevant local files from stray files.
-- If a path is active and repository-only, keep it outside `home/`.
+- If a path is active and repository-only, keep it outside `~/dev/personal/dot/home/`.
 - If a path is active globally, define its runtime destination outside the
   repository before the ownership transition.
 
