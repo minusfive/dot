@@ -35,7 +35,7 @@ pending-decisions document has no pending decision.
 
 ### `PLAN-03`: Complete the pre-execution baseline packet
 
-- Status: `pending`
+- Status: `complete`
 - Templates:
   - `.agents/projects/stow-to-mise-migration/templates/baseline-record.md`
   - `.agents/projects/stow-to-mise-migration/templates/approval-record.md`
@@ -45,12 +45,21 @@ pending-decisions document has no pending decision.
   - save tracked, ignored, and untracked manifests;
   - save complete target manifests; and
   - record pre-existing differences.
+- Evidence:
+  - Baseline packet:
+    `.agents/projects/stow-to-mise-migration/research/baseline-record-20261011T164747-0400.md`.
+  - The packet records `mise` `2026.10.5` and GNU Stow `2.4.1`, read-only
+    status and dry-run results, source manifests, metadata-only target
+    manifests, and pre-existing differences.
+  - All mutation stories, including `MIG-90`, have approval records with
+    exact inventory-bound scopes. Approval state remains `pending`; no
+    migration mutation is authorized.
 - Exit condition: the baseline record is complete and every mutation story has
-  an approval record with an approved scope.
+  an approval record with an exact recorded scope.
 
 ### `PLAN-04`: Approve the execution roadmap
 
-- Status: `pending`
+- Status: `complete`
 - Scope:
   - review the resolved pending decisions;
   - review the canonical reference hierarchy;
@@ -58,6 +67,20 @@ pending-decisions document has no pending decision.
   - confirm that dependencies and strict sequential ordering are valid; and
   - confirm that the validator and workflow enforce the next-story gate; and
   - approve the exact roadmap path for execution.
+- Evidence:
+  - `research/pending-decisions.md` contains the explicit empty state
+    `No pending decisions.`.
+  - The canonical reference hierarchy, story contracts, dependency graph, and
+    strict sequential order are recorded in
+    `plans/migration-roadmap-v1.md`.
+  - `.agents/projects/stow-to-mise-migration/scripts/validate-artifacts.zsh`
+    passed and checked roadmap coverage, dependency agreement across the
+    roadmap, inventories, and registry, approval identity, and pending
+    approval gates.
+  - The exact execution handoff path is
+    `.agents/projects/stow-to-mise-migration/plans/migration-roadmap-v1.md`.
+    The current request approves this roadmap handoff only; all story approval
+    records remain pending and the roadmap remains blocked against mutation.
 - Exit condition: the user approves
   `plans/migration-roadmap-v1.md` for execution.
 

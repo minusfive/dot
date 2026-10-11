@@ -15,3 +15,8 @@ Use these rules:
 - Require a separate approval for `MIG-90` before the full-flow apply.
 - Keep each story key, module key, and inventory path aligned with the module
   registry; the artifact validator checks these references.
+
+Approval records and the baseline summary are durable planning artifacts and
+belong in Git. Run-specific command output, source manifests, and complete
+target manifests belong under
+`.agents/projects/stow-to-mise-migration/tmp/baselines/` and remain ignored.
