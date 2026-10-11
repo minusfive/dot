@@ -58,6 +58,14 @@ Tests repository bootstrap declarations.
 
 Tests the development tool configuration.
 
+#### `test_mise_migration_artifacts.zsh`
+
+Tests migration decision cleanup and placement validation.
+
+#### `test_agentic_projects.zsh`
+
+Tests hidden project creation and promotion to a checked-in workspace.
+
 ## Running Tests
 
 ### Run All BetterDisplay Tests
@@ -73,6 +81,8 @@ Tests the development tool configuration.
 ./tests/scripts/test_mise_bootstrap_packages_personal.zsh
 ./tests/scripts/test_mise_bootstrap_repos.zsh
 ./tests/scripts/test_mise_tools.zsh
+./tests/scripts/test_mise_migration_artifacts.zsh
+./tests/scripts/test_agentic_projects.zsh
 ```
 
 ### Run Individual Test Categories

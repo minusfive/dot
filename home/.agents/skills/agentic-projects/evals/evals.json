@@ -1,0 +1,32 @@
+{
+  "skill_name": "agentic-projects",
+  "evals": [
+    {
+      "id": "hidden-project-default",
+      "prompt": "Create a new agentic project for a private planning task.",
+      "expected_output": "Create the project under `.agents/projects.local/<project-name>/` without a force-add workflow.",
+      "assertions": [
+        "The default project path is `.agents/projects.local/<project-name>/`.",
+        "The default project creation does not create a project-local `.gitignore`."
+      ]
+    },
+    {
+      "id": "promote-project-for-check-in",
+      "prompt": "Promote an existing hidden project for repository check-in.",
+      "expected_output": "Move the project to `.agents/projects/<project-name>/` and use normal repository ignore behavior.",
+      "assertions": [
+        "Promotion changes the project root from `.agents/projects.local/` to `.agents/projects/`.",
+        "The promoted project does not require `git add -f`."
+      ]
+    },
+    {
+      "id": "temporary-artifact-ignore",
+      "prompt": "Create temporary evaluation output in an agentic project.",
+      "expected_output": "Keep temporary output under `tmp/` and rely on the applicable global or repository ignore rule.",
+      "assertions": [
+        "Temporary output remains under the project's `tmp/` directory.",
+        "A project-local `.gitignore` is added only when the applicable global and repository rules do not ignore `tmp/`."
+      ]
+    }
+  ]
+}

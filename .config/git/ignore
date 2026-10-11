@@ -104,5 +104,5 @@ node_modules/
 !**/.agents/eval-workspaces/**/iteration-*/manifest.json
 !**/.agents/eval-workspaces/**/iteration-*/grading-summary.json
 
-# Agentic project workspaces
-**/.agents/projects/*/
+# Hidden agentic project workspaces
+**/.agents/projects.local/
