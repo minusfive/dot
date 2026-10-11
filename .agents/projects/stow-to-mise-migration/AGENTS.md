@@ -97,6 +97,10 @@ during execution.
   Do not create shared preparation or tests.
 - Mark only the next incomplete roadmap story as `todo`.
 - Keep later stories out of `todo` until every preceding story is complete.
+- Keep each roadmap story's `Status` field synchronized with its real execution
+  lifecycle. After a story passes its acceptance and critique gates, mark it
+  `done`. When a blocker stops the next action, keep the story `blocked` and
+  record the blocker.
 - Do not parallelize module inventories, source preparation, declaration
   authoring, validation, ownership transitions, or closeout.
 - Keep planning questions and completed planning work in

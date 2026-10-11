@@ -61,7 +61,7 @@ git ls-files --others --exclude-standard -- .config/btop
 ## Coupling
 
 - Scripts:
-  - `scripts/zsh.zsh` updates the btop theme at line 99 when `btop` is installed. Before the ownership cutover, the destination is `$XDG_CONFIG_HOME/btop/themes/catppuccin_mocha.theme`; update it to `"$__dotfiles_dir/~/dev/personal/dot/home/.config/btop/themes/catppuccin_mocha.theme"` so the public download writes to the tracked source, not the deployed target.
+  - `scripts/zsh.zsh` updates the btop theme at line 99 when `btop` is installed. Before the ownership cutover, the destination is `$XDG_CONFIG_HOME/btop/themes/catppuccin_mocha.theme`; update it to `"$__dotfiles_dir/home/.config/btop/themes/catppuccin_mocha.theme"` so the public download writes to the tracked source, not the deployed target.
   - `scripts/symlink.zsh` currently runs `stow -vR .` and creates the whole-directory target link; it must not recreate `~/.config/btop` after the Stow source is retired.
   - `scripts/mise.zsh` already runs `mise bootstrap dotfiles apply --yes` after package, file, repository, and tool work; no new initialization phase is required.
 - Environment variables:

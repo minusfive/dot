@@ -38,6 +38,7 @@ Each module story owns one inventory file and one approval record.
 - Approval directory: `.agents/projects/stow-to-mise-migration/research/approvals/`
 - Inventory directory: `.agents/projects/stow-to-mise-migration/research/inventories/`
 - Status: `blocked`
+- Current blocker: `MIG-MODULE-gh` approval is pending.
 
 No migration mutation is authorized until the required approval record is
 complete for that story.
@@ -411,7 +412,7 @@ module-specific recovery rules.
 - Target: `~/.config/mise`
 - Mode: one explicit `symlink` entry per tracked source file
 - Risk: `critical`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-mise`
 
@@ -489,7 +490,7 @@ Use the common rollback contract. Retain the control-plane artifacts until final
 - Target: `~/.copilot`
 - Mode: explicit per-target symlinks for `~/.copilot`; unmanaged runtime state
 - Risk: `critical`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-copilot`
 
@@ -538,7 +539,7 @@ Use the common rollback contract. Do not delete an active file.
 - Target: `~/AGENTS.md`, `~/CLAUDE.md`, and `~/.agents`
 - Mode: `symlink` and `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-agents`
 
@@ -579,7 +580,7 @@ Use the common rollback contract.
 - Target: `~/.claude`
 - Mode: explicit per-target symlinks; unmanaged runtime state
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-claude`
 
@@ -631,7 +632,7 @@ Use the common rollback contract.
 - Target: `~/.config/opencode`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-opencode`
 
