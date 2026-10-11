@@ -104,6 +104,31 @@ pending-decisions document has no pending decision.
 - Exit condition: `DEC-mise-control-plane-source-resolution` is resolved and
   all affected execution artifacts agree.
 
+### `PLAN-06`: Validate profile and migrated-module selection
+
+- Status: `complete`
+- Scope:
+  - validate the `conf.d` environment suffix behavior used by
+    `module.<name>.toml`;
+  - define the initial profile environment lists for `MIG-MODULE-mise`; and
+  - prevent an inherited `MISE_ENV` from overriding `DOT_PROFILE`.
+- Evidence:
+  - The mise environment documentation states that `env_conf_d = true` makes
+    the suffix after the first dot select an environment.
+  - A temporary mise fixture passed for both profiles:
+    `work` loaded `module.mise.toml` and excluded the personal module;
+    `personal` loaded `module.mise.toml` and the personal module.
+  - The same fixture showed that unscoped legacy fragments remain loaded as
+    the transition bridge.
+  - A stale `MISE_ENV=work` suppressed the personal module even when
+    `DOT_PROFILE=personal`; unsetting `MISE_ENV` restored the personal branch.
+  - `zsh tests/scripts/test_mise_config.zsh`,
+    `zsh tests/scripts/test_mise_migration_artifacts.zsh`, and
+    `validate-artifacts.zsh` passed before this plan update.
+- Exit condition: the roadmap and the mise inventory require the initial
+  `work`/`personal` plus `mise` lists, later module-list updates, isolated
+  profile tests, and explicit `MISE_ENV` cleanup.
+
 ## Planning rules
 
 - Do not add planning discovery or decision steps to execution stories.

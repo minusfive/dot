@@ -42,6 +42,11 @@ Use other research files as background evidence.
 - Keep `MIG-MODULE-mise` blocked until
   `DEC-mise-control-plane-transition-mechanism` records the approved cutover
   mechanism.
+- Treat `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` as the
+  profile source of truth. Hammerspoon's `ProfileState.spoon` mirrors it
+  through `hs.settings`, which persists in macOS defaults and is readable by
+  other applications. Do not treat the Hammerspoon values as an independent
+  profile source.
 
 Keep migration artifacts scoped to repository sources and approved migration
 targets. Do not add unrelated unmanaged runtime paths as migration inputs,

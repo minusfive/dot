@@ -12,7 +12,7 @@
 - New owner: `mise`
 - Target root: `~/.config/zsh`
 - Mise mode: `symlink-each`
-- Environment selector: `module`
+- Environment selector: `zsh` in both profile branches
 - Dependencies: `MIG-MODULE-bat, MIG-MODULE-btop, MIG-MODULE-delta`
 - Approval state: `pending`
 - Inventory status: `complete`

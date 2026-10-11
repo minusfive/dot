@@ -215,6 +215,11 @@ path must remain visible to Hammerspoon.
   - `.config/mise/conf.d/bootstrap-packages.toml:52` installs the Hammerspoon cask. Keep application installation separate from this dotfile module.
 - Environment variables:
   - `HOME` supplies the target path in `scripts/os.zsh`; `MISE_ENV=hammerspoon` selects the new module during focused mise checks.
+  - `XDG_STATE_HOME` supplies the profile state directory for
+    `ProfileState.spoon`. The Spoon reads
+    `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` and mirrors the
+    selected profile into `hs.settings` keys, which persist in macOS defaults
+    and can be read by other applications.
 - Includes or external paths:
   - `init.lua` loads `EmmyLua`, `WindowManager`, `AppLauncher`, `Caffeine`, `Hotkeys`, and `ProfileState` from `Spoons/`.
   - `Spoons/EmmyLua.spoon/init.lua` resolves Spoon metadata through Hammerspoon's active config directory; preserve the complete `Spoons/` tree.
@@ -223,6 +228,8 @@ path must remain visible to Hammerspoon.
   - `MIG-MODULE-mise` must provide the mise control plane before this application module is selected.
 - User-facing behavior:
   - Preserve Hammerspoon startup, all loaded Spoons, hotkeys, window-management behavior, EmmyLua annotations, and the existing `MJConfigFile` target.
+  - Keep the profile state file as the source of truth. Preserve the
+    `ProfileState.spoon` settings mirror for Hammerspoon automation.
 
 ## Validation
 

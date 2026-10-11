@@ -24,6 +24,31 @@ cd ~/dev/dot
 ./scripts/init.zsh
 ```
 
+## Profiles
+
+The bootstrap supports two profiles: `work` and `personal`. The `work` profile
+is the default and is the safer choice for a new machine.
+
+Select a profile with `--profile`:
+
+```sh
+./scripts/init.zsh --profile personal --mise
+```
+
+The script stores the selected profile at
+`${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` and exports it as
+`DOT_PROFILE`. Later runs use the stored profile unless you select another one.
+
+Both profiles load the shared package set. The `personal` profile also loads
+the Discord, SoftRAID, and WhatsApp casks. The selected profile also controls
+which profile-specific `mise` environment is active.
+
+Hammerspoon reads the same state file through the
+[ProfileState Spoon](./.config/hammerspoon/Spoons/ProfileState.spoon/init.lua).
+It mirrors the profile through `hs.settings`, which persists the value in
+macOS defaults and makes it readable by other applications. The state file
+remains the source of truth.
+
 ## Global files and configuration
 
 > [!NOTE]

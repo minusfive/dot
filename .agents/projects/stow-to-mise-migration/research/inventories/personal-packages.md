@@ -12,7 +12,7 @@
 - New owner: `mise`
 - Target root: `none`
 - Mise mode: `bootstrap package resources`
-- Environment selector: `profile`
+- Environment selector: `personal-packages` in the personal profile branch
 - Dependencies: `MIG-MODULE-packages`
 - Approval state: `pending`
 - Inventory status: `complete`

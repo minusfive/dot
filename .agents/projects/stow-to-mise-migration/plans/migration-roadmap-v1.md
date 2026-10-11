@@ -324,6 +324,39 @@ rollback artifacts until the acceptance checks pass. Remove them only in the
 story's explicit cleanup step or after final closeout. Run one module agent at
 a time. Do not run parallel jobs or agents for this project.
 
+## Profile and module selection
+
+`miserc.toml` is a Tera template. It must select the persisted profile from
+`DOT_PROFILE` and the `mise` module environment that owns the migrated control
+plane.
+
+At the end of `MIG-MODULE-mise`, render these profile branches:
+
+```toml
+{% if env.DOT_PROFILE | default(value='work') == 'personal' %}
+env = ["personal", "mise"]
+{% else %}
+env = ["work", "mise"]
+{% endif %}
+env_conf_d = true
+```
+
+The profile name remains in `env` so the current
+`bootstrap-packages.personal.toml` fragment continues to load for the personal
+profile during the transition. The `mise` entry selects
+`module.mise.toml`.
+
+The `module.<name>.toml` pattern is intentional. The suffix selects an
+environment when `env_conf_d = true`; the deprecation warning applies to
+dotted fragments that are not environment-specific. Unscoped legacy fragments
+remain an explicit transition bridge and load independently until their own
+module stories rename them.
+
+When a later story creates `module.<name>.toml`, add `<name>` to both profile
+branches before that story's validation. Add a profile-only module only to its
+approved branch, such as `personal-packages` for `personal`. Do not list a
+module environment before its declaration exists.
+
 ## Shared story contract
 
 Every story uses this contract unless its story text adds a stricter rule.
@@ -403,12 +436,21 @@ without copying ignored local files.
 10. Generate `module.mise.toml` from the saved manifest and deliberate new
     control-plane files. Use explicit `~/dev/personal/dot/home/...` source
     values for every declaration loaded from `~/.config/mise/conf.d`.
-11. Retain temporary transition artifacts and saved manifests until the final
+11. Render `miserc.toml` with the profile branches defined in the profile and
+    module selection invariant. List only `mise` as a migrated module at this
+    stage.
+12. Replace the legacy `MISE_ENV` export and log in `scripts/mise.zsh` with
+    `unset MISE_ENV` after profile validation, before any profile-sensitive
+    `mise` command runs.
+13. Run the focused profile-selection fixture with `MISE_ENV` unset. Confirm
+    that both profiles load `module.mise.toml`, that only `personal` loads the
+    existing personal package fragment, and that no later module environment is
+    listed.
+14. Retain temporary transition artifacts and saved manifests until the final
     target-scoped apply and focused test pass.
-12. Apply the final target-scoped declaration.
-13. Remove `MISE_ENV` export and log from `scripts/mise.zsh`.
-14. Apply dotfiles before workspace profile trust.
-15. Remove temporary transition artifacts only after the final target-scoped
+15. Apply the final target-scoped declaration with `MISE_ENV` unset.
+16. Apply dotfiles before workspace profile trust.
+17. Remove temporary transition artifacts only after the final target-scoped
     apply and focused test pass.
 
 ### Acceptance checks — `MIG-MODULE-mise`
@@ -416,10 +458,17 @@ without copying ignored local files.
 - Every tracked control-plane file has one relative `mise` symlink.
 - Local variants remain outside repository ownership.
 - The final declaration has no duplicate target.
-- No declaration owned by a later module story is created or selected.
+- The work branch renders `["work", "mise"]`, and the personal branch renders
+  `["personal", "mise"]`.
+- No later module environment is listed or created by this story.
+- The existing unscoped legacy fragments remain the documented transition
+  bridge and do not become module-selection entries.
 - The selected transition mechanism and final apply affect only
   `~/.config/mise`.
-- Both profile branches render module files that exist.
+- Both profile branches load `module.mise.toml` and only the personal branch
+  loads the personal package fragment.
+- The focused test proves that an inherited `MISE_ENV` cannot override the
+  selected `DOT_PROFILE` during the mise initialization flow.
 - The dotfiles phase runs before workspace profile trust.
 
 ### Rollback and mitigation — `MIG-MODULE-mise`

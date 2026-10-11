@@ -12,7 +12,7 @@
 - New owner: `mise`
 - Target root: `~/.config/yazi`
 - Mise mode: `symlink-each`
-- Environment selector: `module`
+- Environment selector: `yazi` in both profile branches
 - Dependencies: `MIG-MODULE-mise`
 - Approval state: `pending`
 - Inventory status: `complete`

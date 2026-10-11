@@ -13,7 +13,7 @@
 - New owner: `mise`
 - Target root: `~/.config/mise`
 - Mise mode: `symlink-each`
-- Environment selector: `profile`
+- Environment selector: `mise`, with the `work` or `personal` profile environment
 - Dependencies: `none`
 - Approval state: `pending`
 - Inventory status: `complete`
@@ -30,7 +30,7 @@
 | `.config/mise/conf.d/tools.toml`                       | `yes`   | `no`    | `stow`        | `~/.config/mise/conf.d/tools.toml`                       | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/tools.toml`                       | `~/.config/mise/conf.d/tools.toml`                       | `symlink` | Preserve 0644, pinned tool entries, and postinstall task names.                                                                                                          |
 | `.config/mise/config.toml`                             | `yes`   | `no`    | `stow`        | `~/.config/mise/config.toml`                             | `migrate`          | `~/dev/personal/dot/home/.config/mise/config.toml`                             | `~/.config/mise/config.toml`                             | `symlink` | Preserve 0644, `env_file`, experimental settings, lockfile behavior, seven-day release age, and `relative_symlinks = true`.                                              |
 | `.config/mise/mise.lock`                               | `yes`   | `no`    | `stow`        | `~/.config/mise/mise.lock`                               | `migrate`          | `~/dev/personal/dot/home/.config/mise/mise.lock`                               | `~/.config/mise/mise.lock`                               | `symlink` | Preserve 0644 and the 726-line global tool lock metadata. Do not regenerate during cutover. No credential-bearing fields were found.                                     |
-| `.config/mise/miserc.toml`                             | `yes`   | `no`    | `stow`        | `~/.config/mise/miserc.toml`                             | `migrate`          | `~/dev/personal/dot/home/.config/mise/miserc.toml`                             | `~/.config/mise/miserc.toml`                             | `symlink` | Preserve 0644, the `DOT_PROFILE` template, and `env_conf_d = true`.                                                                                                      |
+| `.config/mise/miserc.toml`                             | `yes`   | `no`    | `stow`        | `~/.config/mise/miserc.toml`                             | `migrate`          | `~/dev/personal/dot/home/.config/mise/miserc.toml`                             | `~/.config/mise/miserc.toml`                             | `symlink` | Preserve 0644, the `DOT_PROFILE` profile template, the initial `work`/`personal` plus `mise` environment lists, and `env_conf_d = true`.                                 |
 | `.config/mise/tasks/bootstrap.sh`                      | `yes`   | `no`    | `stow`        | `~/.config/mise/tasks/bootstrap.sh`                      | `migrate`          | `~/dev/personal/dot/home/.config/mise/tasks/bootstrap.sh`                      | `~/.config/mise/tasks/bootstrap.sh`                      | `symlink` | Preserve executable mode 0755 and the GitHub CLI extension bootstrap behavior.                                                                                           |
 | `.config/mise/tasks/git/worktree.ts`                   | `yes`   | `no`    | `stow`        | `~/.config/mise/tasks/git/worktree.ts`                   | `migrate`          | `~/dev/personal/dot/home/.config/mise/tasks/git/worktree.ts`                   | `~/.config/mise/tasks/git/worktree.ts`                   | `symlink` | Preserve executable mode 0755 and the `../../utils/git.js` relative import.                                                                                              |
 | `.config/mise/tasks/global-install-packages-all.sh`    | `yes`   | `no`    | `stow`        | `~/.config/mise/tasks/global-install-packages-all.sh`    | `migrate`          | `~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-all.sh`    | `~/.config/mise/tasks/global-install-packages-all.sh`    | `symlink` | Preserve executable mode 0755 and the NPM, Python, and Ruby task chain.                                                                                                  |
@@ -140,8 +140,9 @@ unrelated target or leaves a parent-directory link in place.
 - Environment variables:
   - `DOT_PROFILE` selects `work` or `personal` and is rendered by
     `miserc.toml`.
-  - `MISE_ENV` is exported from `scripts/mise.zsh` and must remain aligned
-    with the persisted profile.
+  - `MISE_ENV` currently overrides the `miserc.toml` selection and is exported
+    from `scripts/mise.zsh`; replace that export with `unset MISE_ENV` after
+    profile validation.
   - `XDG_CONFIG_HOME` is used by mise and the focused test to isolate the
     global configuration.
   - `GH_CONFIG_DIR` is rendered by `~/dev/personal/dot/home/dev/profile.mise.toml` for generated
@@ -169,6 +170,11 @@ unrelated target or leaves a parent-directory link in place.
     profile files.
   - This module owns only the global control-plane files and
     `module.mise.toml`. Later module stories own their declarations.
+  - Render `env = ["work", "mise"]` for the work profile and
+    `env = ["personal", "mise"]` for the personal profile. Add later module
+    environments only when their declarations migrate.
+  - Keep unscoped legacy fragments as the transition bridge until their module
+    stories rename them.
   - Replace only the Stow parent symlink with mise-managed per-file links.
     Keep project `.mise` state and tool-owned runtime state separate.
 
@@ -185,10 +191,14 @@ unrelated target or leaves a parent-directory link in place.
 - Focused test:
   - `tests/scripts/test_mise_config.zsh`
   - This module test owns global mise configuration and initialization wiring.
-    Other module tests own their module-specific declarations.
+    It must render isolated work and personal profile fixtures, assert the
+    `mise` module selection, preserve the legacy personal package selection,
+    and run with `MISE_ENV` unset.
 - Target smoke test:
-  - `DOT_PROFILE=work mise tasks ls`
-  - `DOT_PROFILE=work mise bootstrap dotfiles status`
+  - `env -u MISE_ENV DOT_PROFILE=work mise tasks ls`
+  - `env -u MISE_ENV DOT_PROFILE=work mise bootstrap dotfiles status`
+  - `env -u MISE_ENV DOT_PROFILE=work mise config ls`
+  - `env -u MISE_ENV DOT_PROFILE=personal mise config ls`
   - `mise run lint-skill-index`
   - `mise run lint-skill-index --base-path home`
   - Confirm `git:worktree`, `md:preview`, `pr:sync`, package-install tasks,
@@ -276,8 +286,11 @@ status`, and `mise bootstrap dotfiles apply --dry-run`.
     dry run.
   - Existing tests and README paths describe `.config/mise` and need approved
     implementation updates.
+  - An inherited `MISE_ENV` takes precedence over `miserc.toml`; the focused
+    test and `scripts/mise.zsh` change must prevent stale profile selection.
   - The cutover retains the temporary bridge. Do not replace it with a
     generated shell script.
 - Open blocker:
   - Update the focused test and saved dry-run evidence for the explicit
-    `~/dev/personal/dot/home/...` source paths before resuming execution.
+    `~/dev/personal/dot/home/...` source paths and profile module selection
+    before resuming execution.

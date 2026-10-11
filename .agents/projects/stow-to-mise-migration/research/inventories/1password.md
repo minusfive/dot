@@ -12,7 +12,7 @@
 - New owner: `mise`
 - Target root: `~/.config/1Password`
 - Mise mode: `symlink-each`
-- Environment selector: `none`
+- Environment selector: `1password` in both profile branches
 - Dependencies: `MIG-MODULE-mise`
 - Approval state: `pending`
 - Inventory status: `complete`
