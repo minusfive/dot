@@ -6,7 +6,7 @@
 - Module key: `<module|shared>`
 - Inventory: `.agents/projects/stow-to-mise-migration/research/inventories/<module>.md`
 - Approval state: `pending` or `approved`
-- Approver: `<name or pending>`
+- Approver: `<@GitHub login or pending>`
 - Approved at: `<timestamp or pending>`
 - Approved scope: `<exact boundary or pending>`
 - Approval evidence: `<reference or pending>`

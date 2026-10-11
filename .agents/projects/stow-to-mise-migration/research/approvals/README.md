@@ -11,6 +11,8 @@ Use these rules:
   paths.
 - Record one focused test path for each module story. Aggregate checks do not
   replace the module test.
+- Record the authenticated GitHub login from `gh api user`, prefixed with `@`,
+  as the approver for approved records. Do not record the harness account.
 - Do not treat approval for one story as approval for another story.
 - Require a separate approval for `MIG-90` before the full-flow apply.
 - Keep each story key, module key, and inventory path aligned with the module

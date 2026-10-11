@@ -47,6 +47,8 @@ Use other research files as background evidence.
   through `hs.settings`, which persists in macOS defaults and is readable by
   other applications. Do not treat the Hammerspoon values as an independent
   profile source.
+- Record approved-story approvers with the authenticated GitHub login from
+  `gh api user`, prefixed with `@`. Do not use the harness account identity.
 
 Keep migration artifacts scoped to repository sources and approved migration
 targets. Do not add unrelated unmanaged runtime paths as migration inputs,
