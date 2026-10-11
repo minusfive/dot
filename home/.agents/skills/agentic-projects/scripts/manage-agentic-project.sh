@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  manage-agentic-project.sh --project <project-name> (--prompt <text> | --prompt-file <path>) [--force] [--repo-root <path>]
+  manage-agentic-project.sh --project <project-name> [--prompt <text> | --prompt-file <path>] [--promoted] [--force] [--repo-root <path>]
 
 Options:
   --project       Project name (letters, numbers, dot, underscore, hyphen)
@@ -25,6 +25,7 @@ err() {
 project_name=""
 prompt_text=""
 prompt_file=""
+prompt_provided=false
 promoted=false
 force=false
 repo_root=""
@@ -39,11 +40,13 @@ while [[ $# -gt 0 ]]; do
     --prompt)
       [[ $# -ge 2 ]] || err "--prompt requires a value"
       prompt_text="$2"
+      prompt_provided=true
       shift 2
       ;;
     --prompt-file)
       [[ $# -ge 2 ]] || err "--prompt-file requires a value"
       prompt_file="$2"
+      prompt_provided=true
       shift 2
       ;;
     --promoted)
@@ -78,7 +81,7 @@ if [[ -n "$prompt_text" && -n "$prompt_file" ]]; then
   err "Use either --prompt or --prompt-file, not both"
 fi
 
-if [[ -z "$prompt_text" && -z "$prompt_file" ]]; then
+if [[ "$prompt_provided" != true && "$promoted" != true ]]; then
   err "Missing prompt input: provide --prompt or --prompt-file"
 fi
 
@@ -87,8 +90,9 @@ if [[ -n "$prompt_file" ]]; then
   [[ -r "$prompt_file" ]] || err "Prompt file is not readable: $prompt_file"
   prompt_text="$(cat "$prompt_file")"
 fi
-
-[[ -n "${prompt_text//[$'\t\r\n ']}" ]] || err "Initial prompt is empty"
+if [[ "$prompt_provided" == true ]]; then
+  [[ -n "${prompt_text//[$'\t\r\n ']}" ]] || err "Initial prompt is empty"
+fi
 
 if [[ -z "$repo_root" ]]; then
   repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
@@ -97,16 +101,39 @@ fi
 [[ -d "$repo_root" ]] || err "Repository root does not exist: $repo_root"
 
 projects_dir="$repo_root/.agents/projects.local"
+hidden_project_dir="$projects_dir/$project_name"
 if [[ "$promoted" == true ]]; then
   projects_dir="$repo_root/.agents/projects"
 fi
 project_dir="$projects_dir/$project_name"
+if [[ "$promoted" == true && -e "$hidden_project_dir" && -e "$project_dir" ]]; then
+  err "Hidden and promoted projects both exist for '$project_name'"
+fi
+if [[ "$promoted" == true && "$prompt_provided" != true ]]; then
+  if [[ -e "$hidden_project_dir" && ! -f "$hidden_project_dir/PROMPT.md" ]]; then
+    err "Cannot promote project without PROMPT.md: $hidden_project_dir"
+  fi
+  if [[ ! -e "$hidden_project_dir" && ! -f "$project_dir/PROMPT.md" ]]; then
+    err "Missing prompt input: provide --prompt or --prompt-file"
+  fi
+fi
+if [[ "$promoted" == true && -e "$hidden_project_dir" ]]; then
+  mkdir -p "$projects_dir"
+  mv -- "$hidden_project_dir" "$project_dir"
+fi
 plans_dir="$project_dir/plans"
 research_dir="$project_dir/research"
 tmp_dir="$project_dir/tmp"
 prompt_md="$project_dir/PROMPT.md"
 
 mkdir -p "$plans_dir" "$research_dir" "$tmp_dir"
+
+if [[ "$prompt_provided" != true ]]; then
+  printf 'Promoted project workspace: %s\n' "$project_dir"
+  printf 'Preserved: %s\n' "$prompt_md"
+  printf 'Ensured: %s %s %s\n' "$plans_dir" "$research_dir" "$tmp_dir"
+  exit 0
+fi
 
 if [[ -f "$prompt_md" && "$force" != true ]]; then
   err "PROMPT.md already exists at $prompt_md (use --force to overwrite)"

@@ -62,6 +62,10 @@ Tests the development tool configuration.
 
 Tests migration decision cleanup and placement validation.
 
+#### `test_agentic_projects.zsh`
+
+Tests hidden project creation and promotion to a checked-in workspace.
+
 ## Running Tests
 
 ### Run All BetterDisplay Tests
@@ -78,6 +82,7 @@ Tests migration decision cleanup and placement validation.
 ./tests/scripts/test_mise_bootstrap_repos.zsh
 ./tests/scripts/test_mise_tools.zsh
 ./tests/scripts/test_mise_migration_artifacts.zsh
+./tests/scripts/test_agentic_projects.zsh
 ```
 
 ### Run Individual Test Categories
