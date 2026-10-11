@@ -14,7 +14,7 @@
 - Mise mode: `<symlink|symlink-each|template|bootstrap|none>`
 - Environment selector: `<module|profile|none>`
 - Dependencies: `<story keys or none>`
-- Approval state: `pending`
+- Approval state: `<pending|approved>`
 - Inventory status: `incomplete`
 
 ## Scope manifest

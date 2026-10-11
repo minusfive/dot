@@ -17,6 +17,44 @@ function main {
 
     "$__fixture_dir/scripts/validate-artifacts.zsh" >"$__output" 2>&1
 
+    sed '/^key = "opencode"$/,/^$/ s/^status = "done"$/status = "blocked"/' \
+        "$__fixture_dir/module-registry.toml" >"$__planning_work_tmp"
+    mv "$__planning_work_tmp" "$__fixture_dir/module-registry.toml"
+    if "$__fixture_dir/scripts/validate-artifacts.zsh" >"$__output" 2>&1; then
+        print -u2 "Validator accepted a roadmap and registry status mismatch."
+        exit 1
+    fi
+    grep -qF -- "Story status mismatch for MIG-MODULE-opencode" "$__output"
+
+    cp "$__project_dir/module-registry.toml" \
+        "$__fixture_dir/module-registry.toml"
+    sed 's/^- Approval state: `approved`$/- Approval state: `pending`/' \
+        "$__fixture_dir/research/inventories/opencode.md" >"$__planning_work_tmp"
+    mv "$__planning_work_tmp" "$__fixture_dir/research/inventories/opencode.md"
+    if "$__fixture_dir/scripts/validate-artifacts.zsh" >"$__output" 2>&1; then
+        print -u2 "Validator accepted an approval and inventory state mismatch."
+        exit 1
+    fi
+    grep -qF -- "Inventory approval state mismatch for MIG-MODULE-opencode" "$__output"
+
+    cp "$__project_dir/research/inventories/opencode.md" \
+        "$__fixture_dir/research/inventories/opencode.md"
+    sed '/^key = "gh"$/,/^$/ s/^status = "blocked"$/status = "done"/' \
+        "$__fixture_dir/module-registry.toml" >"$__planning_work_tmp"
+    mv "$__planning_work_tmp" "$__fixture_dir/module-registry.toml"
+    sed '/^## 6\. Story `MIG-MODULE-gh`:/,/^## 7\./ s/^- Status: `blocked`$/- Status: `done`/' \
+        "$__fixture_dir/plans/migration-roadmap-v1.md" >"$__planning_work_tmp"
+    mv "$__planning_work_tmp" "$__fixture_dir/plans/migration-roadmap-v1.md"
+    if "$__fixture_dir/scripts/validate-artifacts.zsh" >"$__output" 2>&1; then
+        print -u2 "Validator accepted a completed story without approved authorization."
+        exit 1
+    fi
+    grep -qF -- "Active or completed story lacks approved authorization: MIG-MODULE-gh" "$__output"
+
+    cp "$__project_dir/module-registry.toml" \
+        "$__fixture_dir/module-registry.toml"
+    cp "$__project_dir/plans/migration-roadmap-v1.md" \
+        "$__fixture_dir/plans/migration-roadmap-v1.md"
     sed 's/^- Focused test:.*/- Focused test: `not specified in inventory`/' \
         "$__fixture_dir/research/approvals/MIG-MODULE-git.md" \
         >"$__planning_work_tmp"

@@ -14,7 +14,7 @@
 - Mise mode: explicit `symlink` and `symlink-each` entries
 - Environment selector: `claude`
 - Dependencies: `MIG-MODULE-mise`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest
@@ -142,4 +142,5 @@ settings, history, cache, authentication, or usage contents.
 - Residual risk:
   - The settings file may contain machine-local paths or behavior that must remain unprinted; the statusline command writes usage state below the target; and the direct skills source depends on the agents source boundary.
 - Open blocker:
-  - `none for inventory; migration execution remains pending explicit approval, module split, and focused module-test coverage`
+  - None. The roadmap and registry mark this story `done`, and its approval
+    record is `approved`.

@@ -15,7 +15,7 @@
 - Mise mode: `symlink-each`
 - Environment selector: `mise`, with the `work` or `personal` profile environment
 - Dependencies: `none`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest
@@ -291,6 +291,5 @@ status`, and `mise bootstrap dotfiles apply --dry-run`.
   - The cutover retains the temporary bridge. Do not replace it with a
     generated shell script.
 - Open blocker:
-  - Update the focused test and saved dry-run evidence for the explicit
-    `~/dev/personal/dot/home/...` source paths and profile module selection
-    before resuming execution.
+  - None. The roadmap and registry mark this story `done`, and its approval
+    record is `approved`.

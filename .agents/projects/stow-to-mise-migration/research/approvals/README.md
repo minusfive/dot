@@ -5,7 +5,9 @@ Create one approval record for each story from
 
 Use these rules:
 
-- Keep every record `pending` until the user approves that story.
+- Keep each record `pending` until the user approves that story. The approval
+  record is the authorization SSoT; the matching inventory `Approval state`
+  must mirror it.
 - Name each record with its story key.
 - Record the exact inventory, baseline, dry-run, focused test, and rollback
   paths.
@@ -17,6 +19,8 @@ Use these rules:
 - Require a separate approval for `MIG-90` before the full-flow apply.
 - Keep each story key, module key, and inventory path aligned with the module
   registry; the artifact validator checks these references.
+- The roadmap owns lifecycle `Status`. Do not use `Approval state` as a
+  substitute for lifecycle status.
 
 Approval records and the baseline summary are durable planning artifacts and
 belong in Git. Run-specific command output, source manifests, and complete

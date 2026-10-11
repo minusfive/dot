@@ -14,7 +14,7 @@
 - Mise mode: `symlink-each`
 - Environment selector: `opencode`
 - Dependencies: `MIG-MODULE-mise`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest
@@ -132,4 +132,5 @@ must not manage `package.json`, `bun.lock`, or `node_modules`.
   - The target-local package manifest, Bun lock file, and `node_modules` must remain unmanaged by mise. Removing or replacing them could break plugin loading even when all tracked links pass.
   - The configuration depends on the separately managed `~/.agents` skill path and on the target-local `@opencode-ai/plugin` installation.
 - Open blocker:
-  - `none for inventory; migration execution remains pending explicit approval and a reviewed OpenCode target-scoped dry run`
+  - None. The roadmap and registry mark this story `done`, and its approval
+    record is `approved`.

@@ -14,7 +14,7 @@
 - Mise mode: `symlink and symlink-each`
 - Environment selector: `agents`
 - Dependencies: `MIG-MODULE-mise`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest
@@ -156,4 +156,5 @@ metadata files. Do not print evaluation output contents.
   - The Claude module must preserve the same generated-output exclusion when it
     consumes `~/dev/personal/dot/home/.agents/skills` directly.
 - Open blocker:
-  - `none for inventory; migration execution remains pending explicit approval and a reviewed mise dry run`
+  - None. The roadmap and registry mark this story `done`, and its approval
+    record is `approved`.

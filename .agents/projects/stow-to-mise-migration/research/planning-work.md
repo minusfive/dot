@@ -55,7 +55,7 @@ pending-decisions document has no pending decision.
     status and dry-run results, source manifests, metadata-only target
     manifests, and pre-existing differences.
   - All mutation stories, including `MIG-90`, have approval records with
-    exact inventory-bound scopes. Stories 1 to 5 are approved for execution;
+    exact inventory-bound scopes. Stories 1 to 5 are complete and approved;
     later stories and `MIG-90` remain pending.
 - Exit condition: the baseline record is complete and every mutation story has
   an approval record with an exact recorded scope.
@@ -81,8 +81,8 @@ pending-decisions document has no pending decision.
     approval gates.
   - The exact execution handoff path is
     `.agents/projects/stow-to-mise-migration/plans/migration-roadmap-v1.md`.
-    The current request approves stories 1 to 5; the roadmap remains blocked
-    until the story 1 source-path and focused-test updates pass.
+    Stories 1 to 5 are complete and approved; the roadmap remains blocked at
+    `MIG-MODULE-gh` while its approval record is pending.
 - Exit condition: the user approves
   `plans/migration-roadmap-v1.md` for execution.
 
@@ -128,6 +128,25 @@ pending-decisions document has no pending decision.
 - Exit condition: the roadmap and the mise inventory require the initial
   `work`/`personal` plus `mise` lists, later module-list updates, isolated
   profile tests, and explicit `MISE_ENV` cleanup.
+
+### `PLAN-07`: Synchronize story lifecycle and authorization status
+
+- Status: `complete`
+- Scope:
+  - establish the roadmap per-story `Status` as the lifecycle SSoT;
+  - mirror module-story status in `module-registry.toml`;
+  - keep approval records authoritative for authorization and inventories
+    synchronized to their approval state; and
+  - validate the allowed transition gates and all status mirrors.
+- Evidence:
+  - Stories 1 to 5 are `done` in the roadmap and `approved` in their
+    approval records and inventories.
+  - Later stories remain `blocked` with pending approval records unless an
+    approved execution blocker changes their state.
+  - `validate-artifacts.zsh` checks roadmap/registry lifecycle parity,
+    approval/inventory parity, and authorization requirements for active or
+    completed stories.
+- Exit condition: the validator passes and rejects status or approval drift.
 
 ## Planning rules
 

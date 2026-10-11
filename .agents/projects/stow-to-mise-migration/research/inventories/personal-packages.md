@@ -47,6 +47,10 @@ the package manager state is outside the repository.
 ## Ownership and cutover
 
 - Current target shape: `Stow-linked mise declaration; package resources have no file target`
+- The existing `home/.config/mise/conf.d/bootstrap-packages.personal.toml`
+  is the legacy bridge source created by `MIG-MODULE-mise`; its existence does
+  not complete this story. This story must rename that declaration to
+  `module.personal-packages.toml` and keep the resulting module profile-only.
 - Current target manifest path: `~/.config/mise/conf.d/bootstrap-packages.personal.toml`
 - Old owner cleanup command: `stow -nvR .` (confirm the current declaration link before detaching it); package cleanup is separate because `mise bootstrap unapply` does not remove packages.
 - New owner dry-run command: `MISE_ENV=personal mise bootstrap packages apply --manager brew-cask --dry-run`

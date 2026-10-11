@@ -37,6 +37,11 @@ Each module story owns one inventory file and one approval record.
 - Config cleanup review: `.agents/projects/stow-to-mise-migration/research/config-cleanup-review.md`
 - Approval directory: `.agents/projects/stow-to-mise-migration/research/approvals/`
 - Inventory directory: `.agents/projects/stow-to-mise-migration/research/inventories/`
+- Lifecycle status SSoT: the per-story `Status` field in this roadmap.
+- Status mirror: `module-registry.toml` carries the same status for every
+  module story.
+- Authorization SSoT: each story's approval record; its inventory mirrors the
+  record's `Approval state`.
 - Status: `blocked`
 - Current blocker: `MIG-MODULE-gh` approval is pending.
 
@@ -324,6 +329,39 @@ validation. If a check fails, run that story's rollback procedure. Retain
 rollback artifacts until the acceptance checks pass. Remove them only in the
 story's explicit cleanup step or after final closeout. Run one module agent at
 a time. Do not run parallel jobs or agents for this project.
+
+## Story status and artifact synchronization
+
+The per-story `Status` field in this roadmap is the lifecycle SSoT. The
+allowed states are `blocked`, `todo`, `research`, `implement`, `validate`,
+`critique`, and `done`. `module-registry.toml` mirrors this value for each
+module story; `MIG-90` has no registry entry and is represented only in the
+roadmap and its approval record.
+
+Approval is a separate authorization state. The approval record is its SSoT,
+with `pending` or `approved` as the only values. The matching inventory
+`Approval state` is a required mirror. A story cannot be `done`, `todo`,
+`research`, `implement`, `validate`, or `critique` unless its approval record
+is `approved`; a blocked story may be blocked by a pending approval or by a
+later execution blocker.
+
+For every status or approval transition:
+
+1. Update the roadmap lifecycle `Status` first.
+2. Update the matching `module-registry.toml` `status` mirror in the same
+   change, when the story is a module story.
+3. When authorization changes, update the approval record first and then copy
+   its `Approval state` to the matching inventory.
+4. Run
+   `.agents/projects/stow-to-mise-migration/scripts/validate-artifacts.zsh`.
+5. Do not begin the transition if the validator reports drift.
+
+The permitted normal lifecycle is
+`blocked -> todo -> research -> implement -> validate -> critique -> done`.
+An execution failure returns the story to `research`; a blocker returns it to
+`blocked`; and a failed critique after five cycles remains `blocked` with an
+explicit blocker. Only the next incomplete story may enter `todo`, and a
+later story cannot enter an active state while an earlier story is incomplete.
 
 ## Profile and module selection
 
@@ -792,14 +830,18 @@ Use the common rollback contract. Do not prune packages.
 
 ### Description — `MIG-MODULE-personal-packages`
 
-Rename the personal package declaration to `module.personal-packages.toml`.
-Keep it selected only by the personal profile.
+The existing `home/.config/mise/conf.d/bootstrap-packages.personal.toml`
+is the legacy bridge source prepared by the control-plane story. Rename that
+existing declaration to `module.personal-packages.toml`; do not create a
+second package set. Keep the finalized module selected only by the personal
+profile.
 
 ### Steps — `MIG-MODULE-personal-packages`
 
 1. Read the exhaustive package inventory.
 2. Record work and personal profile package sets.
-3. Rename the declaration.
+3. Rename the existing legacy bridge declaration to
+   `module.personal-packages.toml`.
 4. Run the personal and work package status checks without writing either
    workspace profile file.
 5. Run the personal package test.
@@ -808,6 +850,7 @@ Keep it selected only by the personal profile.
 
 - Personal packages load only for the personal profile.
 - Shared packages remain in the shared module.
+- The three existing personal casks remain declared after the rename.
 - This story does not write `~/dev/personal/mise.toml` or
   `~/dev/work/mise.toml`.
 - No package pruning occurs in this story.

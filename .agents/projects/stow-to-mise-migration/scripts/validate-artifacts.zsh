@@ -147,7 +147,7 @@ function main {
         '^\|[[:space:]]*Path[[:space:]]*\|[[:space:]]*Exists[[:space:]]*\|[[:space:]]*Tracked[[:space:]]*\|[[:space:]]*Ignored[[:space:]]*\|[[:space:]]*Current location[[:space:]]*\|[[:space:]]*Active use evidence[[:space:]]*\|[[:space:]]*Classification[[:space:]]*\|[[:space:]]*Required action[[:space:]]*\|[[:space:]]*Runtime destination[[:space:]]*\|[[:space:]]*Metadata to preserve[[:space:]]*\|[[:space:]]*Secret or sensitive data[[:space:]]*\|$'
     )
 
-    local __file __section __table_pattern
+    local __file __section __table_pattern __inventory_approval_state
     local -a __files=("$__inventory_dir"/*.md(N))
     (( ${#__files} > 0 )) || {
         print -u2 "No inventory files found in $__inventory_dir"
@@ -177,10 +177,15 @@ function main {
             }
         done
 
-        grep -qF -- "- Approval state: \`pending\`" "$__file" || {
-            print -u2 "Approval state must remain pending: $__file"
-            exit 1
-        }
+        __inventory_approval_state="$(sed -n 's/^- Approval state: `\([^`]*\)`.*/\1/p' "$__file")"
+        case "$__inventory_approval_state" in
+            pending|approved)
+                ;;
+            *)
+                print -u2 "Inventory has an invalid approval state: $__file"
+                exit 1
+                ;;
+        esac
         grep -qF -- "- Inventory status: \`complete\`" "$__file" || {
             print -u2 "Inventory is not complete: $__file"
             exit 1
@@ -203,6 +208,14 @@ function main {
     }
     grep -qF -- "Do not run parallel jobs or" "$__plan" || {
         print -u2 "Plan does not prohibit parallel migration work: $__plan"
+        exit 1
+    }
+    grep -qF -- "## Story status and artifact synchronization" "$__plan" || {
+        print -u2 "Plan is missing the story status synchronization contract: $__plan"
+        exit 1
+    }
+    grep -qF -- "per-story \`Status\` field in this roadmap is the lifecycle SSoT" "$__plan" || {
+        print -u2 "Plan does not identify the lifecycle status SSoT: $__plan"
         exit 1
     }
 
@@ -228,14 +241,66 @@ function main {
         exit 1
     }
 
-    local __plan_story_id __plan_story_count __story_id
+    local __plan_story_id __plan_story_count __story_id __story_block
+    local __plan_story_status __plan_top_status __next_story_id __next_story_status
+    local __seen_incomplete=0
+    typeset -A __plan_status_for_story
     for __plan_story_id in "${__plan_story_ids[@]}"; do
         __plan_story_count="$(print -rl -- "${__plan_story_ids[@]}" | grep -Fxc -- "$__plan_story_id")"
         (( __plan_story_count == 1 )) || {
             print -u2 "Roadmap story appears more than once: $__plan_story_id"
             exit 1
         }
+        __story_block="$(sed -n "/^## [0-9][0-9]*\. Story \`$__plan_story_id\`:/,/^## [0-9]/p" "$__plan")"
+        __plan_story_status="$(print -r -- "$__story_block" | sed -n 's/^- Status: `\([^`]*\)`.*/\1/p' | head -n 1)"
+        case "$__plan_story_status" in
+            blocked|todo|research|implement|validate|critique|done)
+                __plan_status_for_story[$__plan_story_id]="$__plan_story_status"
+                ;;
+            *)
+                print -u2 "Roadmap story has an invalid or missing status: $__plan_story_id"
+                exit 1
+                ;;
+        esac
     done
+
+    __plan_top_status="$(sed -n '1,55p' "$__plan" | sed -n 's/^- Status: `\([^`]*\)`.*/\1/p' | head -n 1)"
+    case "$__plan_top_status" in
+        blocked|todo|research|implement|validate|critique|done)
+            ;;
+        *)
+            print -u2 "Roadmap has an invalid or missing plan status: $__plan"
+            exit 1
+            ;;
+    esac
+    for __plan_story_id in "${__plan_story_ids[@]}"; do
+        __plan_story_status="${__plan_status_for_story[$__plan_story_id]}"
+        if [[ "$__plan_story_status" != "done" ]]; then
+            if (( ! __seen_incomplete )); then
+                __next_story_id="$__plan_story_id"
+                __next_story_status="$__plan_story_status"
+                __seen_incomplete=1
+            elif [[ "$__plan_story_status" != "blocked" ]]; then
+                print -u2 "Only the next incomplete story may be active: $__plan_story_id"
+                exit 1
+            fi
+        fi
+        if (( __seen_incomplete )) && [[ "$__plan_story_status" == "todo" && "$__plan_story_id" != "$__next_story_id" ]]; then
+            print -u2 "Only the next incomplete story may enter todo: $__plan_story_id"
+            exit 1
+        fi
+    done
+    if (( __seen_incomplete )); then
+        [[ "$__plan_top_status" == "$__next_story_status" ]] || {
+            print -u2 "Plan status does not mirror the next incomplete story: $__next_story_id"
+            exit 1
+        }
+    else
+        [[ "$__plan_top_status" == "done" ]] || {
+            print -u2 "Plan must be done when every story is done: $__plan"
+            exit 1
+        }
+    fi
 
     for __story_id in "${(@f)$(awk -F '"' '/^story = / {print $2}' "$__registry")}"; do
         [[ "$(print -rl -- "${__plan_story_ids[@]}" | grep -Fxc -- "$__story_id")" == 1 ]] || {
@@ -244,9 +309,36 @@ function main {
         }
     done
 
-    local __module_key __story_block __story_section
+    local __module_key __story_section
     local __registry_dependency_line __registry_dependencies
     local __plan_dependencies __inventory_dependencies
+    local __registry_status
+    local __registry_key="" __registry_story="" __registry_status_value="" __line
+    typeset -A __registry_module_for_story __registry_status_for_story
+    while IFS= read -r __line; do
+        case "$__line" in
+            'key = "'*)
+                __registry_key="${__line#key = \"}"
+                __registry_key="${__registry_key%\"}"
+                __registry_story=""
+                ;;
+            'story = "'*)
+                __registry_story="${__line#story = \"}"
+                __registry_story="${__registry_story%\"}"
+                __registry_module_for_story[$__registry_story]="$__registry_key"
+                ;;
+            'status = "'*)
+                __registry_status_value="${__line#status = \"}"
+                __registry_status_value="${__registry_status_value%\"}"
+                [[ -n "$__registry_story" ]] || {
+                    print -u2 "Registry status appears before its story key: $__registry"
+                    exit 1
+                }
+                __registry_status_for_story[$__registry_story]="$__registry_status_value"
+                ;;
+        esac
+    done < "$__registry"
+
     local -a __required_story_sections=(
         "### Metadata"
         "### Description"
@@ -265,6 +357,17 @@ function main {
             exit 1
         }
         __story_id="MIG-MODULE-$__module_key"
+        __registry_status="${__registry_status_for_story[$__story_id]-}"
+        [[ -n "$__registry_status" ]] || {
+            print -u2 "Registry story is missing a status mirror: $__story_id"
+            exit 1
+        }
+        [[ "$__registry_status" == "${__plan_status_for_story[$__story_id]}" ]] || {
+            print -u2 "Story status mismatch for $__story_id:"
+            print -u2 "  registry: $__registry_status"
+            print -u2 "  roadmap:  ${__plan_status_for_story[$__story_id]}"
+            exit 1
+        }
         __story_block="$(sed -n "/^## [0-9][0-9.]*\. Story \`$__story_id\`:/,/^## [0-9]/p" "$__plan")"
         if ! print -r -- "$__story_block" | grep -qF -- "Inventory: \`.agents/projects/stow-to-mise-migration/research/inventories/$__module_key.md\`"; then
             print -u2 "Plan story has no matching inventory reference: $__story_id"
@@ -318,23 +421,8 @@ function main {
     local -a __shared_stories=(MIG-90)
     local -a __story_ids=("${(@f)$(awk -F '"' '/^story = / {print $2}' "$__registry")}")
     local __approval __approval_story __approval_module __approval_inventory
-    local __approval_state __final_decision __line
+    local __approval_state __final_decision
     local __approval_focused_test __inventory_focused_test __inventory_path
-    local __registry_key="" __registry_story=""
-    typeset -A __registry_module_for_story
-    while IFS= read -r __line; do
-        case "$__line" in
-            'key = "'*)
-                __registry_key="${__line#key = \"}"
-                __registry_key="${__registry_key%\"}"
-                ;;
-            'story = "'*)
-                __registry_story="${__line#story = \"}"
-                __registry_story="${__registry_story%\"}"
-                __registry_module_for_story[$__registry_story]="$__registry_key"
-                ;;
-        esac
-    done < "$__registry"
 
     for __approval in "${__shared_stories[@]}" "${__story_ids[@]}"; do
         [[ -f "$__approval_dir/$__approval.md" ]] || {
@@ -346,6 +434,8 @@ function main {
             print -u2 "Approval story key does not match filename: $__approval"
             exit 1
         }
+        __approval_state="$(sed -n 's/^- Approval state: `\([^`]*\)`.*/\1/p' "$__approval_dir/$__approval.md")"
+        __final_decision="$(sed -n 's/^- Final decision: `\([^`]*\)`.*/\1/p' "$__approval_dir/$__approval.md")"
 
         if [[ "$__approval" == "MIG-90" ]]; then
             __approval_module="$(sed -n 's/^- Module key: `\([^`]*\)`.*/\1/p' "$__approval_dir/$__approval.md")"
@@ -380,9 +470,14 @@ function main {
                 print -u2 "  inventory: $__inventory_focused_test"
                 exit 1
             }
+            __inventory_approval_state="$(sed -n 's/^- Approval state: `\([^`]*\)`.*/\1/p' "$__inventory_path")"
+            [[ "$__inventory_approval_state" == "$__approval_state" ]] || {
+                print -u2 "Inventory approval state mismatch for $__approval:"
+                print -u2 "  approval:  $__approval_state"
+                print -u2 "  inventory: $__inventory_approval_state"
+                exit 1
+            }
         fi
-        __approval_state="$(sed -n 's/^- Approval state: `\([^`]*\)`.*/\1/p' "$__approval_dir/$__approval.md")"
-        __final_decision="$(sed -n 's/^- Final decision: `\([^`]*\)`.*/\1/p' "$__approval_dir/$__approval.md")"
         case "$__approval_state" in
             pending)
                 [[ "$__final_decision" == "pending" ]] || {
@@ -399,6 +494,15 @@ function main {
             *)
                 print -u2 "Approval record has an invalid state: $__approval"
                 exit 1
+                ;;
+        esac
+
+        case "${__plan_status_for_story[$__approval]}" in
+            todo|research|implement|validate|critique|done)
+                [[ "$__approval_state" == "approved" ]] || {
+                    print -u2 "Active or completed story lacks approved authorization: $__approval"
+                    exit 1
+                }
                 ;;
         esac
     done

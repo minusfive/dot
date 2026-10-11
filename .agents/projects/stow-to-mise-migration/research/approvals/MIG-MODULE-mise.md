@@ -22,8 +22,7 @@
 ## Notes
 
 The user approved stories 1 to 5 in the current interaction. The exact scope
-recorded above is authorized for execution. Story execution is blocked after
-rollback because the copied aggregate declarations resolve their relative
-sources from the new target path and report the managed sources missing. The
-selected replacement uses explicit `~/dev/personal/dot/home/...` source paths
-and does not set `dotfiles.root`.
+recorded above is authorized for execution. An earlier rollback exposed
+relative source-path drift in the copied aggregate declarations. The selected
+replacement uses explicit `~/dev/personal/dot/home/...` source paths and does
+not set `dotfiles.root`. The roadmap and registry mark this story `done`.

@@ -14,7 +14,7 @@
 - Mise mode: per-target `symlink` entries
 - Environment selector: `copilot`
 - Dependencies: `MIG-MODULE-mise`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest
@@ -133,5 +133,5 @@ credential contents.
     remain application-owned.
   - The aggregate-to-module cutover must preserve the `agents` source dependency and avoid duplicate mise declarations.
 - Open blocker:
-  - Migration execution remains pending explicit approval and the aggregate
-    declaration split.
+  - None. The roadmap and registry mark this story `done`, and its approval
+    record is `approved`.

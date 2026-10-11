@@ -22,4 +22,5 @@
 ## Notes
 
 `pending` means that no mutation is authorized. `approved` authorizes only the
-exact scope recorded in this file.
+exact scope recorded in this file. The roadmap owns lifecycle `Status`; this
+record owns authorization state.
