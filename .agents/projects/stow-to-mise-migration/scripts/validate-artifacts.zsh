@@ -17,6 +17,20 @@ function normalize_dependencies {
     print -r -- "$__normalized" | tr ',' '\n' | sort | paste -sd, -
 }
 
+function normalize_focused_test_reference {
+    local __reference="${1:-}"
+    __reference="${__reference#zsh }"
+    __reference="${__reference#./}"
+    print -r -- "$__reference"
+}
+
+function read_focused_test_reference {
+    local __document="$1"
+    sed -n '/^- Focused test:/,/^- Target smoke test:/p' "$__document" |
+        sed -n 's/^[[:space:]]*-[[:space:]]*`\([^`]*\)`.*/\1/p' |
+        head -n 1
+}
+
 function validate_decision_records {
     local __planning_work="$1"
     local __pending_decisions="$2"
@@ -305,6 +319,7 @@ function main {
     local -a __story_ids=("${(@f)$(awk -F '"' '/^story = / {print $2}' "$__registry")}")
     local __approval __approval_story __approval_module __approval_inventory
     local __approval_state __final_decision __line
+    local __approval_focused_test __inventory_focused_test __inventory_path
     local __registry_key="" __registry_story=""
     typeset -A __registry_module_for_story
     while IFS= read -r __line; do
@@ -348,6 +363,21 @@ function main {
             }
             [[ "$__approval_inventory" == ".agents/projects/stow-to-mise-migration/research/inventories/$__approval_module.md" ]] || {
                 print -u2 "Approval inventory does not match module: $__approval"
+                exit 1
+            }
+            __inventory_path="$__project_dir/research/inventories/$__approval_module.md"
+            __approval_focused_test="$(sed -n 's/^- Focused test: `\([^`]*\)`.*/\1/p' "$__approval_dir/$__approval.md")"
+            __inventory_focused_test="$(read_focused_test_reference "$__inventory_path")"
+            [[ -n "$__approval_focused_test" && -n "$__inventory_focused_test" ]] || {
+                print -u2 "Focused test reference is missing: $__approval"
+                exit 1
+            }
+            __approval_focused_test="$(normalize_focused_test_reference "$__approval_focused_test")"
+            __inventory_focused_test="$(normalize_focused_test_reference "$__inventory_focused_test")"
+            [[ "$__approval_focused_test" == "$__inventory_focused_test" ]] || {
+                print -u2 "Focused test mismatch for $__approval:"
+                print -u2 "  approval:  $__approval_focused_test"
+                print -u2 "  inventory: $__inventory_focused_test"
                 exit 1
             }
         fi

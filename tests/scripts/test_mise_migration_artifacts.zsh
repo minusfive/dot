@@ -17,6 +17,18 @@ function main {
 
     "$__fixture_dir/scripts/validate-artifacts.zsh" >"$__output" 2>&1
 
+    sed 's/^- Focused test:.*/- Focused test: `not specified in inventory`/' \
+        "$__fixture_dir/research/approvals/MIG-MODULE-git.md" \
+        >"$__planning_work_tmp"
+    mv "$__planning_work_tmp" "$__fixture_dir/research/approvals/MIG-MODULE-git.md"
+    if "$__fixture_dir/scripts/validate-artifacts.zsh" >"$__output" 2>&1; then
+        print -u2 "Validator accepted an approval focused-test mismatch."
+        exit 1
+    fi
+    grep -qF -- "Focused test mismatch for MIG-MODULE-git" "$__output"
+
+    cp "$__project_dir/research/approvals/MIG-MODULE-git.md" \
+        "$__fixture_dir/research/approvals/MIG-MODULE-git.md"
     cat >"$__fixture_dir/research/pending-decisions.md" <<'EOF'
 # Pending Migration Decisions
 
