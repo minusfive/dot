@@ -26,13 +26,17 @@ type StackResponse = {
   }>;
 };
 
-const DRY_RUN = process.argv.includes("--dry-run");
+const PULL_REQUESTS = (process.env.usage_pull_requests ?? "").trim();
+const DRY_RUN = process.env.usage_dry_run === "true";
 
 function pullRequestNumbers(): number[] {
-  return process.argv
-    .slice(2)
-    .filter((arg) => arg !== "--" && !arg.startsWith("-"))
-    .map((arg) => Number(arg));
+  if (!PULL_REQUESTS) return [];
+  return PULL_REQUESTS.split(/\s+/).map((value) => {
+    if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
+      return Number(value.slice(1, -1));
+    }
+    return Number(value);
+  });
 }
 
 async function run(command: string, args: string[], input?: string): Promise<string> {

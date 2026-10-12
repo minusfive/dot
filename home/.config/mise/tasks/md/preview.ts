@@ -69,28 +69,8 @@ function env(name: string): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
-function flag(name: string, cliFlag: string): boolean {
-  const value = env(name);
-  if (value !== undefined) {
-    const normalized = value.toLowerCase();
-    return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
-  }
-  return process.argv.includes(cliFlag);
-}
-
-function firstPositionalArg(): string | undefined {
-  const args = process.argv.slice(2);
-  for (let i = 0; i < args.length; i += 1) {
-    const arg = args[i]!;
-    if (arg === "--dir" || arg === "--host" || arg === "--port" || arg === "--format") {
-      i += 1;
-      continue;
-    }
-    if (arg === "--open" || arg === "--kill-all" || arg === "--reconcile" || arg === "--list") continue;
-    if (arg.startsWith("-")) continue;
-    return arg;
-  }
-  return undefined;
+function flag(name: string): boolean {
+  return process.env[name] === "true";
 }
 
 function relativeToCwd(path: string): string {
@@ -742,12 +722,12 @@ async function ensureMarkdownPreviewExtension(): Promise<void> {
 
 async function main(): Promise<void> {
   const root = resolve(process.env.usage_root ?? ".");
-  const killAll = flag("usage_kill_all", "--kill-all");
-  const reconcileOnly = flag("usage_reconcile", "--reconcile");
-  const listOnly = flag("usage_list", "--list");
+  const killAll = flag("usage_kill_all");
+  const reconcileOnly = flag("usage_reconcile");
+  const listOnly = flag("usage_list");
   const listFormat = parseListFormat(env("usage_format"));
-  const shouldOpen = flag("usage_open", "--open");
-  const shouldRefresh = flag("usage_refresh", "--refresh");
+  const shouldOpen = flag("usage_open");
+  const shouldRefresh = flag("usage_refresh");
   const host = env("usage_host") ?? "localhost";
   const portRaw = env("usage_port");
   const requestedPort = portRaw ? parsePort(portRaw) : undefined;
@@ -782,7 +762,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  const fileArg = env("usage_file") ?? firstPositionalArg();
+  const fileArg = env("usage_file");
   const directory = env("usage_dir") ?? ".";
   const filePath = fileArg ? resolve(fileArg) : await pickMarkdownFile(root, directory);
   if (!filePath) {
