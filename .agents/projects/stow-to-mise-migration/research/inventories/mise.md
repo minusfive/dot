@@ -22,7 +22,7 @@
 
 | Source path                                            | Tracked | Ignored | Current owner | Current target                                           | Target disposition | New source path                                                                | New target                                               | New mode  | Notes                                                                                                                                                                    |
 | ------------------------------------------------------ | ------- | ------- | ------------- | -------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------ | -------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `.config/mise/conf.d/bootstrap-ai.toml`                | `yes`   | `no`    | `stow`        | `~/.config/mise/conf.d/bootstrap-ai.toml`                | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/bootstrap-ai.toml`                | `~/.config/mise/conf.d/bootstrap-ai.toml`                | `symlink` | Preserve 0644 and the AI dotfile declarations. Use explicit `~/dev/personal/dot/home/...` source paths.                                                                  |
+| `.config/mise/conf.d/bootstrap-ai.toml`                | `yes`   | `no`    | `stow`        | `~/.config/mise/conf.d/bootstrap-ai.toml`                | `remove`           | `none`                                                                         | `none`                                                   | `none`    | Retired empty aggregate declaration; the AI entries now belong to the focused `module.*.toml` files.                                                                     |
 | `.config/mise/conf.d/bootstrap-gh.toml`                | `yes`   | `no`    | `stow`        | `~/.config/mise/conf.d/bootstrap-gh.toml`                | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/bootstrap-gh.toml`                | `~/.config/mise/conf.d/bootstrap-gh.toml`                | `symlink` | Preserve 0644, generated personal/work profile files, the GH config directory, and the token-free hosts source. Use explicit `~/dev/personal/dot/home/...` source paths. |
 | `.config/mise/conf.d/bootstrap-packages.personal.toml` | `yes`   | `no`    | `stow`        | `~/.config/mise/conf.d/bootstrap-packages.personal.toml` | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/bootstrap-packages.personal.toml` | `~/.config/mise/conf.d/bootstrap-packages.personal.toml` | `symlink` | Preserve 0644 and the personal package boundary. Verify profile selection before applying.                                                                               |
 | `.config/mise/conf.d/bootstrap-packages.toml`          | `yes`   | `no`    | `stow`        | `~/.config/mise/conf.d/bootstrap-packages.toml`          | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/bootstrap-packages.toml`          | `~/.config/mise/conf.d/bootstrap-packages.toml`          | `symlink` | Preserve 0644, shared Homebrew formulas/casks, and Mac App Store declarations. No credential values were found.                                                          |
@@ -49,8 +49,9 @@ git ls-files --others --ignored --exclude-standard -- .config/mise
 ```
 
 No source candidate matched `git check-ignore -v <path>`. The source tree
-contains 19 tracked regular files and no ignored local variant. The target
-manifest resolved through the current parent link contains the same 19 files.
+contains 18 tracked regular files and no ignored local variant. The target
+manifest contains the same 18 active source files after the empty aggregate
+declaration was retired.
 
 ## Local and runtime inventory
 
@@ -264,8 +265,9 @@ status`, and `mise bootstrap dotfiles apply --dry-run`.
 - Resolved decision: `DEC-mise-control-plane-transition-mechanism`
 - Resolved decision: `DEC-mise-control-plane-source-resolution`
 - Decision evidence:
-  - `git ls-files -- .config/mise` lists 19 tracked candidates, and the
-    ignored-inclusive manifest for `.config/mise` is empty.
+  - The initial `git ls-files -- .config/mise` baseline listed 19 tracked
+    candidates. The empty aggregate declaration was retired, leaving 18 active
+    source files, and the ignored-inclusive manifest remains empty.
   - `readlink "$HOME/.config/mise"` returns the current relative Stow link
     `../dev/personal/dot/.config/mise`.
   - `mise bootstrap dotfiles status` and its dry run show the existing mise

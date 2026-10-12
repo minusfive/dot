@@ -16,6 +16,11 @@ echo "Testing global mise configuration..."
 [[ -f "home/.config/mise/miserc.toml" ]] || fail "missing home/.config/mise/miserc.toml"
 [[ -f "home/.config/mise/mise.lock" ]] || fail "missing home/.config/mise/mise.lock"
 [[ -f "home/.config/mise/conf.d/module.mise.toml" ]] || fail "missing mise module declaration"
+[[ ! -e "home/.config/mise/conf.d/bootstrap-ai.toml" ]] ||
+    fail "empty legacy AI declaration should be removed"
+if grep -qF '"~/.config/mise/conf.d/bootstrap-ai.toml"' home/.config/mise/conf.d/module.mise.toml; then
+    fail "mise control-plane module still deploys the removed AI declaration"
+fi
 [[ ! -e ".config/mise" ]] || fail "legacy mise source should be removed"
 [[ ! -e "home/.config/mise/mise.personal.toml" ]] || fail "obsolete personal config should be removed"
 [[ ! -e "home/.config/mise/files" ]] || fail "obsolete mise files directory should be removed"
@@ -97,7 +102,7 @@ grep -qF 'source = "~/dev/personal/dot/home/dev/profile.mise.toml"' home/.config
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 local __mise_link_count
 __mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 43 ]] || fail "expected 43 managed mise links, found $__mise_link_count"
+[[ "$__mise_link_count" -eq 42 ]] || fail "expected 42 managed mise links, found $__mise_link_count"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \

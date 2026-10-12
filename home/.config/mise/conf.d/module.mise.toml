@@ -1,5 +1,4 @@
 [dotfiles]
-"~/.config/mise/conf.d/bootstrap-ai.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/bootstrap-ai.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.gh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.gh.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.profiles.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.profiles.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.personal-packages.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.personal-packages.toml", mode = "symlink" }
