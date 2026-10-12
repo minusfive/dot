@@ -1,6 +1,6 @@
 {% if env.DOT_PROFILE | default(value='work') == 'personal' %}
-env = ["personal", "mise", "copilot", "agents", "claude", "opencode", "gh", "profiles", "packages", "personal-packages", "repos", "tools", "bat", "btop", "delta", "zsh", "fd", "fzf", "lazygit", "ripgrep", "tmux", "ghostty", "git", "wezterm", "yazi", "1password", "betterdisplay", "hammerspoon", "harper", "nvim"]
+env = ["personal", "mise", "copilot", "agents", "claude", "opencode", "gh", "profiles", "packages", "personal-packages", "repos", "tools", "bat", "btop", "delta", "zsh", "editorconfig", "fd", "fzf", "lazygit", "ripgrep", "tmux", "ghostty", "git", "wezterm", "yazi", "1password", "betterdisplay", "hammerspoon", "harper", "nvim"]
 {% else %}
-env = ["work", "mise", "copilot", "agents", "claude", "opencode", "gh", "profiles", "packages", "repos", "tools", "bat", "btop", "delta", "zsh", "fd", "fzf", "lazygit", "ripgrep", "tmux", "ghostty", "git", "wezterm", "yazi", "1password", "betterdisplay", "hammerspoon", "harper", "nvim"]
+env = ["work", "mise", "copilot", "agents", "claude", "opencode", "gh", "profiles", "packages", "repos", "tools", "bat", "btop", "delta", "zsh", "editorconfig", "fd", "fzf", "lazygit", "ripgrep", "tmux", "ghostty", "git", "wezterm", "yazi", "1password", "betterdisplay", "hammerspoon", "harper", "nvim"]
 {% endif %}
 env_conf_d = true

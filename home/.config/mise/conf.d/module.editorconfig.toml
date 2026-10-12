@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.editorconfig" = { source = "~/dev/personal/dot/home/.editorconfig", mode = "symlink" }

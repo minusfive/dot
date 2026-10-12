@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": "bootstrap-boundary-change",
-      "prompt": "Move a managed configuration directory from GNU Stow to mise. The source path and ownership model change, but the user-facing setup command stays the same.",
+      "prompt": "Move a managed configuration directory to mise. The source path and ownership model change, but the user-facing setup command stays the same.",
       "expected_output": "The response updates README.md in the same change. It explains the new source path, ownership boundary, and reason for the migration without copying the full migration procedure.",
       "assertions": [
         "Updates README.md in the same change.",
@@ -29,7 +29,10 @@
       "id": "internal-only-change",
       "prompt": "Rename an internal test helper and update its assertions. The repository layout, setup commands, tools, and user workflow do not change.",
       "expected_output": "The response leaves README.md unchanged because the change does not affect reader setup, understanding, or workflow.",
-      "assertions": ["Leaves README.md unchanged.", "Explains that the change has no reader-facing effect."]
+      "assertions": [
+        "Leaves README.md unchanged.",
+        "Explains that the change has no reader-facing effect."
+      ]
     }
   ]
 }

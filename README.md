@@ -1,6 +1,6 @@
 # Personal System Config
 
-This branch uses [Homebrew](https://brew.sh), [mise-en-place](https://mise.jdx.dev), [GNU Stow](https://www.gnu.org/software/stow/), and custom [Zsh](https://www.zsh.org/) scripts to configure macOS the way I like it.
+This branch uses [Homebrew](https://brew.sh), [mise-en-place](https://mise.jdx.dev), and custom [Zsh](https://www.zsh.org/) scripts to configure macOS the way I like it.
 
 I try my best to keep this and [my Nix-based configuration](https://github.com/minusfive/tree/nix) synchronized, but depending on which type of machine I'm working with more regularly, I may prioritize one configuration over the other.
 
@@ -52,9 +52,7 @@ remains the source of truth.
 ## Global files and configuration
 
 > [!NOTE]
-> Global application configuration is now managed by mise. GNU Stow remains
-> for repository-level files and bootstrap boundaries that are intentionally
-> not deployed as global application configuration.
+> Global application configuration is managed by mise.
 
 The `home/` directory is a source tree for files that belong under `$HOME`. Its layout mirrors the target layout, so the source location also describes the installed location.
 
@@ -67,14 +65,19 @@ Mise uses two related resource models:
 
 The [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.html) and [mise bootstrap documentation](https://mise.jdx.dev/bootstrap.html) define the available resource modes and bootstrap phases.
 
-The `--mise` initialization interface updates mise itself, then applies the package, file, repository, and dotfile phases. The `--link` interface remains available for configuration that still uses GNU Stow.
+The `--mise` initialization interface updates mise itself, then applies the package, file, repository, and dotfile phases.
 
+Global files such as [`home/.editorconfig`](./home/.editorconfig),
+[`home/.ssh/config`](./home/.ssh/config), and
+[`home/.zshenv`](./home/.zshenv) are managed by their related mise boundaries:
+EditorConfig has its own module, SSH configuration belongs to the
+[`module.1password.toml`](./home/.config/mise/conf.d/module.1password.toml)
+boundary, and the Zsh environment belongs to
+[`module.zsh.toml`](./home/.config/mise/conf.d/module.zsh.toml).
 Boundary-local development files for Hammerspoon and WezTerm live in their
-matching `home/.config/...` source directories. Their mise declarations exclude
-these files from the runtime targets. Other non-migrated configuration remains
-managed by GNU Stow. The [`.stowrc`](./.stowrc) file defines `$HOME` as the
-target, and [`.stow-local-ignore`](./.stow-local-ignore) defines exclusions.
-A target belongs to one management system at a time.
+matching `home/.config/...` source directories, and their mise declarations
+exclude those files from runtime targets. A target belongs to one management
+system at a time.
 
 ## Programs
 

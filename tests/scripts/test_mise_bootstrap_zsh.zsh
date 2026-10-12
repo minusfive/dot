@@ -12,6 +12,14 @@ local __target="$HOME/.config/zsh"
 [[ -f "$__config" ]] || fail "missing $__config"
 grep -qF '"~/.config/zsh" = { source = "~/dev/personal/dot/home/.config/zsh", mode = "symlink-each" }' "$__config" ||
     fail "zsh symlink-each declaration is missing"
+grep -qF '"~/.zshenv" = { source = "~/dev/personal/dot/home/.zshenv", mode = "symlink" }' "$__config" ||
+    fail "zsh environment symlink declaration is missing"
+[[ -L "$HOME/.zshenv" ]] || fail "zsh environment target is not a symlink"
+case "$(readlink "$HOME/.zshenv")" in
+    /*) fail "zsh environment target link is absolute" ;;
+esac
+[[ "$(realpath "$HOME/.zshenv")" == "$(realpath "home/.zshenv")" ]] ||
+    fail "zsh environment target does not resolve to the tracked source"
 [[ ! -e "$__source/.zsh_history" && ! -e "$__source/.zcompdump" ]] ||
     fail "zsh runtime files must remain outside the tracked source"
 for __path in \
@@ -29,7 +37,7 @@ done
     fail "zsh completion runtime file was not preserved"
 [[ "$(stat -c '%a' "$__target/.zsh_history")" == "600" ]] || fail "zsh history mode changed"
 [[ "$(stat -c '%a' "$__target/.zcompdump")" == "644" ]] || fail "zsh completion dump mode changed"
-grep -Fq 'ZDOTDIR="$XDG_CONFIG_HOME/zsh"' .zshenv || fail "ZDOTDIR source is missing"
+grep -Fq 'ZDOTDIR="$XDG_CONFIG_HOME/zsh"' home/.zshenv || fail "ZDOTDIR source is missing"
 if find "$__source" -name '.zsh_history' -o -name '.zcompdump' | grep -q .; then
     fail "zsh runtime files remain in the source tree"
 fi

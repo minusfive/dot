@@ -17,11 +17,10 @@ function {
     local __install_vm=false
     local __manage_betterdisplay=false
     local __profile="work" # work or personal; work = safest
-    local __symlink_dotfiles=false
     local __noop=false
 
     # Load important environment variables
-    source "$__dotfiles_dir/.zshenv"
+    source "$__dotfiles_dir/home/.zshenv"
 
     # Load functions
     source "$__dotfiles_scripts_dir/functions.zsh"
@@ -35,7 +34,6 @@ function {
         b -brew \
         d -display \
         h -help \
-        l -link \
         m -mise \
         o -os \
         p: -profile: \
@@ -60,9 +58,6 @@ function {
             -h|--help)
                 _v_print_help
                 exit 0
-                ;;
-            -l|--link)
-                __symlink_dotfiles=true
                 ;;
             -m|--mise)
                 __install_mise_dev_tools=true
@@ -101,9 +96,6 @@ function {
 
     # Homebrew bootstrap helper
     source "$__dotfiles_scripts_dir/brew.zsh"
-
-    # Symlink dotfiles
-    source "$__dotfiles_scripts_dir/symlink.zsh"
 
     # Install Zsh theme + plugins
     source "$__dotfiles_scripts_dir/zsh.zsh"
