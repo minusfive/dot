@@ -7,6 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing Neovim bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.nvim.toml"
+assert_module_package nvim brew:neovim
 local __source="home/.config/nvim"
 local __target="$HOME/.config/nvim"
 [[ -f "$__config" ]] || fail "missing $__config"

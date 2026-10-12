@@ -7,6 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing Hammerspoon bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.hammerspoon.toml"
+assert_module_package hammerspoon brew-cask:hammerspoon
 local __source="home/.config/hammerspoon"
 local __target="$HOME/.config/hammerspoon"
 [[ -f "$__config" ]] || fail "missing $__config"

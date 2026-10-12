@@ -15,7 +15,7 @@
 
 - Baseline record: `.agents/projects/stow-to-mise-migration/research/baseline-record-20261011T164747-0400.md`
 - Dry-run record: `.agents/projects/stow-to-mise-migration/tmp/baselines/20261011T164747-0400/commands/mise-bootstrap-packages-apply-dry-run.txt`
-- Focused test: `tests/scripts/test_mise_bootstrap_packages.zsh`
+- Focused test: `tests/scripts/test_mise_bootstrap_brew.zsh`
 - Rollback record: `.agents/projects/stow-to-mise-migration/research/inventories/packages.md#rollback`
 - Final decision: `approved for execution`
 

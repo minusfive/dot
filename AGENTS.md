@@ -8,6 +8,7 @@
 - Wire new bootstrap phases into `scripts/mise.zsh` when `scripts/init.zsh --mise` must apply them.
 - Keep tool-owned runtime files outside tracked sources and mise declarations.
 - Split tests by bootstrap boundary and run the focused tests before the aggregate checks.
+- Name each focused package test `test_mise_bootstrap_<name>.zsh` to match its corresponding `module.<name>.toml`. Keep each package assertion in that test; do not aggregate package-module assertions in a shared test.
 - Run `mise run check` after changing instructions or skills; it validates both the root and `home/` skill indexes.
 - Update `README.md` in the same change when setup, layout, ownership, tooling, migration status, or user-facing workflows change. Load `readme-maintenance` for README decisions and edits.
 - Preserve unrelated worktree changes.

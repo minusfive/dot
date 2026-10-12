@@ -2,7 +2,7 @@
 "~/.config/mise/conf.d/module.gh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.gh.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.profiles.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.profiles.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.personal-packages.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.personal-packages.toml", mode = "symlink" }
-"~/.config/mise/conf.d/module.packages.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.packages.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.brew.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.brew.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.sqlite.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.sqlite.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.coreutils.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.coreutils.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.curl.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.curl.toml", mode = "symlink" }

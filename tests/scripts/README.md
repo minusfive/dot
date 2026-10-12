@@ -71,9 +71,11 @@ pattern: `test_mise_bootstrap_<module>.zsh`. Current module tests cover
 `hammerspoon`, `harper`, `lazygit`, `nvim`, `ripgrep`, `tmux`, `wezterm`,
 `yazi`, and `zsh`.
 
-#### `test_mise_bootstrap_packages.zsh`
+Each package module has a focused package assertion in its matching module test.
 
-Tests shared package, cask, Mac App Store, and Homebrew bootstrap configuration.
+#### `test_mise_bootstrap_brew.zsh`
+
+Tests Homebrew adoption and shared profile selection for `module.brew.toml`.
 
 #### `test_mise_bootstrap_packages_personal.zsh`
 
@@ -111,7 +113,7 @@ Tests hidden project creation and promotion to a checked-in workspace.
 ./tests/scripts/test_mise_bootstrap_gh.zsh
 ./tests/scripts/test_mise_bootstrap_profiles.zsh
 ./tests/scripts/test_mise_bootstrap_editorconfig.zsh
-./tests/scripts/test_mise_bootstrap_packages.zsh
+./tests/scripts/test_mise_bootstrap_brew.zsh
 ./tests/scripts/test_mise_bootstrap_packages_personal.zsh
 ./tests/scripts/test_mise_bootstrap_repos.zsh
 ./tests/scripts/test_mise_tools.zsh

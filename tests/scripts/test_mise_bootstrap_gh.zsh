@@ -7,6 +7,7 @@ echo "Testing GitHub bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.gh.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
+assert_module_package gh brew:gh
 [[ -f "home/dev/profile.mise.toml" ]] || fail "missing profile source"
 [[ -f "home/.config/gh/personal/hosts.yml" ]] || fail "missing GitHub hosts source"
 if grep -qF "oauth_token:" "home/.config/gh/personal/hosts.yml"; then

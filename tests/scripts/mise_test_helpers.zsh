@@ -17,4 +17,16 @@ line_of() {
     print -r -- "$__line"
 }
 
+assert_module_package() {
+    local __module="$1"
+    local __package="$2"
+    local __config="home/.config/mise/conf.d/module.$__module.toml"
+    local __profile_count
+    [[ -f "$__config" ]] || fail "missing $__config"
+    grep -q "\"$__package\" = \"latest\"" "$__config" ||
+        fail "$__package is missing from $__config"
+    __profile_count="$(grep -o "\"$__module\"" home/.config/mise/miserc.toml | wc -l | tr -d ' ')"
+    [[ "$__profile_count" -eq 2 ]] || fail "$__module must be selected by both profiles"
+}
+
 cd "$__root_dir"

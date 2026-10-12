@@ -165,7 +165,7 @@ is a declaration and dry-run check rather than a filesystem-link check.
   - `zsh -n scripts/init.zsh scripts/mise.zsh scripts/brew.zsh`
   - `git diff --check -- .agents/projects/stow-to-mise-migration/research/inventories/packages.md`
 - Focused test:
-  - `tests/scripts/test_mise_bootstrap_packages.zsh`
+  - `tests/scripts/test_mise_bootstrap_brew.zsh`
 - Target smoke test:
   - `mise bootstrap packages apply --dry-run`
 - Security or token check:
@@ -192,7 +192,7 @@ is a declaration and dry-run check rather than a filesystem-link check.
   - `.config/mise/conf.d/bootstrap-packages.toml`
   - `.config/mise/conf.d/bootstrap-packages.personal.toml`
   - `scripts/mise.zsh`
-  - `tests/scripts/test_mise_bootstrap_packages.zsh`
+  - `tests/scripts/test_mise_bootstrap_brew.zsh`
   - `tests/scripts/test_mise_bootstrap_packages_personal.zsh`
   - `tests/scripts/test_mise_config.zsh`
   - `.agents/projects/stow-to-mise-migration/module-registry.toml`

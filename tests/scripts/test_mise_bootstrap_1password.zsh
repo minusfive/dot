@@ -7,6 +7,9 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing 1Password bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.1password.toml"
+assert_module_package 1password brew-cask:1password
+assert_module_package 1password brew-cask:1password-cli
+assert_module_package 1password mas:1569813296
 local __source="home/.config/1Password/ssh/agent.toml"
 local __target="$HOME/.config/1Password/ssh/agent.toml"
 local __ssh_config="home/.ssh/config"

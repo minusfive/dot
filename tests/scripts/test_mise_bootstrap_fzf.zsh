@@ -7,6 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing fzf bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.fzf.toml"
+assert_module_package fzf brew:fzf
 local __source="home/.config/fzf/fzf.conf"
 local __target="$HOME/.config/fzf/fzf.conf"
 [[ -f "$__config" ]] || fail "missing $__config"

@@ -7,6 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing zsh bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.zsh.toml"
+assert_module_package zsh brew:zsh
 local __source="home/.config/zsh"
 local __target="$HOME/.config/zsh"
 [[ -f "$__config" ]] || fail "missing $__config"

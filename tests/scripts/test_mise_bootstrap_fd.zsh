@@ -7,6 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing fd bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.fd.toml"
+assert_module_package fd brew:fd
 local __source="home/.config/fd/ignore"
 local __target="$HOME/.config/fd/ignore"
 [[ -f "$__config" ]] || fail "missing $__config"
