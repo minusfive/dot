@@ -6,7 +6,7 @@
 local left_pad = 2
 
 local mason_tools_to_remove = {
-  "rumdl",
+  "markdownlint-cli2",
 }
 
 ---@type LazySpec
