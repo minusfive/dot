@@ -141,7 +141,7 @@ async function main(): Promise<void> {
     payload,
   );
   const stack = JSON.parse(response) as StackResponse;
-  console.log(JSON.stringify(stackSummary(stack), null, 2));
+  console.log(JSON.stringify({ created: true, ...stackSummary(stack) }, null, 2));
 }
 
 void main().catch((error: unknown) => {
