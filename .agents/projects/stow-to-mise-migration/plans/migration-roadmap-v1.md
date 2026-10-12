@@ -42,9 +42,8 @@ Each module story owns one inventory file and one approval record.
   module story.
 - Authorization SSoT: each story's approval record; its inventory mirrors the
   record's `Approval state`.
-- Status: `blocked`
-- Current blocker: MIG-90 full-flow apply remains separately approval-gated by its
-  approval record; all module stories and safe final checks are complete.
+- Status: `done`
+- Current blocker: none; all module stories and final closeout checks are complete.
 
 Migration mutation is authorized only within the exact scope of an approved
 story and its inventory.
@@ -1659,7 +1658,7 @@ Use the common rollback contract. Restore the directory target.
 - Approval: `required`
 - Approval record: `.agents/projects/stow-to-mise-migration/research/approvals/MIG-90.md`
 - Dependencies: every `MIG-MODULE-*` story
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-90`
 

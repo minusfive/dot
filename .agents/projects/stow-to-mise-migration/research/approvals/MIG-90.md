@@ -18,9 +18,13 @@
 - Focused test: `mise run check`
 - Rollback record: `.agents/projects/stow-to-mise-migration/plans/migration-roadmap-v1.md#rollback-and-mitigation-mig-90`
 - Final decision: `approved for execution`
+- Closeout result: `complete`
 
 ## Notes
 
-The user approved the remaining stories in the roadmap in the current
-interaction. This record authorizes only the recorded final validation and
-closeout scope; the full-flow apply remains separately approval-gated.
+The user approved execution in the current interaction, including pruning
+unused mise tool versions. The final flow reached `Bootstrap complete`, and
+the repository phase reported all eight repositories current. The
+non-interactive pseudo-terminal wrapper returned through the script's expected
+Zsh reload path after completion; the wrapper process reported nonzero only
+after that completion banner. Final state validation passed.

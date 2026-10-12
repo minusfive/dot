@@ -171,22 +171,24 @@ pending-decisions document has no pending decision.
 
 ### `PLAN-09`: Complete migration closeout checks
 
-- Status: `blocked`
+- Status: `complete`
 - Scope:
   - run every focused module test and aggregate repository check;
   - verify one-owner state, runtime exclusions, and final documentation; and
-  - record the separately gated full-flow integration test as the only
-    remaining closeout item.
+  - record the full-flow integration result and any residual exceptions.
 - Evidence:
   - All 29 module-focused tests, migration artifact validation, and `mise run
 check` pass.
   - `stow -nvR .` reports only the remaining repository/bootstrap boundaries,
     with no migrated application boundary.
-  - `mise bootstrap --dry-run` and target-scoped dotfile dry runs are
-    converged except for the expected rendered workspace profile preview.
-- Blocker:
-  - `MIG-90` approval explicitly states that the full-flow apply remains
-    separately approval-gated, so `./scripts/init.zsh --mise` was not run.
+  - `mise bootstrap status --json` reports no secrets and no unconverged
+    package, file, repository, or dotfile resources.
+  - All 71 active mise targets report `applied`; the target-scoped dry run
+    contains only the expected workspace profile render preview.
+  - `./scripts/init.zsh --mise` reached `Bootstrap complete` with package,
+    dotfile, workspace, dev-tool, and repository phases applied. The
+    non-interactive pseudo-terminal wrapper returned through the script's
+    expected Zsh reload path after completion.
 
 ### `PLAN-10`: Align local-development source boundaries
 
