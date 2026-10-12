@@ -62,12 +62,11 @@ The synchronization task must:
 ## 4: Stacked pull requests
 
 - Treat a stack as two or more pull requests in the same repository, ordered from a trunk branch to dependent branches.
-- Keep each stack branch reviewable as a separate change. Put dependent work on a branch above the branch that contains its dependency.
-- Install the official extension before you use the stack workflow: `gh extension install github/gh-stack`.
-- Initialize an existing branch chain from bottom to top: `gh stack init --base <trunk-branch> <bottom-branch> <child-branch>`.
-- After I approve creation in the current interaction, push the stack and create or update its pull requests with `gh stack submit --auto --open`.
-- Use `gh stack link --base <trunk-branch> <bottom-branch> <child-branch>` when the branches already exist and you want GitHub to create or correct the chained pull requests.
-- Inspect the stack with `gh stack view --short`. Synchronize it with `gh stack sync`.
-- Rebase the stack after lower branches or the trunk change with `gh stack rebase`. Use `gh stack merge` to merge the stack from the bottom upward.
+- Keep each branch reviewable as a separate change. Put dependent work above its dependency.
+- After I approve creation in the current interaction, create or reuse a PR stack with `mise run pr:stack -- <bottom-pr> <child-pr> ...`.
+- Use `gh stack init`, `gh stack add`, `gh stack push`, and `gh stack submit` when you build a new local stack.
+- Use `gh stack view`, `gh stack sync`, `gh stack rebase`, and `gh stack merge` to manage the stack.
+- If GitHub rebases a PR after its parent merges, run `mise run pr:stack-sync -- --pr-number <number>`.
 - Derive each pull request title, body, and changed-path manifest from that branch's diff against the branch below it.
-- Read [About stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs) and [Stacked pull request CLI commands](https://docs.github.com/en/pull-requests/reference/stacked-prs-cli-commands) when the workflow or command flags change.
+- Run `mise run pr:sync` for each pushed pull request before handoff.
+- Read [About stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs) when the workflow changes.

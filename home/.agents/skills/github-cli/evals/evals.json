@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "skill": "github-cli",
+  "cases": [
+    {
+      "id": "create-existing-pr-stack",
+      "prompt": "The repository has an existing bottom PR and child PR. Which command creates their remote stack?",
+      "expected_output": "Run `mise run pr:stack -- <bottom-pr> <child-pr> ...` with the PR numbers in bottom-to-top order.",
+      "assertions": ["Uses the repository pr:stack task.", "Orders pull requests from bottom to top."]
+    },
+    {
+      "id": "manage-local-pr-stack",
+      "prompt": "Which gh commands manage a new local stack from branch creation through synchronization?",
+      "expected_output": "Use `gh stack init`, `gh stack add`, `gh stack push`, `gh stack submit`, and `gh stack sync`.",
+      "assertions": [
+        "Names gh stack init.",
+        "Names gh stack add.",
+        "Names gh stack push and gh stack submit.",
+        "Names gh stack sync."
+      ]
+    },
+    {
+      "id": "inspect-stack-documentation",
+      "prompt": "Where should I read the current stacked pull request workflow?",
+      "expected_output": "Read GitHub's official About stacked pull requests documentation and use the repository's `pr:stack` task for existing PRs.",
+      "assertions": [
+        "Points to GitHub's official stacked pull request documentation.",
+        "Points to the repository pr:stack task."
+      ]
+    },
+    {
+      "id": "sync-github-rebased-pr",
+      "prompt": "GitHub rebased an open stacked PR after its parent merged. Which repository task syncs the local branch?",
+      "expected_output": "Run `mise run pr:stack-sync -- --pr-number <number>`.",
+      "assertions": ["Uses the repository pr:stack-sync task.", "Passes the PR number."]
+    }
+  ]
+}
