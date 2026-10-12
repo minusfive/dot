@@ -21,6 +21,15 @@ description: Use the `gh` CLI for pull requests, issues, workflow runs, releases
 - Checks, runs, and releases: use `gh run`, `gh release`, and `gh api`.
 - Authentication and context checks: use `gh auth status` and related `gh` commands.
 
+## Stacked Pull Requests
+
+- Create a stack from existing pull requests with `mise run pr:stack -- <bottom-pr> <child-pr> ...`.
+- Sync a GitHub-rebased PR branch with `mise run pr:stack-sync -- --pr-number <number>`.
+- Use `gh stack` for local branch stacks: `gh stack init`, `gh stack add`, `gh stack push`, and `gh stack submit`.
+- Inspect and update a stack with `gh stack view`, `gh stack sync`, `gh stack rebase`, and `gh stack merge`.
+- Read [About stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs) and [Stacked pull request CLI commands](https://docs.github.com/en/pull-requests/reference/stacked-prs-cli-commands) when the workflow changes.
+- Follow `pr-guidelines` for complete-diff metadata and PR synchronization.
+
 ## Examples
 
 - List docs directory: `gh api repos/jdx/mise/contents/docs`

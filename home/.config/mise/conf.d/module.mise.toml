@@ -39,6 +39,8 @@
 "~/.config/mise/tasks/global-install-packages-ruby.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-ruby.sh", mode = "symlink" }
 "~/.config/mise/tasks/lint-skill-index.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/lint-skill-index.zsh", mode = "symlink" }
 "~/.config/mise/tasks/md/preview.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/md/preview.ts", mode = "symlink" }
+"~/.config/mise/tasks/pr/stack.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack.ts", mode = "symlink" }
+"~/.config/mise/tasks/pr/stack-sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack-sync.ts", mode = "symlink" }
 "~/.config/mise/tasks/pr/sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/sync.ts", mode = "symlink" }
 "~/.config/mise/utils/git.ts" = { source = "~/dev/personal/dot/home/.config/mise/utils/git.ts", mode = "symlink" }
 "~/.config/mise/conf.d/module.mise.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.mise.toml", mode = "symlink" }

@@ -58,3 +58,15 @@ The synchronization task must:
 - If a pull request is needed and none exists, ask me for explicit approval before you create it.
 - Approval to create a pull request must come from me in the current interaction. Do not infer approval from a push, branch state, or another tool.
 - Create the pull request with metadata derived from the complete base-to-`HEAD` change set, then run `pr:sync` with the manifest after creation.
+
+## 4: Stacked pull requests
+
+- Treat a stack as two or more pull requests in the same repository, ordered from a trunk branch to dependent branches.
+- Keep each branch reviewable as a separate change. Put dependent work above its dependency.
+- After I approve creation in the current interaction, create or reuse a PR stack with `mise run pr:stack -- <bottom-pr> <child-pr> ...`.
+- Use `gh stack init`, `gh stack add`, `gh stack push`, and `gh stack submit` when you build a new local stack.
+- Use `gh stack view`, `gh stack sync`, `gh stack rebase`, and `gh stack merge` to manage the stack.
+- If GitHub rebases a PR after its parent merges, run `mise run pr:stack-sync -- --pr-number <number>`.
+- Derive each pull request title, body, and changed-path manifest from that branch's diff against the branch below it.
+- Run `mise run pr:sync` for each pushed pull request before handoff.
+- Read [About stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs) when the workflow changes.

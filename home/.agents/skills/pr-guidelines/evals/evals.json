@@ -62,6 +62,48 @@
         "Requires inspection of the complete diff before creation.",
         "Requires metadata to cover all functional areas."
       ]
+    },
+    {
+      "id": "initialize-and-submit-stack",
+      "prompt": "I have a bottom branch and a child branch. Which gh commands initialize the stack and create its pull requests?",
+      "expected_output": "Run `gh stack init --base <trunk-branch> <bottom-branch> <child-branch>`, then run `gh stack submit --auto --open`.",
+      "assertions": [
+        "Uses gh stack init.",
+        "Sets the trunk with --base.",
+        "Lists branches from bottom to top.",
+        "Uses gh stack submit to create or update pull requests."
+      ]
+    },
+    {
+      "id": "create-stack-with-mise-task",
+      "prompt": "The pull requests already exist. Which repository task creates the remote stack?",
+      "expected_output": "Run `mise run pr:stack -- <bottom-pr> <child-pr> ...` with pull request numbers from bottom to top.",
+      "assertions": [
+        "Uses the mise pr:stack task.",
+        "Lists pull request numbers from bottom to top.",
+        "Does not use gh stack link as the primary command."
+      ]
+    },
+    {
+      "id": "sync-and-rebase-stack",
+      "prompt": "The trunk or a lower branch changed after I opened the stack. Which gh commands update the stack?",
+      "expected_output": "Run `gh stack sync` to fetch, rebase, push, and synchronize the stack. Use `gh stack rebase` when you need to run the cascading rebase directly.",
+      "assertions": [
+        "Uses gh stack sync.",
+        "Uses gh stack rebase.",
+        "Associates sync with fetching, rebasing, pushing, and pull request synchronization."
+      ]
+    },
+    {
+      "id": "sync-github-rebased-pr",
+      "prompt": "GitHub rebased my open stacked PR after its parent merged, but the local branch is stale. Which task syncs it?",
+      "expected_output": "Run `mise run pr:stack-sync -- --pr-number <number>`. The task fetches the remote head, preserves compatible local changes, and verifies stack metadata.",
+      "assertions": [
+        "Uses the mise pr:stack-sync task.",
+        "Passes the pull request number.",
+        "States that the task fetches the remote head.",
+        "States that the task preserves compatible local changes."
+      ]
     }
   ]
 }
