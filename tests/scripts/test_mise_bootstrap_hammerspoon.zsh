@@ -14,7 +14,7 @@ grep -qF '"~/.config/hammerspoon" = { source = "~/dev/personal/dot/home/.config/
     fail "Hammerspoon symlink-each declaration is missing"
 [[ ! -e "$__source/.luarc.json" ]] || fail "repository-only .luarc.json entered the mise source"
 [[ ! -e "$__target/.luarc.json" ]] || fail "repository-only .luarc.json leaked into the target"
-local __expected_count="$(git ls-files -- .config/hammerspoon | grep -v '^.config/hammerspoon/.luarc.json$' | wc -l | tr -d ' ')"
+local __expected_count="$(git ls-files -- home/.config/hammerspoon | wc -l | tr -d ' ')"
 local __source_count="$(find "$__source" -type f | wc -l | tr -d ' ')"
 local __link_count="$(find "$__target" -type l | wc -l | tr -d ' ')"
 [[ "$__source_count" == "$__expected_count" ]] || fail "Hammerspoon source manifest mismatch"

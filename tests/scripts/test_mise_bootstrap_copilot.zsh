@@ -25,6 +25,7 @@ zsh -n home/.copilot/statusline-context.sh || fail "Copilot statusline has synta
 test "$(readlink home/.copilot/copilot-instructions.md)" = "../AGENTS.md" ||
     fail "repository-only Copilot alias changed"
 
+[[ -d "$HOME/.copilot" && ! -L "$HOME/.copilot" ]] || fail "Copilot target must be a physical directory"
 [[ -L "$HOME/.copilot/copilot-instructions.md" ]] || fail "Copilot instructions target is not a symlink"
 [[ -L "$HOME/.copilot/statusline-context.sh" ]] || fail "Copilot statusline target is not a symlink"
 [[ -x "$HOME/.copilot/statusline-context.sh" ]] || fail "Copilot statusline target is not executable"
@@ -32,9 +33,5 @@ test "$(readlink home/.copilot/copilot-instructions.md)" = "../AGENTS.md" ||
     fail "Copilot instructions target does not resolve to AGENTS.md"
 [[ "$(realpath "$HOME/.copilot/statusline-context.sh")" == "$(realpath home/.copilot/statusline-context.sh)" ]] ||
     fail "Copilot statusline target resolves to the wrong source"
-
-local __runtime_count
-__runtime_count="$(find -P "$HOME/.copilot" -mindepth 1 ! -type l -print | wc -l | tr -d ' ')"
-[[ "$__runtime_count" -ge 0 ]] || fail "Copilot runtime inspection failed"
 
 echo "Copilot bootstrap configuration passed."
