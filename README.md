@@ -58,6 +58,8 @@ The `home/` directory is a source tree for files that belong under `$HOME`. Its 
 
 Mise declarations live in [`home/.config/mise/conf.d/`](./home/.config/mise/conf.d/) and are linked into `~/.config/mise/`. Files are grouped by logical boundary, such as `module.gh.toml` for GitHub resources and `module.profiles.toml` for rendered workspace profiles. This keeps each bootstrap area small and independently understandable.
 
+Package resources use dedicated module files, with related 1Password packages grouped in `module.1password.toml`. The shared `module.packages.toml` file keeps the Homebrew adoption setting, and both profiles load the shared package modules. The `module.personal-packages.toml` file contains personal-only casks.
+
 Mise uses two related resource models:
 
 - `[dotfiles]` describes user files that mise links, copies, templates, tracks, or removes. Its `symlink-each` mode lets a managed source tree coexist with files that an application owns itself.

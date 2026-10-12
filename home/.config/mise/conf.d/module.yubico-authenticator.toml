@@ -1,0 +1,3 @@
+[bootstrap.packages]
+# Yubico Authenticator
+"mas:1497506650" = "latest"

@@ -14,32 +14,81 @@ grep -qF '"~/.config/mise/conf.d/module.packages.toml"' home/.config/mise/conf.d
     fail "mise control-plane module does not deploy module.packages.toml"
 grep -qF "[bootstrap.brew]" "$__config" || fail "Homebrew bootstrap section is missing"
 grep -qF "adopt = true" "$__config" || fail "Homebrew adoption is missing"
-grep -qF '"mas:1497506650" = "latest"' "$__config" || fail "Yubico Authenticator is missing"
-grep -qF '"mas:1569813296" = "latest"' "$__config" || fail "1Password for Safari is missing"
+if grep -qF "[bootstrap.packages]" "$__config"; then
+    fail "shared package declarations should be moved to package modules"
+fi
 
-local -a __shared_casks=(
-    1password
-    1password-cli
-    betterdisplay
-    claude-code
-    docker-desktop
-    google-chrome
-    ghostty
-    gpg-suite
-    hammerspoon
-    imageoptim
-    obsidian
-    wezterm@nightly
+local __shared_profile_count="$(grep -o '"packages"' home/.config/mise/miserc.toml | wc -l | tr -d ' ')"
+[[ "$__shared_profile_count" -eq 2 ]] || fail "shared package module must be selected by both profiles"
+
+local -a __module_packages=(
+    "module.bat.toml|brew:bat"
+    "module.btop.toml|brew:btop"
+    "module.fd.toml|brew:fd"
+    "module.fzf.toml|brew:fzf"
+    "module.gh.toml|brew:gh"
+    "module.git.toml|brew:git"
+    "module.lazygit.toml|brew:lazygit"
+    "module.nvim.toml|brew:neovim"
+    "module.ripgrep.toml|brew:ripgrep"
+    "module.tmux.toml|brew:tmux"
+    "module.yazi.toml|brew:yazi"
+    "module.zsh.toml|brew:zsh"
+    "module.1password.toml|brew-cask:1password"
+    "module.1password.toml|brew-cask:1password-cli"
+    "module.1password.toml|mas:1569813296"
+    "module.betterdisplay.toml|brew-cask:betterdisplay"
+    "module.claude.toml|brew-cask:claude-code"
+    "module.ghostty.toml|brew-cask:ghostty"
+    "module.hammerspoon.toml|brew-cask:hammerspoon"
+    "module.wezterm.toml|brew-cask:wezterm@nightly"
+    "module.sqlite.toml|brew:sqlite"
+    "module.coreutils.toml|brew:coreutils"
+    "module.curl.toml|brew:curl"
+    "module.dockutil.toml|brew:dockutil"
+    "module.eza.toml|brew:eza"
+    "module.findutils.toml|brew:findutils"
+    "module.ghostscript.toml|brew:ghostscript"
+    "module.htop.toml|brew:htop"
+    "module.imagemagick.toml|brew:imagemagick"
+    "module.jq.toml|brew:jq"
+    "module.just.toml|brew:just"
+    "module.libtiff.toml|brew:libtiff"
+    "module.libyaml.toml|brew:libyaml"
+    "module.luarocks.toml|brew:luarocks"
+    "module.mas.toml|brew:mas"
+    "module.pkl-lsp.toml|brew:pkl-lsp"
+    "module.stow.toml|brew:stow"
+    "module.tectonic.toml|brew:tectonic"
+    "module.vivid.toml|brew:vivid"
+    "module.wallpaper.toml|brew:wallpaper"
+    "module.wget.toml|brew:wget"
+    "module.yq.toml|brew:yq"
+    "module.zoxide.toml|brew:zoxide"
+    "module.docker-desktop.toml|brew-cask:docker-desktop"
+    "module.google-chrome.toml|brew-cask:google-chrome"
+    "module.gpg-suite.toml|brew-cask:gpg-suite"
+    "module.imageoptim.toml|brew-cask:imageoptim"
+    "module.obsidian.toml|brew-cask:obsidian"
+    "module.yubico-authenticator.toml|mas:1497506650"
 )
-for __cask in "${__shared_casks[@]}"; do
-    grep -q "\"brew-cask:$__cask\" = \"latest\"" "$__config" || fail "shared cask $__cask is missing"
-done
-
-for __cask in discord softraid whatsapp; do
-    if grep -q "\"brew-cask:$__cask\" = \"latest\"" "$__config"; then
-        fail "personal cask $__cask should not be in shared config"
+for __module_package in "${__module_packages[@]}"; do
+    local __module="${__module_package%%|*}"
+    local __package="${__module_package#*|}"
+    local __module_name="${__module#module.}"
+    __module_name="${__module_name%.toml}"
+    grep -q "\"$__package\" = \"latest\"" "home/.config/mise/conf.d/$__module" ||
+        fail "$__package is missing from $__module"
+    if grep -q "\"$__package\" = \"latest\"" "$__config"; then
+        fail "$__package should not remain in shared config"
     fi
+    local __profile_count="$(grep -o "\"$__module_name\"" home/.config/mise/miserc.toml | wc -l | tr -d ' ')"
+    [[ "$__profile_count" -eq 2 ]] || fail "$__module must be selected by both profiles"
 done
+grep -qF "# 1Password for Safari" home/.config/mise/conf.d/module.1password.toml ||
+    fail "1Password for Safari comment is missing"
+grep -qF "# Yubico Authenticator" home/.config/mise/conf.d/module.yubico-authenticator.toml ||
+    fail "Yubico Authenticator comment is missing"
 
 if grep -qF "[bootstrap.brew.taps]" "$__config"; then
     fail "Homebrew taps should not be declared here"

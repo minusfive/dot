@@ -1,2 +1,5 @@
+[bootstrap.packages]
+"brew:lazygit" = "latest"
+
 [dotfiles]
 "~/.config/lazygit" = { source = "~/dev/personal/dot/home/.config/lazygit", mode = "symlink-each" }
