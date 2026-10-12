@@ -1,22 +1,14 @@
-# Personal System Config
+# Personal System Configuration
 
-This branch uses [Homebrew](https://brew.sh), [mise-en-place](https://mise.jdx.dev), and custom [Zsh](https://www.zsh.org/) scripts to configure macOS the way I like it.
+This repository manages my macOS configuration. It uses [mise][mise], [Homebrew][homebrew], and custom [Zsh][zsh] scripts.
 
-I try my best to keep this and [my Nix-based configuration](https://github.com/minusfive/tree/nix) synchronized, but depending on which type of machine I'm working with more regularly, I may prioritize one configuration over the other.
-
-> [!NOTE]
-> This configuration includes several keyboard shortcuts (for app launching, window management, text editing, etc.), optimized to work with [my custom keyboard layout](https://github.com/minusfive/zmk-config) and workflow. To customize you'll likely want to primarily look at the following configurations:
->
-> - [Hammerspoon](./home/.config/hammerspoon/)
-> - [Wezterm](./home/.config/wezterm/)
-> - [NeoVim](./home/.config/nvim/)
+The configuration includes keyboard shortcuts for application launchers, window management, and text editing. These shortcuts work best with my [custom keyboard layout][keyboard-layout].
 
 ## Setup
 
-> [!WARNING]
-> This will modify system settings, install, and configure software. You should read and understand [the init script](./scripts/init.zsh) and the [other scripts it calls](./scripts/) before proceeding.
+The initialization script changes system settings and installs software. Read the [initialization script](./scripts/init.zsh) and the scripts that it calls before you run it.
 
-To setup a new machine or update a current one, run:
+Clone the repository and initialize a machine:
 
 ```sh
 git clone --single-branch --branch main git@github.com:minusfive/dot.git ~/dev/dot
@@ -24,10 +16,7 @@ cd ~/dev/dot
 ./scripts/init.zsh
 ```
 
-## Profiles
-
-The bootstrap supports two profiles: `work` and `personal`. The `work` profile
-is the default and is the safer choice for a new machine.
+The bootstrap supports `work` and `personal` profiles. The `work` profile is the default and is the safer choice for a new machine.
 
 Select a profile with `--profile`:
 
@@ -35,63 +24,83 @@ Select a profile with `--profile`:
 ./scripts/init.zsh --profile personal --mise
 ```
 
-The script stores the selected profile at
-`${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` and exports it as
-`DOT_PROFILE`. Later runs use the stored profile unless you select another one.
+The script stores the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` and exports it as `DOT_PROFILE`. Later runs use the stored profile unless you select another one.
 
-Both profiles load the shared package set. The `personal` profile also loads
-the Discord, SoftRAID, and WhatsApp casks. The selected profile also controls
-which profile-specific `mise` environment is active.
+Each profile loads a different set of `mise` modules. The selected profile controls the active profile-specific `mise` environment.
 
-Hammerspoon reads the same state file through the
-[ProfileState Spoon](./home/.config/hammerspoon/Spoons/ProfileState.spoon/init.lua).
-It mirrors the profile through `hs.settings`, which persists the value in
-macOS defaults and makes it readable by other applications. The state file
-remains the source of truth.
+Hammerspoon reads the same state file through the [ProfileState Spoon](./home/.config/hammerspoon/Spoons/ProfileState.spoon/init.lua). It mirrors the profile through `hs.settings`. The state file remains the source of truth.
 
-## Global files and configuration
+## Repository layout
 
-> [!NOTE]
-> Global application configuration is managed by mise.
+The `home/` directory is a source tree for files that belong under `$HOME`. Its layout mirrors the target layout, so each source path also describes its installed path.
 
-The `home/` directory is a source tree for files that belong under `$HOME`. Its layout mirrors the target layout, so the source location also describes the installed location.
+Look in these directories when you customize the configuration:
 
-Mise declarations live in [`home/.config/mise/conf.d/`](./home/.config/mise/conf.d/) and are linked into `~/.config/mise/`. Files are grouped by logical boundary, such as `module.gh.toml` for GitHub resources and `module.profiles.toml` for rendered workspace profiles. This keeps each bootstrap area small and independently understandable.
+- [Hammerspoon](./home/.config/hammerspoon/)
+- [Neovim](./home/.config/nvim/)
+- [WezTerm](./home/.config/wezterm/)
 
-Package resources use dedicated module files. Tightly coupled declarations share a module, and `miserc.toml` selects the module list for each profile. Mise adopts existing Homebrew packages through the shared Homebrew bootstrap setting, while package modules declare individual resources.
+```text
+.
+├── .agents/                         # repository skills and project guidance
+├── .mise/                           # repository-local tools and tasks
+├── assets/                          # images
+├── home/                            # source tree mirrored under ~/
+│   ├── .config/
+│   │   ├── hammerspoon/             # ~/.config/hammerspoon
+│   │   ├── mise/                    # ~/.config/mise
+│   │   ├── nvim/                    # ~/.config/nvim
+│   │   └── ...
+│   ├── .ssh/
+│   │   └── config                   # ~/.ssh/config
+│   └── .zshenv                      # ~/.zshenv
+├── scripts/                         # bootstrap and development tasks
+├── tests/                           # script tests
+└── ...
+```
 
-Mise uses two related resource models:
+## Machine bootstrap
 
-- `[dotfiles]` describes user files that mise links, copies, templates, tracks, or removes. Its `symlink-each` mode lets a managed source tree coexist with files that an application owns itself.
-- `[bootstrap.files]` describes files that bootstrap creates or renders. `[bootstrap.directories]` describes directory state such as permissions.
+[mise][mise] manages global files, packages, and repository tools. Declarations for global configuration live in [home/.config/mise/conf.d/](./home/.config/mise/conf.d/). Mise links these files into `~/.config/mise/`.
 
-The [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.html) and [mise bootstrap documentation](https://mise.jdx.dev/bootstrap.html) define the available resource modes and bootstrap phases.
+The declarations are grouped by logical boundary. For example, `module.gh.toml` manages GitHub resources and `module.profiles.toml` manages rendered workspace profiles. This keeps each bootstrap area small and independently understandable.
 
-The `--mise` initialization interface updates mise itself, then applies the package, file, repository, and dotfile phases.
+Package resources use dedicated module files. Tightly coupled declarations share a module. `miserc.toml` selects the modules for each profile.
 
-Global files such as [`home/.editorconfig`](./home/.editorconfig),
-[`home/.ssh/config`](./home/.ssh/config), and
-[`home/.zshenv`](./home/.zshenv) are managed by their related mise boundaries:
-EditorConfig has its own module, SSH configuration belongs to the
-[`module.1password.toml`](./home/.config/mise/conf.d/module.1password.toml)
-boundary, and the Zsh environment belongs to
-[`module.zsh.toml`](./home/.config/mise/conf.d/module.zsh.toml).
-Boundary-local development files for Hammerspoon and WezTerm live in their
-matching `home/.config/...` source directories, and their mise declarations
-exclude those files from runtime targets. A target belongs to one management
-system at a time.
+[dotfiles][mise-dotfiles] declarations describe user files that mise links, copies, templates, tracks, or removes. [bootstrap.files][mise-bootstrap] declarations describe files that bootstrap creates or renders, while [bootstrap.directories][mise-bootstrap] declarations describe directory state, such as permissions. Together, these declarations define the available resource modes and bootstrap phases.
 
-## Programs
-
-System package state is managed by [mise-en-place](https://mise.jdx.dev), with shared machine configuration in [home/.config/mise/config.toml](./home/.config/mise/config.toml) and [home/.config/mise/conf.d/](./home/.config/mise/conf.d/), and repo-local tooling in [./.mise/config.toml](./.mise/config.toml) and [./.mise/conf.d/](./.mise/conf.d/). This includes Homebrew formulae, Homebrew casks, and Mac App Store apps. [Homebrew](https://brew.sh) is now only an optional bootstrap helper, while development tooling and setup flows continue through `mise` and the [Zsh scripts](./scripts/).
-
----
-
-<img alt="Workspace" src="./assets/workspace.png" width="100%"/>
-
----
+The `--mise` initialization interface updates mise. It then applies the package, file, repository, and dotfile phases.
 
 ## Development
 
-This project uses the tools it manages, so setting up the machine should set everything up for development. Switching to
-the repository directory should automatically install the project-specific dependencies via [mise-en-place](https://mise.jdx.dev).
+The repository manages the tools that it uses for development. Entering the repository activates its project-specific `mise` environment.
+
+Run the setup task to install project dependencies and install `hk` hooks that run through `mise`:
+
+```sh
+mise run setup
+```
+
+Run all configured checks:
+
+```sh
+mise run check
+```
+
+The [hk configuration](./hk.pkl) runs checks and fixes from one shared definition. It uses [rumdl][rumdl] for Markdown linting and [Prettier][prettier] for formatting. `.rumdl.toml` keeps the previous Markdown style choices, including its inline HTML allowlist.
+
+![Workspace](./assets/workspace.png)
+
+## Previous Nix configuration
+
+I previously maintained a [Nix-based configuration][nix-config]. I no longer maintain it because this repository now replicates much of what I liked about Nix with `mise`.
+
+[homebrew]: https://brew.sh
+[keyboard-layout]: https://github.com/minusfive/zmk-config
+[mise]: https://mise.jdx.dev
+[mise-bootstrap]: https://mise.jdx.dev/bootstrap.html
+[mise-dotfiles]: https://mise.jdx.dev/dotfiles.html
+[nix-config]: https://github.com/minusfive/dot/tree/nix
+[prettier]: https://prettier.io
+[rumdl]: https://rumdl.dev
+[zsh]: https://www.zsh.org/

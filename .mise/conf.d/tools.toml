@@ -1,7 +1,7 @@
 [tools]
 bun = "latest"
 betterleaks = "latest"
-markdownlint-cli2 = "latest"
+rumdl = "latest"
 pkl = "latest"
 hk = "latest"
 shellcheck = "latest"

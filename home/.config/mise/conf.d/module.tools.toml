@@ -12,7 +12,7 @@ delta = "latest"
 stylua = "latest"
 prettier = "latest"
 tree-sitter = "latest"
-markdownlint-cli2 = "latest"
+rumdl = "latest"
 opencode = "latest"
 
 "npm:@mermaid-js/mermaid-cli" = { version = "latest", install_env = { PUPPETEER_SKIP_DOWNLOAD = "1" } }

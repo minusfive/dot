@@ -53,7 +53,9 @@ Add a focused section when new information does not fit these topics. Keep relat
 - Put a tool link beside its first mention, then use one consistent name.
 - Keep commands in code blocks and explain their effect before or after the block.
 - Use short paragraphs, clear headings, and lists for separate facts.
+- Keep each prose paragraph on one source line. Let the Markdown renderer wrap the text.
 - Remove stale commands, paths, links, and migration statements when the source changes.
+- Keep profile descriptions general. Name foundational tools and structural boundaries, but omit personal package and cask examples unless setup requires them.
 - Keep the README concise. Link to canonical tool documentation instead of copying it.
 
 ## Workflow

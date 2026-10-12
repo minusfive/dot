@@ -1,0 +1,49 @@
+[global]
+disable = ["MD013", "MD041"]
+extend-enable = ["MD060"]
+exclude = ["home/.config/yazi/flavors/catppuccin-mocha.yazi/README.md"]
+
+[MD003]
+style = "atx"
+
+[MD004]
+style = "dash"
+
+[MD010]
+spaces_per_tab = 2
+
+[MD029]
+style = "ordered"
+
+[MD033]
+allowed_elements = [
+  "img",
+  "antml:function_calls",
+  "antml:invoke",
+  "antml:parameter",
+  "antml:system_warning",
+  "a",
+  "summary",
+  "details",
+]
+
+[MD046]
+style = "fenced"
+
+[MD048]
+style = "backtick"
+
+[MD049]
+style = "underscore"
+
+[MD050]
+style = "asterisk"
+
+[MD052]
+shortcut_syntax = false
+
+[MD055]
+style = "leading_and_trailing"
+
+[MD060]
+style = "aligned"
