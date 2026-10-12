@@ -23,10 +23,14 @@ description: Use the `gh` CLI for pull requests, issues, workflow runs, releases
 
 ## Stacked Pull Requests
 
-- Set the parent branch explicitly when you create a stacked pull request: `gh pr create --base <parent-branch> --head <child-branch>`.
-- Inspect the relationship between a stacked pull request and its branches with `gh pr view <number> --json baseRefName,headRefName,baseRefOid,headRefOid`.
-- Retarget a child pull request after its parent merges with `gh pr edit <number> --base <new-base-branch>`.
-- Follow `pr-guidelines` for branch order, complete-diff metadata, push synchronization, and post-command verification.
+- Install the official `gh stack` extension before you use stacked pull requests: `gh extension install github/gh-stack`.
+- Read [About stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs) and [Stacked pull request CLI commands](https://docs.github.com/en/pull-requests/reference/stacked-prs-cli-commands) for the current workflow.
+- Initialize a local stack from bottom to top: `gh stack init --base <trunk-branch> <bottom-branch> <child-branch>`.
+- Push the stack and create or update its pull requests with `gh stack submit --auto --open`.
+- Link existing branches into a GitHub stack with `gh stack link --base <trunk-branch> <bottom-branch> <child-branch>`.
+- Inspect and synchronize the stack with `gh stack view --short` and `gh stack sync`.
+- Use `gh stack rebase` after the trunk or a lower stack branch changes. Use `gh stack merge` to merge a stack.
+- Follow `pr-guidelines` for complete-diff metadata, validation, and repository-specific synchronization.
 
 ## Examples
 

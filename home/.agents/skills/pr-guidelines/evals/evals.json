@@ -64,34 +64,35 @@
       ]
     },
     {
-      "id": "create-stacked-pull-request",
-      "prompt": "I created a child branch from an unmerged feature branch. Which gh command creates the stacked pull request?",
-      "expected_output": "Create it with an explicit parent base and child head: `gh pr create --base <parent-branch> --head <child-branch> --title \"<title>\" --body-file <body-file>`.",
+      "id": "initialize-and-submit-stack",
+      "prompt": "I have a bottom branch and a child branch. Which gh commands initialize the stack and create its pull requests?",
+      "expected_output": "Run `gh stack init --base <trunk-branch> <bottom-branch> <child-branch>`, then run `gh stack submit --auto --open`.",
       "assertions": [
-        "Uses gh pr create.",
-        "Sets the parent branch with --base.",
-        "Sets the child branch with --head.",
-        "Does not rely on the repository default branch."
+        "Uses gh stack init.",
+        "Sets the trunk with --base.",
+        "Lists branches from bottom to top.",
+        "Uses gh stack submit to create or update pull requests."
       ]
     },
     {
-      "id": "verify-stacked-pull-request",
-      "prompt": "How do I verify that a pull request is stacked on the intended parent branch?",
-      "expected_output": "Run `gh pr view <number> --json baseRefName,headRefName,baseRefOid,headRefOid` and confirm that the base is the parent branch and the head is the child branch.",
+      "id": "link-existing-stack-branches",
+      "prompt": "The branches and bottom pull request already exist. Which gh command creates or corrects the chained pull requests and links the stack?",
+      "expected_output": "Run `gh stack link --base <trunk-branch> <bottom-branch> <child-branch>` with branch arguments in stack order.",
       "assertions": [
-        "Uses gh pr view.",
-        "Requests both branch names and commit IDs.",
-        "Requires confirmation that the base and head match the intended stack."
+        "Uses gh stack link.",
+        "Sets the trunk with --base.",
+        "Lists branches from bottom to top.",
+        "States that the command creates or corrects the chained pull requests."
       ]
     },
     {
-      "id": "retarget-child-after-parent-merge",
-      "prompt": "The parent pull request in a stack merged. Which gh command changes the child pull request to target the new base branch?",
-      "expected_output": "After updating the child branch with the repository's normal branch-update process, run `gh pr edit <number> --base <new-base-branch>`.",
+      "id": "sync-and-rebase-stack",
+      "prompt": "The trunk or a lower branch changed after I opened the stack. Which gh commands update the stack?",
+      "expected_output": "Run `gh stack sync` to fetch, rebase, push, and synchronize the stack. Use `gh stack rebase` when you need to run the cascading rebase directly.",
       "assertions": [
-        "Uses gh pr edit.",
-        "Sets the new base branch with --base.",
-        "Places branch updating before retargeting the pull request."
+        "Uses gh stack sync.",
+        "Uses gh stack rebase.",
+        "Associates sync with fetching, rebasing, pushing, and pull request synchronization."
       ]
     }
   ]

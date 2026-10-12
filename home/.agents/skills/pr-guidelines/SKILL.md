@@ -61,11 +61,13 @@ The synchronization task must:
 
 ## 4: Stacked pull requests
 
-- Treat a stacked pull request as a pull request whose base is another feature branch.
-- Create the child branch from the current parent branch after you inspect the worktree: `git switch -c <child-branch>`.
-- After I approve creation in the current interaction, push the child branch once, then create its pull request with an explicit base and head:
-  `gh pr create --base <parent-branch> --head <child-branch> --title "<title>" --body-file <body-file>`.
-- Verify the stack with `gh pr view <number> --json baseRefName,headRefName,baseRefOid,headRefOid`.
-- Derive the child pull request title, body, and changed-path manifest from the child branch's diff against its parent branch.
-- After the parent merges, update the child branch by the repository's normal branch-update process. Then retarget the child pull request with `gh pr edit <number> --base <new-base-branch>`.
-- Keep each stacked pull request reviewable on its own. Do not use the default branch as the base when the child depends on an unmerged parent.
+- Treat a stack as two or more pull requests in the same repository, ordered from a trunk branch to dependent branches.
+- Keep each stack branch reviewable as a separate change. Put dependent work on a branch above the branch that contains its dependency.
+- Install the official extension before you use the stack workflow: `gh extension install github/gh-stack`.
+- Initialize an existing branch chain from bottom to top: `gh stack init --base <trunk-branch> <bottom-branch> <child-branch>`.
+- After I approve creation in the current interaction, push the stack and create or update its pull requests with `gh stack submit --auto --open`.
+- Use `gh stack link --base <trunk-branch> <bottom-branch> <child-branch>` when the branches already exist and you want GitHub to create or correct the chained pull requests.
+- Inspect the stack with `gh stack view --short`. Synchronize it with `gh stack sync`.
+- Rebase the stack after lower branches or the trunk change with `gh stack rebase`. Use `gh stack merge` to merge the stack from the bottom upward.
+- Derive each pull request title, body, and changed-path manifest from that branch's diff against the branch below it.
+- Read [About stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs) and [Stacked pull request CLI commands](https://docs.github.com/en/pull-requests/reference/stacked-prs-cli-commands) when the workflow or command flags change.
