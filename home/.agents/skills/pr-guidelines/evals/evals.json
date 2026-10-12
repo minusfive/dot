@@ -62,6 +62,37 @@
         "Requires inspection of the complete diff before creation.",
         "Requires metadata to cover all functional areas."
       ]
+    },
+    {
+      "id": "create-stacked-pull-request",
+      "prompt": "I created a child branch from an unmerged feature branch. Which gh command creates the stacked pull request?",
+      "expected_output": "Create it with an explicit parent base and child head: `gh pr create --base <parent-branch> --head <child-branch> --title \"<title>\" --body-file <body-file>`.",
+      "assertions": [
+        "Uses gh pr create.",
+        "Sets the parent branch with --base.",
+        "Sets the child branch with --head.",
+        "Does not rely on the repository default branch."
+      ]
+    },
+    {
+      "id": "verify-stacked-pull-request",
+      "prompt": "How do I verify that a pull request is stacked on the intended parent branch?",
+      "expected_output": "Run `gh pr view <number> --json baseRefName,headRefName,baseRefOid,headRefOid` and confirm that the base is the parent branch and the head is the child branch.",
+      "assertions": [
+        "Uses gh pr view.",
+        "Requests both branch names and commit IDs.",
+        "Requires confirmation that the base and head match the intended stack."
+      ]
+    },
+    {
+      "id": "retarget-child-after-parent-merge",
+      "prompt": "The parent pull request in a stack merged. Which gh command changes the child pull request to target the new base branch?",
+      "expected_output": "After updating the child branch with the repository's normal branch-update process, run `gh pr edit <number> --base <new-base-branch>`.",
+      "assertions": [
+        "Uses gh pr edit.",
+        "Sets the new base branch with --base.",
+        "Places branch updating before retargeting the pull request."
+      ]
     }
   ]
 }

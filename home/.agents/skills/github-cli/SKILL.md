@@ -21,6 +21,13 @@ description: Use the `gh` CLI for pull requests, issues, workflow runs, releases
 - Checks, runs, and releases: use `gh run`, `gh release`, and `gh api`.
 - Authentication and context checks: use `gh auth status` and related `gh` commands.
 
+## Stacked Pull Requests
+
+- Set the parent branch explicitly when you create a stacked pull request: `gh pr create --base <parent-branch> --head <child-branch>`.
+- Inspect the relationship between a stacked pull request and its branches with `gh pr view <number> --json baseRefName,headRefName,baseRefOid,headRefOid`.
+- Retarget a child pull request after its parent merges with `gh pr edit <number> --base <new-base-branch>`.
+- Follow `pr-guidelines` for branch order, complete-diff metadata, push synchronization, and post-command verification.
+
 ## Examples
 
 - List docs directory: `gh api repos/jdx/mise/contents/docs`

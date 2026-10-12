@@ -58,3 +58,14 @@ The synchronization task must:
 - If a pull request is needed and none exists, ask me for explicit approval before you create it.
 - Approval to create a pull request must come from me in the current interaction. Do not infer approval from a push, branch state, or another tool.
 - Create the pull request with metadata derived from the complete base-to-`HEAD` change set, then run `pr:sync` with the manifest after creation.
+
+## 4: Stacked pull requests
+
+- Treat a stacked pull request as a pull request whose base is another feature branch.
+- Create the child branch from the current parent branch after you inspect the worktree: `git switch -c <child-branch>`.
+- After I approve creation in the current interaction, push the child branch once, then create its pull request with an explicit base and head:
+  `gh pr create --base <parent-branch> --head <child-branch> --title "<title>" --body-file <body-file>`.
+- Verify the stack with `gh pr view <number> --json baseRefName,headRefName,baseRefOid,headRefOid`.
+- Derive the child pull request title, body, and changed-path manifest from the child branch's diff against its parent branch.
+- After the parent merges, update the child branch by the repository's normal branch-update process. Then retarget the child pull request with `gh pr edit <number> --base <new-base-branch>`.
+- Keep each stacked pull request reviewable on its own. Do not use the default branch as the base when the child depends on an unmerged parent.
