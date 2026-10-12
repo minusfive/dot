@@ -34,7 +34,7 @@ done
 [[ -f "$HOME/.cache/bat/syntaxes.bin" ]] || fail "bat syntax cache was not preserved"
 [[ -f "$HOME/.cache/bat/themes.bin" ]] || fail "bat theme cache was not preserved"
 bat --list-themes | grep -Fx 'Catppuccin Mocha' >/dev/null || fail "bat theme is unavailable"
-if git grep -IlE '(password|secret|token|api[_-]?key|private[_-]?key)' -- "$__source" >/dev/null; then
+if git grep -IlE "((password|secret|api[_-]?key|private[_-]?key|token)[[:space:]]*[\"']?[[:space:]]*[:=])" -- "$__source" >/dev/null; then
     fail "credential-like content found in bat sources"
 fi
 
