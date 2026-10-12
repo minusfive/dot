@@ -13,9 +13,10 @@ description: Use before every authorized push when a branch has or may have an o
 - Inspect the current branch and open pull request with `gh pr view`.
 - If `gh pr view` reports that no open pull request exists, continue without synchronization. Treat any other error as a blocker.
 - Resolve the pull request base branch and commit from the hosting service.
-- Build a change-set manifest from every path in the complete base-to-`HEAD` diff.
-  - For an existing pull request, run `gh pr diff <number> --name-only` and sort the paths.
-  - Before creating a pull request, run `git diff --name-only <base>...HEAD` and sort the paths.
+- Build a change-set manifest from every path in the complete local base-to-`HEAD` diff.
+  - Resolve the pull request base branch and SHA from `gh pr view`.
+  - Verify the local upstream base ref has the same SHA as the pull request base.
+  - Run `git diff --name-only <local-upstream-base>...HEAD` and sort the paths. Do not use `gh pr diff --name-only`; GitHub rejects that endpoint when a pull request exceeds 300 changed files.
 - Inspect every changed path and the relevant patch before drafting the title or body.
 - Group all changed paths into their functional areas. Use those areas to draft the title and body.
 - Keep the title focused on the complete change set.
@@ -39,11 +40,13 @@ description: Use before every authorized push when a branch has or may have an o
 The synchronization task must:
 
 1. Read the open pull request and the local `HEAD`.
-2. Read the complete server-side changed-path list with `gh pr diff --name-only`.
-3. Confirm that the manifest matches the complete changed-path list.
-4. Update the title and body with `gh pr edit`.
-5. Read the pull request and changed-path list again.
-6. Confirm that the title, body, open state, branch, head commit, and change-set manifest match the local branch and requested metadata.
+2. Confirm that the local upstream base SHA matches the pull request base SHA and that the base is an ancestor of local `HEAD`.
+3. Confirm that the local commit history matches the pull request commit history.
+4. Derive the complete changed-path set from the local base-to-`HEAD` diff. If a manifest is supplied, confirm it matches that local diff.
+5. Read the complete server-side changed-path list through the paginated pull-request-files API and confirm it matches the local diff.
+6. Update the title and body with `gh pr edit`.
+7. Read the pull request and changed-path list again.
+8. Confirm that the title, body, open state, base commit, branch, head commit, commit history, and change-set manifest match the local branch and requested metadata.
 
 ## 3: Pull request content
 

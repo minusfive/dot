@@ -4,7 +4,7 @@
 //MISE quiet=true
 //USAGE flag "--title <title>" help="Pull request title derived from the complete change set"
 //USAGE flag "--body-file <path>" help="File containing the pull request body derived from the complete change set"
-//USAGE flag "--change-set-file <path>" help="Newline-delimited complete changed-path manifest"
+//USAGE flag "--change-set-file <path>" help="Optional newline-delimited complete changed-path manifest"
 //USAGE flag "--pr-number <number>" help="Open pull request number (default: current branch pull request)"
 //USAGE flag "--dry-run" help="Show the synchronization plan without changing the pull request"
 
@@ -28,6 +28,8 @@ type PullRequest = {
   state: string;
   headRefName: string;
   headRefOid: string;
+  baseRefName: string;
+  baseRefOid: string;
 };
 
 async function run(command: string, args: string[], input?: string): Promise<string> {
@@ -68,7 +70,7 @@ async function getPullRequest(repository: string, selector: string): Promise<Pul
     repository,
     selector,
     "--json",
-    "number,title,body,state,headRefName,headRefOid",
+    "number,title,body,state,headRefName,headRefOid,baseRefName,baseRefOid",
   ];
   return JSON.parse(await run("gh", args)) as PullRequest;
 }
@@ -94,8 +96,51 @@ function canonicalizeBody(value: string): string {
   return value.replaceAll("\r\n", "\n").replace(/\n+$/, "");
 }
 
-async function getPullRequestFiles(repository: string, number: number): Promise<string[]> {
-  return canonicalizeFileList(await run("gh", ["pr", "diff", "--repo", repository, String(number), "--name-only"]));
+async function getPullRequestFiles(hostname: string, repositoryPath: string, number: number): Promise<string[]> {
+  return canonicalizeFileList(
+    await run("gh", [
+      "api",
+      "--hostname",
+      hostname,
+      "--paginate",
+      `repos/${repositoryPath}/pulls/${number}/files`,
+      "--jq",
+      ".[].filename",
+    ]),
+  );
+}
+
+async function getPullRequestCommits(hostname: string, repositoryPath: string, number: number): Promise<string[]> {
+  return (
+    await run("gh", [
+      "api",
+      "--hostname",
+      hostname,
+      "--paginate",
+      `repos/${repositoryPath}/pulls/${number}/commits`,
+      "--jq",
+      ".[].sha",
+    ])
+  )
+    .trim()
+    .split(/\r?\n/)
+    .filter(Boolean);
+}
+
+async function getLocalFiles(baseRef: string): Promise<string[]> {
+  return canonicalizeFileList(await run("git", ["diff", "--name-only", `${baseRef}...HEAD`]));
+}
+
+async function getLocalCommits(baseRef: string): Promise<string[]> {
+  return (await gitValue(["rev-list", "--reverse", `${baseRef}..HEAD`])).split(/\r?\n/).filter(Boolean);
+}
+
+function compareLists(label: string, expected: string[], received: string[]): void {
+  if (expected.join("\n") !== received.join("\n")) {
+    throw new Error(
+      `${label} does not match: expected ${expected.length} entries (${fingerprintFileList(expected)}), received ${received.length} entries (${fingerprintFileList(received)})`,
+    );
+  }
 }
 
 async function main(): Promise<void> {
@@ -105,18 +150,15 @@ async function main(): Promise<void> {
   if (!BODY_FILE) {
     throw new Error("a --body-file is required");
   }
-  if (!CHANGE_SET_FILE) {
-    throw new Error("a --change-set-file is required");
-  }
-
-  const { hostname, owner, repo } = resolveUpstreamContext();
+  const { hostname, owner, repo, remote } = resolveUpstreamContext();
   const repository = `${hostname}/${owner}/${repo}`;
+  const repositoryPath = `${owner}/${repo}`;
   const body = await readFile(BODY_FILE, "utf8");
   if (!body.trim()) {
     throw new Error(`pull request body file is empty: ${BODY_FILE}`);
   }
-  const manifest = canonicalizeFileList(await readFile(CHANGE_SET_FILE, "utf8"));
-  if (manifest.length === 0) {
+  const manifest = CHANGE_SET_FILE ? canonicalizeFileList(await readFile(CHANGE_SET_FILE, "utf8")) : undefined;
+  if (manifest && manifest.length === 0) {
     throw new Error(`change-set manifest is empty: ${CHANGE_SET_FILE}`);
   }
 
@@ -140,19 +182,49 @@ async function main(): Promise<void> {
     );
   }
 
-  const serverFiles = await getPullRequestFiles(repository, pullRequest.number);
-  if (serverFiles.length === 0) {
-    throw new Error(`pull request #${pullRequest.number} has no changed files`);
-  }
-  if (serverFiles.join("\n") !== manifest.join("\n")) {
+  const upstreamRef = await gitValue(["rev-parse", "--symbolic-full-name", "@{upstream}"]);
+  const upstreamHead = await gitValue(["rev-parse", "--verify", upstreamRef]);
+  if (upstreamHead !== localHead) {
     throw new Error(
-      `change-set manifest does not match pull request #${pullRequest.number}: expected ${serverFiles.length} files (${fingerprintFileList(serverFiles)}), received ${manifest.length} files (${fingerprintFileList(manifest)})`,
+      `local HEAD is ${localHead}, but its upstream branch ${upstreamRef} is ${upstreamHead}; push or fetch first`,
     );
   }
 
+  const baseRef = `refs/remotes/${remote}/${pullRequest.baseRefName}`;
+  const localBase = await gitValue(["rev-parse", "--verify", baseRef]);
+  if (localBase !== pullRequest.baseRefOid) {
+    throw new Error(
+      `local ${baseRef} is at ${localBase}, but pull request #${pullRequest.number} base is ${pullRequest.baseRefOid}; fetch the upstream base first`,
+    );
+  }
+
+  try {
+    await run("git", ["merge-base", "--is-ancestor", baseRef, "HEAD"]);
+  } catch {
+    throw new Error(`local base ${baseRef} is not an ancestor of local HEAD ${localHead}`);
+  }
+
+  const localCommits = await getLocalCommits(baseRef);
+  const upstreamCommits = await getPullRequestCommits(hostname, repositoryPath, pullRequest.number);
+  compareLists("local commit history and pull request commit history", upstreamCommits, localCommits);
+
+  const localFiles = await getLocalFiles(baseRef);
+  if (localFiles.length === 0) {
+    throw new Error(`local diff from ${baseRef} to HEAD has no changed files`);
+  }
+  if (manifest) {
+    compareLists("change-set manifest and local diff", localFiles, manifest);
+  }
+
+  const serverFiles = await getPullRequestFiles(hostname, repositoryPath, pullRequest.number);
+  if (serverFiles.length === 0) {
+    throw new Error(`pull request #${pullRequest.number} has no changed files`);
+  }
+  compareLists("local diff and pull request files", localFiles, serverFiles);
+
   if (DRY_RUN) {
     console.log(
-      `PR #${pullRequest.number}: would update title and body, then verify head ${localHead} and ${serverFiles.length} changed files (${fingerprintFileList(serverFiles)})`,
+      `PR #${pullRequest.number}: would update title and body, then verify base ${localBase}, head ${localHead}, ${localCommits.length} commits, and ${localFiles.length} changed files (${fingerprintFileList(localFiles)})`,
     );
     return;
   }
@@ -164,14 +236,16 @@ async function main(): Promise<void> {
   );
 
   const verified = await getPullRequest(repository, String(pullRequest.number));
-  const verifiedFiles = await getPullRequestFiles(repository, pullRequest.number);
+  const verifiedFiles = await getPullRequestFiles(hostname, repositoryPath, pullRequest.number);
   const mismatches = [
     verified.state === "OPEN" ? undefined : `state=${verified.state}`,
     verified.headRefName === branch ? undefined : `branch=${verified.headRefName}`,
     verified.headRefOid === localHead ? undefined : `head=${verified.headRefOid}`,
     verified.title === TITLE ? undefined : "title",
     canonicalizeBody(verified.body) === canonicalizeBody(body) ? undefined : "body",
-    verifiedFiles.join("\n") === manifest.join("\n") ? undefined : "change-set manifest",
+    verified.baseRefName === pullRequest.baseRefName ? undefined : `base branch=${verified.baseRefName}`,
+    verified.baseRefOid === localBase ? undefined : "base commit",
+    verifiedFiles.join("\n") === localFiles.join("\n") ? undefined : "change-set manifest",
   ].filter((value): value is string => value !== undefined);
   if (mismatches.length > 0) {
     throw new Error(`pull request #${pullRequest.number} did not match after update: ${mismatches.join(", ")}`);
