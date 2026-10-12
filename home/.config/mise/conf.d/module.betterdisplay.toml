@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/BetterDisplay" = { source = "~/dev/personal/dot/home/.config/BetterDisplay", mode = "symlink-each", exclude = ["README.md"] }

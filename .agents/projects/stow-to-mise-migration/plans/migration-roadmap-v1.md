@@ -43,10 +43,11 @@ Each module story owns one inventory file and one approval record.
 - Authorization SSoT: each story's approval record; its inventory mirrors the
   record's `Approval state`.
 - Status: `blocked`
-- Current blocker: Plan execution remains blocked by the project instruction; no story approval is pending.
+- Current blocker: MIG-90 full-flow apply remains separately approval-gated by its
+  approval record; all module stories and safe final checks are complete.
 
-No migration mutation is authorized until the required approval record is
-complete for that story.
+Migration mutation is authorized only within the exact scope of an approved
+story and its inventory.
 
 ## Canonical reference hierarchy
 
@@ -707,7 +708,7 @@ Use the common rollback contract.
 - Target: `~/.config/gh/personal/hosts.yml`
 - Mode: `symlink`, plus a directory mode resource
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-gh`
 
@@ -745,7 +746,7 @@ Use the common rollback contract. Restore the old `[bootstrap.files]` declaratio
 - Targets: `~/dev/personal/mise.toml` and `~/dev/work/mise.toml`
 - Mode: `template`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-profiles`
 
@@ -756,9 +757,12 @@ target-specific `GH_CONFIG_DIR` value and trust order.
 
 1. Read the inventory and template rendering evidence.
 2. Use the temporary legacy bootstrap cleanup procedure.
-3. Create `module.profiles.toml`.
-4. Render both target files without printing secret values.
-5. Update `scripts/mise.zsh` so dotfiles apply before profile trust.
+3. Create `module.profiles.toml` with one template source and profile
+   variants for the two approved target paths.
+4. Render each target with its matching explicit profile-scoped, target-scoped
+   dotfiles apply without printing secret values.
+5. Update `scripts/mise.zsh` so both profile targets render after the general
+   dotfiles apply and before profile trust.
 6. Run the profile-order checks and the `profiles` module-focused test.
 
 ### Acceptance checks — `MIG-MODULE-profiles`
@@ -766,6 +770,9 @@ target-specific `GH_CONFIG_DIR` value and trust order.
 - Both workspace files render.
 - This story is the only migration story that writes the two workspace files.
 - Each target receives the correct `GH_CONFIG_DIR`.
+- The declaration uses only supported mise dotfiles template and profile
+  variant features; it does not depend on an undocumented target template
+  variable.
 - Profile trust runs after dotfiles apply.
 - `scripts/mise.zsh` does not export `MISE_ENV`.
 
@@ -787,7 +794,7 @@ Use the common rollback contract. Restore the profile trust order.
 - Target: package resources
 - Mode: `[bootstrap.packages]`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-packages`
 
@@ -826,7 +833,7 @@ Use the common rollback contract. Do not prune packages.
 - Target: personal package resources
 - Mode: `[bootstrap.packages]`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-personal-packages`
 
@@ -873,7 +880,7 @@ Use the common rollback contract. Restore personal profile selection.
 - Target: repository resources
 - Mode: `[bootstrap.repos]`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-repos`
 
@@ -911,7 +918,7 @@ Use the common rollback contract. Do not delete repository checkouts.
 - Target: tool installations
 - Mode: `[tools]`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-tools`
 
@@ -949,7 +956,7 @@ Use the common rollback contract. Do not prune tools.
 - Target: `~/.config/bat`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-bat`
 
@@ -989,7 +996,7 @@ Use the common rollback contract.
 - Target: `~/.config/btop`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-btop`
 
@@ -1027,7 +1034,7 @@ Use the common rollback contract.
 - Target: `~/.config/delta`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-delta`
 
@@ -1065,7 +1072,7 @@ Use the common rollback contract.
 - Target: `~/.config/zsh`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-zsh`
 
@@ -1111,7 +1118,7 @@ Use the common rollback contract. Restore protected runtime files before the old
 - Target: `~/.config/fd`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-fd`
 
@@ -1148,7 +1155,7 @@ Use the common rollback contract.
 - Target: `~/.config/fzf`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-fzf`
 
@@ -1185,7 +1192,7 @@ Use the common rollback contract.
 - Target: `~/.config/lazygit`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-lazygit`
 
@@ -1222,7 +1229,7 @@ Use the common rollback contract.
 - Target: `~/.config/ripgrep`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-ripgrep`
 
@@ -1259,7 +1266,7 @@ Use the common rollback contract.
 - Target: `~/.config/tmux`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-tmux`
 
@@ -1296,7 +1303,7 @@ Use the common rollback contract.
 - Target: `~/.config/ghostty`
 - Mode: `symlink-each`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-ghostty`
 
@@ -1332,7 +1339,7 @@ Use the common rollback contract.
 - Target: `~/.config/git`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-git`
 
@@ -1371,7 +1378,7 @@ Use the common rollback contract.
 - Target: `~/.config/wezterm`
 - Mode: `symlink-each`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-wezterm`
 
@@ -1411,7 +1418,7 @@ Use the common rollback contract. Restore preserved target-only files.
 - Target: `~/.config/yazi`
 - Mode: `symlink-each`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-yazi`
 
@@ -1450,7 +1457,7 @@ Use the common rollback contract.
 - Target: `~/.config/1Password`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-1password`
 
@@ -1487,7 +1494,7 @@ Use the common rollback contract. Do not restore private keys from the repositor
 - Target: `~/.config/BetterDisplay`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-betterdisplay`
 
@@ -1529,7 +1536,7 @@ Use the common rollback contract. Restore the old script and preserved backup fi
 - Target: `~/.config/hammerspoon`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-hammerspoon`
 
@@ -1568,7 +1575,7 @@ Use the common rollback contract.
 - Target: `~/.config/harper`
 - Mode: `symlink-each`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-harper`
 
@@ -1605,7 +1612,7 @@ Use the common rollback contract.
 - Target: `~/.config/nvim`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-nvim`
 

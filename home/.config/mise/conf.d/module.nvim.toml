@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/nvim" = { source = "~/dev/personal/dot/home/.config/nvim", mode = "symlink-each" }

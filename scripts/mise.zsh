@@ -74,6 +74,8 @@ function {
     _v_confirm_proceed
     if [[ "$__proceed" == true ]]; then
         mise bootstrap dotfiles apply --yes
+        mise -E personal,mise,profiles bootstrap dotfiles apply --yes "$HOME/dev/personal/mise.toml"
+        mise -E work,mise,profiles bootstrap dotfiles apply --yes "$HOME/dev/work/mise.toml"
 
         _v_log_ok $__context "Mise dotfiles applied"
     else

@@ -25,11 +25,11 @@
 
 ## Local and runtime inventory
 
-| Path                      | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                                                       | Classification                | Required action   | Runtime destination        | Metadata to preserve                                         | Secret or sensitive data |
-| ------------------------- | ------ | ------- | ------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------- | -------------------------- | ------------------------------------------------------------ | ------------------------ |
-| `.config/tmux/tmux.conf`  | `yes`  | `yes`   | `no`    | `repo`           | The deployed `~/.config/tmux/tmux.conf` resolves through the current whole-directory Stow link. The isolated tmux parse smoke test exits with status `0`. | `active-global`               | `copy-then-erase` | `~/.config/tmux/tmux.conf` | `0644`, `villalj:staff`                                      | `no`                     |
-| `~/.config/tmux`          | `yes`  | `no`    | `no`    | `target`         | Whole-directory relative symlink to `../dev/personal/dot/.config/tmux`; it exposes the tracked `tmux.conf` file.                                          | `active-global`               | `preserve`        | `~/.config/tmux`           | Whole-directory `lrwxr-xr-x`, `villalj:staff`, relative link | `no`                     |
-| `~/.tmux/plugins/tpm/tpm` | `no`   | `no`    | `no`    | `target`         | `tmux.conf` references this path with `run`; TPM is not installed on the current machine.                                                                 | `external-runtime-dependency` | `none`            | `~/.tmux/plugins/tpm/tpm`  | Not present                                                  | `no`                     |
+| Path                      | Exists | Tracked | Ignored | Current location | Active use evidence                                                                       | Classification                | Required action | Runtime destination        | Metadata to preserve                               | Secret or sensitive data |
+| ------------------------- | ------ | ------- | ------- | ---------------- | ----------------------------------------------------------------------------------------- | ----------------------------- | --------------- | -------------------------- | -------------------------------------------------- | ------------------------ |
+| `.config/tmux/tmux.conf`  | `no`   | `no`    | `no`    | `historical`     | Retired Stow source; the file moved to `home/.config/tmux/tmux.conf`.                     | `historical`                  | `remove`        | `~/.config/tmux/tmux.conf` | `retired source path`                              | `no`                     |
+| `~/.config/tmux`          | `yes`  | `no`    | `no`    | `target`         | Physical directory with one relative per-file link to the mise source.                    | `active-global`               | `preserve`      | `~/.config/tmux`           | Physical directory, owner villalj:staff, mode 0755 | `no`                     |
+| `~/.tmux/plugins/tpm/tpm` | `no`   | `no`    | `no`    | `target`         | `tmux.conf` references this path with `run`; TPM is not installed on the current machine. | `external-runtime-dependency` | `none`          | `~/.tmux/plugins/tpm/tpm`  | Not present                                        | `no`                     |
 
 Record ignored paths with:
 
@@ -52,8 +52,8 @@ and is ignored by the global Git ignore file.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/tmux` -> `../dev/personal/dot/.config/tmux`; `~/.config/tmux/tmux.conf` resolves to `.config/tmux/tmux.conf`
+- Current target shape: `physical directory with relative symlink-each link`
+- Current target manifest path: `~/.config/tmux`
 - Old owner cleanup command: `test -L "$HOME/.config/tmux" && test "$(readlink "$HOME/.config/tmux")" = "../dev/personal/dot/.config/tmux" && unlink "$HOME/.config/tmux"`
 - New owner dry-run command: `mise -E tmux bootstrap dotfiles apply --dry-run`
 - New owner apply command: `mise -E tmux bootstrap dotfiles apply --yes`
@@ -85,14 +85,14 @@ and is ignored by the global Git ignore file.
 ## Validation
 
 - Syntax or source checks:
-  - `test -f .config/tmux/tmux.conf && grep -Fq 'set -g prefix C-Space' .config/tmux/tmux.conf && grep -Fq "run '~/.tmux/plugins/tpm/tpm'" .config/tmux/tmux.conf`
+  - `test -f home/.config/tmux/tmux.conf && grep -Fq 'set -g prefix C-Space' home/.config/tmux/tmux.conf && grep -Fq "run '~/.tmux/plugins/tpm/tpm'" home/.config/tmux/tmux.conf`
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_tmux.zsh` (planned module test; not present in the current baseline)
 - Target smoke test:
   - `socket="dot-tmux-parse-$$"; tmux -L "$socket" -f "$HOME/.config/tmux/tmux.conf" -C start-server >/dev/null 2>&1; status=$?; tmux -L "$socket" kill-server >/dev/null 2>&1 || true; exit "$status"`
   - Defer plugin-load validation until TPM is installed.
 - Security or token check:
-  - `! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' .config/tmux/tmux.conf ~/dev/personal/dot/home/.config/tmux/tmux.conf`
+  - `! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' home/.config/tmux/tmux.conf`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -121,4 +121,5 @@ and is ignored by the global Git ignore file.
 - Residual risk:
   - `low`; the boundary has one tracked, non-sensitive file and no unmanaged child, but the referenced TPM runtime path is absent and the parse test does not prove that plugins load.
 - Open blocker:
-  - Explicit migration approval is required before changing ownership.
+  - None. The target now uses the approved mise `symlink-each` declaration;
+    TPM remains an external unmanaged runtime dependency.

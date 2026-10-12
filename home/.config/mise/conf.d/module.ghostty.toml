@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/ghostty" = { source = "~/dev/personal/dot/home/.config/ghostty", mode = "symlink-each" }

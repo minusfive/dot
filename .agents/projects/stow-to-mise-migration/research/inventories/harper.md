@@ -25,10 +25,10 @@
 
 ## Local and runtime inventory
 
-| Path                                   | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                                                                      | Classification  | Required action   | Runtime destination                      | Metadata to preserve                                         | Secret or sensitive data                          |
-| -------------------------------------- | ------ | ------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- | ----------------- | ---------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------- |
-| `.config/harper/dictionaries/user.txt` | `yes`  | `yes`   | `no`    | `repo`           | `.config/nvim/lua/plugins/lang/grammar.lua` sets `userDictPath` to `~/.config/harper/dictionaries/user.txt`; the deployed path resolves through the Stow directory link. | `active-global` | `copy-then-erase` | `~/.config/harper/dictionaries/user.txt` | `0644`, `villalj:staff`, regular ASCII file                  | `yes; personal user data, not a credential store` |
-| `~/.config/harper`                     | `yes`  | `no`    | `no`    | `target`         | Whole-directory relative symlink to `../dev/personal/dot/.config/harper`; it currently exposes the tracked dictionary.                                                   | `active-global` | `preserve`        | `~/.config/harper`                       | Whole-directory `lrwxr-xr-x`, `villalj:staff`, relative link | `yes through the linked dictionary`               |
+| Path                                   | Exists | Tracked | Ignored | Current location | Active use evidence                                                                            | Classification  | Required action | Runtime destination                      | Metadata to preserve                                 | Secret or sensitive data                          |
+| -------------------------------------- | ------ | ------- | ------- | ---------------- | ---------------------------------------------------------------------------------------------- | --------------- | --------------- | ---------------------------------------- | ---------------------------------------------------- | ------------------------------------------------- |
+| `.config/harper/dictionaries/user.txt` | `no`   | `no`    | `no`    | `historical`     | Retired Stow source; personal dictionary moved to `home/.config/harper/dictionaries/user.txt`. | `historical`    | `remove`        | `~/.config/harper/dictionaries/user.txt` | `retired source path`                                | `yes; personal user data, not a credential store` |
+| `~/.config/harper`                     | `yes`  | `no`    | `no`    | `target`         | Physical directory with one relative per-file link to the mise source.                         | `active-global` | `preserve`      | `~/.config/harper`                       | `Physical directory, owner villalj:staff, mode 0755` | `yes through the linked dictionary`               |
 
 Record ignored paths with:
 
@@ -47,8 +47,8 @@ contents during validation.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/harper` -> `../dev/personal/dot/.config/harper`; `~/.config/harper/dictionaries/user.txt` resolves to `.config/harper/dictionaries/user.txt`
+- Current target shape: `physical directory with one relative symlink-each link`
+- Current target manifest path: `~/.config/harper`
 - Old owner cleanup command: `test -L "$HOME/.config/harper" && test "$(readlink "$HOME/.config/harper")" = "../dev/personal/dot/.config/harper" && unlink "$HOME/.config/harper"`
 - New owner dry-run command: `mise -E harper bootstrap dotfiles apply --dry-run`
 - New owner apply command: `mise -E harper bootstrap dotfiles apply --yes`
@@ -72,13 +72,13 @@ contents during validation.
 ## Validation
 
 - Syntax or source checks:
-  - `test -f .config/harper/dictionaries/user.txt && git ls-files --error-unmatch .config/harper/dictionaries/user.txt >/dev/null`
+  - `test -f home/.config/harper/dictionaries/user.txt && git ls-files --error-unmatch home/.config/harper/dictionaries/user.txt >/dev/null`
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_harper.zsh` (planned module test; not present in the current baseline)
 - Target smoke test:
   - `nvim --headless '+qa' && test -r "$HOME/.config/harper/dictionaries/user.txt" && test -L "$HOME/.config/harper/dictionaries/user.txt"`
 - Security or token check:
-  - `! grep -Eiq 'AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY' .config/harper/dictionaries/user.txt ~/dev/personal/dot/home/.config/harper/dictionaries/user.txt 2>/dev/null`
+  - `! grep -Eiq 'AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY' home/.config/harper/dictionaries/user.txt 2>/dev/null`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -105,5 +105,5 @@ contents during validation.
 - Residual risk:
   - `medium`; the boundary contains personal user data that must remain private and visible through a symlink, and cutover must remove only the recorded whole-directory link before mise creates per-file links.
 - Open blocker:
-  - Explicit migration approval is required before changing ownership. No
-    Harper-specific focused test exists in the current baseline.
+  - None. The dictionary remains private source data and the target now uses
+    the approved mise `symlink-each` declaration.

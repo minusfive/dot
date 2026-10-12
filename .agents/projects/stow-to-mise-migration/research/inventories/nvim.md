@@ -118,13 +118,13 @@ present. Do not print credential-bearing contents or private runtime files.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/nvim -> ../dev/personal/dot/.config/nvim`; no separate target manifest exists.
+- Current target shape: `physical directory with relative symlink-each links`
+- Current target manifest path: `~/.config/nvim`
 - Old owner cleanup command: `test -L "$HOME/.config/nvim" && test "$(readlink "$HOME/.config/nvim")" = "../dev/personal/dot/.config/nvim" && unlink "$HOME/.config/nvim"`
 - New owner dry-run command: `mise -E nvim bootstrap dotfiles apply --dry-run`
 - New owner apply command: `mise -E nvim bootstrap dotfiles apply --yes`
 - Duplicate-owner check: `test ! -e .config/nvim && grep -qF '^/\.config/nvim' .stow-local-ignore && ! stow -nvR . 2>&1 | grep -qF '.config/nvim'`
-- Target-content disposition check: `test -d "$HOME/.config/nvim" && test ! -L "$HOME/.config/nvim" && find "$HOME/.config/nvim" -type l -print`
+- Target-content disposition check: `test -d "$HOME/.config/nvim" && test ! -L "$HOME/.config/nvim" && test "$(find "$HOME/.config/nvim" -type l | wc -l | tr -d ' ')" = 54`
 - Relative-link check: `find "$HOME/.config/nvim" -type l -exec sh -c 'case "$(readlink "$1")" in /*) exit 1;; esac' _ {} \;`
 
 The baseline `stow -nvR .` reports `UNLINK: .config/nvim` followed by
@@ -163,7 +163,7 @@ directory.
 ## Validation
 
 - Syntax or source checks:
-  - `git ls-files --error-unmatch .config/nvim/init.lua .config/nvim/lazy-lock.json .config/nvim/lazyvim.json`
+  - `git ls-files --error-unmatch home/.config/nvim/init.lua home/.config/nvim/lazy-lock.json home/.config/nvim/lazyvim.json`
   - `git diff --check -- .agents/projects/stow-to-mise-migration/research/inventories/nvim.md`
   - `nvim --headless '+qa'`
 - Focused test:
@@ -174,8 +174,8 @@ directory.
 - Target smoke test:
   - `nvim --headless '+qa'` (baseline result: exit `0` with no output)
 - Security or token check:
-  - `! git grep -IlE '(api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret|credential|private[_ -]?key|auth[.]db)' -- .config/nvim`
-  - `git ls-files --others --ignored --exclude-standard -- .config/nvim`
+  - `! git grep -IlE '(api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret|credential|private[_ -]?key|auth[.]db)' -- home/.config/nvim`
+  - `git ls-files --others --ignored --exclude-standard -- home/.config/nvim`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -214,4 +214,5 @@ directory.
     unmanaged and review any new ignored path before cutover.
   - `lua/plugins/obsidian.lua` contains machine-specific note-workspace coupling; preserve the configuration without copying note data.
 - Open blocker:
-  - `none for inventory; migration execution remains pending explicit approval, source copy, target-scoped mise dry run, and a verified ownership cutover`
+  - None. The target now uses the approved mise `symlink-each` declaration and
+    generated runtime paths remain unmanaged.

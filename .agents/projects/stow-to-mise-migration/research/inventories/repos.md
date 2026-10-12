@@ -58,7 +58,7 @@ content-level review is approved.
 ## Ownership and cutover
 
 - Current target shape: `physical directory`
-- Current target manifest path: `.config/mise/conf.d/bootstrap-repos.toml`
+- Current target manifest path: `~/.config/mise/conf.d/module.repos.toml`
 - Old owner cleanup command: `mise bootstrap unapply repos --dry-run` (unapply does not remove repositories; it only reports that repository cleanup is separate)
 - New owner dry-run command: `mise bootstrap repos apply --dry-run`
 - New owner apply command: `mise bootstrap repos apply --yes`
@@ -91,7 +91,7 @@ not replace, copy, or delete the existing Git checkouts during the cutover.
 ## Validation
 
 - Syntax or source checks:
-  - `git ls-files -- .config/mise/conf.d/bootstrap-repos.toml`
+  - `git ls-files -- home/.config/mise/conf.d/module.repos.toml`
   - `XDG_CONFIG_HOME="$PWD/.config" mise -C "$PWD" bootstrap repos status`
   - `XDG_CONFIG_HOME="$PWD/.config" mise -C "$PWD" bootstrap repos apply --dry-run`
 - Focused test:
@@ -102,7 +102,7 @@ not replace, copy, or delete the existing Git checkouts during the cutover.
   - Current result: all eight repositories report `current`; all eight local Git checkouts have zero dirty entries.
 - Security or token check:
   - `git diff --check -- .agents/projects/stow-to-mise-migration/research/inventories/repos.md`
-  - `grep -nE 'oauth_token|password|BEGIN .*PRIVATE KEY|ghp_|github_pat_' .config/mise/conf.d/bootstrap-repos.toml` must return no matches.
+  - `grep -nE 'oauth_token|password|BEGIN .*PRIVATE KEY|ghp_|github_pat_' home/.config/mise/conf.d/module.repos.toml` must return no matches.
   - Do not print or copy checkout contents. The declaration contains public repository URLs and no credential values.
 - Aggregate checks:
   - `mise run check`
@@ -132,4 +132,5 @@ not replace, copy, or delete the existing Git checkouts during the cutover.
   - The current focused test does not assert all eight URLs, the `minusfive` ref, dirty-state handling, or cleanup behavior.
   - Local checkout contents were not inspected for secrets or untracked user data.
 - Open blocker:
-  - `none for inventory; migration approval remains pending`
+  - None. The eight checkouts remained current and clean through the
+    declaration transition.

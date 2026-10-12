@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/fd" = { source = "~/dev/personal/dot/home/.config/fd", mode = "symlink-each" }

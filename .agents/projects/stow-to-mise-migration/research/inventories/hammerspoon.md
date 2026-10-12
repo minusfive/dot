@@ -174,11 +174,11 @@
 
 ## Local and runtime inventory
 
-| Path                              | Exists | Tracked | Ignored         | Current location                        | Active use evidence                                                                                                                                                 | Classification   | Required action                                             | Runtime destination     | Metadata to preserve                                                                           | Secret or sensitive data |
-| --------------------------------- | ------ | ------- | --------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ----------------------------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------- | ------------------------ |
-| `.config/hammerspoon/.luarc.json` | yes    | yes     | yes (Stow only) | repo (visible through target root link) | Lua language-server library path; `.stow-local-ignore` contains `\.luarc.json`; current root link exposes the file                                                  | active-repo-only | preserve source; remove target exposure                     | none                    | `0644`, `villalj:staff`                                                                        | no                       |
-| `~/.config/hammerspoon`           | yes    | no      | no              | target                                  | `readlink` resolves to `../dev/personal/dot/.config/hammerspoon`; `scripts/os.zsh:33,175-176` sets Hammerspoon to this target                                       | active-global    | detach old Stow link, then replace with per-file mise links | `~/.config/hammerspoon` | current whole-directory symlink, `villalj:staff`; preserve target path and application setting | no                       |
-| <none under .config/hammerspoon>  | no     | no      | no              | none                                    | `git ls-files --others --exclude-standard -- .config/hammerspoon` and `git ls-files --others --ignored --exclude-standard -- .config/hammerspoon` returned no paths | not-applicable   | none                                                        | none                    | none                                                                                           | no                       |
+| Path                              | Exists | Tracked | Ignored         | Current location                        | Active use evidence                                                                                                                                                 | Classification   | Required action                         | Runtime destination     | Metadata to preserve                                                          | Secret or sensitive data |
+| --------------------------------- | ------ | ------- | --------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | --------------------------------------- | ----------------------- | ----------------------------------------------------------------------------- | ------------------------ |
+| `.config/hammerspoon/.luarc.json` | yes    | yes     | yes (Stow only) | repo (visible through target root link) | Lua language-server library path; `.stow-local-ignore` contains `\.luarc.json`; current root link exposes the file                                                  | active-repo-only | preserve source; remove target exposure | none                    | `0644`, `villalj:staff`                                                       | no                       |
+| `~/.config/hammerspoon`           | yes    | no      | no              | target                                  | Physical directory with 149 relative mise links; `scripts/os.zsh:33,175-176` sets Hammerspoon to this target                                                        | active-global    | preserve                                | `~/.config/hammerspoon` | physical directory, `villalj:staff`, mode 0755; `.luarc.json` is not deployed | no                       |
+| <none under .config/hammerspoon>  | no     | no      | no              | none                                    | `git ls-files --others --exclude-standard -- .config/hammerspoon` and `git ls-files --others --ignored --exclude-standard -- .config/hammerspoon` returned no paths | not-applicable   | none                                    | none                    | none                                                                          | no                       |
 
 Record ignored paths with:
 
@@ -191,13 +191,16 @@ No ignored or untracked runtime files were found under the source boundary. Do n
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/hammerspoon` -> `../dev/personal/dot/.config/hammerspoon`
+- Current target shape: `physical directory with relative symlink-each links`
+- Current target manifest path: `~/.config/hammerspoon`
 - Old owner cleanup command: `test "$(readlink "$HOME/.config/hammerspoon")" = "../dev/personal/dot/.config/hammerspoon" && unlink "$HOME/.config/hammerspoon"`
 - New owner dry-run command: `MISE_ENV=hammerspoon mise bootstrap dotfiles apply --dry-run`
 - New owner apply command: `MISE_ENV=hammerspoon mise bootstrap dotfiles apply --yes`
 - Duplicate-owner check: `! stow -nvR . 2>&1 | rg -F '.config/hammerspoon'`
-- Target-content disposition check: `test -L "$HOME/.config/hammerspoon" && test "$(readlink "$HOME/.config/hammerspoon")" = "../dev/personal/dot/.config/hammerspoon"` before cutover; after cutover, run `diff -u <(git ls-files -- .config/hammerspoon | sed 's#^\.config/hammerspoon/##' | grep -v '^\.luarc\.json$' | sort) <(find "$HOME/.config/hammerspoon" \( -type f -o -type l \) -print | sed "s#^$HOME/.config/hammerspoon/##" | sort)` and require no differences
+- Target-content disposition check: compare the eligible 149-path manifest from
+  `git ls-files -- .config/hammerspoon | grep -v '^.config/hammerspoon/.luarc.json$'`
+  with the 149 deployed links under `~/.config/hammerspoon`; `.luarc.json`
+  must be absent from the target.
 - Relative-link check: `find "$HOME/.config/hammerspoon" -type l -exec sh -c 'for link do case "$(readlink "$link")" in /*) exit 1;; esac; done' sh {} +`
 
 The cutover must preserve all 149 eligible tracked files with the same relative
@@ -268,9 +271,9 @@ path must remain visible to Hammerspoon.
     `hammerspoon` and its dependency on `MIG-MODULE-mise`.
   - `.agents/projects/stow-to-mise-migration/plans/migration-roadmap-v1.md` defines `symlink-each`, the complete tracked-file source set, the `.luarc.json` exclusion, and the `Spoons/` preservation requirement.
   - `git ls-files -- .config/hammerspoon` returned 150 tracked paths: 148 Lua files, one `docs.json`, and one repository-only `.luarc.json`; no ignored or untracked paths were returned.
-  - `readlink "$HOME/.config/hammerspoon"` returned `../dev/personal/dot/.config/hammerspoon`, confirming the current whole-directory Stow link.
-  - `stow -nvR .` proposes `UNLINK: .config/hammerspoon` and the matching
-    `LINK`. Use the isolated boundary checks as the cutover gate.
+  - The target now contains the eligible relative mise links and no
+    `.luarc.json`; `.config/hammerspoon/.luarc.json` remains repository-only.
   - `luac -p` passed for all tracked Lua files; `scripts/os.zsh` already targets `~/.config/hammerspoon/init.lua`.
 - Residual risk: Hammerspoon GUI reload and console validation remain unrun; executable configuration can still fail at runtime even when Lua syntax passes.
-- Open blocker: migration approval is pending, and the planned module-focused test does not yet exist.
+- Open blocker: None. GUI reload and console validation remain deferred because
+  they require the Hammerspoon application.

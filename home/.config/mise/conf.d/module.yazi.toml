@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/yazi" = { source = "~/dev/personal/dot/home/.config/yazi", mode = "symlink-each" }

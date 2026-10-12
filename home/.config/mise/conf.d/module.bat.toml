@@ -1,0 +1,5 @@
+[dotfiles]
+"~/.config/bat" = { source = "~/dev/personal/dot/home/.config/bat", mode = "symlink-each" }
+
+[bootstrap.hooks]
+post-dotfiles = "bat cache --build"

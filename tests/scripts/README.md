@@ -54,6 +54,16 @@ Tests the tracked OpenCode configuration and plugin links while preserving targe
 
 Tests GitHub bootstrap files, directories, source paths, permissions, and token-free configuration.
 
+#### `test_mise_bootstrap_profiles.zsh`
+
+Tests the shared workspace profile template, target variants, rendering, permissions, and trust ordering.
+
+The remaining migrated application boundaries use the same focused-test
+pattern: `test_mise_bootstrap_<module>.zsh`. Current module tests cover
+`1password`, `bat`, `btop`, `delta`, `fd`, `fzf`, `ghostty`, `git`,
+`hammerspoon`, `harper`, `lazygit`, `nvim`, `ripgrep`, `tmux`, `wezterm`,
+`yazi`, and `zsh`.
+
 #### `test_mise_bootstrap_packages.zsh`
 
 Tests shared package, cask, Mac App Store, and Homebrew bootstrap configuration.
@@ -92,6 +102,7 @@ Tests hidden project creation and promotion to a checked-in workspace.
 ./tests/scripts/test_mise_bootstrap_claude.zsh
 ./tests/scripts/test_mise_bootstrap_opencode.zsh
 ./tests/scripts/test_mise_bootstrap_gh.zsh
+./tests/scripts/test_mise_bootstrap_profiles.zsh
 ./tests/scripts/test_mise_bootstrap_packages.zsh
 ./tests/scripts/test_mise_bootstrap_packages_personal.zsh
 ./tests/scripts/test_mise_bootstrap_repos.zsh

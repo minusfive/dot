@@ -25,10 +25,10 @@
 
 ## Local and runtime inventory
 
-| Path                | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                       | Classification  | Required action   | Runtime destination   | Metadata to preserve                                         | Secret or sensitive data |
-| ------------------- | ------ | ------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------- | --------------- | ----------------- | --------------------- | ------------------------------------------------------------ | ------------------------ |
-| `.config/fd/ignore` | `yes`  | `yes`   | `no`    | `repo`           | The deployed `~/.config/fd/ignore` resolves through the current Stow directory link; rules are `.git` and `node_modules`. | `active-global` | `copy-then-erase` | `~/.config/fd/ignore` | `0644`, `villalj:staff`                                      | `no`                     |
-| `~/.config/fd`      | `yes`  | `no`    | `no`    | `target`         | Whole-directory relative symlink to `../dev/personal/dot/.config/fd`; it currently exposes the tracked `ignore` file.     | `active-global` | `preserve`        | `~/.config/fd`        | Whole-directory `lrwxr-xr-x`, `villalj:staff`, relative link | `no`                     |
+| Path                | Exists | Tracked | Ignored | Current location | Active use evidence                                                     | Classification  | Required action | Runtime destination   | Metadata to preserve                               | Secret or sensitive data |
+| ------------------- | ------ | ------- | ------- | ---------------- | ----------------------------------------------------------------------- | --------------- | --------------- | --------------------- | -------------------------------------------------- | ------------------------ |
+| `.config/fd/ignore` | `no`   | `no`    | `no`    | `historical`     | Retired Stow source; the ignore file moved to `home/.config/fd/ignore`. | `historical`    | `remove`        | `~/.config/fd/ignore` | `retired source path`                              | `no`                     |
+| `~/.config/fd`      | `yes`  | `no`    | `no`    | `target`         | Physical directory with one relative per-file link to the mise source.  | `active-global` | `preserve`      | `~/.config/fd`        | Physical directory, owner villalj:staff, mode 0755 | `no`                     |
 
 Record ignored paths with:
 
@@ -49,8 +49,9 @@ rules.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/fd` -> `../dev/personal/dot/.config/fd`; `~/.config/fd/ignore` resolves to `.config/fd/ignore`
+- Current target shape: `physical directory with relative symlink-each link`
+- Current target manifest path: `~/.config/fd`; `ignore` resolves to
+  `home/.config/fd/ignore`
 - Old owner cleanup command: `test -L "$HOME/.config/fd" && test "$(readlink "$HOME/.config/fd")" = "../dev/personal/dot/.config/fd" && unlink "$HOME/.config/fd"`
 - New owner dry-run command: `mise -E fd bootstrap dotfiles apply --dry-run`
 - New owner apply command: `mise -E fd bootstrap dotfiles apply --yes`
@@ -79,13 +80,13 @@ rules.
 ## Validation
 
 - Syntax or source checks:
-  - `test -f .config/fd/ignore && grep -Fx '.git' .config/fd/ignore && grep -Fx 'node_modules' .config/fd/ignore`
+  - `test -f home/.config/fd/ignore && grep -Fx '.git' home/.config/fd/ignore && grep -Fx 'node_modules' home/.config/fd/ignore`
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_fd.zsh` (planned module test; not present in the current baseline)
 - Target smoke test:
   - `fd --version >/dev/null && test -r "$HOME/.config/fd/ignore" && test -L "$HOME/.config/fd/ignore"`
 - Security or token check:
-  - `test -f .config/fd/ignore && test -f ~/dev/personal/dot/home/.config/fd/ignore && ! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' .config/fd/ignore ~/dev/personal/dot/home/.config/fd/ignore`
+  - `test -f home/.config/fd/ignore && ! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' home/.config/fd/ignore`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -113,4 +114,4 @@ rules.
 - Residual risk:
   - `low`; the boundary has one tracked, non-sensitive file and no unmanaged target content, but cutover must remove only the recorded whole-directory symlink before mise applies per-file links.
 - Open blocker:
-  - Explicit migration approval is required before changing ownership.
+  - None. The target now uses the approved mise `symlink-each` declaration.

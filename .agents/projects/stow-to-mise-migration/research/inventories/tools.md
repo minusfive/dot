@@ -51,7 +51,7 @@
 
 | Path                                                   | Exists    | Tracked | Ignored   | Current location | Active use evidence                                                              | Classification     | Required action | Runtime destination                                      | Metadata to preserve                                | Secret or sensitive data |
 | ------------------------------------------------------ | --------- | ------- | --------- | ---------------- | -------------------------------------------------------------------------------- | ------------------ | --------------- | -------------------------------------------------------- | --------------------------------------------------- | ------------------------ |
-| `.config/mise/conf.d/tools.toml`                       | `yes`     | `yes`   | `no`      | `repo`           | `mise` reads its `[tools]` table from the global config.                         | `active-global`    | `move`          | `~/.config/mise/conf.d/module.tools.toml`                | `0644`. Preserve selectors and hooks.               | `no`                     |
+| `.config/mise/conf.d/tools.toml`                       | `no`      | `no`    | `no`      | `historical`     | Retired declaration; the tool table moved to `module.tools.toml`.                | `historical`       | `remove`        | `~/.config/mise/conf.d/module.tools.toml`                | `retired source path`                               | `no`                     |
 | `.config/mise/tasks/global-install-packages-npm.sh`    | `yes`     | `yes`   | `no`      | `repo`           | Node postinstall names `global-install-packages-npm`.                            | `active-global`    | `move`          | `~/.config/mise/tasks/global-install-packages-npm.sh`    | `0755`. Preserve executable mode.                   | `no`                     |
 | `.config/mise/tasks/global-install-packages-python.sh` | `yes`     | `yes`   | `no`      | `repo`           | Python postinstall names `global-install-packages-python`.                       | `active-global`    | `move`          | `~/.config/mise/tasks/global-install-packages-python.sh` | `0755`. Preserve executable mode.                   | `no`                     |
 | `.config/mise/tasks/global-install-packages-ruby.sh`   | `yes`     | `yes`   | `no`      | `repo`           | Ruby postinstall names `global-install-packages-ruby`.                           | `active-global`    | `move`          | `~/.config/mise/tasks/global-install-packages-ruby.sh`   | `0755`. Preserve executable mode.                   | `no`                     |
@@ -74,7 +74,7 @@ target paths only.
 ## Ownership and cutover
 
 - Current target shape: `whole-directory symlink for ~/.config/mise`. No tool target root exists.
-- Current target manifest path: `~/.config/mise/conf.d/tools.toml`
+- Current target manifest path: `~/.config/mise/conf.d/module.tools.toml`
 - Old owner cleanup command: `mise dot unapply --dry-run ~/.config/mise`
 - New owner dry-run command: `mise install --dry-run`
 - New owner apply command: `mise install && mise reshim -f`
@@ -96,7 +96,8 @@ target paths only.
 - Environment variables:
   - `XDG_CONFIG_HOME` selects the global `mise` configuration root.
   - `DOT_PROFILE` selects the persisted profile input.
-  - `MISE_ENV` is currently set to the profile inside `scripts/mise.zsh`.
+  - `MISE_ENV` is cleared inside `scripts/mise.zsh`; profile selection comes
+    from the rendered `miserc.toml`.
   - `PUPPETEER_SKIP_DOWNLOAD` is an install environment value for Mermaid CLI.
 - Includes or external paths:
   - `.config/mise/mise.lock` couples the global declaration to resolved tool versions.
@@ -162,5 +163,5 @@ target paths only.
   - The current test does not cover all tools, hooks, or lockfile coupling.
   - Global and project tool sets share three tool names but use separate lockfiles.
 - Open blocker:
-  - The `MIG-MODULE-packages` dependency and the `MIG-MODULE-tools` approval
-    must complete before the declaration moves.
+  - None. The tool dry run remained converged and the approved module now owns
+    the declaration.

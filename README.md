@@ -52,11 +52,13 @@ remains the source of truth.
 ## Global files and configuration
 
 > [!NOTE]
-> This configuration is moving from GNU Stow to mise. Both systems remain in use while the migration continues.
+> Global application configuration is now managed by mise. GNU Stow remains
+> for repository-level files and bootstrap boundaries that are intentionally
+> not deployed as global application configuration.
 
 The `home/` directory is a source tree for files that belong under `$HOME`. Its layout mirrors the target layout, so the source location also describes the installed location.
 
-Mise declarations live in [`home/.config/mise/conf.d/`](./home/.config/mise/conf.d/) and are linked into `~/.config/mise/`. Files are grouped by logical boundary, such as `bootstrap-gh.toml` for GitHub resources and `module.copilot.toml` for Copilot resources. This keeps each bootstrap area small and independently understandable.
+Mise declarations live in [`home/.config/mise/conf.d/`](./home/.config/mise/conf.d/) and are linked into `~/.config/mise/`. Files are grouped by logical boundary, such as `module.gh.toml` for GitHub resources and `module.profiles.toml` for rendered workspace profiles. This keeps each bootstrap area small and independently understandable.
 
 Mise uses two related resource models:
 
@@ -67,7 +69,13 @@ The [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.html) and [mise 
 
 The `--mise` initialization interface updates mise itself, then applies the package, file, repository, and dotfile phases. The `--link` interface remains available for configuration that still uses GNU Stow.
 
-Non-migrated configuration remains managed by GNU Stow. The [`.stowrc`](./.stowrc) file defines `$HOME` as the target, and [`.stow-local-ignore`](./.stow-local-ignore) defines exclusions. A target belongs to one management system at a time.
+Repository-only instruction files, such as
+[`config/wezterm`](./.config/wezterm/) and
+[`config/hammerspoon`](./.config/hammerspoon/), remain in the repository and
+are excluded from deployment. Other non-migrated configuration remains
+managed by GNU Stow. The [`.stowrc`](./.stowrc) file defines `$HOME` as the
+target, and [`.stow-local-ignore`](./.stow-local-ignore) defines exclusions.
+A target belongs to one management system at a time.
 
 ## Programs
 

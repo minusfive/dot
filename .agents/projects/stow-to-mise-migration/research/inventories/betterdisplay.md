@@ -27,12 +27,12 @@
 
 ## Local and runtime inventory
 
-| Path                                            | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                                                                                                        | Classification     | Required action   | Runtime destination                             | Metadata to preserve                                                        | Secret or sensitive data                                                                                             |
-| ----------------------------------------------- | ------ | ------- | ------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ----------------- | ----------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `.config/BetterDisplay/config.plist`            | `yes`  | `yes`   | `no`    | `repo`           | `scripts/betterdisplay.zsh` exports and imports the `pro.betterdisplay.BetterDisplay` bundle settings; `plutil -lint` reports `OK`.                                                                        | `active-global`    | `copy-then-erase` | `~/.config/BetterDisplay/config.plist`          | `0644`, owner `villalj`, group `staff`, Apple binary plist                  | `yes` — machine-specific display UUID, serial, EDID, and color-profile references; no credential content was printed |
-| `.config/BetterDisplay/README.md`               | `yes`  | `yes`   | `no`    | `repo`           | Documents the bootstrap and manual export/import flows, backup pattern, display-identifier limitations, and app-version compatibility.                                                                     | `active-repo-only` | `preserve`        | `none`                                          | `0644`, owner `villalj`, group `staff`                                      | `no`                                                                                                                 |
-| `~/.config/BetterDisplay`                       | `yes`  | `no`    | `no`    | `target`         | BetterDisplay is installed at `/Applications/BetterDisplay.app`; the target is a relative whole-directory symlink to `../dev/personal/dot/.config/BetterDisplay`; the app is not running during inventory. | `active-global`    | `preserve`        | `~/.config/BetterDisplay`                       | Whole-directory `lrwxr-xr-x`, owner `villalj`, group `staff`, relative link | `no`                                                                                                                 |
-| `~/.config/BetterDisplay/config.backup.*.plist` | `no`   | `no`    | `no`    | `target`         | `scripts/betterdisplay.zsh` creates a timestamped backup before import; no matching file exists in the current source or target scan.                                                                      | `active-global`    | `preserve`        | `~/.config/BetterDisplay/config.backup.*.plist` | Runtime regular files; preserve normal user ownership and mode              | `yes` — exported BetterDisplay settings can repeat machine-specific identifiers                                      |
+| Path                                            | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                                   | Classification  | Required action | Runtime destination                             | Metadata to preserve                                           | Secret or sensitive data                                                                                             |
+| ----------------------------------------------- | ------ | ------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------- | --------------- | ----------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `.config/BetterDisplay/config.plist`            | `no`   | `no`    | `no`    | `historical`     | Retired Stow source; binary plist moved to `home/.config/BetterDisplay/config.plist`.                                                 | `historical`    | `remove`        | `~/.config/BetterDisplay/config.plist`          | `retired source path`                                          | `yes` — machine-specific display UUID, serial, EDID, and color-profile references; no credential content was printed |
+| `.config/BetterDisplay/README.md`               | `no`   | `no`    | `no`    | `historical`     | Repository documentation moved to `home/.config/BetterDisplay/README.md` and is excluded from deployed links.                         | `historical`    | `remove`        | `none`                                          | `retired source path`                                          | `no`                                                                                                                 |
+| `~/.config/BetterDisplay`                       | `yes`  | `no`    | `no`    | `target`         | Physical directory with one mise-managed relative link; README is not deployed.                                                       | `active-global` | `preserve`      | `~/.config/BetterDisplay`                       | `Physical directory, owner villalj, group staff, mode 0755`    | `no`                                                                                                                 |
+| `~/.config/BetterDisplay/config.backup.*.plist` | `no`   | `no`    | `no`    | `target`         | `scripts/betterdisplay.zsh` creates a timestamped backup before import; no matching file exists in the current source or target scan. | `active-global` | `preserve`      | `~/.config/BetterDisplay/config.backup.*.plist` | Runtime regular files; preserve normal user ownership and mode | `yes` — exported BetterDisplay settings can repeat machine-specific identifiers                                      |
 
 Record ignored paths with:
 
@@ -58,8 +58,8 @@ installations. Values were not printed.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/BetterDisplay` -> `../dev/personal/dot/.config/BetterDisplay`; `config.plist` and `README.md` resolve through the source directory
+- Current target shape: `physical directory with one relative symlink-each link`
+- Current target manifest path: `~/.config/BetterDisplay`
 - Old owner cleanup command: `test -L "$HOME/.config/BetterDisplay" && test "$(readlink "$HOME/.config/BetterDisplay")" = "../dev/personal/dot/.config/BetterDisplay" && unlink "$HOME/.config/BetterDisplay"`
 - New owner dry-run command: `mise -E betterdisplay bootstrap dotfiles apply --dry-run`
 - New owner apply command: `mise -E betterdisplay bootstrap dotfiles apply --yes`
@@ -97,15 +97,15 @@ installations. Values were not printed.
 
 - Syntax or source checks:
   - `zsh -n scripts/betterdisplay.zsh`
-  - `file .config/BetterDisplay/config.plist && plutil -lint .config/BetterDisplay/config.plist`
-  - `git ls-files --error-unmatch .config/BetterDisplay/config.plist .config/BetterDisplay/README.md`
+  - `file home/.config/BetterDisplay/config.plist && plutil -lint home/.config/BetterDisplay/config.plist`
+  - `git ls-files --error-unmatch home/.config/BetterDisplay/config.plist home/.config/BetterDisplay/README.md`
 - Focused test:
   - `tests/scripts/test_betterdisplay.zsh`
 - Target smoke test:
   - `test -L "$HOME/.config/BetterDisplay/config.plist" && plutil -lint "$HOME/.config/BetterDisplay/config.plist" && test ! -e "$HOME/.config/BetterDisplay/README.md"`
   - Defer an actual import/export smoke test until BetterDisplay can be safely stopped and the target backup disposition is verified.
 - Security or token check:
-  - `git grep -nE 'AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|password|token|secret' -- .config/BetterDisplay scripts/betterdisplay.zsh`
+  - `git grep -nE 'AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|password|token|secret' -- home/.config/BetterDisplay scripts/betterdisplay.zsh`
   - Do not dump or decode the plist; use `plutil -lint`, metadata, checksum, and filtered identifier-key inspection only.
 - Aggregate checks:
   - `mise run check`
@@ -133,4 +133,5 @@ installations. Values were not printed.
 - Residual risk:
   - `medium`; display identifiers and EDID data are machine-specific, and the current script writes both the exported config and pre-import backups through the Stow source directory. The script path split and target-only backup rule must be implemented before cutover.
 - Open blocker:
-  - Ownership cutover still requires explicit migration approval and a focused script/test update. Do not apply mise or remove the current Stow link from this inventory task.
+  - None. The binary plist remains source-owned, the README is repository-only,
+    and runtime backups remain target-local.

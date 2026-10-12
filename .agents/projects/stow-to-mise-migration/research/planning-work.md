@@ -55,8 +55,9 @@ pending-decisions document has no pending decision.
     status and dry-run results, source manifests, metadata-only target
     manifests, and pre-existing differences.
   - All mutation stories, including `MIG-90`, have approval records with
-    exact inventory-bound scopes. Stories 1 to 5 are complete and approved;
-    later stories and `MIG-90` remain pending.
+    exact inventory-bound scopes. All 29 module stories are complete and
+    approved; MIG-90 remains blocked only at its separately gated full-flow
+    apply.
 - Exit condition: the baseline record is complete and every mutation story has
   an approval record with an exact recorded scope.
 
@@ -81,8 +82,8 @@ pending-decisions document has no pending decision.
     approval gates.
   - The exact execution handoff path is
     `.agents/projects/stow-to-mise-migration/plans/migration-roadmap-v1.md`.
-    Stories 1 to 5 are complete and approved; the roadmap remains blocked at
-    `MIG-MODULE-gh` while its approval record is pending.
+    All module stories are complete and approved; MIG-90 remains blocked on
+    its separately approved full-flow apply.
 - Exit condition: the user approves
   `plans/migration-roadmap-v1.md` for execution.
 
@@ -139,14 +140,53 @@ pending-decisions document has no pending decision.
     synchronized to their approval state; and
   - validate the allowed transition gates and all status mirrors.
 - Evidence:
-  - Stories 1 to 5 are `done` in the roadmap and `approved` in their
+  - All module stories are `done` in the roadmap and `approved` in their
     approval records and inventories.
-  - Later stories remain `blocked` with pending approval records unless an
-    approved execution blocker changes their state.
+  - MIG-90 is blocked only because its approval record separately gates the
+    full-flow apply.
   - `validate-artifacts.zsh` checks roadmap/registry lifecycle parity,
     approval/inventory parity, and authorization requirements for active or
     completed stories.
 - Exit condition: the validator passes and rejects status or approval drift.
+
+### `PLAN-08`: Resolve profile template target context
+
+- Status: `complete`
+- Scope:
+  - verify the template context supported by the installed mise version;
+  - replace the unsupported `target` expression without changing the approved
+    source or target paths; and
+  - update the profile declaration, initialization wiring, focused test, and
+    inventory evidence.
+- Evidence:
+  - `mise` `2026.10.5` failed to render the original template because
+    `target` was undefined.
+  - The mise dotfiles reference documents `mode = "template"` and profile
+    variants with target overrides.
+  - The resolved design keeps one tracked template, selects the `personal` or
+    `work` profile from `mise_env`, and applies each approved target with an
+    explicit profile-scoped target command.
+- Exit condition: `DEC-profiles-template-target-context` is resolved and all
+  affected execution artifacts agree.
+
+### `PLAN-09`: Complete migration closeout checks
+
+- Status: `blocked`
+- Scope:
+  - run every focused module test and aggregate repository check;
+  - verify one-owner state, runtime exclusions, and final documentation; and
+  - record the separately gated full-flow integration test as the only
+    remaining closeout item.
+- Evidence:
+  - All 29 module-focused tests, migration artifact validation, and `mise run
+check` pass.
+  - `stow -nvR .` reports only the remaining repository/bootstrap boundaries,
+    with no migrated application boundary.
+  - `mise bootstrap --dry-run` and target-scoped dotfile dry runs are
+    converged except for the expected rendered workspace profile preview.
+- Blocker:
+  - `MIG-90` approval explicitly states that the full-flow apply remains
+    separately approval-gated, so `./scripts/init.zsh --mise` was not run.
 
 ## Planning rules
 

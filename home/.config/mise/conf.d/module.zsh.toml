@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/zsh" = { source = "~/dev/personal/dot/home/.config/zsh", mode = "symlink-each" }

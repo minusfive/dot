@@ -26,11 +26,11 @@
 
 ## Local and runtime inventory
 
-| Path                         | Exists | Tracked | Ignored | Current location | Active use evidence                                                | Classification  | Required action   | Runtime destination            | Metadata to preserve                                                                                                         | Secret or sensitive data |
-| ---------------------------- | ------ | ------- | ------- | ---------------- | ------------------------------------------------------------------ | --------------- | ----------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| `.config/lazygit/config.yml` | `yes`  | `yes`   | `no`    | `repo`           | `.config/zsh/.zshrc:222` names its target through `LG_CONFIG_FILE` | `active-global` | `copy-then-erase` | `~/.config/lazygit/config.yml` | Regular file, mode `0644`                                                                                                    | `no`                     |
-| `.config/lazygit/theme.yml`  | `yes`  | `yes`   | `no`    | `repo`           | `.config/zsh/.zshrc:222` names its target through `LG_CONFIG_FILE` | `active-global` | `copy-then-erase` | `~/.config/lazygit/theme.yml`  | Regular file, mode `0644`                                                                                                    | `no`                     |
-| `~/.config/lazygit`          | `yes`  | `no`    | `no`    | `target`         | `LG_CONFIG_FILE` resolves both child files under this directory    | `active-global` | `preserve`        | `~/.config/lazygit`            | Whole-directory relative symlink `../dev/personal/dot/.config/lazygit`; link mode `0755`; child files resolve to mode `0644` | `no`                     |
+| Path                         | Exists | Tracked | Ignored | Current location | Active use evidence                                                       | Classification  | Required action | Runtime destination            | Metadata to preserve                              | Secret or sensitive data |
+| ---------------------------- | ------ | ------- | ------- | ---------------- | ------------------------------------------------------------------------- | --------------- | --------------- | ------------------------------ | ------------------------------------------------- | ------------------------ |
+| `.config/lazygit/config.yml` | `no`   | `no`    | `no`    | `historical`     | Retired Stow source; the file moved to `home/.config/lazygit/config.yml`. | `historical`    | `remove`        | `~/.config/lazygit/config.yml` | `retired source path`                             | `no`                     |
+| `.config/lazygit/theme.yml`  | `no`   | `no`    | `no`    | `historical`     | Retired Stow source; the file moved to `home/.config/lazygit/theme.yml`.  | `historical`    | `remove`        | `~/.config/lazygit/theme.yml`  | `retired source path`                             | `no`                     |
+| `~/.config/lazygit`          | `yes`  | `no`    | `no`    | `target`         | `LG_CONFIG_FILE` resolves both child files under this physical directory. | `active-global` | `preserve`      | `~/.config/lazygit`            | Physical directory with relative links, mode 0755 | `no`                     |
 
 Record ignored paths with:
 
@@ -45,8 +45,8 @@ credential-bearing contents. Record metadata, references, and target paths only.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/lazygit` (`readlink` returns `../dev/personal/dot/.config/lazygit`)
+- Current target shape: `physical directory with relative symlink-each links`
+- Current target manifest path: `~/.config/lazygit`
 - Old owner cleanup command: `test -L "$HOME/.config/lazygit" && test "$(readlink "$HOME/.config/lazygit")" = "../dev/personal/dot/.config/lazygit" && unlink "$HOME/.config/lazygit"`
 - New owner dry-run command: `mise -E lazygit dot apply --dry-run ~/.config/lazygit`
 - New owner apply command: `mise -E lazygit dot apply --yes ~/.config/lazygit`
@@ -70,15 +70,15 @@ credential-bearing contents. Record metadata, references, and target paths only.
 ## Validation
 
 - Syntax or source checks:
-  - `git ls-files -- .config/lazygit | sort`
-  - `yq eval '.' .config/lazygit/config.yml >/dev/null && yq eval '.' .config/lazygit/theme.yml >/dev/null`
+  - `git ls-files -- home/.config/lazygit | sort`
+  - `yq eval '.' home/.config/lazygit/config.yml >/dev/null && yq eval '.' home/.config/lazygit/theme.yml >/dev/null`
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_lazygit.zsh` (planned module
     test; not present in the current tree)
 - Target smoke test:
   - `LG_CONFIG_FILE="$HOME/.config/lazygit/config.yml,$HOME/.config/lazygit/theme.yml" lazygit --version`
 - Security or token check:
-  - `! git grep -nEi '(token|password|secret|credential|api[-_ ]?key|private[-_ ]?key)' -- .config/lazygit >/dev/null`
+  - `! git grep -nEi '(token|password|secret|credential|api[-_ ]?key|private[-_ ]?key)' -- home/.config/lazygit >/dev/null`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -107,5 +107,4 @@ credential-bearing contents. Record metadata, references, and target paths only.
   - The current parent-directory Stow link must be detached before per-file
     mise links are applied.
 - Open blocker:
-  - Migration approval remains pending, and the planned module-focused test
-    does not yet exist.
+  - None. The target now uses the approved mise `symlink-each` declaration.

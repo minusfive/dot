@@ -12,14 +12,15 @@ function {
 
     # BetterDisplay configuration
     local __betterdisplay_bundle_id="pro.betterdisplay.BetterDisplay"
-    local __config_dir="$__dotfiles_dir/.config/BetterDisplay"
-    local __config_file="$__config_dir/config.plist"
+    local __config_source_dir="$__dotfiles_dir/home/.config/BetterDisplay"
+    local __runtime_config_dir="$HOME/.config/BetterDisplay"
+    local __config_file="$__config_source_dir/config.plist"
     local __temp_export_file="/tmp/BetterDisplay_export.plist"
 
     if [[ "$__proceed" == true ]]; then
         echo "\n"
         _v_log_info $__context "Managing $(_v_fmt_u BetterDisplay) settings..."
-        _v_log_info $__context "Config directory: $(_v_color_fg yellow "'$__config_dir'")"
+        _v_log_info $__context "Config directory: $(_v_color_fg yellow "'$__config_source_dir'")"
         _v_log_info $__context "Config file: $(_v_color_fg yellow "'$__config_file'")"
 
         _v_confirm_proceed
@@ -54,14 +55,14 @@ function {
         _v_log_info $__context "Exporting $(_v_fmt_u BetterDisplay) settings..."
 
         # Create config directory if it doesn't exist
-        if [[ ! -d "$__config_dir" ]]; then
-            _v_log_info $__context "Creating config directory: $__config_dir"
-            mkdir -p "$__config_dir"
+        if [[ ! -d "$__config_source_dir" ]]; then
+            _v_log_info $__context "Creating config directory: $__config_source_dir"
+            mkdir -p "$__config_source_dir"
 
             if [[ $? == 0 ]]; then
-                _v_log_ok $__context "Config directory created: $__config_dir"
+                _v_log_ok $__context "Config directory created: $__config_source_dir"
             else
-                _v_log_error $__context "Failed to create config directory: $__config_dir"
+                _v_log_error $__context "Failed to create config directory: $__config_source_dir"
                 return 1
             fi
         fi
@@ -132,7 +133,7 @@ function {
 
     # Function to backup current settings before import
     function __backup_current_settings {
-        local __backup_file="$__config_dir/config.backup.$(date +%Y%m%d_%H%M%S).plist"
+        local __backup_file="$__runtime_config_dir/config.backup.$(date +%Y%m%d_%H%M%S).plist"
 
         _v_log_info $__context "Creating backup of current settings to $__backup_file"
         defaults export "$__betterdisplay_bundle_id" "$__backup_file" 2>/dev/null

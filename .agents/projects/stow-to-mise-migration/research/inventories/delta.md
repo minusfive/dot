@@ -25,11 +25,11 @@
 
 ## Local and runtime inventory
 
-| Path                                        | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                                   | Classification   | Required action | Runtime destination                           | Metadata to preserve                                                                                      | Secret or sensitive data |
-| ------------------------------------------- | ------ | ------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | --------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------ |
-| `.config/delta/themes/catppuccin.gitconfig` | `yes`  | `yes`   | `no`    | `repo`           | `.config/git/config` includes `~/.config/delta/themes/catppuccin.gitconfig`. The current target resolves to this source.              | `active-global`  | `move`          | `~/.config/delta/themes/catppuccin.gitconfig` | Regular file. Preserve mode `0644`, owner, group, and permissions.                                        | `no`                     |
-| `~/.config/delta`                           | `yes`  | `no`    | `no`    | `target`         | `readlink` reports `../dev/personal/dot/.config/delta`. The target contains the same one file as the source, and the checksums match. | `active-global`  | `preserve`      | `~/.config/delta`                             | Detach the whole-directory symlink before creating the mise-managed physical directory and per-file link. | `no`                     |
-| `~/.config/delta/<target-only>`             | `no`   | `no`    | `no`    | `target`         | The target file list matches the source file list. No target-only files were found.                                                   | `not-applicable` | `none`          | `none`                                        | `none`                                                                                                    | `no`                     |
+| Path                                        | Exists | Tracked | Ignored | Current location | Active use evidence                                                                       | Classification   | Required action | Runtime destination                           | Metadata to preserve                                 | Secret or sensitive data |
+| ------------------------------------------- | ------ | ------- | ------- | ---------------- | ----------------------------------------------------------------------------------------- | ---------------- | --------------- | --------------------------------------------- | ---------------------------------------------------- | ------------------------ |
+| `.config/delta/themes/catppuccin.gitconfig` | `no`   | `no`    | `no`    | `historical`     | Retired Stow source; the theme moved to `home/.config/delta/themes/catppuccin.gitconfig`. | `historical`     | `remove`        | `~/.config/delta/themes/catppuccin.gitconfig` | `retired source path`                                | `no`                     |
+| `~/.config/delta`                           | `yes`  | `no`    | `no`    | `target`         | Physical directory with one relative per-file link to the mise source.                    | `active-global`  | `preserve`      | `~/.config/delta`                             | `Physical directory, owner villalj:staff, mode 0755` | `no`                     |
+| `~/.config/delta/<target-only>`             | `no`   | `no`    | `no`    | `target`         | The target file list matches the source file list. No target-only files were found.       | `not-applicable` | `none`          | `none`                                        | `none`                                               | `no`                     |
 
 Record ignored paths with:
 
@@ -46,8 +46,9 @@ during this inventory or its validation.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/delta -> ../dev/personal/dot/.config/delta`. No separate target manifest exists.
+- Current target shape: `physical directory with relative symlink-each link`
+- Current target manifest path: `~/.config/delta`; managed files resolve to
+  `home/.config/delta`.
 - Old owner cleanup command: `test -L "$HOME/.config/delta" && test "$(readlink "$HOME/.config/delta")" = "../dev/personal/dot/.config/delta" && rm "$HOME/.config/delta"`
 - New owner dry-run command: `mise -E delta dot apply --dry-run ~/.config/delta`
 - New owner apply command: `mise -E delta dot apply ~/.config/delta`
@@ -79,7 +80,7 @@ after the new source exists and the mise dry run names the intended target.
 ## Validation
 
 - Syntax or source checks:
-  - `git ls-files --error-unmatch .config/delta/themes/catppuccin.gitconfig`
+  - `git ls-files --error-unmatch home/.config/delta/themes/catppuccin.gitconfig`
   - `zsh -n scripts/zsh.zsh`
   - `git diff --check -- .agents/projects/stow-to-mise-migration/research/inventories/delta.md`
   - After the source move: `git ls-files --error-unmatch ~/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig`
@@ -90,8 +91,8 @@ after the new source exists and the mise dry run names the intended target.
   - `delta --version`
   - `test -f "$HOME/.config/delta/themes/catppuccin.gitconfig" && git config --global --get core.pager | grep -Fx delta && git config --global --get interactive.diffFilter | grep -Fx 'delta --color-only' && git config --global --get include.path | grep -Fx '~/.config/delta/themes/catppuccin.gitconfig'`
 - Security or token check:
-  - `! git grep -l -I -E '(token|password|secret|credential|private[ -]?key)' -- .config/delta ~/dev/personal/dot/home/.config/delta`
-  - `git ls-files --others --ignored --exclude-standard -- .config/delta ~/dev/personal/dot/home/.config/delta`
+  - `! git grep -l -I -E '(token|password|secret|credential|private[ -]?key)' -- home/.config/delta`
+  - `git ls-files --others --ignored --exclude-standard -- home/.config/delta`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -120,4 +121,5 @@ after the new source exists and the mise dry run names the intended target.
 - Residual risk:
   - `scripts/zsh.zsh` writes the downloaded Catppuccin theme directly to the target path. With mise per-file links, that path would write through to the tracked `~/dev/personal/dot/home/` source. Migration validation must not run the refresh, and any future theme update needs explicit review.
 - Open blocker:
-  - Migration approval remains pending. Do not download or modify the theme.
+  - None. The approved mise source owns the theme and the target remains
+    available at the existing path.

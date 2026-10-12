@@ -22,7 +22,7 @@ else
 fi
 
 # Test 2: Check if config directory exists
-if [[ -d ".config/BetterDisplay" ]]; then
+if [[ -d "home/.config/BetterDisplay" ]]; then
     echo "✓ BetterDisplay config directory exists"
 else
     echo "✗ BetterDisplay config directory not found"
@@ -30,11 +30,18 @@ else
 fi
 
 # Test 3: Check if README exists
-if [[ -f ".config/BetterDisplay/README.md" ]]; then
+if [[ -f "home/.config/BetterDisplay/README.md" ]]; then
     echo "✓ BetterDisplay README exists"
 else
     echo "✗ BetterDisplay README not found"
 fi
+
+[[ -f "home/.config/BetterDisplay/config.plist" ]] || exit 1
+[[ -L "$HOME/.config/BetterDisplay/config.plist" ]] || exit 1
+[[ ! -e "$HOME/.config/BetterDisplay/README.md" ]] || exit 1
+grep -qF 'home/.config/BetterDisplay' scripts/betterdisplay.zsh || exit 1
+grep -qF 'runtime_config_dir' scripts/betterdisplay.zsh || exit 1
+plutil -lint home/.config/BetterDisplay/config.plist >/dev/null || exit 1
 
 # Test 5: Check if init.zsh includes BetterDisplay option
 if grep -q "manage_betterdisplay" scripts/init.zsh; then

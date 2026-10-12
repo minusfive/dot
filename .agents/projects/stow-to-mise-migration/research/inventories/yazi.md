@@ -44,10 +44,10 @@ Because no ignored or untracked candidate exists, there is no applicable
 
 ## Local and runtime inventory
 
-| Path             | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                                                | Classification   | Required action | Runtime destination | Metadata to preserve                                                                            | Secret or sensitive data |
-| ---------------- | ------ | ------- | ------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | --------------- | ------------------- | ----------------------------------------------------------------------------------------------- | ------------------------ |
-| `~/.config/yazi` | `yes`  | `no`    | `no`    | `target`         | `readlink ~/.config/yazi` resolves to `../dev/personal/dot/.config/yazi`; `yazi --version` and `ya --version` are available                        | `active-global`  | `detach`        | `~/.config/yazi`    | Current whole-directory relative symlink; preserve target contents and link shape until cutover | `no`                     |
-| `<none>`         | `no`   | `no`    | `no`    | `repo`           | Both `git ls-files --others --ignored --exclude-standard -- .config/yazi` and `git ls-files --others --exclude-standard -- .config/yazi` are empty | `not-applicable` | `none`          | `none`              | `none`                                                                                          | `no`                     |
+| Path             | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                                                | Classification   | Required action | Runtime destination | Metadata to preserve                   | Secret or sensitive data |
+| ---------------- | ------ | ------- | ------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | --------------- | ------------------- | -------------------------------------- | ------------------------ |
+| `~/.config/yazi` | `yes`  | `no`    | `no`    | `target`         | Physical directory with 14 relative per-file links; `yazi --version` and `ya --version` are available                                              | `active-global`  | `preserve`      | `~/.config/yazi`    | Physical directory with relative links | `no`                     |
+| `<none>`         | `no`   | `no`    | `no`    | `repo`           | Both `git ls-files --others --ignored --exclude-standard -- .config/yazi` and `git ls-files --others --exclude-standard -- .config/yazi` are empty | `not-applicable` | `none`          | `none`              | `none`                                 | `no`                     |
 
 No ignored, untracked, generated, credential-bearing, or tool-runtime path
 was found inside the `.config/yazi` source boundary.
@@ -64,8 +64,8 @@ argument.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/yazi` (`readlink` returns `../dev/personal/dot/.config/yazi`)
+- Current target shape: `physical directory with relative symlink-each links`
+- Current target manifest path: `~/.config/yazi`
 - Old owner cleanup command: `[[ -L "$HOME/.config/yazi" && "$(readlink "$HOME/.config/yazi")" == "../dev/personal/dot/.config/yazi" ]] && rm "$HOME/.config/yazi"`
 - New owner dry-run command: `mise dot apply --dry-run ~/.config/yazi`
 - New owner apply command: `mise dot apply ~/.config/yazi`
@@ -92,7 +92,7 @@ argument.
 ## Validation
 
 - Syntax or source checks:
-  - `git ls-files -- .config/yazi/` must match the 14-path manifest above.
+  - `git ls-files -- home/.config/yazi/` must match the 14-path manifest above.
   - `git diff --check -- .agents/projects/stow-to-mise-migration/research/inventories/yazi.md`
   - `yazi --version` and `ya --version`
 - Focused test:
@@ -102,8 +102,8 @@ argument.
 - Target smoke test:
   - Run `yazi` interactively after cutover and verify hidden files, natural sorting, size linemode, Catppuccin Mocha styling, and the absent status bar. The interactive portion is deferred because it cannot be validated non-interactively.
 - Security or token check:
-  - `rg -l -i '(api[_-]?key|access[_-]?token|password[[:space:]]*=|secret[[:space:]]*=|private[_-]?key|credential[[:space:]]*=|auth\.db)' .config/yazi` must return no paths; do not print file contents.
-  - `git ls-files --others --ignored --exclude-standard -- .config/yazi` must remain empty.
+  - `rg -l -i '(api[_-]?key|access[_-]?token|password[[:space:]]*=|secret[[:space:]]*=|private[_-]?key|credential[[:space:]]*=|auth\.db)' home/.config/yazi` must return no paths; do not print file contents.
+  - `git ls-files --others --ignored --exclude-standard -- home/.config/yazi` must remain empty.
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -132,4 +132,5 @@ argument.
 - Residual risk:
   - Yazi package and configuration compatibility is version-sensitive; the current target is a whole-directory Stow link and must be detached before per-file mise links are applied.
 - Open blocker:
-  - Migration mutation remains pending explicit approval, creation of `~/dev/personal/dot/home/.config/mise/conf.d/module.yazi.toml`, and the focused terminal-boundary test.
+  - None. The target now uses the approved mise `symlink-each` declaration and
+    package pins remain unchanged.

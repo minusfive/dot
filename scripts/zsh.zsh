@@ -9,6 +9,8 @@ set -euo pipefail
 function {
     local __context=" ZSH"
     local __proceed="$__install_zsh_theme_plugins"
+    local __dotfiles_root="$(realpath "$(dirname "$ZSH_ARGZERO")/..")"
+    local __bat_theme_source="$__dotfiles_root/home/.config/bat/themes/Catppuccin Mocha.tmTheme"
 
     if [[ "$__proceed" == true ]]; then
         echo "\n"
@@ -78,7 +80,7 @@ function {
     if [[ $(command -v bat) != "" ]]; then
         echo "\n"
         _v_log_info $__context "Updating $(_v_fmt_u bat) theme"
-        wget -O "$(bat --config-dir)/themes/Catppuccin Mocha.tmTheme" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Mocha.tmTheme
+        wget -O "$__bat_theme_source" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Mocha.tmTheme
 
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u bat) theme updated"
@@ -96,7 +98,7 @@ function {
     if [[ $(command -v btop) != "" ]]; then
         echo "\n"
         _v_log_info $__context "Updating $(_v_fmt_u btop) theme"
-        wget -O "$XDG_CONFIG_HOME/btop/themes/catppuccin_mocha.theme" https://github.com/catppuccin/btop/raw/main/themes/catppuccin_mocha.theme
+        wget -O "$__dotfiles_root/home/.config/btop/themes/catppuccin_mocha.theme" https://github.com/catppuccin/btop/raw/main/themes/catppuccin_mocha.theme
 
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u btop) theme updated"
@@ -107,7 +109,7 @@ function {
     if [[ $(command -v delta) != "" ]]; then
         echo "\n"
         _v_log_info $__context "Updating $(_v_fmt_u delta) theme"
-        wget -O "$XDG_CONFIG_HOME/delta/themes/catppuccin.gitconfig" https://github.com/catppuccin/delta/raw/main/catppuccin.gitconfig
+        wget -O "$__dotfiles_root/home/.config/delta/themes/catppuccin.gitconfig" https://github.com/catppuccin/delta/raw/main/catppuccin.gitconfig
 
         if [[ $? == 0 ]]; then
             _v_log_ok $__context "$(_v_fmt_u delta) theme updated"
