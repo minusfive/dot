@@ -141,9 +141,12 @@ The current source-path corrections are:
 - Claude: map `~/.claude/skills` directly to `~/dev/personal/dot/home/.agents/skills`. Do not use
   `~/dev/personal/dot/home/.claude/skills` as the new source; it is only a cross-module alias to
   the agents source.
-- WezTerm: `.config/wezterm/CLAUDE.md` resolves to the sibling
-  `.config/wezterm/AGENTS.md`, but both files are excluded from the migration
-  source set by `.stow-local-ignore`; no new `~/dev/personal/dot/home/` source is required.
+- Hammerspoon: keep `home/.config/hammerspoon/.luarc.json` in the repository
+  source tree and exclude it from the runtime target.
+- WezTerm: keep `home/.config/wezterm/AGENTS.md` and
+  `home/.config/wezterm/CLAUDE.md` in the repository source tree and exclude
+  both files from the runtime target. Remove the legacy `.config/wezterm`
+  copies.
 
 Before execution, reconcile the Copilot and Claude inventories with these
 canonical paths and classify their nested aliases as repository-only. The
@@ -239,7 +242,9 @@ clean.
 
 - Keep authentication databases, WAL files, histories, completion dumps,
   caches, dependencies, lockfiles, and generated output outside `~/dev/personal/dot/home/`
-  unless the inventory explicitly approves repository ownership.
+  unless the inventory explicitly approves repository ownership. Repository-local
+  development files can remain in `home/.config/...` when the inventory excludes
+  them from the runtime target.
 - Keep `.config/zsh/.zsh_history` and `.config/zsh/.zcompdump` outside
   `~/dev/personal/dot/home/`. Move them into the detached runtime target before removing the
   parent Stow link.
@@ -1374,7 +1379,7 @@ Use the common rollback contract.
 - Dependencies: `MIG-MODULE-mise`
 - Current owner: GNU Stow
 - New owner: `mise`
-- Source: `.config/wezterm`
+- Source: `.config/wezterm` (legacy) and `home/.config/wezterm` (canonical)
 - Target: `~/.config/wezterm`
 - Mode: `symlink-each`
 - Risk: `medium`
@@ -1383,8 +1388,9 @@ Use the common rollback contract.
 ### Description — `MIG-MODULE-wezterm`
 
 Move WezTerm configuration and shell hooks under `~/dev/personal/dot/home/.config/wezterm`.
-Record an explicit disposition for repository-only instruction files and
-research backups that the old parent symlink exposes.
+Keep the repository-local instruction files in the canonical `home` source
+directory, exclude them from the runtime target, and record an explicit
+disposition for research backups that the old parent symlink exposes.
 
 ### Steps — `MIG-MODULE-wezterm`
 
@@ -1398,6 +1404,8 @@ research backups that the old parent symlink exposes.
 
 - The target-only disposition matches the inventory.
 - Shell completion and integration files resolve.
+- The repository-local instruction files exist under `home` and are excluded
+  from the runtime target.
 - Research backups do not enter `~/dev/personal/dot/home/`.
 
 ### Rollback and mitigation — `MIG-MODULE-wezterm`
@@ -1532,7 +1540,7 @@ Use the common rollback contract. Restore the old script and preserved backup fi
 - Dependencies: `MIG-MODULE-mise`
 - Current owner: GNU Stow
 - New owner: `mise`
-- Source: `.config/hammerspoon`
+- Source: `.config/hammerspoon` (legacy) and `home/.config/hammerspoon` (canonical)
 - Target: `~/.config/hammerspoon`
 - Mode: `symlink-each`
 - Risk: `high`
@@ -1541,7 +1549,9 @@ Use the common rollback contract. Restore the old script and preserved backup fi
 ### Description — `MIG-MODULE-hammerspoon`
 
 Move eligible tracked Lua and `Spoons/` files under `~/dev/personal/dot/home/.config/hammerspoon`.
-Record the disposition of `.luarc.json` and all target-only runtime files.
+Keep `.luarc.json` in the canonical `home` source directory, exclude it from
+the runtime target, and record the disposition of all target-only runtime
+files.
 
 ### Steps — `MIG-MODULE-hammerspoon`
 
@@ -1553,6 +1563,8 @@ Record the disposition of `.luarc.json` and all target-only runtime files.
 ### Acceptance checks — `MIG-MODULE-hammerspoon`
 
 - The eligible manifest excludes repository-only files.
+- The repository-local `.luarc.json` source exists under `home` and is excluded
+  from the runtime target.
 - `Spoons/` remains complete.
 - Lua syntax passes.
 - The target-only disposition matches the inventory.

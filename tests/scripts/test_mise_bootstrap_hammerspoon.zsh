@@ -10,12 +10,14 @@ local __config="home/.config/mise/conf.d/module.hammerspoon.toml"
 local __source="home/.config/hammerspoon"
 local __target="$HOME/.config/hammerspoon"
 [[ -f "$__config" ]] || fail "missing $__config"
-grep -qF '"~/.config/hammerspoon" = { source = "~/dev/personal/dot/home/.config/hammerspoon", mode = "symlink-each" }' "$__config" ||
+grep -qF '"~/.config/hammerspoon" = { source = "~/dev/personal/dot/home/.config/hammerspoon", mode = "symlink-each", exclude = [".luarc.json"] }' "$__config" ||
     fail "Hammerspoon symlink-each declaration is missing"
-[[ ! -e "$__source/.luarc.json" ]] || fail "repository-only .luarc.json entered the mise source"
+[[ -f "$__source/.luarc.json" ]] || fail "Hammerspoon local-development source is missing"
+[[ ! -e ".config/hammerspoon/.luarc.json" ]] ||
+    fail "Hammerspoon local-development source remains under the legacy boundary"
 [[ ! -e "$__target/.luarc.json" ]] || fail "repository-only .luarc.json leaked into the target"
-local __expected_count="$(git ls-files -- home/.config/hammerspoon | wc -l | tr -d ' ')"
-local __source_count="$(find "$__source" -type f | wc -l | tr -d ' ')"
+local __expected_count="$(git ls-files -- home/.config/hammerspoon | grep -v '^home/.config/hammerspoon/.luarc.json$' | wc -l | tr -d ' ')"
+local __source_count="$(find "$__source" -type f ! -name '.luarc.json' | wc -l | tr -d ' ')"
 local __link_count="$(find "$__target" -type l | wc -l | tr -d ' ')"
 [[ "$__source_count" == "$__expected_count" ]] || fail "Hammerspoon source manifest mismatch"
 [[ "$__link_count" == "$__expected_count" ]] || fail "Hammerspoon target link count mismatch"

@@ -70,9 +70,6 @@ mise.local.toml
 ^/CLAUDE\.md
 ^/\.mcp\.json
 tmp$
-^/\.config/wezterm
-^/\.config/wezterm/AGENTS\.md
-^/\.config/wezterm/CLAUDE\.md
 ^/home
 
 # lefthook

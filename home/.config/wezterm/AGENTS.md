@@ -1,6 +1,6 @@
 # WezTerm agent rules
 
-- Apply these rules when you change files in `.config/wezterm/`.
+- Apply these rules when you change files in `home/.config/wezterm/`.
 - Validate pane and split changes before you finish. For split work, run repeated `Left`, `Right`, `Up`, and `Down` stress checks.
 - Use `wezterm.org` as the canonical documentation site.
 - Treat `wezfurlong.org/wezterm` as legacy and non-canonical.

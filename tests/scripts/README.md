@@ -32,7 +32,10 @@ Integration tests for BetterDisplay script execution:
 
 Tests global mise configuration, profile selection, task discovery, initialization phase ordering, and Git ignore bootstrap behavior.
 
-The source file `.config/git/ignore` is not a repository `.gitignore`. GNU Stow links it to `$XDG_CONFIG_HOME/git/ignore`, where Git reads the global excludes file. The test uses a temporary home to verify that Stow installs this source file and that its patterns affect Git.
+The source file `home/.config/git/ignore` is not a repository `.gitignore`.
+Mise links it to `$XDG_CONFIG_HOME/git/ignore`, where Git reads the global
+excludes file. The test uses a temporary home to verify that mise installs this
+source file and that its patterns affect Git.
 
 #### `test_mise_bootstrap_copilot.zsh`
 

@@ -7,9 +7,9 @@ I try my best to keep this and [my Nix-based configuration](https://github.com/m
 > [!NOTE]
 > This configuration includes several keyboard shortcuts (for app launching, window management, text editing, etc.), optimized to work with [my custom keyboard layout](https://github.com/minusfive/zmk-config) and workflow. To customize you'll likely want to primarily look at the following configurations:
 >
-> - [Hammerspoon](./.config/hammerspoon/)
-> - [Wezterm](./.config/wezterm/)
-> - [NeoVim](./.config/nvim/)
+> - [Hammerspoon](./home/.config/hammerspoon/)
+> - [Wezterm](./home/.config/wezterm/)
+> - [NeoVim](./home/.config/nvim/)
 
 ## Setup
 
@@ -44,7 +44,7 @@ the Discord, SoftRAID, and WhatsApp casks. The selected profile also controls
 which profile-specific `mise` environment is active.
 
 Hammerspoon reads the same state file through the
-[ProfileState Spoon](./.config/hammerspoon/Spoons/ProfileState.spoon/init.lua).
+[ProfileState Spoon](./home/.config/hammerspoon/Spoons/ProfileState.spoon/init.lua).
 It mirrors the profile through `hs.settings`, which persists the value in
 macOS defaults and makes it readable by other applications. The state file
 remains the source of truth.
@@ -69,10 +69,9 @@ The [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.html) and [mise 
 
 The `--mise` initialization interface updates mise itself, then applies the package, file, repository, and dotfile phases. The `--link` interface remains available for configuration that still uses GNU Stow.
 
-Repository-only instruction files, such as
-[`config/wezterm`](./.config/wezterm/) and
-[`config/hammerspoon`](./.config/hammerspoon/), remain in the repository and
-are excluded from deployment. Other non-migrated configuration remains
+Boundary-local development files for Hammerspoon and WezTerm live in their
+matching `home/.config/...` source directories. Their mise declarations exclude
+these files from the runtime targets. Other non-migrated configuration remains
 managed by GNU Stow. The [`.stowrc`](./.stowrc) file defines `$HOME` as the
 target, and [`.stow-local-ignore`](./.stow-local-ignore) defines exclusions.
 A target belongs to one management system at a time.

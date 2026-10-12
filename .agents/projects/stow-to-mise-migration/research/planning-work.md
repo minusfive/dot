@@ -188,6 +188,23 @@ check` pass.
   - `MIG-90` approval explicitly states that the full-flow apply remains
     separately approval-gated, so `./scripts/init.zsh --mise` was not run.
 
+### `PLAN-10`: Align local-development source boundaries
+
+- Status: `complete`
+- Scope:
+  - keep Hammerspoon `.luarc.json` and WezTerm instruction files in the
+    matching `home/.config/...` source directories;
+  - exclude those files from the runtime mise targets; and
+  - remove the legacy `.config/...` copies.
+- Evidence:
+  - `module.hammerspoon.toml` excludes `.luarc.json`.
+  - `module.wezterm.toml` excludes `AGENTS.md` and `CLAUDE.md`.
+  - Focused Hammerspoon and WezTerm tests assert the source files and runtime
+    exclusions.
+  - The migration inventories and roadmap record the updated source and target
+    dispositions.
+- Exit condition: the focused tests and artifact validator pass.
+
 ## Planning rules
 
 - Do not add planning discovery or decision steps to execution stories.

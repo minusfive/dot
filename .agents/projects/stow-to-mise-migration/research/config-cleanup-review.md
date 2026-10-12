@@ -3,8 +3,12 @@
 **Review date:** 2026-10-11
 **Scope:** Tracked `.config` files with a current recommendation for removal.
 
-## Recommended removals
+## Current state
 
-No tracked `.config` file currently meets the removal recommendation threshold.
-Keep active, deferred, repository-only, historical, and already-removed paths
-in their module inventories or supporting research instead of this file.
+The `.config/` boundary has no remaining tracked files. The Hammerspoon
+`.luarc.json` file and the WezTerm instruction files moved to their canonical
+`home/.config/...` source directories. The legacy `.config/` paths are removed.
+
+No further `.config/` cleanup is required. Keep active, deferred,
+repository-only, historical, and already-removed paths in their module
+inventories or supporting research instead of this file.

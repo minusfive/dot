@@ -23,3 +23,6 @@
 
 The user approved the remaining stories in the roadmap in the current
 interaction. The exact scope recorded above is authorized for execution.
+The user later approved the local-development source adjustment: keep
+`AGENTS.md` and `CLAUDE.md` under `home/.config/wezterm`, exclude them from the
+runtime target, and remove the legacy `.config` copies.

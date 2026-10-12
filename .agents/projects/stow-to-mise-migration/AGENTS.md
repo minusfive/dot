@@ -51,8 +51,12 @@ Use other research files as background evidence.
   `gh api user`, prefixed with `@`. Do not use the harness account identity.
 
 Keep migration artifacts scoped to repository sources and approved migration
-targets. Do not add unrelated unmanaged runtime paths as migration inputs,
-preservation targets, or blockers.
+targets. Keep boundary-local development files in their corresponding
+`home/.config/...` source directories when those directories are the canonical
+migration sources. Exclude those files from mise target declarations so they
+remain repository-local and are not linked into `$HOME`. Do not retain legacy
+`.config/...` copies after the source moves. Do not add unrelated unmanaged
+runtime paths as migration inputs, preservation targets, or blockers.
 
 Maintain the roadmap and every relevant project artifact in the same change.
 This includes affected inventories, planning work, pending decisions,
@@ -61,6 +65,9 @@ When a source path, target, mode, dependency, step, acceptance check, rollback
 rule, or story order changes, update the plan and every affected artifact
 before you finish the plan change. Keep ordering metadata only in the plan.
 Run the artifact validator after the paired updates.
+
+Do not edit, stage, commit, or push unrelated worktree changes as part of
+migration work. Preserve them for separate changes.
 
 When you resolve a decision, record the selected behavior in the roadmap or
 affected inventories and record completion in `research/planning-work.md`.

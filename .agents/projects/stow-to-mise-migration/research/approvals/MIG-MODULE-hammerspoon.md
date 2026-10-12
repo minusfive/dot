@@ -23,3 +23,6 @@
 
 The user approved the remaining stories in the roadmap in the current
 interaction. The exact scope recorded above is authorized for execution.
+The user later approved the local-development source adjustment: keep
+`.luarc.json` under `home/.config/hammerspoon`, exclude it from the runtime
+target, and remove the legacy `.config` copy.
