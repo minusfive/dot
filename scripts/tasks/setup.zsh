@@ -4,4 +4,4 @@
 set -euo pipefail
 
 bun install
-hk install
+hk install --mise
