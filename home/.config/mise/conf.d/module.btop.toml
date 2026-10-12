@@ -1,2 +1,5 @@
+[bootstrap.packages]
+"brew:btop" = "latest"
+
 [dotfiles]
 "~/.config/btop" = { source = "~/dev/personal/dot/home/.config/btop", mode = "symlink-each" }

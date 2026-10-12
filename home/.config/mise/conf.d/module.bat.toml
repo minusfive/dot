@@ -1,3 +1,6 @@
+[bootstrap.packages]
+"brew:bat" = "latest"
+
 [dotfiles]
 "~/.config/bat" = { source = "~/dev/personal/dot/home/.config/bat", mode = "symlink-each" }
 

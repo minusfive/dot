@@ -1,3 +1,6 @@
+[bootstrap.packages]
+"brew:gh" = "latest"
+
 [bootstrap.directories."~/.config/gh/personal"]
 mode = "0755"
 

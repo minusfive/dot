@@ -1,2 +1,5 @@
+[bootstrap.packages]
+"brew-cask:wezterm@nightly" = "latest"
+
 [dotfiles]
 "~/.config/wezterm" = { source = "~/dev/personal/dot/home/.config/wezterm", mode = "symlink-each", exclude = ["AGENTS.md", "CLAUDE.md"] }

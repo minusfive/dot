@@ -1,2 +1,5 @@
+[bootstrap.packages]
+"brew:tmux" = "latest"
+
 [dotfiles]
 "~/.config/tmux" = { source = "~/dev/personal/dot/home/.config/tmux", mode = "symlink-each" }

@@ -7,6 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing Yazi bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.yazi.toml"
+assert_module_package yazi brew:yazi
 local __source="home/.config/yazi"
 local __target="$HOME/.config/yazi"
 [[ -f "$__config" ]] || fail "missing $__config"

@@ -8,6 +8,7 @@ echo "Testing Claude bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.claude.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
+assert_module_package claude brew-cask:claude-code
 [[ -f "home/.claude/settings.json" ]] || fail "missing Claude settings"
 [[ -x "home/.claude/statusline-command.sh" ]] || fail "missing executable Claude statusline"
 [[ -L "home/.claude/skills" ]] || fail "missing repository-only Claude skills alias"

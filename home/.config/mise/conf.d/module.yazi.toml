@@ -1,2 +1,5 @@
+[bootstrap.packages]
+"brew:yazi" = "latest"
+
 [dotfiles]
 "~/.config/yazi" = { source = "~/dev/personal/dot/home/.config/yazi", mode = "symlink-each" }

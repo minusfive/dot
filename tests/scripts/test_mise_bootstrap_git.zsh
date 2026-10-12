@@ -7,6 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing Git bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.git.toml"
+assert_module_package git brew:git
 local __source_config="home/.config/git/config"
 local __source_ignore="home/.config/git/ignore"
 local __target="$HOME/.config/git"

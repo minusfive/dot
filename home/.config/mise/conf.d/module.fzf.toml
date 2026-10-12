@@ -1,2 +1,5 @@
+[bootstrap.packages]
+"brew:fzf" = "latest"
+
 [dotfiles]
 "~/.config/fzf" = { source = "~/dev/personal/dot/home/.config/fzf", mode = "symlink-each" }

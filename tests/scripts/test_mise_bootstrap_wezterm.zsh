@@ -7,6 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing WezTerm bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.wezterm.toml"
+assert_module_package wezterm brew-cask:wezterm@nightly
 local __source="home/.config/wezterm"
 local __target="$HOME/.config/wezterm"
 [[ -f "$__config" ]] || fail "missing $__config"

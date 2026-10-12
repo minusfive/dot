@@ -7,6 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing ripgrep bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.ripgrep.toml"
+assert_module_package ripgrep brew:ripgrep
 local __source="home/.config/ripgrep/.ripgreprc"
 local __target="$HOME/.config/ripgrep/.ripgreprc"
 [[ -f "$__config" ]] || fail "missing $__config"

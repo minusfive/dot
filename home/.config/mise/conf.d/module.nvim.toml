@@ -1,2 +1,5 @@
+[bootstrap.packages]
+"brew:neovim" = "latest"
+
 [dotfiles]
 "~/.config/nvim" = { source = "~/dev/personal/dot/home/.config/nvim", mode = "symlink-each" }

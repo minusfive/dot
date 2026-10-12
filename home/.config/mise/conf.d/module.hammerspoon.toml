@@ -1,2 +1,5 @@
+[bootstrap.packages]
+"brew-cask:hammerspoon" = "latest"
+
 [dotfiles]
 "~/.config/hammerspoon" = { source = "~/dev/personal/dot/home/.config/hammerspoon", mode = "symlink-each", exclude = [".luarc.json"] }

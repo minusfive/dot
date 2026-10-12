@@ -19,10 +19,10 @@
 
 ## Scope manifest
 
-| Source path                                            | Tracked | Ignored | Current owner | Current target | Target disposition | New source path                                                             | New target | New mode                      | Notes                                                                                              |
-| ------------------------------------------------------ | ------- | ------- | ------------- | -------------- | ------------------ | --------------------------------------------------------------------------- | ---------- | ----------------------------- | -------------------------------------------------------------------------------------------------- |
-| `.config/mise/conf.d/bootstrap-packages.toml`          | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/module.packages.toml`          | `none`     | `bootstrap package resources` | Shared Homebrew formulas, Homebrew casks, Mac App Store apps, and `[bootstrap.brew] adopt = true`. |
-| `.config/mise/conf.d/bootstrap-packages.personal.toml` | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/module.personal-packages.toml` | `none`     | `bootstrap package resources` | Coupled profile-only cask additions. The personal profile selects this separate module.            |
+| Source path                                            | Tracked | Ignored | Current owner | Current target | Target disposition | New source path                                                                       | New target | New mode                      | Notes                                                                                              |
+| ------------------------------------------------------ | ------- | ------- | ------------- | -------------- | ------------------ | ------------------------------------------------------------------------------------- | ---------- | ----------------------------- | -------------------------------------------------------------------------------------------------- |
+| `.config/mise/conf.d/bootstrap-packages.toml`          | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/module.packages.toml`                    | `none`     | `bootstrap package resources` | Shared Homebrew formulas, Homebrew casks, Mac App Store apps, and `[bootstrap.brew] adopt = true`. |
+| `.config/mise/conf.d/bootstrap-packages.personal.toml` | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/module.{discord,softraid,whatsapp}.toml` | `none`     | `bootstrap package resources` | Independent profile-only cask modules. The personal profile selects each module.                   |
 
 ## Package manifest
 
@@ -165,7 +165,7 @@ is a declaration and dry-run check rather than a filesystem-link check.
   - `zsh -n scripts/init.zsh scripts/mise.zsh scripts/brew.zsh`
   - `git diff --check -- .agents/projects/stow-to-mise-migration/research/inventories/packages.md`
 - Focused test:
-  - `tests/scripts/test_mise_bootstrap_packages.zsh`
+  - `tests/scripts/test_mise_bootstrap_brew.zsh`
 - Target smoke test:
   - `mise bootstrap packages apply --dry-run`
 - Security or token check:
@@ -192,8 +192,10 @@ is a declaration and dry-run check rather than a filesystem-link check.
   - `.config/mise/conf.d/bootstrap-packages.toml`
   - `.config/mise/conf.d/bootstrap-packages.personal.toml`
   - `scripts/mise.zsh`
-  - `tests/scripts/test_mise_bootstrap_packages.zsh`
-  - `tests/scripts/test_mise_bootstrap_packages_personal.zsh`
+  - `tests/scripts/test_mise_bootstrap_brew.zsh`
+  - `tests/scripts/test_mise_bootstrap_discord.zsh`
+  - `tests/scripts/test_mise_bootstrap_softraid.zsh`
+  - `tests/scripts/test_mise_bootstrap_whatsapp.zsh`
   - `tests/scripts/test_mise_config.zsh`
   - `.agents/projects/stow-to-mise-migration/module-registry.toml`
 - Residual risk:

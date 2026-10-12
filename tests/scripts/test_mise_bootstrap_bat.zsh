@@ -7,6 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing bat bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.bat.toml"
+assert_module_package bat brew:bat
 local __source="home/.config/bat"
 local __target="$HOME/.config/bat"
 [[ -f "$__config" ]] || fail "missing $__config"

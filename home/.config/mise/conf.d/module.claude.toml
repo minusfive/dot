@@ -1,3 +1,6 @@
+[bootstrap.packages]
+"brew-cask:claude-code" = "latest"
+
 [dotfiles]
 "~/.claude/settings.json" = { source = "~/dev/personal/dot/home/.claude/settings.json", mode = "symlink" }
 "~/.claude/skills" = { source = "~/dev/personal/dot/home/.agents/skills", mode = "symlink-each", exclude = ["**/evals/**/outputs/**"] }
