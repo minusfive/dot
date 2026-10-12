@@ -23,8 +23,8 @@ esac
 grep -Fq 'set -g prefix C-Space' "$__source" || fail "tmux prefix is missing"
 grep -Fq "run '~/.tmux/plugins/tpm/tpm'" "$__source" || fail "tmux TPM hook is missing"
 socket="dot-tmux-$$"
-tmux -L "$socket" -f "$__target" -C start-server >/dev/null 2>&1
-local __status=$?
+local __status=0
+tmux -L "$socket" -f "$__target" -C start-server >/dev/null 2>&1 || __status=$?
 tmux -L "$socket" kill-server >/dev/null 2>&1 || true
 [[ "$__status" -eq 0 ]] || fail "tmux parse smoke test failed"
 
