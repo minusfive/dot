@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/btop" = { source = "~/dev/personal/dot/home/.config/btop", mode = "symlink-each" }

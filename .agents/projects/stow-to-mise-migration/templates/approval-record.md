@@ -5,8 +5,8 @@
 - Story key: `MIG-<id>`
 - Module key: `<module|shared>`
 - Inventory: `.agents/projects/stow-to-mise-migration/research/inventories/<module>.md`
-- Approval state: `pending`
-- Approver: `<name or pending>`
+- Approval state: `pending` or `approved`
+- Approver: `<@GitHub login or pending>`
 - Approved at: `<timestamp or pending>`
 - Approved scope: `<exact boundary or pending>`
 - Approval evidence: `<reference or pending>`
@@ -17,8 +17,10 @@
 - Dry-run record: `<path or pending>`
 - Focused test: `<path or pending>`
 - Rollback record: `<path or pending>`
-- Final decision: `<pending>`
+- Final decision: `<pending|approved for execution>`
 
 ## Notes
 
-`pending` means that no mutation is authorized.
+`pending` means that no mutation is authorized. `approved` authorizes only the
+exact scope recorded in this file. The roadmap owns lifecycle `Status`; this
+record owns authorization state.

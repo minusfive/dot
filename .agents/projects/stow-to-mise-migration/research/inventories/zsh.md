@@ -7,28 +7,28 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/zsh.md`
 - Current declaration: `none`
-- New declaration: `home/.config/mise/conf.d/module.zsh.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.zsh.toml`
 - Current owner: `Stow`
 - New owner: `mise`
 - Target root: `~/.config/zsh`
 - Mise mode: `symlink-each`
-- Environment selector: `module`
+- Environment selector: `zsh` in both profile branches
 - Dependencies: `MIG-MODULE-bat, MIG-MODULE-btop, MIG-MODULE-delta`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest
 
-| Source path                                  | Tracked | Ignored | Current owner | Current target                                 | Target disposition | New source path                                   | New target                                     | New mode       | Notes                                                                                                                                                                              |
-| -------------------------------------------- | ------- | ------- | ------------- | ---------------------------------------------- | ------------------ | ------------------------------------------------- | ---------------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.config/zsh/.aliases`                       | `yes`   | `no`    | `Stow`        | `~/.config/zsh/.aliases`                       | `migrate`          | `home/.config/zsh/.aliases`                       | `~/.config/zsh/.aliases`                       | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`.                                                                                                                     |
-| `.config/zsh/.p10k.zsh`                      | `yes`   | `no`    | `Stow`        | `~/.config/zsh/.p10k.zsh`                      | `migrate`          | `home/.config/zsh/.p10k.zsh`                      | `~/.config/zsh/.p10k.zsh`                      | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`.                                                                                                                     |
-| `.config/zsh/.zprofile`                      | `yes`   | `no`    | `Stow`        | `~/.config/zsh/.zprofile`                      | `migrate`          | `home/.config/zsh/.zprofile`                      | `~/.config/zsh/.zprofile`                      | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`.                                                                                                                     |
-| `.config/zsh/.zshrc`                         | `yes`   | `no`    | `Stow`        | `~/.config/zsh/.zshrc`                         | `migrate`          | `home/.config/zsh/.zshrc`                         | `~/.config/zsh/.zshrc`                         | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`; sources local functions, aliases, prompt, plugin configuration, completion, Docker, WezTerm, and other XDG targets. |
-| `.config/zsh/custom_functions.zsh`           | `yes`   | `no`    | `Stow`        | `~/.config/zsh/custom_functions.zsh`           | `migrate`          | `home/.config/zsh/custom_functions.zsh`           | `~/.config/zsh/custom_functions.zsh`           | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`.                                                                                                                     |
-| `.config/zsh/plugins/zsh-vi-mode/config.zsh` | `yes`   | `no`    | `Stow`        | `~/.config/zsh/plugins/zsh-vi-mode/config.zsh` | `migrate`          | `home/.config/zsh/plugins/zsh-vi-mode/config.zsh` | `~/.config/zsh/plugins/zsh-vi-mode/config.zsh` | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`; sourced by `.zshrc` from the target path.                                                                           |
-| `.config/zsh/.zsh_history`                   | `no`    | `yes`   | `Stow`        | `~/.config/zsh/.zsh_history`                   | `preserve`         | `none`                                            | `~/.config/zsh/.zsh_history`                   | `none`         | Runtime history; keep outside repository and `home/`; move only after detaching the old whole-directory link; preserve `0600 villalj:staff`.                                       |
-| `.config/zsh/.zcompdump`                     | `no`    | `yes`   | `Stow`        | `~/.config/zsh/.zcompdump`                     | `preserve`         | `none`                                            | `~/.config/zsh/.zcompdump`                     | `none`         | Runtime completion state; keep outside repository and `home/`; move only after detaching the old whole-directory link; preserve `0644 villalj:staff`.                              |
+| Source path                                  | Tracked | Ignored | Current owner | Current target                                 | Target disposition | New source path                                                      | New target                                     | New mode       | Notes                                                                                                                                                                              |
+| -------------------------------------------- | ------- | ------- | ------------- | ---------------------------------------------- | ------------------ | -------------------------------------------------------------------- | ---------------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.config/zsh/.aliases`                       | `yes`   | `no`    | `Stow`        | `~/.config/zsh/.aliases`                       | `migrate`          | `~/dev/personal/dot/home/.config/zsh/.aliases`                       | `~/.config/zsh/.aliases`                       | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`.                                                                                                                     |
+| `.config/zsh/.p10k.zsh`                      | `yes`   | `no`    | `Stow`        | `~/.config/zsh/.p10k.zsh`                      | `migrate`          | `~/dev/personal/dot/home/.config/zsh/.p10k.zsh`                      | `~/.config/zsh/.p10k.zsh`                      | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`.                                                                                                                     |
+| `.config/zsh/.zprofile`                      | `yes`   | `no`    | `Stow`        | `~/.config/zsh/.zprofile`                      | `migrate`          | `~/dev/personal/dot/home/.config/zsh/.zprofile`                      | `~/.config/zsh/.zprofile`                      | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`.                                                                                                                     |
+| `.config/zsh/.zshrc`                         | `yes`   | `no`    | `Stow`        | `~/.config/zsh/.zshrc`                         | `migrate`          | `~/dev/personal/dot/home/.config/zsh/.zshrc`                         | `~/.config/zsh/.zshrc`                         | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`; sources local functions, aliases, prompt, plugin configuration, completion, Docker, WezTerm, and other XDG targets. |
+| `.config/zsh/custom_functions.zsh`           | `yes`   | `no`    | `Stow`        | `~/.config/zsh/custom_functions.zsh`           | `migrate`          | `~/dev/personal/dot/home/.config/zsh/custom_functions.zsh`           | `~/.config/zsh/custom_functions.zsh`           | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`.                                                                                                                     |
+| `.config/zsh/plugins/zsh-vi-mode/config.zsh` | `yes`   | `no`    | `Stow`        | `~/.config/zsh/plugins/zsh-vi-mode/config.zsh` | `migrate`          | `~/dev/personal/dot/home/.config/zsh/plugins/zsh-vi-mode/config.zsh` | `~/.config/zsh/plugins/zsh-vi-mode/config.zsh` | `symlink-each` | Regular source file; current metadata is `0644 villalj:staff`; sourced by `.zshrc` from the target path.                                                                           |
+| `.config/zsh/.zsh_history`                   | `no`    | `yes`   | `Stow`        | `~/.config/zsh/.zsh_history`                   | `preserve`         | `none`                                                               | `~/.config/zsh/.zsh_history`                   | `none`         | Runtime history; keep outside repository and `~/dev/personal/dot/home/`; move only after detaching the old whole-directory link; preserve `0600 villalj:staff`.                    |
+| `.config/zsh/.zcompdump`                     | `no`    | `yes`   | `Stow`        | `~/.config/zsh/.zcompdump`                     | `preserve`         | `none`                                                               | `~/.config/zsh/.zcompdump`                     | `none`         | Runtime completion state; keep outside repository and `~/dev/personal/dot/home/`; move only after detaching the old whole-directory link; preserve `0644 villalj:staff`.           |
 
 The complete physical file set is the six tracked files and two ignored files
 listed above. `git ls-files --others --exclude-standard -- .config/zsh`
@@ -38,20 +38,20 @@ returned no non-ignored untracked paths. The ignored paths are confirmed by
 
 ## Local and runtime inventory
 
-| Path                              | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                                                                        | Classification  | Required action | Runtime destination          | Metadata to preserve                                                                                                                                                                                                     | Secret or sensitive data |
-| --------------------------------- | ------ | ------- | ------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | --------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
-| `.config/zsh`                     | `yes`  | `no`    | `no`    | `repo`           | Current Stow source; `~/.config/zsh` resolves to this directory.                                                                                                           | `active-global` | `exclude`       | `none`                       | Directory `0755`, owner/group `villalj:staff`; do not treat this directory as the new mise source.                                                                                                                       | `no`                     |
-| `.config/zsh/plugins`             | `yes`  | `no`    | `no`    | `repo`           | Parent of the tracked local plugin configuration.                                                                                                                          | `active-global` | `exclude`       | `none`                       | Directory `0755`, owner/group `villalj:staff`.                                                                                                                                                                           | `no`                     |
-| `.config/zsh/plugins/zsh-vi-mode` | `yes`  | `no`    | `no`    | `repo`           | Contains the tracked `config.zsh` sourced by `.zshrc`.                                                                                                                     | `active-global` | `exclude`       | `none`                       | Directory `0755`, owner/group `villalj:staff`.                                                                                                                                                                           | `no`                     |
-| `.config/zsh/.zsh_history`        | `yes`  | `no`    | `yes`   | `repo`           | `ZDOTDIR` points to `$XDG_CONFIG_HOME/zsh`; Zsh history is present at that location; `.zshrc` enables history-based autosuggestions.                                       | `active-global` | `move`          | `~/.config/zsh/.zsh_history` | Regular file `0600`, owner/group `villalj:staff`; current size is recorded only as metadata, not content.                                                                                                                | `yes`                    |
-| `.config/zsh/.zcompdump`          | `yes`  | `no`    | `yes`   | `repo`           | `.zshrc` runs `compinit`; it configures `ZSH_COMPDUMP` under `$XDG_CACHE_HOME/omz`, so this existing file is local completion state outside the configured OMZ cache path. | `mixed`         | `move`          | `~/.config/zsh/.zcompdump`   | Regular file `0644`, owner/group `villalj:staff`; preserve as runtime state without inspecting or printing contents.                                                                                                     | `yes`                    |
-| `~/.config`                       | `yes`  | `no`    | `no`    | `target`         | `.zshenv` sets `XDG_CONFIG_HOME=$HOME/.config`; current parent is a physical directory.                                                                                    | `active-global` | `preserve`      | `none`                       | Physical directory `0700`, owner/group `villalj:staff`; do not replace it with a link or change its ownership.                                                                                                           | `no`                     |
-| `~/.config/zsh`                   | `yes`  | `no`    | `no`    | `target`         | `ZDOTDIR=$XDG_CONFIG_HOME/zsh`; current link is `../dev/personal/dot/.config/zsh`.                                                                                         | `active-global` | `move`          | `~/.config/zsh`              | Current symlink `lrwxr-xr-x`, owner/group `villalj:staff`; after verified detach, create a physical directory owned by `villalj:staff`, mode `0700`, then place runtime files and mise-managed per-file links inside it. | `no`                     |
-| `~/.zshenv`                       | `yes`  | `no`    | `no`    | `target`         | Current symlink resolves to `dev/personal/dot/.zshenv`, which defines the XDG variables and `ZDOTDIR`.                                                                     | `active-global` | `preserve`      | `none`                       | Symlink `lrwxr-xr-x`, owner/group `villalj:staff`; leave this entry and its source unchanged in this boundary.                                                                                                           | `no`                     |
+| Path                              | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                      | Classification  | Required action | Runtime destination          | Metadata to preserve                                                                                                     | Secret or sensitive data |
+| --------------------------------- | ------ | ------- | ------- | ---------------- | -------------------------------------------------------------------------------------------------------- | --------------- | --------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
+| `.config/zsh`                     | `no`   | `no`    | `no`    | `historical`     | Retired Stow source boundary; tracked files moved to `home/.config/zsh`.                                 | `historical`    | `remove`        | `none`                       | `retired source path`                                                                                                    | `no`                     |
+| `.config/zsh/plugins`             | `no`   | `no`    | `no`    | `historical`     | Retired source directory for the tracked local plugin configuration.                                     | `historical`    | `remove`        | `none`                       | `retired source path`                                                                                                    | `no`                     |
+| `.config/zsh/plugins/zsh-vi-mode` | `yes`  | `no`    | `no`    | `repo`           | Contains the tracked `config.zsh` sourced by `.zshrc`.                                                   | `active-global` | `exclude`       | `none`                       | Directory `0755`, owner/group `villalj:staff`.                                                                           | `no`                     |
+| `.config/zsh/.zsh_history`        | `no`   | `no`    | `no`    | `historical`     | Runtime history moved to the detached target without reading its contents.                               | `historical`    | `remove`        | `~/.config/zsh/.zsh_history` | `moved; target mode 0600, owner/group villalj:staff`                                                                     | `yes`                    |
+| `.config/zsh/.zcompdump`          | `no`   | `no`    | `no`    | `historical`     | Runtime completion state moved to the detached target without reading its contents.                      | `historical`    | `remove`        | `~/.config/zsh/.zcompdump`   | `moved; target mode 0644, owner/group villalj:staff`                                                                     | `yes`                    |
+| `~/.config`                       | `yes`  | `no`    | `no`    | `target`         | `.zshenv` sets `XDG_CONFIG_HOME=$HOME/.config`; current parent is a physical directory.                  | `active-global` | `preserve`      | `none`                       | Physical directory `0700`, owner/group `villalj:staff`; do not replace it with a link or change its ownership.           | `no`                     |
+| `~/.config/zsh`                   | `yes`  | `no`    | `no`    | `target`         | `ZDOTDIR=$XDG_CONFIG_HOME/zsh`; physical target contains six mise links and two preserved runtime files. | `active-global` | `preserve`      | `~/.config/zsh`              | Physical directory owned by villalj:staff, mode 0700; runtime files remain regular and managed files are relative links. | `no`                     |
+| `~/.zshenv`                       | `yes`  | `no`    | `no`    | `target`         | Current symlink resolves to `dev/personal/dot/.zshenv`, which defines the XDG variables and `ZDOTDIR`.   | `active-global` | `preserve`      | `none`                       | Symlink `lrwxr-xr-x`, owner/group `villalj:staff`; leave this entry and its source unchanged in this boundary.           | `no`                     |
 
 Runtime protection and destination plan:
 
-- Do not copy `.zsh_history` or `.zcompdump` into `home/`, into the new
+- Do not copy `.zsh_history` or `.zcompdump` into `~/dev/personal/dot/home/`, into the new
   declaration, or into any research artifact. Do not print, parse, or include
   their contents in logs.
 - Confirm the current `~/.config/zsh` link resolves exactly to
@@ -72,7 +72,7 @@ Runtime protection and destination plan:
   part of this boundary. `.zsh_history.LOCK` is also absent; if it appears
   before cutover, stop and preserve it beside the history file with its
   observed mode and owner.
-- Keep all six tracked source files in `home/.config/zsh/` with their current
+- Keep all six tracked source files in `~/dev/personal/dot/home/.config/zsh/` with their current
   `0644 villalj:staff` source metadata. The target files are relative mise
   symlinks; runtime files remain regular files in the target directory.
 
@@ -89,8 +89,8 @@ target paths only.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/zsh -> ../dev/personal/dot/.config/zsh`
+- Current target shape: `physical directory with relative symlink-each links and runtime files`
+- Current target manifest path: `~/.config/zsh`
 - Old owner cleanup command: `test "$(readlink "$HOME/.config/zsh")" = "../dev/personal/dot/.config/zsh" && rm "$HOME/.config/zsh"`
 - New owner dry-run command: `mise bootstrap dotfiles apply --dry-run`
 - New owner apply command: `mise bootstrap dotfiles apply --yes`
@@ -145,13 +145,13 @@ target paths only.
 ## Validation
 
 - Syntax or source checks:
-  - `zsh -n home/.config/zsh/.zprofile`
-  - `zsh -n home/.config/zsh/.zshrc`
-  - `zsh -n home/.config/zsh/custom_functions.zsh`
-  - `zsh -n home/.config/zsh/plugins/zsh-vi-mode/config.zsh`
-  - Compare the six tracked paths from `git ls-files -- .config/zsh` with the
-    six copied paths under `home/.config/zsh`; assert that runtime files are
-    absent from `home/`.
+  - `zsh -n ~/dev/personal/dot/home/.config/zsh/.zprofile`
+  - `zsh -n ~/dev/personal/dot/home/.config/zsh/.zshrc`
+  - `zsh -n ~/dev/personal/dot/home/.config/zsh/custom_functions.zsh`
+  - `zsh -n ~/dev/personal/dot/home/.config/zsh/plugins/zsh-vi-mode/config.zsh`
+  - Compare the six tracked paths from `git ls-files -- home/.config/zsh` with the
+    six copied paths under `~/dev/personal/dot/home/.config/zsh`; assert that runtime files are
+    absent from `~/dev/personal/dot/home/`.
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_zsh.zsh` (planned module test; it must assert the Zsh source manifest,
     `symlink-each` mode, `ZDOTDIR`, runtime exclusions, and one-owner
@@ -162,7 +162,7 @@ target paths only.
     until the target is detached and the six mise links plus both runtime
     files are present.
 - Security or token check:
-  - `test ! -e home/.config/zsh/.zsh_history && test ! -e home/.config/zsh/.zcompdump`
+  - `test ! -e ~/dev/personal/dot/home/.config/zsh/.zsh_history && test ! -e ~/dev/personal/dot/home/.config/zsh/.zcompdump`
   - `git check-ignore -q --no-index .config/zsh/.zsh_history && git check-ignore -q --no-index .config/zsh/.zcompdump`
   - Verify runtime file modes and owners with `stat`; do not read their
     contents.
@@ -188,7 +188,7 @@ target paths only.
   - Stop if the target is not the expected Stow link before cleanup, if any
     physical target content is not in the recorded manifest, if runtime
     permissions or ownership change unexpectedly, if a secret-bearing file is
-    found in `home/`, or if either mise or Stow proposes ownership outside
+    found in `~/dev/personal/dot/home/`, or if either mise or Stow proposes ownership outside
     this boundary.
 
 ## Findings and decisions
@@ -210,5 +210,5 @@ target paths only.
     be detached before applying `symlink-each` to prevent write-through to the
     repository.
 - Open blocker:
-  - `none` for research; execution remains approval-gated and must stop on any
-    target-shape, ownership, content, permission, or runtime-state mismatch.
+  - None. The guarded detach-and-move transition preserved both runtime files
+    and the new mise links.

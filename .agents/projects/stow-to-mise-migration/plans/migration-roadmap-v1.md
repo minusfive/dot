@@ -2,7 +2,7 @@
 
 ## Objective
 
-Move eligible global configuration from `.config/` to `home/` without:
+Move eligible global configuration from `.config/` to `~/dev/personal/dot/home/` without:
 
 - exposing runtime or credential data;
 - losing local application state;
@@ -10,7 +10,7 @@ Move eligible global configuration from `.config/` to `home/` without:
 - changing unrelated bootstrap behavior; or
 - removing configuration without an approved disposition.
 
-Keep `home/.config/mise/` as the tracked source for the global `mise` control
+Keep `~/dev/personal/dot/home/.config/mise/` as the tracked source for the global `mise` control
 plane. Transfer `~/.config/mise/` from GNU Stow to `mise` in the control-plane
 story. Keep application runtime files outside tracked sources and `mise`
 declarations.
@@ -37,10 +37,16 @@ Each module story owns one inventory file and one approval record.
 - Config cleanup review: `.agents/projects/stow-to-mise-migration/research/config-cleanup-review.md`
 - Approval directory: `.agents/projects/stow-to-mise-migration/research/approvals/`
 - Inventory directory: `.agents/projects/stow-to-mise-migration/research/inventories/`
-- Status: `blocked`
+- Lifecycle status SSoT: the per-story `Status` field in this roadmap.
+- Status mirror: `module-registry.toml` carries the same status for every
+  module story.
+- Authorization SSoT: each story's approval record; its inventory mirrors the
+  record's `Approval state`.
+- Status: `done`
+- Current blocker: none; all module stories and final closeout checks are complete.
 
-No migration mutation is authorized until the required approval record is
-complete for that story.
+Migration mutation is authorized only within the exact scope of an approved
+story and its inventory.
 
 ## Canonical reference hierarchy
 
@@ -117,21 +123,29 @@ checksums, and command results instead.
 
 When a tracked source path is itself a symlink to another tracked source path,
 use the resolved canonical path as the new `mise` source. Do not create a new
-target link through an alias in `home/`; the module must map the target
+target link through an alias in `~/dev/personal/dot/home/`; the module must map the target
 directly to the canonical source and must not include the alias as a second
 managed source.
+
+When a declaration is loaded from `~/.config/mise/conf.d`, use an explicit
+source path rooted at `~/dev/personal/dot/home/...`. Do not set
+`dotfiles.root` for this migration. Relative source values resolve from the
+live target configuration directory, not from the repository copy.
 
 The current source-path corrections are:
 
 - Copilot: map `~/.copilot/copilot-instructions.md` directly to
-  `home/AGENTS.md`. Do not use `home/.copilot/copilot-instructions.md` as the
+  `~/dev/personal/dot/home/AGENTS.md`. Do not use `~/dev/personal/dot/home/.copilot/copilot-instructions.md` as the
   new source.
-- Claude: map `~/.claude/skills` directly to `home/.agents/skills`. Do not use
-  `home/.claude/skills` as the new source; it is only a cross-module alias to
+- Claude: map `~/.claude/skills` directly to `~/dev/personal/dot/home/.agents/skills`. Do not use
+  `~/dev/personal/dot/home/.claude/skills` as the new source; it is only a cross-module alias to
   the agents source.
-- WezTerm: `.config/wezterm/CLAUDE.md` resolves to the sibling
-  `.config/wezterm/AGENTS.md`, but both files are excluded from the migration
-  source set by `.stow-local-ignore`; no new `home/` source is required.
+- Hammerspoon: keep `home/.config/hammerspoon/.luarc.json` in the repository
+  source tree and exclude it from the runtime target.
+- WezTerm: keep `home/.config/wezterm/AGENTS.md` and
+  `home/.config/wezterm/CLAUDE.md` in the repository source tree and exclude
+  both files from the runtime target. Remove the legacy `.config/wezterm`
+  copies.
 
 Before execution, reconcile the Copilot and Claude inventories with these
 canonical paths and classify their nested aliases as repository-only. The
@@ -162,7 +176,7 @@ Use this procedure for a Stow-to-`mise` boundary:
 1. Confirm the module approval record.
 2. Read the module inventory.
 3. Save the source and target manifests.
-4. Copy only the approved tracked source set into `home/`.
+4. Copy only the approved tracked source set into `~/dev/personal/dot/home/`.
 5. Preserve file modes, owners, groups, symlink targets, and timestamps where
    the inventory requires them.
 6. Run syntax, source, exclusion, and security checks.
@@ -226,10 +240,12 @@ clean.
 ### Security and local-state rules
 
 - Keep authentication databases, WAL files, histories, completion dumps,
-  caches, dependencies, lockfiles, and generated output outside `home/`
-  unless the inventory explicitly approves repository ownership.
+  caches, dependencies, lockfiles, and generated output outside `~/dev/personal/dot/home/`
+  unless the inventory explicitly approves repository ownership. Repository-local
+  development files can remain in `home/.config/...` when the inventory excludes
+  them from the runtime target.
 - Keep `.config/zsh/.zsh_history` and `.config/zsh/.zcompdump` outside
-  `home/`. Move them into the detached runtime target before removing the
+  `~/dev/personal/dot/home/`. Move them into the detached runtime target before removing the
   parent Stow link.
 - Treat a mixed boundary as separate local files. Keep active files at their
   runtime destination and remove only proven stray residue.
@@ -319,6 +335,72 @@ rollback artifacts until the acceptance checks pass. Remove them only in the
 story's explicit cleanup step or after final closeout. Run one module agent at
 a time. Do not run parallel jobs or agents for this project.
 
+## Story status and artifact synchronization
+
+The per-story `Status` field in this roadmap is the lifecycle SSoT. The
+allowed states are `blocked`, `todo`, `research`, `implement`, `validate`,
+`critique`, and `done`. `module-registry.toml` mirrors this value for each
+module story; `MIG-90` has no registry entry and is represented only in the
+roadmap and its approval record.
+
+Approval is a separate authorization state. The approval record is its SSoT,
+with `pending` or `approved` as the only values. The matching inventory
+`Approval state` is a required mirror. A story cannot be `done`, `todo`,
+`research`, `implement`, `validate`, or `critique` unless its approval record
+is `approved`; a blocked story may be blocked by a pending approval or by a
+later execution blocker.
+
+For every status or approval transition:
+
+1. Update the roadmap lifecycle `Status` first.
+2. Update the matching `module-registry.toml` `status` mirror in the same
+   change, when the story is a module story.
+3. When authorization changes, update the approval record first and then copy
+   its `Approval state` to the matching inventory.
+4. Run
+   `.agents/projects/stow-to-mise-migration/scripts/validate-artifacts.zsh`.
+5. Do not begin the transition if the validator reports drift.
+
+The permitted normal lifecycle is
+`blocked -> todo -> research -> implement -> validate -> critique -> done`.
+An execution failure returns the story to `research`; a blocker returns it to
+`blocked`; and a failed critique after five cycles remains `blocked` with an
+explicit blocker. Only the next incomplete story may enter `todo`, and a
+later story cannot enter an active state while an earlier story is incomplete.
+
+## Profile and module selection
+
+`miserc.toml` is a Tera template. It must select the persisted profile from
+`DOT_PROFILE` and the `mise` module environment that owns the migrated control
+plane.
+
+At the end of `MIG-MODULE-mise`, render these profile branches:
+
+```toml
+{% if env.DOT_PROFILE | default(value='work') == 'personal' %}
+env = ["personal", "mise"]
+{% else %}
+env = ["work", "mise"]
+{% endif %}
+env_conf_d = true
+```
+
+The profile name remains in `env` so the current
+`bootstrap-packages.personal.toml` fragment continues to load for the personal
+profile during the transition. The `mise` entry selects
+`module.mise.toml`.
+
+The `module.<name>.toml` pattern is intentional. The suffix selects an
+environment when `env_conf_d = true`; the deprecation warning applies to
+dotted fragments that are not environment-specific. Unscoped legacy fragments
+remain an explicit transition bridge and load independently until their own
+module stories rename them.
+
+When a later story creates `module.<name>.toml`, add `<name>` to both profile
+branches before that story's validation. Add a profile-only module only to its
+approved branch, such as `personal-packages` for `personal`. Do not list a
+module environment before its declaration exists.
+
 ## Shared story contract
 
 Every story uses this contract unless its story text adds a stricter rule.
@@ -363,6 +445,9 @@ module-specific recovery rules.
 - Approval record: `.agents/projects/stow-to-mise-migration/research/approvals/MIG-MODULE-mise.md`
 - Planning gate: `DEC-mise-control-plane-transition-mechanism` is resolved;
   retain the temporary bridge for the cutover.
+- Source-path decision `DEC-mise-control-plane-source-resolution`: use
+  explicit `~/dev/personal/dot/home/...` values for declarations loaded from
+  `~/.config/mise/conf.d`; do not set `dotfiles.root`.
 - Dependencies: `none`
 - Current owner: GNU Stow
 - New owner: `mise`
@@ -370,11 +455,11 @@ module-specific recovery rules.
 - Target: `~/.config/mise`
 - Mode: one explicit `symlink` entry per tracked source file
 - Risk: `critical`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-mise`
 
-Move the tracked global `mise` source tree into `home/.config/mise` and make
+Move the tracked global `mise` source tree into `~/dev/personal/dot/home/.config/mise` and make
 `mise` own the target. This story owns only the global control-plane files and
 `module.mise.toml`. Later module stories own their declarations. Preserve the
 lockfile, task files, utilities, local variants, and profile rendering behavior
@@ -383,7 +468,7 @@ without copying ignored local files.
 ### Steps — `MIG-MODULE-mise`
 
 1. Read the inventory and save the complete source and target manifests.
-2. Copy the tracked control-plane files into `home/.config/mise`.
+2. Copy the tracked control-plane files into `~/dev/personal/dot/home/.config/mise`.
 3. Retain the temporary bridge for the cutover.
 4. Run `mise trust --yes ~/dev/personal/dot`.
 5. Run `mise -C ~/dev/personal/dot dot apply --dry-run ~/.config/mise`.
@@ -393,13 +478,23 @@ without copying ignored local files.
 9. Prepare only the temporary transition artifacts required by this story
    before changing `miserc.toml`.
 10. Generate `module.mise.toml` from the saved manifest and deliberate new
-    control-plane files.
-11. Retain temporary transition artifacts and saved manifests until the final
+    control-plane files. Use explicit `~/dev/personal/dot/home/...` source
+    values for every declaration loaded from `~/.config/mise/conf.d`.
+11. Render `miserc.toml` with the profile branches defined in the profile and
+    module selection invariant. List only `mise` as a migrated module at this
+    stage.
+12. Replace the legacy `MISE_ENV` export and log in `scripts/mise.zsh` with
+    `unset MISE_ENV` after profile validation, before any profile-sensitive
+    `mise` command runs.
+13. Run the focused profile-selection fixture with `MISE_ENV` unset. Confirm
+    that both profiles load `module.mise.toml`, that only `personal` loads the
+    existing personal package fragment, and that no later module environment is
+    listed.
+14. Retain temporary transition artifacts and saved manifests until the final
     target-scoped apply and focused test pass.
-12. Apply the final target-scoped declaration.
-13. Remove `MISE_ENV` export and log from `scripts/mise.zsh`.
-14. Apply dotfiles before workspace profile trust.
-15. Remove temporary transition artifacts only after the final target-scoped
+15. Apply the final target-scoped declaration with `MISE_ENV` unset.
+16. Apply dotfiles before workspace profile trust.
+17. Remove temporary transition artifacts only after the final target-scoped
     apply and focused test pass.
 
 ### Acceptance checks — `MIG-MODULE-mise`
@@ -407,10 +502,17 @@ without copying ignored local files.
 - Every tracked control-plane file has one relative `mise` symlink.
 - Local variants remain outside repository ownership.
 - The final declaration has no duplicate target.
-- No declaration owned by a later module story is created or selected.
+- The work branch renders `["work", "mise"]`, and the personal branch renders
+  `["personal", "mise"]`.
+- No later module environment is listed or created by this story.
+- The existing unscoped legacy fragments remain the documented transition
+  bridge and do not become module-selection entries.
 - The selected transition mechanism and final apply affect only
   `~/.config/mise`.
-- Both profile branches render module files that exist.
+- Both profile branches load `module.mise.toml` and only the personal branch
+  loads the personal package fragment.
+- The focused test proves that an inherited `MISE_ENV` cannot override the
+  selected `DOT_PROFILE` during the mise initialization flow.
 - The dotfiles phase runs before workspace profile trust.
 
 ### Rollback and mitigation — `MIG-MODULE-mise`
@@ -427,11 +529,11 @@ Use the common rollback contract. Retain the control-plane artifacts until final
 - Dependencies: `MIG-MODULE-mise`
 - Current owner: `mixed`
 - New owner: `mise` for `~/.copilot`
-- Source: `home/AGENTS.md` and `home/.copilot/statusline-context.sh`
+- Source: `~/dev/personal/dot/home/AGENTS.md` and `~/dev/personal/dot/home/.copilot/statusline-context.sh`
 - Target: `~/.copilot`
 - Mode: explicit per-target symlinks for `~/.copilot`; unmanaged runtime state
 - Risk: `critical`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-copilot`
 
@@ -443,13 +545,13 @@ repository-only alias outside the module source set.
 1. Read the approved Copilot inventory and approval record.
 2. Create the `~/.copilot` module with explicit target entries for
    `copilot-instructions.md` and `statusline-context.sh`. Source the
-   instructions target from `home/AGENTS.md`, not from the nested
-   `home/.copilot/copilot-instructions.md` alias:
+   instructions target from `~/dev/personal/dot/home/AGENTS.md`, not from the nested
+   `~/dev/personal/dot/home/.copilot/copilot-instructions.md` alias:
 
    ```toml
    [dotfiles]
-   "~/.copilot/copilot-instructions.md" = { source = "../../../AGENTS.md", mode = "symlink" }
-   "~/.copilot/statusline-context.sh" = { source = "../../../.copilot/statusline-context.sh", mode = "symlink" }
+   "~/.copilot/copilot-instructions.md" = { source = "~/dev/personal/dot/home/AGENTS.md", mode = "symlink" }
+   "~/.copilot/statusline-context.sh" = { source = "~/dev/personal/dot/home/.copilot/statusline-context.sh", mode = "symlink" }
    ```
 
 3. Apply the `~/.copilot` module.
@@ -457,7 +559,7 @@ repository-only alias outside the module source set.
 
 ### Acceptance checks — `MIG-MODULE-copilot`
 
-- `~/.copilot/copilot-instructions.md` has a direct `home/AGENTS.md` source;
+- `~/.copilot/copilot-instructions.md` has a direct `~/dev/personal/dot/home/AGENTS.md` source;
   the nested Copilot alias is not managed by the module.
 - No repository-side Copilot runtime boundary remains.
 - The Stow dry run reports no conflict for the Copilot source boundary.
@@ -476,11 +578,11 @@ Use the common rollback contract. Do not delete an active file.
 - Dependencies: `MIG-MODULE-mise`
 - Current owner: `mise` through `bootstrap-ai.toml`
 - New owner: `mise`
-- Source: `home/AGENTS.md` and `home/.agents`
+- Source: `~/dev/personal/dot/home/AGENTS.md` and `~/dev/personal/dot/home/.agents`
 - Target: `~/AGENTS.md`, `~/CLAUDE.md`, and `~/.agents`
 - Mode: `symlink` and `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-agents`
 
@@ -516,18 +618,18 @@ Use the common rollback contract.
 - Dependencies: `MIG-MODULE-mise`
 - Current owner: `mise` through `bootstrap-ai.toml`
 - New owner: `mise`
-- Source: `home/.claude/settings.json`, `home/.claude/statusline-command.sh`,
-  and `home/.agents/skills`
+- Source: `~/dev/personal/dot/home/.claude/settings.json`, `~/dev/personal/dot/home/.claude/statusline-command.sh`,
+  and `~/dev/personal/dot/home/.agents/skills`
 - Target: `~/.claude`
 - Mode: explicit per-target symlinks; unmanaged runtime state
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-claude`
 
 Move Claude configuration into its own module. Keep settings and statusline
-references, map the skills target directly to `home/.agents/skills`, and
-exclude runtime state and the nested `home/.claude/skills` alias.
+references, map the skills target directly to `~/dev/personal/dot/home/.agents/skills`, and
+exclude runtime state and the nested `~/dev/personal/dot/home/.claude/skills` alias.
 
 ### Steps — `MIG-MODULE-claude`
 
@@ -535,13 +637,13 @@ exclude runtime state and the nested `home/.claude/skills` alias.
 2. Use the legacy dotfile cleanup procedure.
 3. Create `module.claude.toml` with explicit target entries for settings,
    statusline, and `~/.claude/skills`. Source the skills target directly from
-   `home/.agents/skills`, not from `home/.claude/skills`:
+   `~/dev/personal/dot/home/.agents/skills`, not from `~/dev/personal/dot/home/.claude/skills`:
 
    ```toml
    [dotfiles]
-   "~/.claude/settings.json" = { source = "../../../.claude/settings.json", mode = "symlink" }
-   "~/.claude/skills" = { source = "../../../.agents/skills", mode = "symlink-each", exclude = ["**/evals/**/outputs/**"] }
-   "~/.claude/statusline-command.sh" = { source = "../../../.claude/statusline-command.sh", mode = "symlink" }
+   "~/.claude/settings.json" = { source = "~/dev/personal/dot/home/.claude/settings.json", mode = "symlink" }
+   "~/.claude/skills" = { source = "~/dev/personal/dot/home/.agents/skills", mode = "symlink-each", exclude = ["**/evals/**/outputs/**"] }
+   "~/.claude/statusline-command.sh" = { source = "~/dev/personal/dot/home/.claude/statusline-command.sh", mode = "symlink" }
    ```
 
 4. Apply the Claude module.
@@ -550,7 +652,7 @@ exclude runtime state and the nested `home/.claude/skills` alias.
 ### Acceptance checks — `MIG-MODULE-claude`
 
 - Every managed `~/.claude/skills` link resolves directly to
-  `home/.agents/skills`, without the nested Claude alias.
+  `~/dev/personal/dot/home/.agents/skills`, without the nested Claude alias.
 - Generated evaluation output has no deployed link under `~/.claude/skills`.
 - Runtime state is outside tracked sources.
 - Statusline references remain valid.
@@ -569,11 +671,11 @@ Use the common rollback contract.
 - Dependencies: `MIG-MODULE-mise`
 - Current owner: `mise` through `bootstrap-ai.toml`
 - New owner: `mise`
-- Source: `home/.config/opencode`
+- Source: `~/dev/personal/dot/home/.config/opencode`
 - Target: `~/.config/opencode`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-opencode`
 
@@ -606,11 +708,11 @@ Use the common rollback contract.
 - Dependencies: `MIG-MODULE-mise`
 - Current owner: `mise` through legacy `[bootstrap.files]`
 - New owner: `mise`
-- Source: `home/.config/gh/personal/hosts.yml`
+- Source: `~/dev/personal/dot/home/.config/gh/personal/hosts.yml`
 - Target: `~/.config/gh/personal/hosts.yml`
 - Mode: `symlink`, plus a directory mode resource
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-gh`
 
@@ -644,11 +746,11 @@ Use the common rollback contract. Restore the old `[bootstrap.files]` declaratio
 - Dependencies: `MIG-MODULE-gh`
 - Current owner: `mise` through legacy `[bootstrap.files]`
 - New owner: `mise`
-- Source: `home/dev/profile.mise.toml`
+- Source: `~/dev/personal/dot/home/dev/profile.mise.toml`
 - Targets: `~/dev/personal/mise.toml` and `~/dev/work/mise.toml`
 - Mode: `template`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-profiles`
 
@@ -659,9 +761,12 @@ target-specific `GH_CONFIG_DIR` value and trust order.
 
 1. Read the inventory and template rendering evidence.
 2. Use the temporary legacy bootstrap cleanup procedure.
-3. Create `module.profiles.toml`.
-4. Render both target files without printing secret values.
-5. Update `scripts/mise.zsh` so dotfiles apply before profile trust.
+3. Create `module.profiles.toml` with one template source and profile
+   variants for the two approved target paths.
+4. Render each target with its matching explicit profile-scoped, target-scoped
+   dotfiles apply without printing secret values.
+5. Update `scripts/mise.zsh` so both profile targets render after the general
+   dotfiles apply and before profile trust.
 6. Run the profile-order checks and the `profiles` module-focused test.
 
 ### Acceptance checks — `MIG-MODULE-profiles`
@@ -669,6 +774,9 @@ target-specific `GH_CONFIG_DIR` value and trust order.
 - Both workspace files render.
 - This story is the only migration story that writes the two workspace files.
 - Each target receives the correct `GH_CONFIG_DIR`.
+- The declaration uses only supported mise dotfiles template and profile
+  variant features; it does not depend on an undocumented target template
+  variable.
 - Profile trust runs after dotfiles apply.
 - `scripts/mise.zsh` does not export `MISE_ENV`.
 
@@ -690,7 +798,7 @@ Use the common rollback contract. Restore the profile trust order.
 - Target: package resources
 - Mode: `[bootstrap.packages]`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-packages`
 
@@ -729,18 +837,22 @@ Use the common rollback contract. Do not prune packages.
 - Target: personal package resources
 - Mode: `[bootstrap.packages]`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-personal-packages`
 
-Rename the personal package declaration to `module.personal-packages.toml`.
-Keep it selected only by the personal profile.
+The existing `home/.config/mise/conf.d/bootstrap-packages.personal.toml`
+is the legacy bridge source prepared by the control-plane story. Rename that
+existing declaration to `module.personal-packages.toml`; do not create a
+second package set. Keep the finalized module selected only by the personal
+profile.
 
 ### Steps — `MIG-MODULE-personal-packages`
 
 1. Read the exhaustive package inventory.
 2. Record work and personal profile package sets.
-3. Rename the declaration.
+3. Rename the existing legacy bridge declaration to
+   `module.personal-packages.toml`.
 4. Run the personal and work package status checks without writing either
    workspace profile file.
 5. Run the personal package test.
@@ -749,6 +861,7 @@ Keep it selected only by the personal profile.
 
 - Personal packages load only for the personal profile.
 - Shared packages remain in the shared module.
+- The three existing personal casks remain declared after the rename.
 - This story does not write `~/dev/personal/mise.toml` or
   `~/dev/work/mise.toml`.
 - No package pruning occurs in this story.
@@ -771,7 +884,7 @@ Use the common rollback contract. Restore personal profile selection.
 - Target: repository resources
 - Mode: `[bootstrap.repos]`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-repos`
 
@@ -809,7 +922,7 @@ Use the common rollback contract. Do not delete repository checkouts.
 - Target: tool installations
 - Mode: `[tools]`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-tools`
 
@@ -847,11 +960,11 @@ Use the common rollback contract. Do not prune tools.
 - Target: `~/.config/bat`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-bat`
 
-Move `bat` configuration and the Catppuccin theme under `home/.config/bat`.
+Move `bat` configuration and the Catppuccin theme under `~/dev/personal/dot/home/.config/bat`.
 Keep the source download in `scripts/zsh.zsh` and add the only bat cache hook
 to this module.
 
@@ -887,11 +1000,11 @@ Use the common rollback contract.
 - Target: `~/.config/btop`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-btop`
 
-Move `btop` configuration and theme under `home/.config/btop`. Keep the theme
+Move `btop` configuration and theme under `~/dev/personal/dot/home/.config/btop`. Keep the theme
 download pointed at the tracked source.
 
 ### Steps — `MIG-MODULE-btop`
@@ -925,11 +1038,11 @@ Use the common rollback contract.
 - Target: `~/.config/delta`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-delta`
 
-Move the delta theme under `home/.config/delta`. Keep the download source
+Move the delta theme under `~/dev/personal/dot/home/.config/delta`. Keep the download source
 visible to review and preserve Git integration.
 
 ### Steps — `MIG-MODULE-delta`
@@ -963,11 +1076,11 @@ Use the common rollback contract.
 - Target: `~/.config/zsh`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-zsh`
 
-Move tracked Zsh source files under `home/.config/zsh`. Move every inventoried
+Move tracked Zsh source files under `~/dev/personal/dot/home/.config/zsh`. Move every inventoried
 history and completion runtime file into the detached target before removing
 the parent link. Do not copy sensitive files without erasing and checking the
 old path.
@@ -1009,11 +1122,11 @@ Use the common rollback contract. Restore protected runtime files before the old
 - Target: `~/.config/fd`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-fd`
 
-Move the `fd` ignore file under `home/.config/fd` without adding unrelated
+Move the `fd` ignore file under `~/dev/personal/dot/home/.config/fd` without adding unrelated
 configuration.
 
 ### Steps — `MIG-MODULE-fd`
@@ -1046,11 +1159,11 @@ Use the common rollback contract.
 - Target: `~/.config/fzf`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-fzf`
 
-Move `fzf.conf` under `home/.config/fzf` and preserve
+Move `fzf.conf` under `~/dev/personal/dot/home/.config/fzf` and preserve
 `FZF_DEFAULT_OPTS_FILE` behavior.
 
 ### Steps — `MIG-MODULE-fzf`
@@ -1083,11 +1196,11 @@ Use the common rollback contract.
 - Target: `~/.config/lazygit`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-lazygit`
 
-Move the lazygit configuration and theme under `home/.config/lazygit`.
+Move the lazygit configuration and theme under `~/dev/personal/dot/home/.config/lazygit`.
 Preserve `LG_CONFIG_FILE` behavior.
 
 ### Steps — `MIG-MODULE-lazygit`
@@ -1120,11 +1233,11 @@ Use the common rollback contract.
 - Target: `~/.config/ripgrep`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-ripgrep`
 
-Move `.ripgreprc` under `home/.config/ripgrep` and preserve
+Move `.ripgreprc` under `~/dev/personal/dot/home/.config/ripgrep` and preserve
 `RIPGREP_CONFIG_PATH`.
 
 ### Steps — `MIG-MODULE-ripgrep`
@@ -1157,11 +1270,11 @@ Use the common rollback contract.
 - Target: `~/.config/tmux`
 - Mode: `symlink-each`
 - Risk: `low`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-tmux`
 
-Move `tmux.conf` under `home/.config/tmux` and add a configuration parse
+Move `tmux.conf` under `~/dev/personal/dot/home/.config/tmux` and add a configuration parse
 smoke test.
 
 ### Steps — `MIG-MODULE-tmux`
@@ -1194,11 +1307,11 @@ Use the common rollback contract.
 - Target: `~/.config/ghostty`
 - Mode: `symlink-each`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-ghostty`
 
-Move Ghostty configuration and shaders under `home/.config/ghostty`. Keep
+Move Ghostty configuration and shaders under `~/dev/personal/dot/home/.config/ghostty`. Keep
 shader paths.
 
 ### Steps — `MIG-MODULE-ghostty`
@@ -1230,11 +1343,11 @@ Use the common rollback contract.
 - Target: `~/.config/git`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-git`
 
-Move Git configuration and the global ignore file under `home/.config/git`.
+Move Git configuration and the global ignore file under `~/dev/personal/dot/home/.config/git`.
 Preserve external includes, signing commands, and local-file ignore rules.
 
 ### Steps — `MIG-MODULE-git`
@@ -1265,17 +1378,18 @@ Use the common rollback contract.
 - Dependencies: `MIG-MODULE-mise`
 - Current owner: GNU Stow
 - New owner: `mise`
-- Source: `.config/wezterm`
+- Source: `.config/wezterm` (legacy) and `home/.config/wezterm` (canonical)
 - Target: `~/.config/wezterm`
 - Mode: `symlink-each`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-wezterm`
 
-Move WezTerm configuration and shell hooks under `home/.config/wezterm`.
-Record an explicit disposition for repository-only instruction files and
-research backups that the old parent symlink exposes.
+Move WezTerm configuration and shell hooks under `~/dev/personal/dot/home/.config/wezterm`.
+Keep the repository-local instruction files in the canonical `home` source
+directory, exclude them from the runtime target, and record an explicit
+disposition for research backups that the old parent symlink exposes.
 
 ### Steps — `MIG-MODULE-wezterm`
 
@@ -1289,7 +1403,9 @@ research backups that the old parent symlink exposes.
 
 - The target-only disposition matches the inventory.
 - Shell completion and integration files resolve.
-- Research backups do not enter `home/`.
+- The repository-local instruction files exist under `home` and are excluded
+  from the runtime target.
+- Research backups do not enter `~/dev/personal/dot/home/`.
 
 ### Rollback and mitigation — `MIG-MODULE-wezterm`
 
@@ -1309,11 +1425,11 @@ Use the common rollback contract. Restore preserved target-only files.
 - Target: `~/.config/yazi`
 - Mode: `symlink-each`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-yazi`
 
-Move tracked Yazi flavors, plugins, and configuration under `home/.config/yazi`.
+Move tracked Yazi flavors, plugins, and configuration under `~/dev/personal/dot/home/.config/yazi`.
 Preserve dependency pins and exclude untracked runtime state.
 
 ### Steps — `MIG-MODULE-yazi`
@@ -1327,7 +1443,7 @@ Preserve dependency pins and exclude untracked runtime state.
 ### Acceptance checks — `MIG-MODULE-yazi`
 
 - Every tracked source path has one relative link.
-- Untracked runtime state remains outside `home/`.
+- Untracked runtime state remains outside `~/dev/personal/dot/home/`.
 - Dependency pins remain unchanged.
 
 ### Rollback and mitigation — `MIG-MODULE-yazi`
@@ -1348,7 +1464,7 @@ Use the common rollback contract.
 - Target: `~/.config/1Password`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-1password`
 
@@ -1364,7 +1480,7 @@ move private keys or application runtime state.
 
 ### Acceptance checks — `MIG-MODULE-1password`
 
-- No private key enters `home/`.
+- No private key enters `~/dev/personal/dot/home/`.
 - Vault references remain valid.
 
 ### Rollback and mitigation — `MIG-MODULE-1password`
@@ -1385,11 +1501,11 @@ Use the common rollback contract. Do not restore private keys from the repositor
 - Target: `~/.config/BetterDisplay`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-betterdisplay`
 
-Move the plist source under `home/.config/BetterDisplay`. Apply the README and
+Move the plist source under `~/dev/personal/dot/home/.config/BetterDisplay`. Apply the README and
 backup dispositions recorded in the approved inventory. Update the export
 script so it writes to the source and never replaces a deployed symlink.
 
@@ -1423,16 +1539,18 @@ Use the common rollback contract. Restore the old script and preserved backup fi
 - Dependencies: `MIG-MODULE-mise`
 - Current owner: GNU Stow
 - New owner: `mise`
-- Source: `.config/hammerspoon`
+- Source: `.config/hammerspoon` (legacy) and `home/.config/hammerspoon` (canonical)
 - Target: `~/.config/hammerspoon`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-hammerspoon`
 
-Move eligible tracked Lua and `Spoons/` files under `home/.config/hammerspoon`.
-Record the disposition of `.luarc.json` and all target-only runtime files.
+Move eligible tracked Lua and `Spoons/` files under `~/dev/personal/dot/home/.config/hammerspoon`.
+Keep `.luarc.json` in the canonical `home` source directory, exclude it from
+the runtime target, and record the disposition of all target-only runtime
+files.
 
 ### Steps — `MIG-MODULE-hammerspoon`
 
@@ -1444,6 +1562,8 @@ Record the disposition of `.luarc.json` and all target-only runtime files.
 ### Acceptance checks — `MIG-MODULE-hammerspoon`
 
 - The eligible manifest excludes repository-only files.
+- The repository-local `.luarc.json` source exists under `home` and is excluded
+  from the runtime target.
 - `Spoons/` remains complete.
 - Lua syntax passes.
 - The target-only disposition matches the inventory.
@@ -1466,11 +1586,11 @@ Use the common rollback contract.
 - Target: `~/.config/harper`
 - Mode: `symlink-each`
 - Risk: `medium`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-harper`
 
-Move the personal Harper dictionary under `home/.config/harper`. Treat its
+Move the personal Harper dictionary under `~/dev/personal/dot/home/.config/harper`. Treat its
 content as personal configuration and do not print it during validation.
 
 ### Steps — `MIG-MODULE-harper`
@@ -1503,11 +1623,11 @@ Use the common rollback contract.
 - Target: `~/.config/nvim`
 - Mode: `symlink-each`
 - Risk: `high`
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-MODULE-nvim`
 
-Move the tracked Neovim files under `home/.config/nvim`. Preserve direct edits
+Move the tracked Neovim files under `~/dev/personal/dot/home/.config/nvim`. Preserve direct edits
 and the `.gitignore` boundary for generated runtime files.
 
 ### Steps — `MIG-MODULE-nvim`
@@ -1538,7 +1658,7 @@ Use the common rollback contract. Restore the directory target.
 - Approval: `required`
 - Approval record: `.agents/projects/stow-to-mise-migration/research/approvals/MIG-90.md`
 - Dependencies: every `MIG-MODULE-*` story
-- Status: `blocked`
+- Status: `done`
 
 ### Description — `MIG-90`
 
@@ -1567,7 +1687,7 @@ documentation, and record remaining exceptions after every module story passes.
 
 - Every module story is approved and complete.
 - No target has dual ownership.
-- No protected runtime file is in `home/`.
+- No protected runtime file is in `~/dev/personal/dot/home/`.
 - No unexpected target or source difference remains.
 - Focused tests and aggregate checks pass.
 - The final full-flow test passes.

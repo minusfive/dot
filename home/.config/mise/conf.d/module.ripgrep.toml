@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/ripgrep" = { source = "~/dev/personal/dot/home/.config/ripgrep", mode = "symlink-each" }

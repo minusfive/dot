@@ -7,29 +7,29 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/tmux.md`
 - Current declaration: `.stowrc` implicit package-root ownership; no tmux-specific declaration
-- New declaration: `home/.config/mise/conf.d/module.tmux.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.tmux.toml`
 - Current owner: `Stow`
 - New owner: `mise`
 - Target root: `~/.config/tmux`
 - Mise mode: `symlink-each`
 - Environment selector: `tmux`
 - Dependencies: `MIG-MODULE-mise`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest
 
-| Source path              | Tracked | Ignored | Current owner | Current target             | Target disposition | New source path               | New target                 | New mode       | Notes                                                                             |
-| ------------------------ | ------- | ------- | ------------- | -------------------------- | ------------------ | ----------------------------- | -------------------------- | -------------- | --------------------------------------------------------------------------------- |
-| `.config/tmux/tmux.conf` | `yes`   | `no`    | `Stow`        | `~/.config/tmux/tmux.conf` | `migrate`          | `home/.config/tmux/tmux.conf` | `~/.config/tmux/tmux.conf` | `symlink-each` | The only source file. It declares TPM plugins and runs `~/.tmux/plugins/tpm/tpm`. |
+| Source path              | Tracked | Ignored | Current owner | Current target             | Target disposition | New source path                                  | New target                 | New mode       | Notes                                                                             |
+| ------------------------ | ------- | ------- | ------------- | -------------------------- | ------------------ | ------------------------------------------------ | -------------------------- | -------------- | --------------------------------------------------------------------------------- |
+| `.config/tmux/tmux.conf` | `yes`   | `no`    | `Stow`        | `~/.config/tmux/tmux.conf` | `migrate`          | `~/dev/personal/dot/home/.config/tmux/tmux.conf` | `~/.config/tmux/tmux.conf` | `symlink-each` | The only source file. It declares TPM plugins and runs `~/.tmux/plugins/tpm/tpm`. |
 
 ## Local and runtime inventory
 
-| Path                      | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                                                       | Classification                | Required action   | Runtime destination        | Metadata to preserve                                         | Secret or sensitive data |
-| ------------------------- | ------ | ------- | ------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------- | -------------------------- | ------------------------------------------------------------ | ------------------------ |
-| `.config/tmux/tmux.conf`  | `yes`  | `yes`   | `no`    | `repo`           | The deployed `~/.config/tmux/tmux.conf` resolves through the current whole-directory Stow link. The isolated tmux parse smoke test exits with status `0`. | `active-global`               | `copy-then-erase` | `~/.config/tmux/tmux.conf` | `0644`, `villalj:staff`                                      | `no`                     |
-| `~/.config/tmux`          | `yes`  | `no`    | `no`    | `target`         | Whole-directory relative symlink to `../dev/personal/dot/.config/tmux`; it exposes the tracked `tmux.conf` file.                                          | `active-global`               | `preserve`        | `~/.config/tmux`           | Whole-directory `lrwxr-xr-x`, `villalj:staff`, relative link | `no`                     |
-| `~/.tmux/plugins/tpm/tpm` | `no`   | `no`    | `no`    | `target`         | `tmux.conf` references this path with `run`; TPM is not installed on the current machine.                                                                 | `external-runtime-dependency` | `none`            | `~/.tmux/plugins/tpm/tpm`  | Not present                                                  | `no`                     |
+| Path                      | Exists | Tracked | Ignored | Current location | Active use evidence                                                                       | Classification                | Required action | Runtime destination        | Metadata to preserve                               | Secret or sensitive data |
+| ------------------------- | ------ | ------- | ------- | ---------------- | ----------------------------------------------------------------------------------------- | ----------------------------- | --------------- | -------------------------- | -------------------------------------------------- | ------------------------ |
+| `.config/tmux/tmux.conf`  | `no`   | `no`    | `no`    | `historical`     | Retired Stow source; the file moved to `home/.config/tmux/tmux.conf`.                     | `historical`                  | `remove`        | `~/.config/tmux/tmux.conf` | `retired source path`                              | `no`                     |
+| `~/.config/tmux`          | `yes`  | `no`    | `no`    | `target`         | Physical directory with one relative per-file link to the mise source.                    | `active-global`               | `preserve`      | `~/.config/tmux`           | Physical directory, owner villalj:staff, mode 0755 | `no`                     |
+| `~/.tmux/plugins/tpm/tpm` | `no`   | `no`    | `no`    | `target`         | `tmux.conf` references this path with `run`; TPM is not installed on the current machine. | `external-runtime-dependency` | `none`          | `~/.tmux/plugins/tpm/tpm`  | Not present                                        | `no`                     |
 
 Record ignored paths with:
 
@@ -45,21 +45,21 @@ git check-ignore -v .config/tmux/tmux.conf
 ```
 
 The `.config/tmux` boundary has no matching `.stow-local-ignore` or Git ignore
-rule. The future `home/.config/tmux` source is excluded from Stow by the
+rule. The future `~/dev/personal/dot/home/.config/tmux` source is excluded from Stow by the
 existing `^/home` rule. The `.config/zsh/.zcompdump` file has an `_tmux`
 completion reference, but it is generated runtime state outside this boundary
 and is ignored by the global Git ignore file.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/tmux` -> `../dev/personal/dot/.config/tmux`; `~/.config/tmux/tmux.conf` resolves to `.config/tmux/tmux.conf`
+- Current target shape: `physical directory with relative symlink-each link`
+- Current target manifest path: `~/.config/tmux`
 - Old owner cleanup command: `test -L "$HOME/.config/tmux" && test "$(readlink "$HOME/.config/tmux")" = "../dev/personal/dot/.config/tmux" && unlink "$HOME/.config/tmux"`
 - New owner dry-run command: `mise -E tmux bootstrap dotfiles apply --dry-run`
 - New owner apply command: `mise -E tmux bootstrap dotfiles apply --yes`
 - Duplicate-owner check: `! stow -nvR . 2>&1 | grep -F -- '.config/tmux' && mise -E tmux bootstrap dotfiles status | grep -F -- '.config/tmux/tmux.conf'`
 - Target-content disposition check: `find -P "$HOME/.config/tmux" -mindepth 1 -maxdepth 1 ! -name tmux.conf -print -quit`
-- Relative-link check: `python3 -c 'from pathlib import Path; p = Path.home() / ".config/tmux/tmux.conf"; assert p.is_symlink() and not p.readlink().is_absolute() and p.resolve() == Path.cwd() / "home/.config/tmux/tmux.conf"'`
+- Relative-link check: `python3 -c 'from pathlib import Path; p = Path.home() / ".config/tmux/tmux.conf"; assert p.is_symlink() and not p.readlink().is_absolute() and p.resolve() == Path.home() / "dev/personal/dot/home/.config/tmux/tmux.conf"'`
 
 ## Coupling
 
@@ -85,14 +85,14 @@ and is ignored by the global Git ignore file.
 ## Validation
 
 - Syntax or source checks:
-  - `test -f .config/tmux/tmux.conf && grep -Fq 'set -g prefix C-Space' .config/tmux/tmux.conf && grep -Fq "run '~/.tmux/plugins/tpm/tpm'" .config/tmux/tmux.conf`
+  - `test -f home/.config/tmux/tmux.conf && grep -Fq 'set -g prefix C-Space' home/.config/tmux/tmux.conf && grep -Fq "run '~/.tmux/plugins/tpm/tpm'" home/.config/tmux/tmux.conf`
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_tmux.zsh` (planned module test; not present in the current baseline)
 - Target smoke test:
   - `socket="dot-tmux-parse-$$"; tmux -L "$socket" -f "$HOME/.config/tmux/tmux.conf" -C start-server >/dev/null 2>&1; status=$?; tmux -L "$socket" kill-server >/dev/null 2>&1 || true; exit "$status"`
   - Defer plugin-load validation until TPM is installed.
 - Security or token check:
-  - `! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' .config/tmux/tmux.conf home/.config/tmux/tmux.conf`
+  - `! grep -Eiq 'token|password|secret|credential|private[[:space:]-]?key|auth[.]db' home/.config/tmux/tmux.conf`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -121,4 +121,5 @@ and is ignored by the global Git ignore file.
 - Residual risk:
   - `low`; the boundary has one tracked, non-sensitive file and no unmanaged child, but the referenced TPM runtime path is absent and the parse test does not prove that plugins load.
 - Open blocker:
-  - Explicit migration approval is required before changing ownership.
+  - None. The target now uses the approved mise `symlink-each` declaration;
+    TPM remains an external unmanaged runtime dependency.

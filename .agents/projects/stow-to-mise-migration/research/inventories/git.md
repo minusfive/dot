@@ -7,40 +7,40 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/git.md`
 - Current declaration: `.stowrc` (`--target=~`) and `scripts/symlink.zsh` (`stow -vR .`)
-- New declaration: `home/.config/mise/conf.d/module.git.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.git.toml`
 - Current owner: `Stow`
 - New owner: `mise`
 - Target root: `~/.config/git`
 - Mise mode: `symlink-each`
 - Environment selector: `git`
 - Dependencies: `MIG-MODULE-mise`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest
 
-| Source path          | Tracked | Ignored | Current owner | Current target         | Target disposition | New source path           | New target             | New mode       | Notes                                                                                                                     |
-| -------------------- | ------- | ------- | ------------- | ---------------------- | ------------------ | ------------------------- | ---------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `.config/git/config` | `yes`   | `no`    | `Stow`        | `~/.config/git/config` | `migrate`          | `home/.config/git/config` | `~/.config/git/config` | `symlink-each` | Global Git configuration with conditional external includes, SSH signing, delta integration, aliases, and color behavior. |
-| `.config/git/ignore` | `yes`   | `no`    | `Stow`        | `~/.config/git/ignore` | `migrate`          | `home/.config/git/ignore` | `~/.config/git/ignore` | `symlink-each` | Git's global excludes file; it is not a repository `.gitignore` and includes local mise/config variants.                  |
+| Source path          | Tracked | Ignored | Current owner | Current target         | Target disposition | New source path                              | New target             | New mode       | Notes                                                                                                                     |
+| -------------------- | ------- | ------- | ------------- | ---------------------- | ------------------ | -------------------------------------------- | ---------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `.config/git/config` | `yes`   | `no`    | `Stow`        | `~/.config/git/config` | `migrate`          | `~/dev/personal/dot/home/.config/git/config` | `~/.config/git/config` | `symlink-each` | Global Git configuration with conditional external includes, SSH signing, delta integration, aliases, and color behavior. |
+| `.config/git/ignore` | `yes`   | `no`    | `Stow`        | `~/.config/git/ignore` | `migrate`          | `~/dev/personal/dot/home/.config/git/ignore` | `~/.config/git/ignore` | `symlink-each` | Git's global excludes file; it is not a repository `.gitignore` and includes local mise/config variants.                  |
 
 The source manifest is exactly the two tracked files above. The ignored-file
 and non-ignored untracked-file queries returned no paths.
 
 ## Local and runtime inventory
 
-| Path                                                     | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                      | Classification   | Required action   | Runtime destination                                      | Metadata to preserve                                                                                                                                                           | Secret or sensitive data |
-| -------------------------------------------------------- | ------ | ------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------ | ---------------- | ----------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
-| `.config/git`                                            | `yes`  | `no`    | `no`    | `repo`           | Current Stow source directory for the active `~/.config/git` target.                                                     | `active-global`  | `exclude`         | `none`                                                   | Directory `0755`, owner/group `villalj:staff`; retire the old source directory only after the new `home/` source and mise dry run are verified.                                | `no`                     |
-| `.config/git/config`                                     | `yes`  | `yes`   | `no`    | `repo`           | Current target resolves through the Stow parent link; Git loads the configuration from `~/.config/git/config`.           | `active-global`  | `copy-then-erase` | `~/.config/git/config`                                   | Regular file `0644`, owner/group `villalj:staff`.                                                                                                                              | `no`                     |
-| `.config/git/ignore`                                     | `yes`  | `yes`   | `no`    | `repo`           | Current target is Git's active global excludes file; `tests/scripts/test_mise_config.zsh` verifies its local-file rules. | `active-global`  | `copy-then-erase` | `~/.config/git/ignore`                                   | Regular file `0644`, owner/group `villalj:staff`.                                                                                                                              | `no`                     |
-| `~/.config/git`                                          | `yes`  | `no`    | `no`    | `target`         | `readlink` returns `../dev/personal/dot/.config/git`; its two child files are active through this whole-directory link.  | `active-global`  | `preserve`        | `~/.config/git`                                          | Current relative whole-directory symlink, owner/group `villalj:staff`; detach only after the guarded cutover checks, then create a physical directory for per-file mise links. | `no`                     |
-| `~/.config/git/<target-only>`                            | `no`   | `no`    | `no`    | `target`         | The target file manifest contains only `config` and `ignore`, both resolved from the Stow source.                        | `not-applicable` | `none`            | `none`                                                   | `none`                                                                                                                                                                         | `no`                     |
-| `~/dev/work/.gitconfig`                                  | `yes`  | `no`    | `no`    | `other`          | Included for repositories under `~/dev/work/`; the file exists but its contents are not part of this boundary.           | `active-global`  | `preserve`        | `~/dev/work/.gitconfig`                                  | Regular file `0644`, owner/group `villalj:staff`; preserve without copying into the repository.                                                                                | `unknown`                |
-| `~/dev/personal/.gitconfig`                              | `yes`  | `no`    | `no`    | `other`          | Included for repositories under `~/dev/personal/`; the file exists but its contents are not part of this boundary.       | `active-global`  | `preserve`        | `~/dev/personal/.gitconfig`                              | Regular file `0644`, owner/group `villalj:staff`; preserve without copying into the repository.                                                                                | `unknown`                |
-| `~/Notes/Work/.gitconfig`                                | `no`   | `no`    | `no`    | `other`          | Conditional include path is configured but absent on this machine.                                                       | `not-applicable` | `none`            | `none`                                                   | `none`                                                                                                                                                                         | `no`                     |
-| `~/Notes/Personal/.gitconfig`                            | `no`   | `no`    | `no`    | `other`          | Conditional include path is configured but absent on this machine.                                                       | `not-applicable` | `none`            | `none`                                                   | `none`                                                                                                                                                                         | `no`                     |
-| `/Applications/1Password.app/Contents/MacOS/op-ssh-sign` | `yes`  | `no`    | `no`    | `other`          | Configured by `gpg.ssh.program`; the executable exists and is executable.                                                | `active-global`  | `preserve`        | `/Applications/1Password.app/Contents/MacOS/op-ssh-sign` | Executable file `0755`, owner/group `villalj:staff`; application-owned and outside the source boundary.                                                                        | `no`                     |
+| Path                                                     | Exists | Tracked | Ignored | Current location | Active use evidence                                                                                                | Classification   | Required action | Runtime destination                                      | Metadata to preserve                                                                                    | Secret or sensitive data |
+| -------------------------------------------------------- | ------ | ------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------- | --------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------ |
+| `.config/git`                                            | `no`   | `no`    | `no`    | `historical`     | Retired Stow source boundary; files moved to `home/.config/git`.                                                   | `historical`     | `remove`        | `none`                                                   | `retired source path`                                                                                   | `no`                     |
+| `.config/git/config`                                     | `no`   | `no`    | `no`    | `historical`     | Retired Stow source; Git config moved to `home/.config/git/config`.                                                | `historical`     | `remove`        | `~/.config/git/config`                                   | `retired source path`                                                                                   | `no`                     |
+| `.config/git/ignore`                                     | `no`   | `no`    | `no`    | `historical`     | Retired Stow source; global excludes moved to `home/.config/git/ignore`.                                           | `historical`     | `remove`        | `~/.config/git/ignore`                                   | `retired source path`                                                                                   | `no`                     |
+| `~/.config/git`                                          | `yes`  | `no`    | `no`    | `target`         | Physical directory with two relative per-file links to the mise source.                                            | `active-global`  | `preserve`      | `~/.config/git`                                          | Physical directory, owner/group `villalj:staff`, mode 0755                                              | `no`                     |
+| `~/.config/git/<target-only>`                            | `no`   | `no`    | `no`    | `target`         | The target file manifest contains only `config` and `ignore`, both resolved from the Stow source.                  | `not-applicable` | `none`          | `none`                                                   | `none`                                                                                                  | `no`                     |
+| `~/dev/work/.gitconfig`                                  | `yes`  | `no`    | `no`    | `other`          | Included for repositories under `~/dev/work/`; the file exists but its contents are not part of this boundary.     | `active-global`  | `preserve`      | `~/dev/work/.gitconfig`                                  | Regular file `0644`, owner/group `villalj:staff`; preserve without copying into the repository.         | `unknown`                |
+| `~/dev/personal/.gitconfig`                              | `yes`  | `no`    | `no`    | `other`          | Included for repositories under `~/dev/personal/`; the file exists but its contents are not part of this boundary. | `active-global`  | `preserve`      | `~/dev/personal/.gitconfig`                              | Regular file `0644`, owner/group `villalj:staff`; preserve without copying into the repository.         | `unknown`                |
+| `~/Notes/Work/.gitconfig`                                | `no`   | `no`    | `no`    | `other`          | Conditional include path is configured but absent on this machine.                                                 | `not-applicable` | `none`          | `none`                                                   | `none`                                                                                                  | `no`                     |
+| `~/Notes/Personal/.gitconfig`                            | `no`   | `no`    | `no`    | `other`          | Conditional include path is configured but absent on this machine.                                                 | `not-applicable` | `none`          | `none`                                                   | `none`                                                                                                  | `no`                     |
+| `/Applications/1Password.app/Contents/MacOS/op-ssh-sign` | `yes`  | `no`    | `no`    | `other`          | Configured by `gpg.ssh.program`; the executable exists and is executable.                                          | `active-global`  | `preserve`      | `/Applications/1Password.app/Contents/MacOS/op-ssh-sign` | Executable file `0755`, owner/group `villalj:staff`; application-owned and outside the source boundary. | `no`                     |
 
 Record ignored paths with:
 
@@ -59,13 +59,13 @@ the contents of external include files.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/git -> ../dev/personal/dot/.config/git`; `config` and `ignore` are regular files when reached through the parent link, and their checksums match the two source files.
+- Current target shape: `physical directory with relative symlink-each links`
+- Current target manifest path: `~/.config/git`
 - Old owner cleanup command: `test -L "$HOME/.config/git" && test "$(readlink "$HOME/.config/git")" = "../dev/personal/dot/.config/git" && rm "$HOME/.config/git"`
 - New owner dry-run command: `mise -E git bootstrap dotfiles apply --dry-run`
 - New owner apply command: `mise -E git bootstrap dotfiles apply --yes`
 - Duplicate-owner check: `test -z "$(stow -nvR . 2>&1 | grep -F -- '.config/git' || true)" && mise -E git bootstrap dotfiles status | grep -F -- '.config/git'`
-- Target-content disposition check: `test -d "$HOME/.config/git" && test ! -L "$HOME/.config/git" && test -L "$HOME/.config/git/config" && test -L "$HOME/.config/git/ignore" && test "$(realpath "$HOME/.config/git/config")" = "$(realpath "home/.config/git/config")" && test "$(realpath "$HOME/.config/git/ignore")" = "$(realpath "home/.config/git/ignore")"`
+- Target-content disposition check: `test -d "$HOME/.config/git" && test ! -L "$HOME/.config/git" && test -L "$HOME/.config/git/config" && test -L "$HOME/.config/git/ignore" && test "$(realpath "$HOME/.config/git/config")" = "$(realpath "$HOME/dev/personal/dot/home/.config/git/config")" && test "$(realpath "$HOME/.config/git/ignore")" = "$(realpath "$HOME/dev/personal/dot/home/.config/git/ignore")"`
 - Relative-link check: `for path in "$HOME/.config/git/config" "$HOME/.config/git/ignore"; do case "$(readlink "$path")" in /*) exit 1;; esac; done`
 
 The baseline `stow -nvR .` reports `UNLINK: .config/git` followed by
@@ -99,10 +99,10 @@ exists and the mise dry run names the intended per-file targets.
 ## Validation
 
 - Syntax or source checks:
-  - `git ls-files --error-unmatch .config/git/config .config/git/ignore`
-  - `git config --file .config/git/config --list >/dev/null`
-  - `test -s .config/git/ignore`
-  - After the source move: `git ls-files --error-unmatch home/.config/git/config home/.config/git/ignore`
+  - `git ls-files --error-unmatch home/.config/git/config home/.config/git/ignore`
+  - `git config --file home/.config/git/config --list >/dev/null`
+  - `test -s home/.config/git/ignore`
+  - After the source move: `git ls-files --error-unmatch ~/dev/personal/dot/home/.config/git/config ~/dev/personal/dot/home/.config/git/ignore`
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_git.zsh` (planned module test; not
     present in the current tree; it must assert the
@@ -112,8 +112,8 @@ exists and the mise dry run names the intended per-file targets.
 - Target smoke test:
   - `test "$(git config --global --get gpg.format)" = ssh && test "$(git config --global --get commit.gpgsign)" = true && test "$(git config --global --get tag.gpgsign)" = true && test -x "$(git config --global --get gpg.ssh.program)" && git check-ignore -q --no-index mise.local.toml && git check-ignore -q --no-index config.personal.local.toml`
 - Security or token check:
-  - `! rg -n -i '(api[_-]?key|token|secret|credential|private[[:space:]_-]?key|auth[.]db)' .config/git`
-  - `git ls-files --others --ignored --exclude-standard -- .config/git home/.config/git`
+  - `! rg -n -i '(api[_-]?key|token|secret|credential|private[[:space:]_-]?key|auth[.]db)' home/.config/git`
+  - `git ls-files --others --ignored --exclude-standard -- home/.config/git`
   - Do not print values from external include files or any credential-bearing Git configuration.
 - Aggregate checks:
   - `mise run check`
@@ -145,4 +145,5 @@ exists and the mise dry run names the intended per-file targets.
 - Residual risk:
   - Git behavior depends on external include files and an application-owned signing command. The new per-file links must preserve the exact target paths while keeping those external files and application runtime outside tracked sources.
 - Open blocker:
-  - Migration approval and the planned module-focused test are pending.
+  - None. The target now uses the approved mise `symlink-each` declaration and
+    the external include and signing paths remain outside this boundary.

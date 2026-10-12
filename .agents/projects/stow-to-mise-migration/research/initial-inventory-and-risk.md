@@ -14,15 +14,15 @@ evidence, not the current migration scope.
 ## Scope
 
 This project covers the remaining migration from the Stow source tree at
-`.config/` to the mise source tree at `home/`.
+`.config/` to the mise source tree at `~/dev/personal/dot/home/`.
 
 The current snapshot contains:
 
 - 23 top-level entries under `.config/`.
 - 329 files under `.config/`.
 - 279 tracked `.config/` files.
-- 180 files under `home/`.
-- 118 tracked `home/` files.
+- 180 files under `~/dev/personal/dot/home/`.
+- 118 tracked `~/dev/personal/dot/home/` files.
 - 150 tracked Hammerspoon files.
 - 54 tracked Neovim files.
 
@@ -35,7 +35,7 @@ The tracked counts define the current repository ownership surface.
 - `scripts/symlink.zsh` applies Stow with `stow -vR .`.
 - `scripts/mise.zsh` applies mise packages, files, repositories, and dotfiles
   in that order.
-- `.config/mise/conf.d/bootstrap-ai.toml` already maps `home/` AI resources.
+- `.config/mise/conf.d/bootstrap-ai.toml` already maps `~/dev/personal/dot/home/` AI resources.
 - `.config/mise/conf.d/bootstrap-gh.toml` already maps the GitHub profile and
   hosts source.
 - `.stow-local-ignore` excludes current mise-owned home resources.
@@ -43,7 +43,7 @@ The tracked counts define the current repository ownership surface.
 
 The `.config/mise/` directory is the current tracked mise source tree. It
 contains global mise configuration, bootstrap declarations, tasks, utilities,
-and the mise lock file. Move this source tree under `home/.config/mise/` and
+and the mise lock file. Move this source tree under `~/dev/personal/dot/home/.config/mise/` and
 let mise own the target `~/.config/mise/` in the initial control-plane phase.
 
 ## Baseline command results
@@ -56,7 +56,7 @@ let mise own the target `~/.config/mise/` in the initial control-plane phase.
 
 ## Security and data-safety boundaries
 
-Do not move these paths into `home/`:
+Do not move these paths into `~/dev/personal/dot/home/`:
 
 - `.config/zsh/.zsh_history`
 - `.config/zsh/.zcompdump`
@@ -64,7 +64,7 @@ Do not move these paths into `home/`:
 The Zsh history and completion dump are runtime files. They can contain
 commands, paths, and sensitive arguments.
 
-Treat `home/.config/gh/personal/hosts.yml` as credential-bearing configuration.
+Treat `~/dev/personal/dot/home/.config/gh/personal/hosts.yml` as credential-bearing configuration.
 Keep the existing token-free invariant from
 `tests/scripts/test_mise_bootstrap_gh.zsh`. Do not copy token values into
 research artifacts or migration sources.
@@ -82,27 +82,27 @@ Future migration work must inspect behavior without copying secret values.
 
 ## Boundary inventory
 
-| Boundary                | Files | Risk   | Complexity | Recommended disposition                                                       |
-| ----------------------- | ----: | ------ | ---------- | ----------------------------------------------------------------------------- |
-| `.config/1Password`     |     1 | Medium | Low        | Review as app-owned configuration. Migrate only after a tool-specific test.   |
-| `.config/bat`           |     2 | Low    | Low        | Migrate as an individual low-risk module story.                               |
-| `.config/BetterDisplay` |     2 | Medium | Medium     | Keep in its script boundary. Preserve import and export behavior.             |
-| `.config/btop`          |     2 | Low    | Low        | Migrate as an individual low-risk module story.                               |
-| `.config/delta`         |     1 | Low    | Low        | Migrate as an individual low-risk module story.                               |
-| `.config/fd`            |     1 | Low    | Low        | Migrate as an individual low-risk module story.                               |
-| `.config/fzf`           |     1 | Low    | Low        | Migrate as an individual low-risk module story.                               |
-| `.config/ghostty`       |     4 | Low    | Medium     | Migrate tracked configuration and shaders.                                    |
-| `.config/git`           |     2 | Medium | Medium     | Review include targets and signing behavior before migration.                 |
-| `.config/hammerspoon`   |   150 | High   | High       | Migrate as a separate executable-configuration phase.                         |
-| `.config/harper`        |     1 | Medium | Low        | Treat the dictionary as personal user data. Review before migration.          |
-| `.config/lazygit`       |     2 | Low    | Low        | Migrate as an individual low-risk module story.                               |
-| `.config/mise`          |    19 | High   | High       | Move under `home/.config/mise/`; mise owns target.                            |
-| `.config/nvim`          |    54 | Medium | High       | Migrate as a separate editor phase. Review generated artifacts.               |
-| `.config/ripgrep`       |     1 | Low    | Low        | Migrate as an individual low-risk module story.                               |
-| `.config/tmux`          |     1 | Low    | Low        | Migrate as an individual low-risk module story.                               |
-| `.config/wezterm`       |    49 | Medium | Medium     | Migrate tracked runtime hooks and configuration only. Exclude research state. |
-| `.config/yazi`          |    14 | Low    | Medium     | Migrate with a directory ownership test for plugins and flavors.              |
-| `.config/zsh`           |     8 | High   | Medium     | Migrate source files only. Keep history and completion state outside `home/`. |
+| Boundary                | Files | Risk   | Complexity | Recommended disposition                                                                          |
+| ----------------------- | ----: | ------ | ---------- | ------------------------------------------------------------------------------------------------ |
+| `.config/1Password`     |     1 | Medium | Low        | Review as app-owned configuration. Migrate only after a tool-specific test.                      |
+| `.config/bat`           |     2 | Low    | Low        | Migrate as an individual low-risk module story.                                                  |
+| `.config/BetterDisplay` |     2 | Medium | Medium     | Keep in its script boundary. Preserve import and export behavior.                                |
+| `.config/btop`          |     2 | Low    | Low        | Migrate as an individual low-risk module story.                                                  |
+| `.config/delta`         |     1 | Low    | Low        | Migrate as an individual low-risk module story.                                                  |
+| `.config/fd`            |     1 | Low    | Low        | Migrate as an individual low-risk module story.                                                  |
+| `.config/fzf`           |     1 | Low    | Low        | Migrate as an individual low-risk module story.                                                  |
+| `.config/ghostty`       |     4 | Low    | Medium     | Migrate tracked configuration and shaders.                                                       |
+| `.config/git`           |     2 | Medium | Medium     | Review include targets and signing behavior before migration.                                    |
+| `.config/hammerspoon`   |   150 | High   | High       | Migrate as a separate executable-configuration phase.                                            |
+| `.config/harper`        |     1 | Medium | Low        | Treat the dictionary as personal user data. Review before migration.                             |
+| `.config/lazygit`       |     2 | Low    | Low        | Migrate as an individual low-risk module story.                                                  |
+| `.config/mise`          |    19 | High   | High       | Move under `~/dev/personal/dot/home/.config/mise/`; mise owns target.                            |
+| `.config/nvim`          |    54 | Medium | High       | Migrate as a separate editor phase. Review generated artifacts.                                  |
+| `.config/ripgrep`       |     1 | Low    | Low        | Migrate as an individual low-risk module story.                                                  |
+| `.config/tmux`          |     1 | Low    | Low        | Migrate as an individual low-risk module story.                                                  |
+| `.config/wezterm`       |    49 | Medium | Medium     | Migrate tracked runtime hooks and configuration only. Exclude research state.                    |
+| `.config/yazi`          |    14 | Low    | Medium     | Migrate with a directory ownership test for plugins and flavors.                                 |
+| `.config/zsh`           |     8 | High   | Medium     | Migrate source files only. Keep history and completion state outside `~/dev/personal/dot/home/`. |
 
 The physical file total is larger than the tracked total because several
 boundaries contain ignored application state or generated research files.
@@ -134,11 +134,11 @@ boundaries contain ignored application state or generated research files.
 
 ## Ownership strategy comparison
 
-| Strategy                                        | Benefit                                                 | Main risk                                                           | Decision  |
-| ----------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------- | --------- |
-| Keep Stow as the only owner until the end       | One active system during the migration                  | A large final cutover creates a wide rollback surface               | Reject    |
-| Transfer ownership one boundary at a time       | Small changes, focused tests, and clear rollback points | The repository has two active systems during the transition         | Recommend |
-| Copy all `.config` content into `home/` at once | Fast source-tree conversion                             | Runtime state, conflicts, and executable failures can move silently | Reject    |
+| Strategy                                                           | Benefit                                                 | Main risk                                                           | Decision  |
+| ------------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------------- | --------- |
+| Keep Stow as the only owner until the end                          | One active system during the migration                  | A large final cutover creates a wide rollback surface               | Reject    |
+| Transfer ownership one boundary at a time                          | Small changes, focused tests, and clear rollback points | The repository has two active systems during the transition         | Recommend |
+| Copy all `.config` content into `~/dev/personal/dot/home/` at once | Fast source-tree conversion                             | Runtime state, conflicts, and executable failures can move silently | Reject    |
 
 The recommended strategy uses direct mise `dotfiles` entries for individual
 files and `symlink-each` for directories that also contain application-owned

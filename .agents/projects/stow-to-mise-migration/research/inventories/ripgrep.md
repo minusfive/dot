@@ -7,29 +7,29 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/ripgrep.md`
 - Current declaration: `.stowrc`
-- New declaration: `home/.config/mise/conf.d/module.ripgrep.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.ripgrep.toml`
 - Current owner: `stow`
 - New owner: `mise`
 - Target root: `~/.config/ripgrep`
 - Mise mode: `symlink-each`
 - Environment selector: `ripgrep`
 - Dependencies: `MIG-MODULE-mise`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest
 
-| Source path                  | Tracked | Ignored | Current owner | Current target                                                       | Target disposition | New source path                   | New target                     | New mode       | Notes                                                                                        |
-| ---------------------------- | ------- | ------- | ------------- | -------------------------------------------------------------------- | ------------------ | --------------------------------- | ------------------------------ | -------------- | -------------------------------------------------------------------------------------------- |
-| `.config/ripgrep/.ripgreprc` | `yes`   | `no`    | `stow`        | `~/.config/ripgrep/.ripgreprc` through the current directory symlink | `migrate`          | `home/.config/ripgrep/.ripgreprc` | `~/.config/ripgrep/.ripgreprc` | `symlink-each` | Preserve the existing ripgrep options and keep the live target linked to the tracked source. |
+| Source path                  | Tracked | Ignored | Current owner | Current target                                                       | Target disposition | New source path                                      | New target                     | New mode       | Notes                                                                                        |
+| ---------------------------- | ------- | ------- | ------------- | -------------------------------------------------------------------- | ------------------ | ---------------------------------------------------- | ------------------------------ | -------------- | -------------------------------------------------------------------------------------------- |
+| `.config/ripgrep/.ripgreprc` | `yes`   | `no`    | `stow`        | `~/.config/ripgrep/.ripgreprc` through the current directory symlink | `migrate`          | `~/dev/personal/dot/home/.config/ripgrep/.ripgreprc` | `~/.config/ripgrep/.ripgreprc` | `symlink-each` | Preserve the existing ripgrep options and keep the live target linked to the tracked source. |
 
 ## Local and runtime inventory
 
-| Path                           | Exists | Tracked | Ignored | Current location                   | Active use evidence                                                        | Classification  | Required action | Runtime destination                                                     | Metadata to preserve                                                                                                   | Secret or sensitive data |
-| ------------------------------ | ------ | ------- | ------- | ---------------------------------- | -------------------------------------------------------------------------- | --------------- | --------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| `.config/ripgrep/.ripgreprc`   | `yes`  | `yes`   | `no`    | `repo`                             | `.config/zsh/.zshrc:225` exports `RIPGREP_CONFIG_PATH` to the target file. | `active-global` | `move`          | `~/.config/ripgrep/.ripgreprc`                                          | Regular file, `0644`, owner `villalj`, group `staff`                                                                   | `no`                     |
-| `~/.config/ripgrep`            | `yes`  | `no`    | `no`    | `target`                           | The target is resolved by `RIPGREP_CONFIG_PATH` through `.ripgreprc`.      | `active-global` | `remove`        | `~/.config/ripgrep` as a physical directory managed with `symlink-each` | Relative directory symlink, `lrwxr-xr-x`, owner `villalj`, group `staff`, target `../dev/personal/dot/.config/ripgrep` | `no`                     |
-| `~/.config/ripgrep/.ripgreprc` | `yes`  | `no`    | `no`    | `target through directory symlink` | Resolves to `.config/ripgrep/.ripgreprc`; no separate target copy exists.  | `active-global` | `preserve`      | `~/.config/ripgrep/.ripgreprc` as a mise-managed relative symlink       | Regular file reached through the directory symlink, `0644`, owner `villalj`, group `staff`                             | `no`                     |
+| Path                           | Exists | Tracked | Ignored | Current location | Active use evidence                                                       | Classification  | Required action | Runtime destination            | Metadata to preserve                           | Secret or sensitive data |
+| ------------------------------ | ------ | ------- | ------- | ---------------- | ------------------------------------------------------------------------- | --------------- | --------------- | ------------------------------ | ---------------------------------------------- | ------------------------ |
+| `.config/ripgrep/.ripgreprc`   | `no`   | `no`    | `no`    | `historical`     | Retired Stow source; the file moved to `home/.config/ripgrep/.ripgreprc`. | `historical`    | `remove`        | `~/.config/ripgrep/.ripgreprc` | `retired source path`                          | `no`                     |
+| `~/.config/ripgrep`            | `yes`  | `no`    | `no`    | `target`         | Physical directory with one relative per-file link to the mise source.    | `active-global` | `preserve`      | `~/.config/ripgrep`            | Physical directory, owner villalj, group staff | `no`                     |
+| `~/.config/ripgrep/.ripgreprc` | `yes`  | `no`    | `no`    | `target`         | Resolves to `home/.config/ripgrep/.ripgreprc` through its relative link.  | `active-global` | `preserve`      | `~/.config/ripgrep/.ripgreprc` | Relative symlink, owner villalj, group staff   | `no`                     |
 
 Record ignored paths with:
 
@@ -49,8 +49,8 @@ target paths only.
 
 ## Ownership and cutover
 
-- Current target shape: `whole-directory symlink`
-- Current target manifest path: `~/.config/ripgrep` -> `../dev/personal/dot/.config/ripgrep`; `.ripgreprc` is reached through this directory link and is not a separate target symlink.
+- Current target shape: `physical directory with relative symlink-each link`
+- Current target manifest path: `~/.config/ripgrep`
 - Old owner cleanup command: `test "$(readlink "$HOME/.config/ripgrep")" = "../dev/personal/dot/.config/ripgrep" && rm "$HOME/.config/ripgrep"`
 - New owner dry-run command: `mise -C "$HOME/dev/personal/dot" dot apply --dry-run ~/.config/ripgrep`
 - New owner apply command: `mise -C "$HOME/dev/personal/dot" dot apply ~/.config/ripgrep`
@@ -74,14 +74,14 @@ target paths only.
 ## Validation
 
 - Syntax or source checks:
-  - `test -f .config/ripgrep/.ripgreprc && git ls-files --error-unmatch .config/ripgrep/.ripgreprc`
+  - `test -f home/.config/ripgrep/.ripgreprc && git ls-files --error-unmatch home/.config/ripgrep/.ripgreprc`
 - Focused test:
   - `tests/scripts/test_mise_bootstrap_ripgrep.zsh` (planned module test;
     include the configured-source probe)
 - Target smoke test:
   - `test -f "$HOME/.config/ripgrep/.ripgreprc" && RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/.ripgreprc" rg --files "$HOME/dev/personal/dot" | grep -Fx "$HOME/dev/personal/dot/.config/ripgrep/.ripgreprc"`
 - Security or token check:
-  - `git grep -nE '(AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]+|BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY)' -- .config/ripgrep || true`
+  - `git grep -nE '(AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]+|BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY)' -- home/.config/ripgrep || true`
 - Aggregate checks:
   - `mise run check`
   - `stow -nvR .`
@@ -106,4 +106,4 @@ target paths only.
 - Residual risk:
   - The cutover must detach the existing whole-directory symlink before applying per-file mise links; an unexpected local target entry must not be removed.
 - Open blocker:
-  - Migration approval and creation of `home/.config/ripgrep/.ripgreprc` plus `home/.config/mise/conf.d/module.ripgrep.toml` remain pending.
+  - None. The target now uses the approved mise `symlink-each` declaration.

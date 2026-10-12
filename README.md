@@ -7,9 +7,9 @@ I try my best to keep this and [my Nix-based configuration](https://github.com/m
 > [!NOTE]
 > This configuration includes several keyboard shortcuts (for app launching, window management, text editing, etc.), optimized to work with [my custom keyboard layout](https://github.com/minusfive/zmk-config) and workflow. To customize you'll likely want to primarily look at the following configurations:
 >
-> - [Hammerspoon](./.config/hammerspoon/)
-> - [Wezterm](./.config/wezterm/)
-> - [NeoVim](./.config/nvim/)
+> - [Hammerspoon](./home/.config/hammerspoon/)
+> - [Wezterm](./home/.config/wezterm/)
+> - [NeoVim](./home/.config/nvim/)
 
 ## Setup
 
@@ -24,14 +24,41 @@ cd ~/dev/dot
 ./scripts/init.zsh
 ```
 
+## Profiles
+
+The bootstrap supports two profiles: `work` and `personal`. The `work` profile
+is the default and is the safer choice for a new machine.
+
+Select a profile with `--profile`:
+
+```sh
+./scripts/init.zsh --profile personal --mise
+```
+
+The script stores the selected profile at
+`${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` and exports it as
+`DOT_PROFILE`. Later runs use the stored profile unless you select another one.
+
+Both profiles load the shared package set. The `personal` profile also loads
+the Discord, SoftRAID, and WhatsApp casks. The selected profile also controls
+which profile-specific `mise` environment is active.
+
+Hammerspoon reads the same state file through the
+[ProfileState Spoon](./home/.config/hammerspoon/Spoons/ProfileState.spoon/init.lua).
+It mirrors the profile through `hs.settings`, which persists the value in
+macOS defaults and makes it readable by other applications. The state file
+remains the source of truth.
+
 ## Global files and configuration
 
 > [!NOTE]
-> This configuration is moving from GNU Stow to mise. Both systems remain in use while the migration continues.
+> Global application configuration is now managed by mise. GNU Stow remains
+> for repository-level files and bootstrap boundaries that are intentionally
+> not deployed as global application configuration.
 
 The `home/` directory is a source tree for files that belong under `$HOME`. Its layout mirrors the target layout, so the source location also describes the installed location.
 
-Mise declarations live in [`.config/mise/conf.d/`](./.config/mise/conf.d/). Files are grouped by logical boundary, such as `bootstrap-gh.toml` for GitHub resources and `bootstrap-ai.toml` for shared AI resources. This keeps each bootstrap area small and independently understandable.
+Mise declarations live in [`home/.config/mise/conf.d/`](./home/.config/mise/conf.d/) and are linked into `~/.config/mise/`. Files are grouped by logical boundary, such as `module.gh.toml` for GitHub resources and `module.profiles.toml` for rendered workspace profiles. This keeps each bootstrap area small and independently understandable.
 
 Mise uses two related resource models:
 
@@ -42,11 +69,16 @@ The [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.html) and [mise 
 
 The `--mise` initialization interface updates mise itself, then applies the package, file, repository, and dotfile phases. The `--link` interface remains available for configuration that still uses GNU Stow.
 
-Non-migrated configuration remains managed by GNU Stow. The [`.stowrc`](./.stowrc) file defines `$HOME` as the target, and [`.stow-local-ignore`](./.stow-local-ignore) defines exclusions. A target belongs to one management system at a time.
+Boundary-local development files for Hammerspoon and WezTerm live in their
+matching `home/.config/...` source directories. Their mise declarations exclude
+these files from the runtime targets. Other non-migrated configuration remains
+managed by GNU Stow. The [`.stowrc`](./.stowrc) file defines `$HOME` as the
+target, and [`.stow-local-ignore`](./.stow-local-ignore) defines exclusions.
+A target belongs to one management system at a time.
 
 ## Programs
 
-System package state is managed by [mise-en-place](https://mise.jdx.dev), with shared machine configuration in [~/.config/mise/config.toml](./.config/mise/config.toml) and [~/.config/mise/conf.d/](./.config/mise/conf.d/), and repo-local tooling in [./.mise/config.toml](./.mise/config.toml) and [./.mise/conf.d/](./.mise/conf.d/). This includes Homebrew formulae, Homebrew casks, and Mac App Store apps. [Homebrew](https://brew.sh) is now only an optional bootstrap helper, while development tooling and setup flows continue through `mise` and the [Zsh scripts](./scripts/).
+System package state is managed by [mise-en-place](https://mise.jdx.dev), with shared machine configuration in [home/.config/mise/config.toml](./home/.config/mise/config.toml) and [home/.config/mise/conf.d/](./home/.config/mise/conf.d/), and repo-local tooling in [./.mise/config.toml](./.mise/config.toml) and [./.mise/conf.d/](./.mise/conf.d/). This includes Homebrew formulae, Homebrew casks, and Mac App Store apps. [Homebrew](https://brew.sh) is now only an optional bootstrap helper, while development tooling and setup flows continue through `mise` and the [Zsh scripts](./scripts/).
 
 ---
 

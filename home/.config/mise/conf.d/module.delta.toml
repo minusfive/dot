@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/delta" = { source = "~/dev/personal/dot/home/.config/delta", mode = "symlink-each" }

@@ -7,22 +7,22 @@
 - Inventory version: `1`
 - Inventory path: `.agents/projects/stow-to-mise-migration/research/inventories/packages.md`
 - Current declaration: `.config/mise/conf.d/bootstrap-packages.toml`
-- New declaration: `home/.config/mise/conf.d/module.packages.toml`
+- New declaration: `~/dev/personal/dot/home/.config/mise/conf.d/module.packages.toml`
 - Current owner: `mise`
 - New owner: `mise`
 - Target root: `none`
 - Mise mode: `bootstrap package resources`
-- Environment selector: `profile`
+- Environment selector: `packages` in both profile branches
 - Dependencies: `MIG-MODULE-mise`
-- Approval state: `pending`
+- Approval state: `approved`
 - Inventory status: `complete`
 
 ## Scope manifest
 
-| Source path                                            | Tracked | Ignored | Current owner | Current target | Target disposition | New source path                                          | New target | New mode                      | Notes                                                                                              |
-| ------------------------------------------------------ | ------- | ------- | ------------- | -------------- | ------------------ | -------------------------------------------------------- | ---------- | ----------------------------- | -------------------------------------------------------------------------------------------------- |
-| `.config/mise/conf.d/bootstrap-packages.toml`          | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `home/.config/mise/conf.d/module.packages.toml`          | `none`     | `bootstrap package resources` | Shared Homebrew formulas, Homebrew casks, Mac App Store apps, and `[bootstrap.brew] adopt = true`. |
-| `.config/mise/conf.d/bootstrap-packages.personal.toml` | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `home/.config/mise/conf.d/module.personal-packages.toml` | `none`     | `bootstrap package resources` | Coupled profile-only cask additions. The personal profile selects this separate module.            |
+| Source path                                            | Tracked | Ignored | Current owner | Current target | Target disposition | New source path                                                             | New target | New mode                      | Notes                                                                                              |
+| ------------------------------------------------------ | ------- | ------- | ------------- | -------------- | ------------------ | --------------------------------------------------------------------------- | ---------- | ----------------------------- | -------------------------------------------------------------------------------------------------- |
+| `.config/mise/conf.d/bootstrap-packages.toml`          | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/module.packages.toml`          | `none`     | `bootstrap package resources` | Shared Homebrew formulas, Homebrew casks, Mac App Store apps, and `[bootstrap.brew] adopt = true`. |
+| `.config/mise/conf.d/bootstrap-packages.personal.toml` | `yes`   | `no`    | `mise`        | `none`         | `migrate`          | `~/dev/personal/dot/home/.config/mise/conf.d/module.personal-packages.toml` | `none`     | `bootstrap package resources` | Coupled profile-only cask additions. The personal profile selects this separate module.            |
 
 ## Package manifest
 
@@ -102,11 +102,11 @@ declaration.
 
 ## Local and runtime inventory
 
-| Path                                                   | Exists    | Tracked | Ignored | Current location | Active use evidence                                                                                                               | Classification  | Required action | Runtime destination      | Metadata to preserve                                                  | Secret or sensitive data |
-| ------------------------------------------------------ | --------- | ------- | ------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------- | --------------- | ------------------------ | --------------------------------------------------------------------- | ------------------------ |
-| `.config/mise/conf.d/bootstrap-packages.toml`          | `yes`     | `yes`   | `no`    | `repo`           | `mise env_conf_d` loads the declaration. `scripts/mise.zsh` runs package bootstrap commands.                                      | `active-global` | `move`          | `none`                   | `TOML source. Preserve section names, package keys, and latest pins.` | `no`                     |
-| `.config/mise/conf.d/bootstrap-packages.personal.toml` | `yes`     | `yes`   | `no`    | `repo`           | `mise env_conf_d` loads it for the personal profile. The personal package test asserts its casks.                                 | `active-global` | `move`          | `none`                   | `TOML source. Preserve personal-only casks and latest pins.`          | `no`                     |
-| Homebrew package state                                 | `unknown` | `no`    | `no`    | `other`          | `bootstrap.packages` declares `brew:` and `brew-cask:` resources. `[bootstrap.brew] adopt = true` adopts existing Homebrew state. | `active-global` | `preserve`      | `Homebrew-managed state` | `Homebrew metadata and installed package state`                       | `no`                     |
+| Path                                                   | Exists    | Tracked | Ignored | Current location | Active use evidence                                                                                                               | Classification  | Required action | Runtime destination      | Metadata to preserve                                         | Secret or sensitive data |
+| ------------------------------------------------------ | --------- | ------- | ------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------- | --------------- | ------------------------ | ------------------------------------------------------------ | ------------------------ |
+| `.config/mise/conf.d/bootstrap-packages.toml`          | `no`      | `no`    | `no`    | `historical`     | Retired shared declaration; its resources moved to `module.packages.toml`.                                                        | `historical`    | `remove`        | `none`                   | `retired source path`                                        | `no`                     |
+| `.config/mise/conf.d/bootstrap-packages.personal.toml` | `yes`     | `yes`   | `no`    | `repo`           | `mise env_conf_d` loads it for the personal profile. The personal package test asserts its casks.                                 | `active-global` | `move`          | `none`                   | `TOML source. Preserve personal-only casks and latest pins.` | `no`                     |
+| Homebrew package state                                 | `unknown` | `no`    | `no`    | `other`          | `bootstrap.packages` declares `brew:` and `brew-cask:` resources. `[bootstrap.brew] adopt = true` adopts existing Homebrew state. | `active-global` | `preserve`      | `Homebrew-managed state` | `Homebrew metadata and installed package state`              | `no`                     |
 
 Record ignored paths with:
 
@@ -126,7 +126,7 @@ repository inventory.
 - Old owner cleanup command: `mise bootstrap packages prune --dry-run`
 - New owner dry-run command: `mise bootstrap packages apply --dry-run`
 - New owner apply command: `mise bootstrap packages apply --yes`
-- Duplicate-owner check: `grep -rhoE '"(brew|brew-cask|mas):[^"]+"' .config/mise/conf.d home/.config/mise/conf.d 2>/dev/null | sort | uniq -d`
+- Duplicate-owner check: `grep -rhoE '"(brew|brew-cask|mas):[^"]+"' .config/mise/conf.d ~/dev/personal/dot/home/.config/mise/conf.d 2>/dev/null | sort | uniq -d`
 - Target-content disposition check: `mise bootstrap packages apply --dry-run`
 - Relative-link check: `not applicable, package resources do not create dotfile links`
 
@@ -139,11 +139,14 @@ is a declaration and dry-run check rather than a filesystem-link check.
 - Scripts:
   - `scripts/init.zsh` validates and persists `DOT_PROFILE`, then sources `scripts/brew.zsh` and `scripts/mise.zsh`.
   - `scripts/brew.zsh` is the optional `--brew` Homebrew installation bridge and must run before package bootstrap when Homebrew is absent.
-  - `scripts/mise.zsh` validates the profile, exports `MISE_ENV`, and runs `mise bootstrap packages apply --yes`, `upgrade --yes`, and `prune --yes` in the package phase.
+  - `scripts/mise.zsh` validates the profile, clears any inherited
+    `MISE_ENV`, and runs `mise bootstrap packages apply --yes`, `upgrade --yes`,
+    and `prune --yes` in the package phase.
   - No `scripts/mise.zsh` change is required for the module rename. Its package command boundary remains `packages`.
 - Environment variables:
   - `DOT_PROFILE` is written by `scripts/init.zsh` and defaults to `work`. Valid values are `work` and `personal`.
-  - `MISE_ENV` is exported by `scripts/mise.zsh` from `DOT_PROFILE` and selects the mise profile environment.
+  - `MISE_ENV` is cleared by `scripts/mise.zsh` so the rendered `miserc.toml`
+    profile selection remains authoritative.
 - Includes or external paths:
   - `none` in the package declarations. Homebrew and Mac App Store state remain external to the repository.
 - Other modules:
@@ -196,4 +199,5 @@ is a declaration and dry-run check rather than a filesystem-link check.
 - Residual risk:
   - The focused shared-package test asserts adoption, two Mac App Store IDs, shared casks, exclusions, and forbidden sections, but it does not enumerate every shared formula. Package installation and prune operate on external machine state and can change installed software.
 - Open blocker:
-  - `none for inventory, migration execution remains pending explicit approval and a reviewed package dry run`
+  - None. The shared package dry run remained converged and the approved module
+    now owns the package declaration.

@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/git" = { source = "~/dev/personal/dot/home/.config/git", mode = "symlink-each" }

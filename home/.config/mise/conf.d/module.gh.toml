@@ -1,0 +1,5 @@
+[bootstrap.directories."~/.config/gh/personal"]
+mode = "0755"
+
+[dotfiles]
+"~/.config/gh/personal/hosts.yml" = { source = "~/dev/personal/dot/home/.config/gh/personal/hosts.yml", mode = "symlink" }

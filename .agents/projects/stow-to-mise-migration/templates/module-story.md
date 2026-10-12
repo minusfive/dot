@@ -11,7 +11,7 @@
 - Target: `<path or none>`
 - Mode: `<mode>`
 - Risk: `<low|medium|high|critical>`
-- Status: `blocked`
+- Status: `<blocked|todo|research|implement|validate|critique|done>`
 
 ### Description
 

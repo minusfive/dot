@@ -36,13 +36,27 @@ Use other research files as background evidence.
 - Keep dependency fields in the roadmap and inventories for human-readable
   story context. Treat `module-registry.toml` as the canonical dependency
   graph, and require the artifact validator to compare all three views.
+- Use explicit `~/dev/personal/dot/home/...` source paths for mise declarations
+  loaded from `~/.config/mise/conf.d`. Do not set `dotfiles.root` for this
+  migration.
 - Keep `MIG-MODULE-mise` blocked until
   `DEC-mise-control-plane-transition-mechanism` records the approved cutover
   mechanism.
+- Treat `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` as the
+  profile source of truth. Hammerspoon's `ProfileState.spoon` mirrors it
+  through `hs.settings`, which persists in macOS defaults and is readable by
+  other applications. Do not treat the Hammerspoon values as an independent
+  profile source.
+- Record approved-story approvers with the authenticated GitHub login from
+  `gh api user`, prefixed with `@`. Do not use the harness account identity.
 
 Keep migration artifacts scoped to repository sources and approved migration
-targets. Do not add unrelated unmanaged runtime paths as migration inputs,
-preservation targets, or blockers.
+targets. Keep boundary-local development files in their corresponding
+`home/.config/...` source directories when those directories are the canonical
+migration sources. Exclude those files from mise target declarations so they
+remain repository-local and are not linked into `$HOME`. Do not retain legacy
+`.config/...` copies after the source moves. Do not add unrelated unmanaged
+runtime paths as migration inputs, preservation targets, or blockers.
 
 Maintain the roadmap and every relevant project artifact in the same change.
 This includes affected inventories, planning work, pending decisions,
@@ -51,6 +65,9 @@ When a source path, target, mode, dependency, step, acceptance check, rollback
 rule, or story order changes, update the plan and every affected artifact
 before you finish the plan change. Keep ordering metadata only in the plan.
 Run the artifact validator after the paired updates.
+
+Do not edit, stage, commit, or push unrelated worktree changes as part of
+migration work. Preserve them for separate changes.
 
 When you resolve a decision, record the selected behavior in the roadmap or
 affected inventories and record completion in `research/planning-work.md`.
@@ -87,6 +104,10 @@ during execution.
   Do not create shared preparation or tests.
 - Mark only the next incomplete roadmap story as `todo`.
 - Keep later stories out of `todo` until every preceding story is complete.
+- Keep each roadmap story's `Status` field synchronized with its real execution
+  lifecycle. After a story passes its acceptance and critique gates, mark it
+  `done`. When a blocker stops the next action, keep the story `blocked` and
+  record the blocker.
 - Do not parallelize module inventories, source preparation, declaration
   authoring, validation, ownership transitions, or closeout.
 - Keep planning questions and completed planning work in
@@ -98,7 +119,7 @@ to discover, classify, choose, or decide migration behavior.
 ## Safety
 
 - Keep credentials, databases, WAL files, histories, completion dumps, caches,
-  dependencies, and generated output outside `home/`.
+  dependencies, and generated output outside `~/dev/personal/dot/home/`.
 - Do not print credential-bearing contents or runtime database contents.
 - Preserve local runtime files before removing a parent Stow link.
 - Do not copy a sensitive runtime file without erasing and checking the old

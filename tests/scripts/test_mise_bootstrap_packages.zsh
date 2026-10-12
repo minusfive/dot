@@ -5,8 +5,13 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing shared package bootstrap configuration..."
 
-local __config=".config/mise/conf.d/bootstrap-packages.toml"
+local __config="home/.config/mise/conf.d/module.packages.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
+if [[ -e "home/.config/mise/conf.d/bootstrap-packages.toml" ]]; then
+    fail "legacy shared package declaration must be retired"
+fi
+grep -qF '"~/.config/mise/conf.d/module.packages.toml"' home/.config/mise/conf.d/module.mise.toml ||
+    fail "mise control-plane module does not deploy module.packages.toml"
 grep -qF "[bootstrap.brew]" "$__config" || fail "Homebrew bootstrap section is missing"
 grep -qF "adopt = true" "$__config" || fail "Homebrew adoption is missing"
 grep -qF '"mas:1497506650" = "latest"' "$__config" || fail "Yubico Authenticator is missing"

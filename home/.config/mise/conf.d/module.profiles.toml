@@ -1,0 +1,8 @@
+[dotfiles."~/dev/mise.toml"]
+source = "~/dev/personal/dot/home/dev/profile.mise.toml"
+mode = "template"
+permissions = "0644"
+variants = [
+    { profile = "personal", target = "~/dev/personal/mise.toml" },
+    { profile = "work", target = "~/dev/work/mise.toml" },
+]
