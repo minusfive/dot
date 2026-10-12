@@ -11,33 +11,6 @@ local non_security_excludes =
     ".config/nvim/lua/config/logos.lua",
   )
 
-local prettier_globs =
-  List(
-    "**/*.js",
-    "**/*.jsx",
-    "**/*.mjs",
-    "**/*.cjs",
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.mts",
-    "**/*.cts",
-    "**/*.css",
-    "**/*.scss",
-    "**/*.less",
-    "**/*.html",
-    "**/*.json",
-    "**/*.json5",
-    "**/*.jsonc",
-    "**/*.yaml",
-    "**/*.yml",
-    "**/*.graphql",
-    "**/*.handlebars",
-    "**/*.svelte",
-    "**/*.astro",
-    "**/*.htmlangular",
-    "**/*.vue",
-  )
-
 local checks = new Mapping<String, Step> {
   ["check_added_large_files"] = (Builtins.check_added_large_files) {
     exclude = non_security_excludes
@@ -65,7 +38,6 @@ local checks = new Mapping<String, Step> {
   ["prettier"] = (Builtins.prettier) {
     batch = true
     exclude = non_security_excludes
-    glob = prettier_globs
   }
 }
 
@@ -80,12 +52,6 @@ local linters = new Mapping<String, Step> {
 
   ["rumdl"] = (Builtins.rumdl) {
     batch = true
-    exclude = non_security_excludes
-  }
-
-  ["rumdl_format"] = (Builtins.rumdl_format) {
-    batch = true
-    depends = "rumdl"
     exclude = non_security_excludes
   }
 
