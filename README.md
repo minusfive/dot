@@ -40,7 +40,26 @@ Look in these directories when you customize the configuration:
 - [Neovim](./home/.config/nvim/)
 - [WezTerm](./home/.config/wezterm/)
 
-## Mise configuration
+```text
+.
+├── .agents/                         # repository skills and project guidance
+├── .mise/                           # repository-local tools and tasks
+├── assets/                          # images
+├── home/                            # source tree mirrored under ~/
+│   ├── .config/
+│   │   ├── hammerspoon/             # ~/.config/hammerspoon
+│   │   ├── mise/                    # ~/.config/mise
+│   │   ├── nvim/                    # ~/.config/nvim
+│   │   └── ...
+│   ├── .ssh/
+│   │   └── config                   # ~/.ssh/config
+│   └── .zshenv                      # ~/.zshenv
+├── scripts/                         # bootstrap and development tasks
+├── tests/                           # script tests
+└── ...
+```
+
+## Machine bootstrap
 
 [mise][mise] manages global files, packages, and repository tools. Declarations for global configuration live in [home/.config/mise/conf.d/](./home/.config/mise/conf.d/). Mise links these files into `~/.config/mise/`.
 
@@ -48,17 +67,9 @@ The declarations are grouped by logical boundary. For example, `module.gh.toml` 
 
 Package resources use dedicated module files. Tightly coupled declarations share a module. `miserc.toml` selects the modules for each profile.
 
-Mise uses two related resource models:
-
-- `[dotfiles]` describes user files that mise links, copies, templates, tracks, or removes.
-- `[bootstrap.files]` describes files that bootstrap creates or renders.
-- `[bootstrap.directories]` describes directory state, such as permissions.
-
-Read the [mise dotfiles documentation][mise-dotfiles] and the [mise bootstrap documentation][mise-bootstrap] for resource modes and bootstrap phases.
+[dotfiles][mise-dotfiles] declarations describe user files that mise links, copies, templates, tracks, or removes. [bootstrap.files][mise-bootstrap] declarations describe files that bootstrap creates or renders, while [bootstrap.directories][mise-bootstrap] declarations describe directory state, such as permissions. Together, these declarations define the available resource modes and bootstrap phases.
 
 The `--mise` initialization interface updates mise. It then applies the package, file, repository, and dotfile phases.
-
-Each target belongs to one management system. For example, [`home/.zshenv`](./home/.zshenv) belongs to `module.zsh.toml`, while [`home/.ssh/config`](./home/.ssh/config) belongs to [`module.1password.toml`](./home/.config/mise/conf.d/module.1password.toml).
 
 ## Development
 
