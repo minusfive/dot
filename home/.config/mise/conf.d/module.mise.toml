@@ -1,7 +1,9 @@
 [dotfiles]
 "~/.config/mise/conf.d/module.gh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.gh.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.profiles.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.profiles.toml", mode = "symlink" }
-"~/.config/mise/conf.d/module.personal-packages.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.personal-packages.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.discord.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.discord.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.softraid.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.softraid.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.whatsapp.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.whatsapp.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.brew.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.brew.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.sqlite.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.sqlite.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.coreutils.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.coreutils.toml", mode = "symlink" }

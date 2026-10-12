@@ -842,24 +842,22 @@ Use the common rollback contract. Do not prune packages.
 ### Description — `MIG-MODULE-personal-packages`
 
 The existing `home/.config/mise/conf.d/bootstrap-packages.personal.toml`
-is the legacy bridge source prepared by the control-plane story. Rename that
-existing declaration to `module.personal-packages.toml`; do not create a
-second package set. Keep the finalized module selected only by the personal
-profile.
+is the legacy bridge source prepared by the control-plane story. Split its
+three casks into `module.discord.toml`, `module.softraid.toml`, and
+`module.whatsapp.toml`. Select each module only in the personal profile.
 
 ### Steps — `MIG-MODULE-personal-packages`
 
 1. Read the exhaustive package inventory.
 2. Record work and personal profile package sets.
-3. Rename the existing legacy bridge declaration to
-   `module.personal-packages.toml`.
+3. Split the existing legacy bridge declaration into the three cask modules.
 4. Run the personal and work package status checks without writing either
    workspace profile file.
 5. Run the personal package test.
 
 ### Acceptance checks — `MIG-MODULE-personal-packages`
 
-- Personal packages load only for the personal profile.
+- Each personal cask module loads only for the personal profile.
 - Shared packages remain in the shared module.
 - The three existing personal casks remain declared after the rename.
 - This story does not write `~/dev/personal/mise.toml` or

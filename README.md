@@ -58,7 +58,7 @@ The `home/` directory is a source tree for files that belong under `$HOME`. Its 
 
 Mise declarations live in [`home/.config/mise/conf.d/`](./home/.config/mise/conf.d/) and are linked into `~/.config/mise/`. Files are grouped by logical boundary, such as `module.gh.toml` for GitHub resources and `module.profiles.toml` for rendered workspace profiles. This keeps each bootstrap area small and independently understandable.
 
-Package resources use dedicated module files, with related 1Password packages grouped in `module.1password.toml`. The shared `module.brew.toml` file keeps the Homebrew adoption setting, and both profiles load the shared package modules. The `module.personal-packages.toml` file contains personal-only casks.
+Package resources use dedicated module files. Tightly coupled declarations share a module, and `miserc.toml` selects the module list for each profile. Mise adopts existing Homebrew packages through the shared Homebrew bootstrap setting, while package modules declare individual resources.
 
 Mise uses two related resource models:
 

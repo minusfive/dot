@@ -4,6 +4,8 @@
 - Keep repository-only guidance in this file or under `.agents/`.
 - Use `mise-bootstrap-migration` when you migrate dotfiles or bootstrap resources to mise.
 - Group `home/.config/mise/conf.d/` files by logical boundary.
+- Group tightly coupled declarations in one `module.<name>.toml` file.
+- Use the profile lists in `home/.config/mise/miserc.toml` to select modules for each environment. Keep profile-specific modules out of profiles that should not load them.
 - When you add or move package declarations between `home/.config/mise/conf.d/` modules, inspect `home/.config/mise/miserc.toml`. Update the `work` and `personal` module lists when selection changes, keep personal-only packages out of `work`, and cover the boundary in focused package tests.
 - Wire new bootstrap phases into `scripts/mise.zsh` when `scripts/init.zsh --mise` must apply them.
 - Keep tool-owned runtime files outside tracked sources and mise declarations.

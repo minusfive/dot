@@ -102,7 +102,7 @@ grep -qF 'source = "~/dev/personal/dot/home/dev/profile.mise.toml"' home/.config
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 local __mise_link_count
 __mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 74 ]] || fail "expected 74 managed mise links, found $__mise_link_count"
+[[ "$__mise_link_count" -eq 76 ]] || fail "expected 76 managed mise links, found $__mise_link_count"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \
@@ -136,10 +136,10 @@ trap 'rm -rf "$__tmp_home"' EXIT
 mkdir -p "$__tmp_home/.config/mise/conf.d"
 cp home/.config/mise/config.toml "$__tmp_home/.config/mise/config.toml"
 cp home/.config/mise/miserc.toml "$__tmp_home/.config/mise/miserc.toml"
-cp home/.config/mise/conf.d/module.personal-packages.toml "$__tmp_home/.config/mise/conf.d/module.personal-packages.toml"
+cp home/.config/mise/conf.d/module.discord.toml "$__tmp_home/.config/mise/conf.d/module.discord.toml"
 printf '[env]\nMISE_PROFILE_SMOKE_WORK = "1"\n' > "$__tmp_home/.config/mise/config.work.toml"
 printf '\n[env]\nMISE_PROFILE_SMOKE_BASE = "1"\n' >> "$__tmp_home/.config/mise/config.toml"
-printf '\n[env]\nMISE_PROFILE_SMOKE_PERSONAL = "1"\n' >> "$__tmp_home/.config/mise/conf.d/module.personal-packages.toml"
+printf '\n[env]\nMISE_PROFILE_SMOKE_PERSONAL = "1"\n' >> "$__tmp_home/.config/mise/conf.d/module.discord.toml"
 
 local __work_env
 __work_env="$(env -u MISE_ENV HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" DOT_PROFILE=work mise -C "$__tmp_home" env --json)"
