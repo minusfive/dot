@@ -24,7 +24,7 @@ Update `README.md` in the same change when a change affects:
 - The repository purpose or supported environment.
 - Setup, bootstrap, initialization, or development commands.
 - The source-tree layout or the target path of a managed file.
-- Ownership between mise, GNU Stow, scripts, or an application.
+- Ownership between mise, scripts, or an application.
 - The primary tools or the role of a tool in the workflow.
 - A migration state, compatibility boundary, or user-facing workflow.
 - A link, image, command, or statement that the change makes inaccurate.

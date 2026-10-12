@@ -25,6 +25,7 @@
 "~/.config/mise/conf.d/module.zsh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.zsh.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.claude.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.claude.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.copilot.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.copilot.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.editorconfig.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.editorconfig.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.opencode.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.opencode.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.tools.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.tools.toml", mode = "symlink" }
 "~/.config/mise/config.toml" = { source = "~/dev/personal/dot/home/.config/mise/config.toml", mode = "symlink" }

@@ -102,7 +102,7 @@ grep -qF 'source = "~/dev/personal/dot/home/dev/profile.mise.toml"' home/.config
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 local __mise_link_count
 __mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 42 ]] || fail "expected 42 managed mise links, found $__mise_link_count"
+[[ "$__mise_link_count" -eq 43 ]] || fail "expected 43 managed mise links, found $__mise_link_count"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \
@@ -116,15 +116,8 @@ for __local_pattern in \
 done
 
 # Mise deploys this source file as Git's global excludes file.
-local __tmp_stow_home
-__tmp_stow_home="$(mktemp -d)"
-trap 'rm -rf "$__tmp_stow_home"' EXIT
-mkdir -p "$__tmp_stow_home/.config/git"
-stow -R . --dir="$__root_dir" --target="$__tmp_stow_home" >/dev/null || fail "Stow bootstrap failed"
-local __global_ignore="$__tmp_stow_home/.config/git/ignore"
 [[ -f "home/.config/git/ignore" ]] || fail "mise global Git ignore source is missing"
 [[ -L "$HOME/.config/git/ignore" ]] || fail "mise did not install the global Git ignore file"
-cp home/.config/git/ignore "$__global_ignore"
 
 for __local_file in \
     'mise.local.toml' \
@@ -133,16 +126,13 @@ for __local_file in \
     'miserc.personal.local.toml' \
     'config.local.toml' \
     'config.personal.local.toml'; do
-    HOME="$__tmp_stow_home" XDG_CONFIG_HOME="$__tmp_stow_home/.config" \
-        git check-ignore -q --no-index "$__local_file" ||
+    git check-ignore -q --no-index "$__local_file" ||
         fail "bootstrapped global Git ignore does not ignore local config: $__local_file"
 done
-grep -qF '^/\.mise' .stow-local-ignore || fail "Stow should ignore .mise"
-grep -qF '^/home' .stow-local-ignore || fail "Stow should ignore home sources"
 
 local __tmp_home
 __tmp_home="$(mktemp -d)"
-trap 'rm -rf "$__tmp_stow_home" "$__tmp_home"' EXIT
+trap 'rm -rf "$__tmp_home"' EXIT
 mkdir -p "$__tmp_home/.config/mise/conf.d"
 cp home/.config/mise/config.toml "$__tmp_home/.config/mise/config.toml"
 cp home/.config/mise/miserc.toml "$__tmp_home/.config/mise/miserc.toml"
