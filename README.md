@@ -2,8 +2,6 @@
 
 This repository manages my macOS configuration. It uses [mise][mise], [Homebrew][homebrew], and custom [Zsh][zsh] scripts.
 
-I also maintain a [Nix-based configuration][nix-config]. I keep both configurations aligned when their supported systems overlap.
-
 The configuration includes keyboard shortcuts for application launchers, window management, and text editing. These shortcuts work best with my [custom keyboard layout][keyboard-layout].
 
 ## Setup
@@ -81,6 +79,10 @@ mise run check
 The [hk configuration](./hk.pkl) runs checks and fixes from one shared definition. It uses [rumdl][rumdl] for Markdown linting and [Prettier][prettier] for formatting. `.rumdl.toml` keeps the previous Markdown style choices, including its inline HTML allowlist.
 
 ![Workspace](./assets/workspace.png)
+
+## Previous Nix configuration
+
+I previously maintained a [Nix-based configuration][nix-config]. I no longer maintain it because this repository now replicates much of what I liked about Nix with `mise`.
 
 [homebrew]: https://brew.sh
 [keyboard-layout]: https://github.com/minusfive/zmk-config
