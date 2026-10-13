@@ -108,6 +108,22 @@ main() {
         [[ -f "$spec" ]] || die "workspace has no matching skill spec: ${skill}"
         expected_ids="$(jq -c '[.evals[].id]' "$spec")"
 
+        for workspace_entry in "$workspace_skill"/*; do
+            [[ -d "$workspace_entry" ]] || continue
+            case "${workspace_entry:t}" in
+                iteration-*) ;;
+                discoverability)
+                    discoverability_dir="$workspace_entry"
+                    for extra in queries.json results.json; do
+                        [[ -f "${discoverability_dir}/${extra}" ]] ||
+                            die "missing ${discoverability_dir#$base_path/}/${extra}"
+                        valid_json "${discoverability_dir}/${extra}"
+                    done
+                    ;;
+                *) die "invalid evaluation workspace entry: ${workspace_entry#$base_path/}" ;;
+            esac
+        done
+
         for iteration_dir in "$workspace_skill"/iteration-*; do
             [[ -d "$iteration_dir" ]] || continue
             iteration_name="${iteration_dir:t}"
@@ -134,22 +150,6 @@ main() {
                     .skill_name == $skill and (.iteration | tostring) == $iteration
                 ' "${iteration_dir}/${extra}" >/dev/null ||
                     die "invalid report identity: ${iteration_dir#$base_path/}/${extra}"
-            done
-
-            for workspace_entry in "$workspace_skill"/*; do
-                [[ -d "$workspace_entry" ]] || continue
-                case "${workspace_entry:t}" in
-                    iteration-*) ;;
-                    discoverability)
-                        discoverability_dir="$workspace_entry"
-                        for extra in queries.json results.json; do
-                            [[ -f "${discoverability_dir}/${extra}" ]] ||
-                                die "missing ${discoverability_dir#$base_path/}/${extra}"
-                            valid_json "${discoverability_dir}/${extra}"
-                        done
-                        ;;
-                    *) die "invalid evaluation workspace entry: ${workspace_entry#$base_path/}" ;;
-                esac
             done
 
             for case_entry in "$iteration_dir"/*; do

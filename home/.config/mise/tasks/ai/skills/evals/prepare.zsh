@@ -46,8 +46,8 @@ main() {
         die "--iteration must be a positive integer"
 
     skill_dir="${skills_path}/${skill}"
-    [[ -n "$skill_dir" ]] || die "evaluation specification not found for skill: ${skill}"
     spec="${skill_dir}/evals/evals.json"
+    [[ -f "$spec" ]] || die "evaluation specification not found for skill: ${skill}"
 
     jq -e --arg skill "$skill" '
         (keys | sort) == ["evals", "skill_name"] and

@@ -41,7 +41,7 @@ main() {
         die "--skill must be a descriptive kebab-case skill name"
 
     skill_dir="${skills_path}/${skill}"
-    [[ -n "$skill_dir" ]] || die "skill not found: ${skill}"
+    [[ -d "$skill_dir" ]] || die "skill not found: ${skill}"
     [[ -f "${skill_dir}/SKILL.md" ]] || die "missing ${skill}/SKILL.md"
 
     evals_dir="${skill_dir}/evals"
