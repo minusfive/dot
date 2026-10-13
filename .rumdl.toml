@@ -1,7 +1,14 @@
 [global]
-disable = ["MD013", "MD041"]
+disable = ["MD041"]
 extend-enable = ["MD060"]
 exclude = ["home/.config/yazi/flavors/catppuccin-mocha.yazi/README.md"]
+
+[MD013]
+line-length = 0
+reflow = true
+reflow-mode = "normalize"
+code-blocks = false
+headings = false
 
 [MD003]
 style = "atx"

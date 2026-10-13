@@ -37,7 +37,14 @@ local checks = new Mapping<String, Step> {
   }
   ["prettier"] = (Builtins.prettier) {
     batch = true
-    exclude = non_security_excludes
+    exclude = List(
+      ".config/hammerspoon/Spoons/EmmyLua.spoon/annotations/**",
+      ".config/hammerspoon/Spoons/EmmyLua.spoon/docs.json",
+      ".config/yazi/flavors/**",
+      ".config/yazi/plugins/**",
+      ".config/nvim/lua/config/logos.lua",
+      "**/*.md",
+    )
   }
 }
 

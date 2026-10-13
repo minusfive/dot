@@ -87,7 +87,7 @@ Run all configured checks:
 mise run check
 ```
 
-The [hk configuration](./hk.pkl) runs checks and fixes from one shared definition. It uses [rumdl][rumdl] for Markdown linting and [Prettier][prettier] for formatting. `.rumdl.toml` keeps the previous Markdown style choices, including its inline HTML allowlist.
+The [hk configuration](./hk.pkl) runs checks and fixes from one shared definition. [rumdl][rumdl] owns Markdown linting and formatting, with soft-wrapped prose and automatic reflow for hard-wrapped paragraphs instead of a fixed-width hard-wrap policy. [Prettier][prettier] remains available for non-Markdown formatting. `.rumdl.toml` keeps the previous Markdown style choices, including its inline HTML allowlist.
 
 ![Workspace](./assets/workspace.png)
 
