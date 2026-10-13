@@ -7,6 +7,7 @@ local left_pad = 2
 
 local mason_tools_to_remove = {
   "markdownlint-cli2",
+  "rumdl",
 }
 
 ---@type LazySpec
@@ -21,6 +22,42 @@ return {
         if vim.list_contains(mason_tools_to_remove, tool) then table.remove(opts.ensure_installed, index) end
       end
     end,
+  },
+
+  {
+    "stevearc/conform.nvim",
+    optional = true,
+    ---@module 'conform'
+    ---@type conform.setupOpts
+    opts = {
+      formatters_by_ft = {
+        markdown = { "rumdl" },
+        ["markdown.mdx"] = { "rumdl" },
+      },
+    },
+  },
+
+  {
+    "mfussenegger/nvim-lint",
+    optional = true,
+    opts = function(_, opts)
+      opts.linters_by_ft = opts.linters_by_ft or {}
+      opts.linters_by_ft.markdown = {}
+      opts.linters_by_ft["markdown.mdx"] = {}
+    end,
+  },
+
+  {
+    "neovim/nvim-lspconfig",
+    ---@type PluginLspOpts
+    opts = {
+      servers = {
+        rumdl = {
+          mason = false,
+          filetypes = { "markdown", "markdown.mdx" },
+        },
+      },
+    },
   },
 
   {
