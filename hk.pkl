@@ -4,11 +4,11 @@ import "package://github.com/jdx/hk/releases/download/v2.1.0/hk@2.1.0#/Builtins.
 
 local non_security_excludes =
   List(
-    ".config/hammerspoon/Spoons/EmmyLua.spoon/annotations/**",
-    ".config/hammerspoon/Spoons/EmmyLua.spoon/docs.json",
-    ".config/yazi/flavors/**",
-    ".config/yazi/plugins/**",
-    ".config/nvim/lua/config/logos.lua",
+    "home/.config/hammerspoon/Spoons/EmmyLua.spoon/annotations/**",
+    "home/.config/hammerspoon/Spoons/EmmyLua.spoon/docs.json",
+    "home/.config/yazi/flavors/**",
+    "home/.config/yazi/plugins/**",
+    "home/.config/nvim/lua/config/logos.lua",
   )
 
 local checks = new Mapping<String, Step> {
@@ -37,7 +37,7 @@ local checks = new Mapping<String, Step> {
   }
   ["prettier"] = (Builtins.prettier) {
     batch = true
-    exclude = non_security_excludes
+    exclude = non_security_excludes + List("**/*.md")
   }
 }
 
