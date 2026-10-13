@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skill_name": "agent-instructions-evaluation",
+  "iteration": 2,
+  "case_ids": [
+    "project-eval-workspace",
+    "session-eval-workspace",
+    "durable-eval-history"
+  ],
+  "workspace": ".agents/eval-workspaces/agent-instructions-evaluation",
+  "sources": {
+    "with_skill": "home/.agents/skills/agent-instructions-evaluation/SKILL.md",
+    "old_skill": "HEAD:home/.agents/skills/agent-instructions-evaluation/SKILL.md"
+  }
+}

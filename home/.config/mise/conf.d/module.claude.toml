@@ -3,5 +3,5 @@
 
 [dotfiles]
 "~/.claude/settings.json" = { source = "~/dev/personal/dot/home/.claude/settings.json", mode = "symlink" }
-"~/.claude/skills" = { source = "~/dev/personal/dot/home/.agents/skills", mode = "symlink-each", exclude = ["**/evals/**/outputs/**"] }
+"~/.claude/skills" = { source = "~/dev/personal/dot/home/.agents/skills", mode = "symlink-each", exclude = ["**/evals/**"] }
 "~/.claude/statusline-command.sh" = { source = "~/dev/personal/dot/home/.claude/statusline-command.sh", mode = "symlink" }

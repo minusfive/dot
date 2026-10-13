@@ -15,7 +15,7 @@ assert_module_package claude brew-cask:claude-code
 
 grep -qF '"~/.claude/settings.json" = { source = "~/dev/personal/dot/home/.claude/settings.json", mode = "symlink" }' "$__config" ||
     fail "Claude settings source is missing"
-grep -qF '"~/.claude/skills" = { source = "~/dev/personal/dot/home/.agents/skills", mode = "symlink-each", exclude = ["**/evals/**/outputs/**"] }' "$__config" ||
+grep -qF '"~/.claude/skills" = { source = "~/dev/personal/dot/home/.agents/skills", mode = "symlink-each", exclude = ["**/evals/**"] }' "$__config" ||
     fail "Claude skills source or exclusion is incorrect"
 grep -qF '"~/.claude/statusline-command.sh" = { source = "~/dev/personal/dot/home/.claude/statusline-command.sh", mode = "symlink" }' "$__config" ||
     fail "Claude statusline source is missing"
@@ -47,9 +47,11 @@ while IFS= read -r __absolute_link; do
         /*) fail "absolute Claude link: $__absolute_link" ;;
     esac
 done < <(find "$HOME/.claude/skills" -type l -print)
-if find "$HOME/.claude/skills" -type l -path '*/evals/*/outputs/*' | grep -q .; then
-    fail "generated evaluation output is still linked into ~/.claude/skills"
+if find "$HOME/.claude/skills" \( -path '*/evals' -o -path '*/evals/*' \) -print | grep -q .; then
+    fail "evaluation artifacts are still linked into ~/.claude/skills"
 fi
+[[ ! -e "$HOME/.claude/skills/agentic-projects/evals" ]] ||
+    fail "skill evaluation data must remain repository-local"
 [[ -L "$HOME/.claude/skills/agent-instructions-authoring/SKILL.md" ]] ||
     fail "Claude skills target is missing a tracked skill"
 [[ "$(realpath "$HOME/.claude/skills/agent-instructions-authoring/SKILL.md")" == "$(realpath home/.agents/skills/agent-instructions-authoring/SKILL.md)" ]] ||

@@ -1,7 +1,6 @@
 {
-  "version": 1,
-  "skill": "pr-guidelines",
-  "cases": [
+  "skill_name": "pr-guidelines",
+  "evals": [
     {
       "id": "authorized-push-with-open-pr",
       "prompt": "I authorized a push to a branch that has an open pull request. The push succeeded. What must you do next?",

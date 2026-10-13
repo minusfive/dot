@@ -1,7 +1,6 @@
 {
-  "version": 1,
-  "skill": "github-cli",
-  "cases": [
+  "skill_name": "github-cli",
+  "evals": [
     {
       "id": "create-existing-pr-stack",
       "prompt": "The repository has an existing bottom PR and child PR. Which command creates their remote stack?",

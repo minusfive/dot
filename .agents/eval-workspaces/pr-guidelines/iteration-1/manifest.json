@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "skill_name": "pr-guidelines",
+  "iteration": 1,
+  "case_ids": [
+    "authorized-push-with-open-pr",
+    "script-triggered-push",
+    "no-open-pr",
+    "multi-commit-pr-metadata",
+    "pr-title-commit-format",
+    "avoid-commit-autofill",
+    "initialize-and-submit-stack",
+    "create-stack-with-mise-task",
+    "sync-and-rebase-stack",
+    "sync-github-rebased-pr"
+  ],
+  "workspace": ".agents/eval-workspaces/pr-guidelines",
+  "sources": {
+    "with_skill": "home/.agents/skills/pr-guidelines/SKILL.md",
+    "old_skill": "HEAD:home/.agents/skills/pr-guidelines/SKILL.md"
+  }
+}

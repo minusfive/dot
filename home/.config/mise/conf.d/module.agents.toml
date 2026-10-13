@@ -1,4 +1,4 @@
 [dotfiles]
 "~/AGENTS.md" = { source = "~/dev/personal/dot/home/AGENTS.md", mode = "symlink" }
 "~/CLAUDE.md" = { source = "~/dev/personal/dot/home/AGENTS.md", mode = "symlink" }
-"~/.agents" = { source = "~/dev/personal/dot/home/.agents", mode = "symlink-each", exclude = ["skills/**/evals/**/outputs/**", "eval-workspaces/**/outputs/**"] }
+"~/.agents" = { source = "~/dev/personal/dot/home/.agents", mode = "symlink-each", exclude = ["skills/**/evals/**", "eval-workspaces/**"] }

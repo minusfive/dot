@@ -2,6 +2,8 @@
 
 - Treat `home/` as the source tree for global files managed under `$HOME`.
 - Keep repository-only guidance in this file or under `.agents/`.
+- This repository stores global skill sources under `home/.agents/skills`; pass `--skills-path home/.agents/skills` to the global `ai:skills:evals:*` tasks.
+- Keep repository-local instruction files and task names distinct from global entrypoints.
 - Use `mise-bootstrap-migration` when you migrate dotfiles or bootstrap resources to mise.
 - Group `home/.config/mise/conf.d/` files by logical boundary.
 - Group tightly coupled declarations in one `module.<name>.toml` file.
