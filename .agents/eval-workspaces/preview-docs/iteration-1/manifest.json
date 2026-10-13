@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skill_name": "preview-docs",
+  "iteration": 1,
+  "case_ids": [
+    "preview-docs-links-only-format",
+    "preview-docs-no-results",
+    "preview-docs-running-only",
+    "preview-docs-reconcile",
+    "preview-docs-directory-selection"
+  ],
+  "workspace": ".agents/eval-workspaces/preview-docs",
+  "sources": {
+    "with_skill": "home/.agents/skills/preview-docs/SKILL.md",
+    "old_skill": "HEAD:home/.agents/skills/preview-docs/SKILL.md"
+  }
+}

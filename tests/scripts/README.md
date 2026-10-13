@@ -32,10 +32,7 @@ Integration tests for BetterDisplay script execution:
 
 Tests global mise configuration, profile selection, task discovery, initialization phase ordering, and Git ignore bootstrap behavior.
 
-The source file `home/.config/git/ignore` is not a repository `.gitignore`.
-Mise links it to `$XDG_CONFIG_HOME/git/ignore`, where Git reads the global
-excludes file. The test uses a temporary home to verify that mise installs this
-source file and that its patterns affect Git.
+The source file `home/.config/git/ignore` is not a repository `.gitignore`. Mise links it to `$XDG_CONFIG_HOME/git/ignore`, where Git reads the global excludes file. The test uses a temporary home to verify that mise installs this source file and that its patterns affect Git.
 
 #### `test_mise_bootstrap_copilot.zsh`
 
@@ -65,11 +62,7 @@ Tests the shared workspace profile template, target variants, rendering, permiss
 
 Tests the global EditorConfig link.
 
-The remaining migrated application boundaries use the same focused-test
-pattern: `test_mise_bootstrap_<module>.zsh`. Current module tests cover
-`1password`, `bat`, `btop`, `delta`, `editorconfig`, `fd`, `fzf`, `ghostty`, `git`,
-`hammerspoon`, `harper`, `lazygit`, `nvim`, `ripgrep`, `tmux`, `wezterm`,
-`yazi`, and `zsh`.
+The remaining migrated application boundaries use the same focused-test pattern: `test_mise_bootstrap_<module>.zsh`. Current module tests cover `1password`, `bat`, `btop`, `delta`, `editorconfig`, `fd`, `fzf`, `ghostty`, `git`, `hammerspoon`, `harper`, `lazygit`, `nvim`, `ripgrep`, `tmux`, `wezterm`, `yazi`, and `zsh`.
 
 Each package module has a focused package assertion in its matching module test.
 
@@ -92,6 +85,10 @@ Tests the development tool configuration.
 #### `test_mise_migration_artifacts.zsh`
 
 Tests migration decision cleanup and placement validation.
+
+#### `test_mise_skill_evals.zsh`
+
+Tests the grouped evaluation init, prepare, and validate tasks, canonical specifications, repository-local workspaces, ignore rules, and symlink rejection.
 
 #### `test_agentic_projects.zsh`
 
@@ -120,6 +117,7 @@ Tests hidden project creation and promotion to a checked-in workspace.
 ./tests/scripts/test_mise_bootstrap_repos.zsh
 ./tests/scripts/test_mise_tools.zsh
 ./tests/scripts/test_mise_migration_artifacts.zsh
+./tests/scripts/test_mise_skill_evals.zsh
 ./tests/scripts/test_agentic_projects.zsh
 ```
 

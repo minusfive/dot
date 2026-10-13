@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skill_name": "planning",
+  "iteration": 1,
+  "case_ids": [
+    "migration-boundary-matrix",
+    "scope-proportional-matrix",
+    "multi-service-cutover"
+  ],
+  "workspace": ".agents/eval-workspaces/planning",
+  "sources": {
+    "with_skill": "home/.agents/skills/planning/SKILL.md",
+    "old_skill": "HEAD:home/.agents/skills/planning/SKILL.md"
+  }
+}

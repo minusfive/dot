@@ -10,14 +10,14 @@ local __config="home/.config/mise/conf.d/module.agents.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "home/AGENTS.md" ]] || fail "missing shared global instructions"
 [[ -d "home/.agents/skills" ]] || fail "missing tracked agent skills"
-[[ -d "home/.agents/eval-workspaces" ]] || fail "missing durable evaluation metadata"
+[[ -d ".agents/eval-workspaces" ]] || fail "missing repository-local evaluation workspace"
 
 grep -qF '"~/AGENTS.md" = { source = "~/dev/personal/dot/home/AGENTS.md", mode = "symlink" }' "$__config" ||
     fail "AGENTS.md source is missing"
 grep -qF '"~/CLAUDE.md" = { source = "~/dev/personal/dot/home/AGENTS.md", mode = "symlink" }' "$__config" ||
     fail "CLAUDE.md source is missing"
-grep -qF 'exclude = ["skills/**/evals/**/outputs/**", "eval-workspaces/**/outputs/**"]' "$__config" ||
-    fail "generated evaluation output exclusions are missing"
+grep -qF 'exclude = ["skills/**/evals/**", "eval-workspaces/**"]' "$__config" ||
+    fail "evaluation artifact exclusions are missing"
 for __target in '"~/AGENTS.md"' '"~/CLAUDE.md"' '"~/.agents"'; do
     if grep -qF "$__target" home/.config/mise/conf.d/bootstrap-ai.toml; then
         fail "legacy AI declaration still owns $__target"
@@ -44,12 +44,12 @@ while IFS= read -r __absolute_link; do
     esac
 done < <(find "$HOME/.agents" -type l -print)
 
-if find "$HOME/.agents" -type l \( -path '*/evals/*/outputs/*' -o -path '*/eval-workspaces/*/outputs/*' \) | grep -q .; then
-    fail "generated evaluation output is still linked into ~/.agents"
+if find "$HOME/.agents" \( -path '*/skills/*/evals' -o -path '*/skills/*/evals/*' -o -path '*/eval-workspaces' -o -path '*/eval-workspaces/*' \) -print | grep -q .; then
+    fail "evaluation artifacts are still deployed into ~/.agents"
 fi
-[[ -L "$HOME/.agents/skills/agentic-projects/evals/evals.json" ]] ||
-    fail "tracked skill evaluation definition is missing"
-[[ -L "$HOME/.agents/eval-workspaces/agent-instructions-evaluation/iteration-1/benchmark.json" ]] ||
-    fail "durable evaluation metadata is missing"
+[[ ! -e "$HOME/.agents/skills/agentic-projects/evals/evals.json" ]] ||
+    fail "tracked skill evaluation definition must remain repository-local"
+[[ ! -e "$HOME/.agents/eval-workspaces" ]] ||
+    fail "repository evaluation workspace must remain local"
 
 echo "Agents bootstrap configuration passed."

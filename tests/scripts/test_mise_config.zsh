@@ -76,10 +76,21 @@ __task_listing="$(XDG_CONFIG_HOME="$__root_dir/.config" DOT_PROFILE=work mise -C
 print -r -- "$__task_listing" | grep -q '^setup[[:space:]]' || fail "setup task is not discoverable"
 print -r -- "$__task_listing" | grep -q '^check[[:space:]]' || fail "check task is not discoverable"
 print -r -- "$__task_listing" | grep -q '^lint-skill-index[[:space:]]' || fail "lint-skill-index task is not discoverable"
+print -r -- "$__task_listing" | grep -q '^ai:skills:evals:init[[:space:]]' || fail "ai:skills:evals:init task is not discoverable"
+print -r -- "$__task_listing" | grep -q '^ai:skills:evals:prepare[[:space:]]' || fail "ai:skills:evals:prepare task is not discoverable"
+print -r -- "$__task_listing" | grep -q '^ai:skills:validate-conflicts[[:space:]]' || fail "ai:skills:validate-conflicts task is not discoverable"
+local __task_json
+__task_json="$(XDG_CONFIG_HOME="$__root_dir/.config" DOT_PROFILE=work mise -C "$__root_dir" tasks ls --json)"
+print -r -- "$__task_json" | jq -e 'any(.[]; (.aliases // []) | index("mise:tasks:validate-conflicts"))' >/dev/null ||
+    fail "mise:tasks:validate-conflicts task alias is not discoverable"
+print -r -- "$__task_listing" | grep -q '^ai:skills:evals:validate[[:space:]]' || fail "ai:skills:evals:validate task is not discoverable"
 mise run lint-skill-index >/dev/null || fail "root skill index validation failed"
 mise run lint-skill-index --base-path home >/dev/null || fail "home skill index validation failed"
 grep -qF '["lint_skill_index"]' hk.pkl || fail "root skill index hook is missing"
 grep -qF '["lint_home_skill_index"]' hk.pkl || fail "home skill index hook is missing"
+grep -qF '["validate_skill_evals"]' hk.pkl || fail "skill evaluation validation hook is missing"
+grep -qF '["validate_skill_name_conflicts"]' hk.pkl || fail "skill name conflict hook is missing"
+grep -qF '["validate_task_name_conflicts"]' hk.pkl || fail "task name conflict hook is missing"
 
 grep -qF 'unset MISE_ENV' scripts/mise.zsh || fail "mise environment override is not cleared"
 if grep -qF 'export MISE_ENV=' scripts/mise.zsh; then
@@ -102,7 +113,7 @@ grep -qF 'source = "~/dev/personal/dot/home/dev/profile.mise.toml"' home/.config
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 local __mise_link_count
 __mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 76 ]] || fail "expected 76 managed mise links, found $__mise_link_count"
+[[ "$__mise_link_count" -eq 81 ]] || fail "expected 81 managed mise links, found $__mise_link_count"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \

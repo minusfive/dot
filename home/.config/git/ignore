@@ -89,20 +89,8 @@ node_modules/
 # Agent instruction evaluation outputs
 **/.agents/skills/**/evals/**/outputs/
 **/.agents/eval-workspaces/**/outputs/
-
-# Legacy skill-local evaluation iteration workspaces
-**/.agents/skills/**/evals/iteration-*/*
-!**/.agents/skills/**/evals/iteration-*/benchmark.json
-!**/.agents/skills/**/evals/iteration-*/feedback.json
-!**/.agents/skills/**/evals/iteration-*/manifest.json
-!**/.agents/skills/**/evals/iteration-*/grading.json
-
-# External agent instruction evaluation workspaces
-**/.agents/eval-workspaces/**/iteration-*/*
-!**/.agents/eval-workspaces/**/iteration-*/benchmark.json
-!**/.agents/eval-workspaces/**/iteration-*/feedback.json
-!**/.agents/eval-workspaces/**/iteration-*/manifest.json
-!**/.agents/eval-workspaces/**/iteration-*/grading-summary.json
+**/.agents/eval-workspaces/**/timing.json
+**/.agents/eval-workspaces/**/grading.json
 
 # Hidden agentic project workspaces
 **/.agents/projects.local/

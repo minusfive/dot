@@ -69,6 +69,11 @@
 "~/.config/mise/tasks/global-install-packages-python.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-python.sh", mode = "symlink" }
 "~/.config/mise/tasks/global-install-packages-ruby.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-ruby.sh", mode = "symlink" }
 "~/.config/mise/tasks/lint-skill-index.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/lint-skill-index.zsh", mode = "symlink" }
+"~/.config/mise/tasks/ai/skills/evals/init.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/init.zsh", mode = "symlink" }
+"~/.config/mise/tasks/ai/skills/evals/prepare.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/prepare.zsh", mode = "symlink" }
+"~/.config/mise/tasks/ai/skills/validate-conflicts.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/validate-conflicts.zsh", mode = "symlink" }
+"~/.config/mise/tasks/mise/tasks/validate-conflicts.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/tasks/validate-conflicts.zsh", mode = "symlink" }
+"~/.config/mise/tasks/ai/skills/evals/validate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/validate.zsh", mode = "symlink" }
 "~/.config/mise/tasks/md/preview.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/md/preview.ts", mode = "symlink" }
 "~/.config/mise/tasks/pr/stack.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack.ts", mode = "symlink" }
 "~/.config/mise/tasks/pr/stack-sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack-sync.ts", mode = "symlink" }

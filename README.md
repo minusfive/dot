@@ -42,7 +42,7 @@ Look in these directories when you customize the configuration:
 
 ```text
 .
-├── .agents/                         # repository skills and project guidance
+├── .agents/                         # repository skills, eval workspaces, and guidance
 ├── .mise/                           # repository-local tools and tasks
 ├── assets/                          # images
 ├── home/                            # source tree mirrored under ~/

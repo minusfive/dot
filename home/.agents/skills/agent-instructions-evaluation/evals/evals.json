@@ -3,30 +3,33 @@
   "evals": [
     {
       "id": "project-eval-workspace",
-      "prompt": "Evaluate a changed skill inside an existing agentic project.",
-      "expected_output": "The durable test spec stays in the skill, while generated results use a separate canonical workspace.",
+      "prompt": "Evaluate a changed skill in this repository. Keep the durable spec with the skill and keep generated runs local to the repository.",
+      "expected_output": "Keep evals/evals.json with the skill. Store generated runs under .agents/eval-workspaces/<skill-name>/ with with_skill and old_skill configurations.",
       "assertions": [
-        "Keeps evals/evals.json as the durable test specification.",
-        "Uses a separate workspace with the canonical with_skill and old_skill run layout."
+        "Keeps evals/evals.json as the durable skill specification.",
+        "Stores generated runs under the repository .agents/eval-workspaces directory.",
+        "Uses with_skill and old_skill configuration directories."
       ]
     },
     {
       "id": "session-eval-workspace",
-      "prompt": "Evaluate a changed skill without an agentic project.",
-      "expected_output": "The durable test spec stays in the skill, while generated results use a separate canonical workspace.",
+      "prompt": "Create a deterministic evaluation for a changed agent skill.",
+      "expected_output": "Use the skill_name and evals specification keys, stable case IDs, and the required manifest, benchmark, feedback, grading, and timing reports.",
       "assertions": [
-        "Keeps evals/evals.json as the durable test specification.",
-        "Uses a separate workspace with the canonical with_skill and old_skill run layout."
+        "Uses the canonical skill_name and evals top-level keys.",
+        "Reuses stable case IDs in workspace paths and manifests.",
+        "Creates the required iteration and per-configuration report files."
       ]
     },
     {
       "id": "durable-eval-history",
-      "prompt": "Maintain tracked eval specifications and benchmark history in a repository.",
-      "expected_output": "The durable test spec remains tracked, while generated runs use the canonical workspace layout.",
+      "prompt": "Before submitting a skill evaluation change, validate its files and workspace.",
+      "expected_output": "Run mise run ai:skills:evals:validate, ai:skills:validate-conflicts, and mise:tasks:validate-conflicts before the skill-index and repository checks.",
       "assertions": [
-        "Keeps evals/evals.json as a tracked skill asset.",
-        "Uses a separate workspace for generated runs.",
-        "Uses the canonical per-run and iteration-level report layout."
+        "Names mise run ai:skills:evals:validate.",
+        "Names the separate ai:skills:validate-conflicts and mise:tasks:validate-conflicts tasks.",
+        "Validates the skill index and repository checks after the evaluation validator.",
+        "Treats invalid JSON, misplaced workspaces, missing reports, and symlinks as validation errors."
       ]
     }
   ]
