@@ -13,9 +13,15 @@ grep -qF '"~/.config/mise/conf.d/module.tools.toml"' home/.config/mise/conf.d/mo
     fail "mise control-plane module does not deploy module.tools.toml"
 grep -qF "[tools]" "$__config" || fail "tools section is missing"
 
-for __tool in rust node python ruby bun go uv opencode; do
+for __tool in rust node python ruby bun go uv; do
     grep -qE "^${__tool}[[:space:]]*=" "$__config" || fail "tool $__tool is missing"
 done
+if grep -qE '^opencode[[:space:]]*=' "$__config"; then
+    fail "OpenCode must not remain a mise-managed tool"
+fi
+if grep -qF '[[tools.opencode]]' home/.config/mise/mise.lock; then
+    fail "OpenCode tool lock entry must be removed"
+fi
 grep -qF 'postinstall = "mise run global-install-packages-npm"' "$__config" ||
     fail "Node postinstall hook is missing"
 grep -qF 'postinstall = "mise run global-install-packages-python"' "$__config" ||

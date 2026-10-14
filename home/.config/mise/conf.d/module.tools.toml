@@ -13,7 +13,6 @@ stylua = "latest"
 prettier = "latest"
 tree-sitter = "latest"
 rumdl = "latest"
-opencode = "latest"
 
 "npm:@mermaid-js/mermaid-cli" = { version = "latest", install_env = { PUPPETEER_SKIP_DOWNLOAD = "1" } }
 "npm:mermaid-formatter" = "latest"

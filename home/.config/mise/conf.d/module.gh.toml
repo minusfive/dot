@@ -1,6 +1,9 @@
 [bootstrap.packages]
 "brew:gh" = "latest"
 
+[bootstrap.hooks]
+post-packages = 'gh extension install --force "yusukebe/gh-markdown-preview"'
+
 [bootstrap.directories."~/.config/gh/personal"]
 mode = "0755"
 

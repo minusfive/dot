@@ -93,7 +93,7 @@ function _v_print_help {
     printf " $(_v_arg "-b" "--brew")        Install Homebrew (optional bridge)\n"
     printf " $(_v_arg "-d" "--display")     Manage BetterDisplay settings (export/import)\n"
     printf " $(_v_arg "-h" "--help")        Show this help message\n"
-    printf " $(_v_arg "-m" "--mise")        Apply mise packages and install dev tools\n"
+    printf " $(_v_arg "-m" "--mise")        Apply the full mise bootstrap lifecycle and maintenance\n"
     printf " $(_v_arg "-o" "--os")          Configure OS settings\n"
     printf " $(_v_arg "-p" "--profile")     Valid profiles: $(_v_color_fg green "'work'") (default, safest), or $(_v_color_fg yellow "'personal'"). Persists for future runs and selects the mise package environment. e.g. \`$(_v_color_fg green "$ZSH_ARGZERO -p personal")\`\n"
     printf " $(_v_arg "-v" "--vm")          Install VM and containerization tools\n"

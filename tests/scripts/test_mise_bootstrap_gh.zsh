@@ -8,6 +8,11 @@ echo "Testing GitHub bootstrap configuration..."
 local __config="home/.config/mise/conf.d/module.gh.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 assert_module_package gh brew:gh
+grep -qF '[bootstrap.hooks]' "$__config" || fail "GitHub post-packages hook is missing"
+grep -qF "post-packages = 'gh extension install --force" "$__config" ||
+    fail "GitHub post-packages hook phase is missing"
+grep -qF 'gh extension install --force "yusukebe/gh-markdown-preview"' "$__config" ||
+    fail "GitHub extension install is missing from the post-packages hook"
 [[ -f "home/dev/profile.mise.toml" ]] || fail "missing profile source"
 [[ -f "home/.config/gh/personal/hosts.yml" ]] || fail "missing GitHub hosts source"
 if grep -qF "oauth_token:" "home/.config/gh/personal/hosts.yml"; then

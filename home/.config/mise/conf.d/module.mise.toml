@@ -62,7 +62,6 @@
 "~/.config/mise/config.toml" = { source = "~/dev/personal/dot/home/.config/mise/config.toml", mode = "symlink" }
 "~/.config/mise/mise.lock" = { source = "~/dev/personal/dot/home/.config/mise/mise.lock", mode = "symlink" }
 "~/.config/mise/miserc.toml" = { source = "~/dev/personal/dot/home/.config/mise/miserc.toml", mode = "symlink" }
-"~/.config/mise/tasks/bootstrap.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap.sh", mode = "symlink" }
 "~/.config/mise/tasks/git/worktree.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/git/worktree.ts", mode = "symlink" }
 "~/.config/mise/tasks/global-install-packages-all.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-all.sh", mode = "symlink" }
 "~/.config/mise/tasks/global-install-packages-npm.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-npm.sh", mode = "symlink" }

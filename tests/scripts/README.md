@@ -30,9 +30,13 @@ Integration tests for BetterDisplay script execution:
 
 #### `test_mise_config.zsh`
 
-Tests global mise configuration, profile selection, task discovery, initialization phase ordering, and Git ignore bootstrap behavior.
+Tests global mise configuration, rendered profile selection, repository-scoped lifecycle wiring, initialization phase ordering, and Git ignore bootstrap behavior.
 
 The source file `home/.config/git/ignore` is not a repository `.gitignore`. Mise links it to `$XDG_CONFIG_HOME/git/ignore`, where Git reads the global excludes file. The test uses a temporary home to verify that mise installs this source file and that its patterns affect Git.
+
+#### `test_mise_bootstrap_lifecycle.zsh`
+
+Tests full-lifecycle dry runs for both profiles, the GitHub post-packages hook, the single confirmation boundary, installer behavior, failure stops, and maintenance order.
 
 #### `test_mise_bootstrap_copilot.zsh`
 
@@ -48,11 +52,11 @@ Tests the Claude settings, canonical shared skills source, statusline link, gene
 
 #### `test_mise_bootstrap_opencode.zsh`
 
-Tests the tracked OpenCode configuration and plugin links while preserving target-local runtime dependencies.
+Tests the personal-only OpenCode Homebrew package, tracked configuration, plugin links, and preserved target-local runtime dependencies.
 
 #### `test_mise_bootstrap_gh.zsh`
 
-Tests GitHub bootstrap files, directories, source paths, permissions, and token-free configuration.
+Tests GitHub package and post-packages hook declarations, files, directories, source paths, permissions, and token-free configuration.
 
 #### `test_mise_bootstrap_profiles.zsh`
 
@@ -96,13 +100,14 @@ Tests hidden project creation and promotion to a checked-in workspace.
 
 ## Running Tests
 
-### Run All BetterDisplay Tests
+### Run All Script Tests
 
 ```bash
 # From project root
 ./tests/scripts/test_betterdisplay.zsh
 ./tests/scripts/test_betterdisplay_integration.zsh
 ./tests/scripts/test_mise_config.zsh
+./tests/scripts/test_mise_bootstrap_lifecycle.zsh
 ./tests/scripts/test_mise_bootstrap_copilot.zsh
 ./tests/scripts/test_mise_bootstrap_agents.zsh
 ./tests/scripts/test_mise_bootstrap_claude.zsh

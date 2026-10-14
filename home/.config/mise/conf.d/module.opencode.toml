@@ -1,2 +1,5 @@
+[bootstrap.packages]
+"brew:opencode" = "latest"
+
 [dotfiles]
 "~/.config/opencode" = { source = "~/dev/personal/dot/home/.config/opencode", mode = "symlink-each" }

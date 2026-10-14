@@ -23,18 +23,12 @@ grep -qF 'GH_CONFIG_DIR = "{{ env.HOME }}/.config/gh/{% if "personal" in mise_en
     fail "profile template does not derive GH_CONFIG_DIR from the active profile"
 grep -qF '"~/.config/mise/conf.d/module.profiles.toml"' home/.config/mise/conf.d/module.mise.toml ||
     fail "mise control-plane module does not deploy module.profiles.toml"
-local __dotfiles_line="$(line_of "mise bootstrap dotfiles apply --yes")"
-local __personal_profile_line="$(line_of 'mise -E personal,mise,profiles bootstrap dotfiles apply --yes "$HOME/dev/personal/mise.toml"')"
-local __work_profile_line="$(line_of 'mise -E work,mise,profiles bootstrap dotfiles apply --yes "$HOME/dev/work/mise.toml"')"
-local __files_line="$(line_of "mise bootstrap files apply --yes")"
-local __personal_trust_line="$(line_of 'mise trust --yes "$HOME/dev/personal/mise.toml"')"
-local __work_trust_line="$(line_of 'mise trust --yes "$HOME/dev/work/mise.toml"')"
-(( __dotfiles_line < __personal_profile_line &&
-    __personal_profile_line < __work_profile_line &&
-    __work_profile_line < __files_line &&
-    __files_line < __personal_trust_line &&
+local __bootstrap_line="$(line_of 'mise -C "$__dotfiles_dir" bootstrap --yes')"
+local __personal_trust_line="$(line_of 'mise -C "$__dotfiles_dir" trust --yes "$HOME/dev/personal/mise.toml"')"
+local __work_trust_line="$(line_of 'mise -C "$__dotfiles_dir" trust --yes "$HOME/dev/work/mise.toml"')"
+(( __bootstrap_line < __personal_trust_line &&
     __personal_trust_line < __work_trust_line )) ||
-    fail "workspace profile trust must follow dotfiles and file application"
+    fail "workspace profile trust must follow full mise bootstrap"
 
 for __target in "$HOME/dev/personal/mise.toml" "$HOME/dev/work/mise.toml"; do
     [[ -f "$__target" && ! -L "$__target" ]] || fail "workspace profile target is not a regular file: $__target"
