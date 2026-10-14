@@ -56,11 +56,7 @@ Tests the personal-only OpenCode Homebrew package, tracked configuration, plugin
 
 #### `test_mise_bootstrap_gh.zsh`
 
-Tests GitHub package and post-packages hook declarations, files, directories, source paths, permissions, and token-free configuration.
-
-#### `test_mise_bootstrap_profiles.zsh`
-
-Tests the shared workspace profile template, target variants, rendering, permissions, and trust ordering.
+Tests GitHub package and post-packages hook declarations, files, directories, source paths, permissions, token-free configuration, and `GH_CONFIG_DIR` merge entries.
 
 #### `test_mise_bootstrap_editorconfig.zsh`
 
@@ -113,7 +109,6 @@ Tests hidden project creation and promotion to a checked-in workspace.
 ./tests/scripts/test_mise_bootstrap_claude.zsh
 ./tests/scripts/test_mise_bootstrap_opencode.zsh
 ./tests/scripts/test_mise_bootstrap_gh.zsh
-./tests/scripts/test_mise_bootstrap_profiles.zsh
 ./tests/scripts/test_mise_bootstrap_editorconfig.zsh
 ./tests/scripts/test_mise_bootstrap_brew.zsh
 ./tests/scripts/test_mise_bootstrap_discord.zsh

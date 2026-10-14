@@ -161,8 +161,6 @@ FIXTURE_CONFIRM=yes run_fixture "$__stub_dir:/usr/bin:/bin"
 cat > "$__expected_file" <<EOF
 -C $__root_dir self-update --yes
 -C $__root_dir bootstrap --yes
--C $__root_dir trust --yes $__fixture_dir/home/dev/personal/mise.toml
--C $__root_dir trust --yes $__fixture_dir/home/dev/work/mise.toml
 -C $__root_dir bootstrap packages upgrade --yes
 -C $__root_dir bootstrap packages prune --yes
 -C $__root_dir prune

@@ -1,5 +1,6 @@
 [settings]
 # paranoid = true
+trusted_config_paths = ["~/dev/personal", "~/dev/personal/dot", "~/dev/work"]
 env_file = ".env"
 experimental = true
 idiomatic_version_file_enable_tools = ["node"]

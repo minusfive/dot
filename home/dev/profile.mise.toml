@@ -1,2 +1,0 @@
-[env]
-GH_CONFIG_DIR = "{{ env.HOME }}/.config/gh/{% if "personal" in mise_env %}personal{% else %}work{% endif %}"

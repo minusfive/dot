@@ -69,8 +69,6 @@ function {
     mise -C "$__dotfiles_dir" bootstrap --yes
     _v_log_ok $__context "Full mise bootstrap lifecycle applied"
 
-    mise -C "$__dotfiles_dir" trust --yes "$HOME/dev/personal/mise.toml"
-    mise -C "$__dotfiles_dir" trust --yes "$HOME/dev/work/mise.toml"
     mise -C "$__dotfiles_dir" bootstrap packages upgrade --yes
     mise -C "$__dotfiles_dir" bootstrap packages prune --yes
     mise -C "$__dotfiles_dir" prune

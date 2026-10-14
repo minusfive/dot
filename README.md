@@ -65,7 +65,7 @@ Look in these directories when you customize the configuration:
 
 [mise][mise] manages global files, packages, and repository tools. Declarations for global configuration live in [home/.config/mise/conf.d/](./home/.config/mise/conf.d/). Mise links these files into `~/.config/mise/`.
 
-The declarations are grouped by logical boundary. For example, `module.gh.toml` manages GitHub resources and `module.profiles.toml` manages rendered workspace profiles. This keeps each bootstrap area small and independently understandable.
+The declarations are grouped by logical boundary. Each module manages related resources, and dotfile entries can manage whole files or selected configuration values. This keeps each bootstrap area small and independently understandable.
 
 Package resources use dedicated module files. Tightly coupled declarations share a module. `miserc.toml` selects the modules for each profile.
 
@@ -73,7 +73,7 @@ Package resources use dedicated module files. Tightly coupled declarations share
 
 The `--mise` initialization interface runs the complete declarative mise lifecycle. It applies managed files, packages, repositories, dotfiles, tools, and package hooks.
 
-The mise phase uses one confirmation for the existing-mise self-update, the full bootstrap, workspace trust, and maintenance. Future bootstrap declarations become part of this phase without another script change.
+The mise phase uses one confirmation for the existing-mise self-update, the full bootstrap, and maintenance. Global settings trust the workspace configuration roots, so the lifecycle does not need separate trust commands.
 
 An existing mise updates before bootstrap. A mise installed during the current run does not update again.
 
