@@ -42,33 +42,27 @@ fi
 
 local __self_update_line="$(line_of 'mise -C "$__dotfiles_dir" self-update --yes')"
 local __bootstrap_line="$(line_of 'mise -C "$__dotfiles_dir" bootstrap --yes')"
-local __package_upgrade_line="$(line_of 'mise -C "$__dotfiles_dir" bootstrap packages upgrade --yes')"
-local __package_prune_line="$(line_of 'mise -C "$__dotfiles_dir" bootstrap packages prune --yes')"
-local __prune_line="$(line_of 'mise -C "$__dotfiles_dir" prune')"
-local __upgrade_line="$(line_of 'mise -C "$__dotfiles_dir" upgrade')"
-local __reshim_line="$(line_of 'mise -C "$__dotfiles_dir" reshim -f')"
 local __confirm_count="$(grep -cF '_v_confirm_proceed' scripts/mise.zsh)"
 
 for __line in \
     "$__self_update_line" \
-    "$__bootstrap_line" \
-    "$__package_upgrade_line" \
-    "$__package_prune_line" \
-    "$__prune_line" \
-    "$__upgrade_line" \
-    "$__reshim_line"; do
+    "$__bootstrap_line"; do
     [[ -n "$__line" ]] || fail "missing mise initialization step"
 done
 
 if ! (( __self_update_line < __bootstrap_line &&
-    __bootstrap_line < __package_upgrade_line &&
-    __package_upgrade_line < __package_prune_line &&
-    __package_prune_line < __prune_line &&
-    __prune_line < __upgrade_line &&
-    __upgrade_line < __reshim_line &&
     __confirm_count == 1 )); then
     fail "mise initialization phase order is incorrect"
 fi
+for __hook_command in \
+    'mise bootstrap packages upgrade --yes' \
+    'mise bootstrap packages prune --yes' \
+    'mise upgrade --prune' \
+    'mise reshim -f'; do
+    if grep -qF "$__hook_command" scripts/mise.zsh; then
+        fail "maintenance command remains procedural: $__hook_command"
+    fi
+done
 for __obsolete_step in \
     'mise bootstrap packages apply --yes' \
     'mise bootstrap dotfiles apply --yes' \
@@ -152,7 +146,7 @@ grep -qF 'source = "~/dev/personal/dot/home/AGENTS.md"' home/.config/mise/conf.d
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 local __mise_link_count
 __mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 79 ]] || fail "expected 79 managed mise links, found $__mise_link_count"
+[[ "$__mise_link_count" -eq 80 ]] || fail "expected 80 managed mise links, found $__mise_link_count"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \

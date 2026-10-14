@@ -7,8 +7,6 @@ echo "Testing shared package bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.brew.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
-[[ ! -e "home/.config/mise/conf.d/module.packages.toml" ]] ||
-    fail "legacy package module must be retired"
 if [[ -e "home/.config/mise/conf.d/bootstrap-packages.toml" ]]; then
     fail "legacy shared package declaration must be retired"
 fi

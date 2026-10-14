@@ -36,7 +36,7 @@ The source file `home/.config/git/ignore` is not a repository `.gitignore`. Mise
 
 #### `test_mise_bootstrap_lifecycle.zsh`
 
-Tests full-lifecycle dry runs for both profiles, the GitHub post-packages hook, the single confirmation boundary, installer behavior, failure stops, and maintenance order.
+Tests full-lifecycle dry runs for both profiles, package and tool maintenance hooks, the single confirmation boundary, installer behavior, and failure stops.
 
 #### `test_mise_bootstrap_copilot.zsh`
 
@@ -69,6 +69,10 @@ Each package module has a focused package assertion in its matching module test.
 #### `test_mise_bootstrap_brew.zsh`
 
 Tests Homebrew adoption and shared profile selection for `module.brew.toml`.
+
+#### `test_mise_bootstrap_packages.zsh`
+
+Tests the shared package maintenance hook and profile selection for `module.packages.toml`.
 
 #### `test_mise_bootstrap_discord.zsh`, `test_mise_bootstrap_softraid.zsh`, `test_mise_bootstrap_whatsapp.zsh`
 
@@ -111,6 +115,7 @@ Tests hidden project creation and promotion to a checked-in workspace.
 ./tests/scripts/test_mise_bootstrap_gh.zsh
 ./tests/scripts/test_mise_bootstrap_editorconfig.zsh
 ./tests/scripts/test_mise_bootstrap_brew.zsh
+./tests/scripts/test_mise_bootstrap_packages.zsh
 ./tests/scripts/test_mise_bootstrap_discord.zsh
 ./tests/scripts/test_mise_bootstrap_softraid.zsh
 ./tests/scripts/test_mise_bootstrap_whatsapp.zsh

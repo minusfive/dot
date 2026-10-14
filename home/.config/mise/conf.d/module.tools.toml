@@ -19,3 +19,9 @@ rumdl = "latest"
 "npm:mcp-hub" = "latest"
 "npm:@github/copilot" = "latest"
 "npm:@tobilu/qmd" = "latest"
+
+[bootstrap.hooks]
+post-tools = [
+    "mise upgrade --prune",
+    "mise reshim -f",
+]

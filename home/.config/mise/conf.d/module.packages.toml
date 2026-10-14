@@ -1,0 +1,5 @@
+[bootstrap.hooks]
+post-packages = [
+    "mise bootstrap packages upgrade --yes",
+    "mise bootstrap packages prune --yes",
+]

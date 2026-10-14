@@ -69,12 +69,6 @@ function {
     mise -C "$__dotfiles_dir" bootstrap --yes
     _v_log_ok $__context "Full mise bootstrap lifecycle applied"
 
-    mise -C "$__dotfiles_dir" bootstrap packages upgrade --yes
-    mise -C "$__dotfiles_dir" bootstrap packages prune --yes
-    mise -C "$__dotfiles_dir" prune
-    mise -C "$__dotfiles_dir" upgrade
-    mise -C "$__dotfiles_dir" reshim -f
-
     _v_log_ok $__context "Mise maintenance complete"
 
 }

@@ -12,6 +12,9 @@ local __config="home/.config/mise/conf.d/module.tools.toml"
 grep -qF '"~/.config/mise/conf.d/module.tools.toml"' home/.config/mise/conf.d/module.mise.toml ||
     fail "mise control-plane module does not deploy module.tools.toml"
 grep -qF "[tools]" "$__config" || fail "tools section is missing"
+grep -qF "[bootstrap.hooks]" "$__config" || fail "tool bootstrap hooks are missing"
+grep -qF '"mise upgrade --prune"' "$__config" || fail "tool upgrade hook is missing"
+grep -qF '"mise reshim -f"' "$__config" || fail "tool reshim hook is missing"
 
 for __tool in rust node python ruby bun go uv; do
     grep -qE "^${__tool}[[:space:]]*=" "$__config" || fail "tool $__tool is missing"
