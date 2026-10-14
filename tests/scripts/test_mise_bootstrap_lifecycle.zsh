@@ -55,6 +55,16 @@ print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap: post-packages hooks' |
     fail "work dry run is missing the GitHub post-packages hook"
 print -r -- "$__work_dry_run" | grep -qF 'gh extension install --force "yusukebe/gh-markdown-preview"' ||
     fail "work dry run is missing the GitHub extension install"
+print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap packages upgrade --yes' ||
+    fail "work dry run is missing package upgrade maintenance"
+print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap packages prune --yes' ||
+    fail "work dry run is missing package prune maintenance"
+print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap: post-tools hooks' ||
+    fail "work dry run is missing tool maintenance hooks"
+print -r -- "$__work_dry_run" | grep -qF 'mise upgrade --prune' ||
+    fail "work dry run is missing tool upgrade maintenance"
+print -r -- "$__work_dry_run" | grep -qF 'mise reshim -f' ||
+    fail "work dry run is missing tool reshim maintenance"
 
 local __personal_packages
 __personal_packages="$(env -u MISE_ENV DOT_PROFILE=personal MISE_CONFIG_DIR="$__root_dir/home/.config/mise" \
@@ -161,11 +171,6 @@ FIXTURE_CONFIRM=yes run_fixture "$__stub_dir:/usr/bin:/bin"
 cat > "$__expected_file" <<EOF
 -C $__root_dir self-update --yes
 -C $__root_dir bootstrap --yes
--C $__root_dir bootstrap packages upgrade --yes
--C $__root_dir bootstrap packages prune --yes
--C $__root_dir prune
--C $__root_dir upgrade
--C $__root_dir reshim -f
 EOF
 diff -u "$__expected_file" "$__log_file" || fail "successful lifecycle order is incorrect"
 
