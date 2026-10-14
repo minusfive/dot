@@ -1,0 +1,11 @@
+[tools]
+python = { version = "3.13", postinstall = "mise run global-install-packages-python" }
+uv = "latest"
+
+[settings]
+pipx.uvx = true
+python.uv_venv_auto = true
+python.uv_venv_create_args = ["--seed"]
+
+[dotfiles]
+"~/.config/mise/tasks/global-install-packages-python.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-python.sh", mode = "symlink" }

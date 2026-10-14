@@ -58,15 +58,11 @@
 "~/.config/mise/conf.d/module.editorconfig.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.editorconfig.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.opencode.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.opencode.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.packages.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.packages.toml", mode = "symlink" }
-"~/.config/mise/conf.d/module.tools.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.tools.toml", mode = "symlink" }
 "~/.config/mise/config.toml" = { source = "~/dev/personal/dot/home/.config/mise/config.toml", mode = "symlink" }
 "~/.config/mise/mise.lock" = { source = "~/dev/personal/dot/home/.config/mise/mise.lock", mode = "symlink" }
 "~/.config/mise/miserc.toml" = { source = "~/dev/personal/dot/home/.config/mise/miserc.toml", mode = "symlink" }
 "~/.config/mise/tasks/git/worktree.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/git/worktree.ts", mode = "symlink" }
 "~/.config/mise/tasks/global-install-packages-all.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-all.sh", mode = "symlink" }
-"~/.config/mise/tasks/global-install-packages-npm.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-npm.sh", mode = "symlink" }
-"~/.config/mise/tasks/global-install-packages-python.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-python.sh", mode = "symlink" }
-"~/.config/mise/tasks/global-install-packages-ruby.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-ruby.sh", mode = "symlink" }
 "~/.config/mise/tasks/lint-skill-index.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/lint-skill-index.zsh", mode = "symlink" }
 "~/.config/mise/tasks/ai/skills/evals/init.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/init.zsh", mode = "symlink" }
 "~/.config/mise/tasks/ai/skills/evals/prepare.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/prepare.zsh", mode = "symlink" }
@@ -79,3 +75,24 @@
 "~/.config/mise/tasks/pr/sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/sync.ts", mode = "symlink" }
 "~/.config/mise/utils/git.ts" = { source = "~/dev/personal/dot/home/.config/mise/utils/git.ts", mode = "symlink" }
 "~/.config/mise/conf.d/module.mise.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.mise.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.bun.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.bun.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.go.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.go.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.github-copilot.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.github-copilot.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.mermaid-cli.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.mermaid-cli.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.mermaid-formatter.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.mermaid-formatter.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.node.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.node.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.pitchfork.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.pitchfork.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.prettier.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.prettier.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.python.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.python.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.qmd.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.qmd.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.ruby.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.ruby.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.rumdl.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.rumdl.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.rust.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.rust.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.stylua.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.stylua.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.tree-sitter.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.tree-sitter.toml", mode = "symlink" }
+
+[bootstrap.hooks]
+post-tools = [
+    "mise upgrade --prune",
+    "mise reshim -f",
+]

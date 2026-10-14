@@ -11,8 +11,8 @@
 - When you add or move package declarations between `home/.config/mise/conf.d/` modules, inspect `home/.config/mise/miserc.toml`. Update the `work` and `personal` module lists when selection changes, keep personal-only packages out of `work`, and cover the boundary in focused package tests.
 - Wire new bootstrap phases into `scripts/mise.zsh` when `scripts/init.zsh --mise` must apply them.
 - Keep tool-owned runtime files outside tracked sources and mise declarations.
-- Split tests by bootstrap boundary and run the focused tests before the aggregate checks.
-- Name each focused package test `test_mise_bootstrap_<name>.zsh` to match its corresponding `module.<name>.toml`. Keep each package assertion in that test; do not aggregate package-module assertions in a shared test.
+- Keep each `home/.config/mise/conf.d/module.<name>.toml` boundary in its own `tests/scripts/test_mise_bootstrap_<name>.zsh`. Do not aggregate assertions for multiple modules in one test.
+- Run focused module tests before the aggregate checks.
 - Run `mise run check` after changing instructions or skills; it validates both the root and `home/` skill indexes.
 - Update `README.md` in the same change when setup, layout, ownership, tooling, migration status, or user-facing workflows change. Load `readme-maintenance` for README decisions and edits.
 - Preserve unrelated worktree changes.

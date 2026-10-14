@@ -1,0 +1,2 @@
+[tools]
+"npm:@mermaid-js/mermaid-cli" = { version = "latest", install_env = { PUPPETEER_SKIP_DOWNLOAD = "1" } }

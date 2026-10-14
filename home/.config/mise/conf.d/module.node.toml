@@ -1,0 +1,10 @@
+[tools]
+node = { version = "25", postinstall = "mise run global-install-packages-npm" }
+
+[settings]
+npm.bun = true
+node.compile = false
+node.gpg_verify = true
+
+[dotfiles]
+"~/.config/mise/tasks/global-install-packages-npm.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-npm.sh", mode = "symlink" }

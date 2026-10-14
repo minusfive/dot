@@ -173,6 +173,16 @@ cat > "$__expected_file" <<EOF
 -C $__root_dir bootstrap --yes
 EOF
 diff -u "$__expected_file" "$__log_file" || fail "successful lifecycle order is incorrect"
+grep -qF "Mise self-update complete" "$__output_file" ||
+    fail "self-update completion log is missing"
+grep -qF "Mise bootstrap and maintenance complete" "$__output_file" ||
+    fail "bootstrap completion log is missing"
+if grep -qF "Mise updated" "$__output_file"; then
+    fail "self-update log claims that mise changed when the command may be a no-op"
+fi
+if grep -qF "Mise maintenance complete" "$__output_file"; then
+    fail "bootstrap completion is logged twice"
+fi
 
 FIXTURE_CONFIRM=yes run_fixture "$__installer_dir:/usr/bin:/bin"
 [[ "$__run_fixture_status" -eq 0 ]] || fail "newly installed mise fixture failed"
