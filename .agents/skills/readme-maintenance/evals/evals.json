@@ -3,13 +3,13 @@
   "evals": [
     {
       "id": "bootstrap-boundary-change",
-      "prompt": "Move a managed configuration directory to mise. The source path and ownership model change, but the user-facing setup command stays the same.",
-      "expected_output": "The response updates README.md in the same change. It explains the new source path, ownership boundary, and reason for the migration without copying the full migration procedure.",
+      "prompt": "Move a managed configuration directory to mise. The source path and ownership model change, but the user-facing setup command stays the same. The implementation uses an internal module and a configuration key that readers do not need to type.",
+      "expected_output": "The response updates README.md in the same change. It explains the ownership boundary and reason for the migration in general terms, without naming internal modules, configuration keys, or copying the full migration procedure.",
       "assertions": [
         "Updates README.md in the same change.",
-        "Explains the changed source path.",
         "Explains the changed ownership boundary.",
         "Explains why the migration matters to readers.",
+        "Uses general terms instead of internal module names and configuration keys when readers do not need them.",
         "Does not copy the full migration procedure into README.md.",
         "Keeps README.md focused on reader-facing facts."
       ]

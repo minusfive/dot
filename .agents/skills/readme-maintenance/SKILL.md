@@ -24,6 +24,8 @@ Approved names:
 - `WezTerm`
 - `Zsh`
 
+Treat repository-internal module names, environment variable names, config keys, exact target paths, and source filenames as implementation details. Do not add them to README unless readers must use them for setup or must understand an ownership boundary. When an internal detail matters, describe the behavior or ownership in general terms and update existing prose instead of adding a duplicate paragraph.
+
 ## When to update
 
 Update `README.md` when a change affects:
