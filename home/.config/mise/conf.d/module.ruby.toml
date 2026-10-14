@@ -1,0 +1,5 @@
+[tools]
+ruby = { version = "latest", postinstall = "mise run global-install-packages-ruby" }
+
+[dotfiles]
+"~/.config/mise/tasks/global-install-packages-ruby.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-ruby.sh", mode = "symlink" }

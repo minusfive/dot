@@ -4,18 +4,9 @@ trusted_config_paths = ["~/dev/personal", "~/dev/personal/dot", "~/dev/work"]
 env_file = ".env"
 experimental = true
 idiomatic_version_file_enable_tools = ["node"]
-npm.bun = true
-node.compile = false
-node.gpg_verify = true
-pipx.uvx = true
-python.uv_venv_auto = true
-python.uv_venv_create_args = ["--seed"]
 terminal_progress = false
 lockfile = true
 minimum_release_age = "7d"
 
 [settings.dotfiles]
 relative_symlinks = true
-
-[tools]
-pitchfork = "latest"

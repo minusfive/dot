@@ -61,14 +61,12 @@ function {
 
     if [[ "$__mise_installed_during_run" != true ]]; then
         mise -C "$__dotfiles_dir" self-update --yes
-        _v_log_ok $__context "Mise updated"
+        _v_log_ok $__context "Mise self-update complete"
     fi
 
     hash -r
 
     mise -C "$__dotfiles_dir" bootstrap --yes
-    _v_log_ok $__context "Full mise bootstrap lifecycle applied"
-
-    _v_log_ok $__context "Mise maintenance complete"
+    _v_log_ok $__context "Mise bootstrap and maintenance complete"
 
 }

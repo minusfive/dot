@@ -82,9 +82,9 @@ Tests personal-only package selection for each personal cask module.
 
 Tests repository bootstrap declarations.
 
-#### `test_mise_tools.zsh`
+#### `test_mise_bootstrap_<module>.zsh`
 
-Tests the development tool configuration.
+Tests one `home/.config/mise/conf.d/module.<module>.toml` boundary. The tool-module tests cover `bun`, `delta`, `go`, `github-copilot`, `mermaid-cli`, `mermaid-formatter`, `mise`, `node`, `pitchfork`, `prettier`, `python`, `qmd`, `ruby`, `rumdl`, `rust`, `stylua`, and `tree-sitter`.
 
 #### `test_mise_migration_artifacts.zsh`
 
@@ -120,7 +120,9 @@ Tests hidden project creation and promotion to a checked-in workspace.
 ./tests/scripts/test_mise_bootstrap_softraid.zsh
 ./tests/scripts/test_mise_bootstrap_whatsapp.zsh
 ./tests/scripts/test_mise_bootstrap_repos.zsh
-./tests/scripts/test_mise_tools.zsh
+for test in tests/scripts/test_mise_bootstrap_*.zsh; do
+    zsh "$test"
+done
 ./tests/scripts/test_mise_migration_artifacts.zsh
 ./tests/scripts/test_mise_skill_evals.zsh
 ./tests/scripts/test_agentic_projects.zsh

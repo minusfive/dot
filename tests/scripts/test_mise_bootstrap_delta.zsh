@@ -10,6 +10,7 @@ local __config="home/.config/mise/conf.d/module.delta.toml"
 local __source="home/.config/delta/themes/catppuccin.gitconfig"
 local __target="$HOME/.config/delta/themes/catppuccin.gitconfig"
 [[ -f "$__config" ]] || fail "missing $__config"
+assert_tool_module delta 'delta = "latest"'
 [[ -f "$__source" ]] || fail "missing delta theme source"
 grep -qF '"~/.config/delta" = { source = "~/dev/personal/dot/home/.config/delta", mode = "symlink-each" }' "$__config" ||
     fail "delta symlink-each declaration is missing"

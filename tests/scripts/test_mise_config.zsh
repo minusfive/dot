@@ -146,7 +146,7 @@ grep -qF 'source = "~/dev/personal/dot/home/AGENTS.md"' home/.config/mise/conf.d
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 local __mise_link_count
 __mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 80 ]] || fail "expected 80 managed mise links, found $__mise_link_count"
+[[ "$__mise_link_count" -eq 94 ]] || fail "expected 94 managed mise links, found $__mise_link_count"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \

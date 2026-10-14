@@ -63,6 +63,7 @@ This protocol applies to permission denials, policy refusals, and explicit user 
 ## Tool Usage
 
 - Never bypass repository hooks (`--no-verify` or equivalent).
+- Never edit tool-generated lock files manually. Use the owning tool to update them. If that operation fails, stop and ask me to review before you use another method.
 - Do not disable or skip linting through inline suppressions, blanket ignore directives, or linter-configuration changes made only to make checks pass. Fix the code instead. If you believe a lint rule is wrong for the project, stop execution, explain your reasoning to me, and ask me for input before changing the rule or linter configuration.
 - Prefer dedicated tools (linters, language servers, formatters, refactoring tools, file-discovery and edit tools) over ad-hoc shell commands.
 - When configuring or extending a tool's behavior, check the tool's own documentation for a native directive, field, or option that already expresses the intent before writing scripts, wrappers, or runtime workarounds. Apply this during planning and during implementation. Prefer the native mechanism — declarative config surfaces in the tool's own introspection and survives upgrades better than equivalent custom logic.
