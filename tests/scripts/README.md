@@ -106,6 +106,7 @@ Tests hidden project creation and promotion to a checked-in workspace.
 # From project root
 ./tests/scripts/test_betterdisplay.zsh
 ./tests/scripts/test_betterdisplay_integration.zsh
+./tests/scripts/test_mise_config.zsh
 for test in tests/scripts/test_mise_bootstrap_*.zsh; do
     zsh "$test"
 done
