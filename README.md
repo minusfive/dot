@@ -1,6 +1,6 @@
 # Personal System Configuration
 
-This repository manages my macOS configuration. It uses [mise][mise], [Homebrew][homebrew], and custom [Zsh][zsh] scripts.
+This repository manages my macOS configuration. It uses [mise][mise] and custom [Zsh][zsh] scripts.
 
 The configuration includes keyboard shortcuts for application launchers, window management, and text editing. These shortcuts work best with my [custom keyboard layout][keyboard-layout].
 
@@ -10,17 +10,17 @@ The initialization script changes system settings and installs software. Read th
 
 Clone the repository and initialize a machine:
 
-```sh
-git clone --single-branch --branch main git@github.com:minusfive/dot.git ~/dev/dot
-cd ~/dev/dot
-./scripts/init.zsh
+```bash
+git clone --single-branch --branch main git@github.com:minusfive/dot.git ~/dev/personal/dot
+cd ~/dev/personal/dot
+./scripts/init.zsh --mise
 ```
 
-The bootstrap supports `work` and `personal` profiles. The `work` profile is the default and is the safer choice for a new machine.
+The `--mise` option is the fresh-machine entry point for the mise phase. The `work` profile is the default and is the safer choice for a new machine.
 
 Select a profile with `--profile`:
 
-```sh
+```bash
 ./scripts/init.zsh --profile personal --mise
 ```
 
@@ -29,6 +29,8 @@ The script stores the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}
 Each profile loads a different set of `mise` modules. The selected profile controls the active profile-specific `mise` environment.
 
 Hammerspoon reads the same state file through the [ProfileState Spoon](./home/.config/hammerspoon/Spoons/ProfileState.spoon/init.lua). It mirrors the profile through `hs.settings`. The state file remains the source of truth.
+
+[Homebrew][homebrew] is optional for the mise phase. Mise installs declared package resources directly. Use `./scripts/init.zsh --brew` when you want the optional Homebrew helper.
 
 ## Repository layout
 
@@ -69,7 +71,13 @@ Package resources use dedicated module files. Tightly coupled declarations share
 
 [dotfiles][mise-dotfiles] declarations describe user files that mise links, copies, templates, tracks, or removes. [bootstrap.files][mise-bootstrap] declarations describe files that bootstrap creates or renders, while [bootstrap.directories][mise-bootstrap] declarations describe directory state, such as permissions. Together, these declarations define the available resource modes and bootstrap phases.
 
-The `--mise` initialization interface updates mise. It then applies the package, file, repository, and dotfile phases.
+The `--mise` initialization interface runs the complete declarative mise lifecycle. It applies managed files, packages, repositories, dotfiles, tools, and package hooks.
+
+The mise phase uses one confirmation for the existing-mise self-update, the full bootstrap, workspace trust, and maintenance. Future bootstrap declarations become part of this phase without another script change.
+
+An existing mise updates before bootstrap. A mise installed during the current run does not update again.
+
+Bootstrap is not transactional. If a phase fails, fix the reported phase and rerun `./scripts/init.zsh --mise`.
 
 ## Development
 
@@ -87,7 +95,7 @@ Run all configured checks:
 mise run check
 ```
 
-The [hk configuration](./hk.pkl) runs checks and fixes from one shared definition. [rumdl][rumdl] owns Markdown linting and formatting, with soft-wrapped prose and automatic reflow for hard-wrapped paragraphs instead of a fixed-width hard-wrap policy. [Prettier][prettier] remains available for non-Markdown formatting. `.rumdl.toml` keeps the previous Markdown style choices, including its inline HTML allowlist.
+The [hk configuration](./hk.pkl) runs checks and fixes from one shared definition. Markdown checks preserve soft-wrapped prose and automatically reflow hard-wrapped paragraphs. The repository keeps its Markdown style choices, including its inline HTML allowlist.
 
 ![Workspace](./assets/workspace.png)
 
@@ -101,6 +109,4 @@ I previously maintained a [Nix-based configuration][nix-config]. I no longer mai
 [mise-bootstrap]: https://mise.jdx.dev/bootstrap.html
 [mise-dotfiles]: https://mise.jdx.dev/dotfiles.html
 [nix-config]: https://github.com/minusfive/dot/tree/nix
-[prettier]: https://prettier.io
-[rumdl]: https://rumdl.dev
 [zsh]: https://www.zsh.org/
