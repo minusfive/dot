@@ -152,7 +152,7 @@ FIXTURE_CONFIRM=no run_fixture "$__stub_dir:/usr/bin:/bin"
 
 FIXTURE_CONFIRM=yes MISE_STUB_BOOTSTRAP_STATUS=fail run_fixture "$__stub_dir:/usr/bin:/bin"
 [[ "$__run_fixture_status" -ne 0 ]] || fail "bootstrap failure was ignored"
-if grep -qF -- '-C '"$__root_dir"' trust --yes' "$__log_file"; then
+if grep -qF -- '-C '"$__root_dir"' bootstrap packages upgrade --yes' "$__log_file"; then
     fail "maintenance ran after bootstrap failure"
 fi
 
