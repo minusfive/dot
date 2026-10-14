@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "skill_name": "mise-bootstrap-lifecycle",
+  "iteration": 2,
+  "case_ids": ["keep-bootstrap-declarative", "preserve-failure-boundary"],
+  "workspace": ".agents/eval-workspaces/mise-bootstrap-lifecycle"
+}

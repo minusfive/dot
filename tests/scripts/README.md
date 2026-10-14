@@ -86,10 +86,6 @@ Tests repository bootstrap declarations.
 
 Tests one `home/.config/mise/conf.d/module.<module>.toml` boundary. The tool-module tests cover `bun`, `delta`, `go`, `github-copilot`, `mermaid-cli`, `mermaid-formatter`, `mise`, `node`, `pitchfork`, `prettier`, `python`, `qmd`, `ruby`, `rumdl`, `rust`, `stylua`, and `tree-sitter`.
 
-#### `test_mise_migration_artifacts.zsh`
-
-Tests migration decision cleanup and placement validation.
-
 #### `test_mise_skill_evals.zsh`
 
 Tests the grouped evaluation init, prepare, and validate tasks, canonical specifications, repository-local workspaces, ignore rules, and symlink rejection.
@@ -110,7 +106,6 @@ Tests hidden project creation and promotion to a checked-in workspace.
 for test in tests/scripts/test_mise_bootstrap_*.zsh; do
     zsh "$test"
 done
-./tests/scripts/test_mise_migration_artifacts.zsh
 ./tests/scripts/test_mise_skill_evals.zsh
 ./tests/scripts/test_agentic_projects.zsh
 ```

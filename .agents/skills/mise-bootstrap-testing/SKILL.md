@@ -1,0 +1,51 @@
+---
+name: mise-bootstrap-testing
+description: Use when adding or updating tests for mise bootstrap modules, profiles, lifecycle hooks, ownership, dry runs, runtime exclusions, or repository configuration.
+---
+
+# Mise Bootstrap Testing
+
+Use this skill for tests under `tests/scripts/` that verify the repository's mise bootstrap configuration.
+
+## Test boundaries
+
+- Give each `home/.config/mise/conf.d/module.<name>.toml` boundary its own `tests/scripts/test_mise_bootstrap_<name>.zsh`.
+- Keep lifecycle checks in `test_mise_bootstrap_lifecycle.zsh`.
+- Keep global control-plane checks in `test_mise_bootstrap_mise.zsh`.
+- Keep profile checks with the profile or lifecycle test that owns the behavior.
+- Use `mise_test_helpers.zsh` for shared root setup and assertion helpers.
+
+## Assertions
+
+A module test must verify the facts that can drift:
+
+- the module file exists;
+- the declaration has the expected resource type;
+- `module.mise.toml` deploys the module;
+- the correct profile lists select the module;
+- local development files stay outside deployed targets;
+- tool-owned runtime files stay outside tracked sources; and
+- the deployed target has the expected ownership and link mode when the test runs on a configured machine.
+
+Use exact source and target paths when they define ownership. Use dry runs for non-mutating profile and lifecycle checks.
+
+## Lifecycle fixtures
+
+Use command stubs when a test needs to verify script behavior:
+
+- record command arguments in a temporary log;
+- record the expected repository context;
+- cover declined confirmation;
+- cover installer and existing-mise branches;
+- cover bootstrap failure; and
+- verify that later hooks or maintenance do not run after failure.
+
+Do not print credentials, runtime databases, or other sensitive file contents.
+
+## Run order
+
+1. Run the changed focused test.
+2. Run the related profile or lifecycle test.
+3. Run `mise run check`.
+
+Use the [mise bootstrap reference](https://mise.jdx.dev/bootstrap.html) and [mise task configuration reference](https://mise.jdx.dev/tasks/task-configuration.html) for command behavior. Keep test assertions aligned with current mise output and repository configuration.

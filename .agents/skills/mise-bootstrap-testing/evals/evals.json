@@ -1,0 +1,29 @@
+{
+  "skill_name": "mise-bootstrap-testing",
+  "evals": [
+    {
+      "id": "add-module-regression-test",
+      "prompt": "Add a new mise module and its focused regression test. The test must catch a missing control-plane link, wrong profile selection, and an accidentally deployed runtime file.",
+      "expected_output": "The response adds a boundary-specific test that verifies the module declaration, control-plane link, profile lists, and runtime exclusion, then runs it before aggregate checks.",
+      "assertions": [
+        "Uses the test_mise_bootstrap_<name>.zsh naming pattern.",
+        "Verifies the module declaration and control-plane link.",
+        "Verifies the expected profile selection.",
+        "Verifies the runtime file remains excluded.",
+        "Runs the focused test before aggregate checks."
+      ]
+    },
+    {
+      "id": "test-lifecycle-failure",
+      "prompt": "Extend the lifecycle test for a command-stub scenario. Cover declined confirmation, bootstrap failure, and the guarantee that later maintenance does not run.",
+      "expected_output": "The response uses a temporary command stub and log, covers the required branches, and asserts that failure stops subsequent work without exposing sensitive contents.",
+      "assertions": [
+        "Uses a temporary command stub and call log.",
+        "Covers declined confirmation.",
+        "Covers bootstrap failure.",
+        "Asserts that later maintenance does not run after failure.",
+        "Avoids printing credentials or runtime database contents."
+      ]
+    }
+  ]
+}
