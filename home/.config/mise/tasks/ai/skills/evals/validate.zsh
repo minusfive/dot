@@ -21,8 +21,9 @@ main() {
     local project_root base_path skills_path workspace_dir skill_root skill_dir skill evals_dir spec
     local workspace_skill iteration_dir iteration_name manifest case_ids expected_ids
     local workspace_entry discoverability_dir case_entry case_name configuration_dir
-    local extra legacy_artifact
-    typeset -a skills_dirs
+    local extra legacy_artifact candidate_root existing_root root_is_known
+    local candidate matched_workspace_skill
+    typeset -a skills_dirs workspace_skill_roots
 
     project_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
     [[ -n "$project_root" ]] || die "this task must be run inside a git repository"
@@ -39,6 +40,18 @@ main() {
     skills_path="$(cd "$skills_path" 2>/dev/null && pwd -P)" ||
         die "skills path '${usage_skills_path:-.agents/skills}' does not exist"
     skills_dirs=("$skills_path")
+    # Repositories can contain multiple .agents/skills trees that share one workspace directory.
+    workspace_skill_roots=("$skills_path")
+    while IFS= read -r candidate_root; do
+        root_is_known=false
+        for existing_root in "${workspace_skill_roots[@]}"; do
+            if [[ "$existing_root" == "$candidate_root" ]]; then
+                root_is_known=true
+                break
+            fi
+        done
+        [[ "$root_is_known" == true ]] || workspace_skill_roots+=("$candidate_root")
+    done < <(find "$base_path" -type d -path '*/.agents/skills' -print)
     workspace_dir="${base_path}/.agents/eval-workspaces"
 
     for skill_root in "${skills_dirs[@]}"; do
@@ -98,14 +111,17 @@ main() {
         [[ -d "$workspace_skill" ]] || continue
         skill="${workspace_skill:t}"
         spec=""
-        for skill_root in "${skills_dirs[@]}"; do
+        matched_workspace_skill=false
+        for skill_root in "${workspace_skill_roots[@]}"; do
             candidate="${skill_root}/${skill}/evals/evals.json"
             if [[ -f "$candidate" ]]; then
-                spec="$candidate"
-                break
+                matched_workspace_skill=true
+                [[ "$skill_root" == "$skills_path" ]] && spec="$candidate"
             fi
         done
-        [[ -f "$spec" ]] || die "workspace has no matching skill spec: ${skill}"
+        [[ "$matched_workspace_skill" == true ]] ||
+            die "workspace has no matching skill spec: ${skill}"
+        [[ -n "$spec" ]] || continue
         expected_ids="$(jq -c '[.evals[].id]' "$spec")"
 
         for workspace_entry in "$workspace_skill"/*; do

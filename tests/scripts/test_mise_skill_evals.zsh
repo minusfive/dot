@@ -5,7 +5,7 @@ set -euo pipefail
 source "$(dirname "$0")/mise_test_helpers.zsh"
 
 main() {
-    local fixture skill_dir spec_dir workspace_dir
+    local fixture skill_dir spec_dir workspace_dir global_skill_dir global_workspace_dir
 
     fixture="$(mktemp -d)"
     trap "rm -rf -- '$fixture'" EXIT
@@ -28,6 +28,24 @@ main() {
 
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
         fail "validator rejected a valid fixture"
+
+    global_skill_dir="$fixture/alternate/.agents/skills/global"
+    global_workspace_dir="$fixture/.agents/eval-workspaces/global/iteration-1"
+    mkdir -p "$global_skill_dir"
+    printf '%s\n' '# Global skill' >"$global_skill_dir/SKILL.md"
+    mise run ai:skills:evals:init --base-path "$fixture" --skills-path alternate/.agents/skills \
+        --skill global >/dev/null ||
+        fail "init task rejected the alternate skill root"
+    mise run ai:skills:evals:prepare --base-path "$fixture" --skills-path alternate/.agents/skills \
+        --skill global --iteration 1 >/dev/null ||
+        fail "prepare task rejected the alternate skill root"
+    [[ -f "$global_workspace_dir/manifest.json" ]] ||
+        fail "alternate skill workspace was not created"
+    mise run ai:skills:evals:validate --base-path "$fixture" --skills-path .agents/skills >/dev/null ||
+        fail "validator rejected a workspace owned by the alternate skill root"
+    mise run ai:skills:evals:validate --base-path "$fixture" --skills-path alternate/.agents/skills >/dev/null ||
+        fail "validator rejected the alternate skill root workspace"
+
     mise run ai:skills:validate-conflicts --base-path "$fixture" >/dev/null ||
         fail "skill conflict validator rejected a clean fixture"
     mise run mise:tasks:validate-conflicts --base-path "$fixture" >/dev/null ||
