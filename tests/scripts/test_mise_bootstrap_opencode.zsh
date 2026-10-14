@@ -8,6 +8,7 @@ echo "Testing OpenCode bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.opencode.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
+assert_personal_module_package opencode brew:opencode
 git ls-files --error-unmatch \
     home/.config/opencode/opencode.jsonc \
     home/.config/opencode/tui.json \
@@ -16,6 +17,9 @@ git ls-files --error-unmatch \
 
 grep -qF '"~/.config/opencode" = { source = "~/dev/personal/dot/home/.config/opencode", mode = "symlink-each" }' "$__config" ||
     fail "OpenCode module declaration is incorrect"
+if grep -qF '[tools]' "$__config"; then
+    fail "OpenCode must use the Homebrew package manager"
+fi
 if grep -qF 'package.json' "$__config" || grep -qF 'bun.lock' "$__config" || grep -qF 'node_modules' "$__config"; then
     fail "OpenCode runtime dependencies must remain unmanaged"
 fi

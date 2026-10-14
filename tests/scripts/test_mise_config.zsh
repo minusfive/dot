@@ -29,46 +29,65 @@ zsh -n scripts/mise.zsh || fail "scripts/mise.zsh has syntax errors"
 grep -qF 'curl -fsSL https://mise.run | sh' scripts/mise.zsh || fail "mise installer bridge missing"
 grep -qF 'if [[ -x "$HOME/.local/bin/mise" ]]; then' scripts/mise.zsh || fail "PATH refresh bridge missing"
 grep -qF 'if [[ $(command -v mise) == "" ]]; then' scripts/mise.zsh || fail "mise availability check missing"
+grep -qF 'export MISE_CONFIG_DIR="$__mise_config_dir"' scripts/mise.zsh ||
+    fail "repository-scoped mise config is not selected"
+grep -qF 'export MISE_ENV_CONF_D=true' scripts/mise.zsh ||
+    fail "MISE_ENV_CONF_D is not enabled"
+grep -qF 'unset MISE_ENV' scripts/mise.zsh || fail "inherited MISE_ENV is not cleared"
+grep -qF 'mise -C "$__dotfiles_dir" bootstrap --yes' scripts/mise.zsh ||
+    fail "full bootstrap lifecycle command is missing"
+if grep -qF 'tasks info bootstrap' scripts/mise.zsh; then
+    fail "bootstrap task preflight should be replaced by a package hook"
+fi
 
-local __packages_line="$(line_of "mise bootstrap packages apply --yes")"
-local __dotfiles_line="$(line_of "mise bootstrap dotfiles apply --yes")"
-local __files_line="$(line_of "mise bootstrap files apply --yes")"
-local __personal_trust_line="$(line_of 'mise trust --yes "$HOME/dev/personal/mise.toml"')"
-local __work_trust_line="$(line_of 'mise trust --yes "$HOME/dev/work/mise.toml"')"
-local __self_update_line="$(line_of "mise self-update --yes")"
-local __prune_line="$(line_of "mise prune")"
-local __install_line="$(line_of "mise install")"
-local __upgrade_line="$(line_of "mise upgrade")"
-local __reshim_line="$(line_of "mise reshim -f")"
-local __repos_line="$(line_of "mise bootstrap repos apply --yes")"
+local __self_update_line="$(line_of 'mise -C "$__dotfiles_dir" self-update --yes')"
+local __bootstrap_line="$(line_of 'mise -C "$__dotfiles_dir" bootstrap --yes')"
+local __package_upgrade_line="$(line_of 'mise -C "$__dotfiles_dir" bootstrap packages upgrade --yes')"
+local __package_prune_line="$(line_of 'mise -C "$__dotfiles_dir" bootstrap packages prune --yes')"
+local __prune_line="$(line_of 'mise -C "$__dotfiles_dir" prune')"
+local __upgrade_line="$(line_of 'mise -C "$__dotfiles_dir" upgrade')"
+local __reshim_line="$(line_of 'mise -C "$__dotfiles_dir" reshim -f')"
+local __confirm_count="$(grep -cF '_v_confirm_proceed' scripts/mise.zsh)"
 
 for __line in \
     "$__self_update_line" \
-    "$__packages_line" \
-    "$__dotfiles_line" \
-    "$__files_line" \
-    "$__personal_trust_line" \
-    "$__work_trust_line" \
+    "$__bootstrap_line" \
+    "$__package_upgrade_line" \
+    "$__package_prune_line" \
     "$__prune_line" \
-    "$__install_line" \
     "$__upgrade_line" \
-    "$__reshim_line" \
-    "$__repos_line"; do
+    "$__reshim_line"; do
     [[ -n "$__line" ]] || fail "missing mise initialization step"
 done
 
-if ! (( __self_update_line < __packages_line &&
-    __packages_line < __dotfiles_line &&
-    __dotfiles_line < __files_line &&
-    __files_line < __personal_trust_line &&
-    __personal_trust_line < __work_trust_line &&
-    __work_trust_line < __prune_line &&
-    __prune_line < __install_line &&
-    __install_line < __upgrade_line &&
+if ! (( __self_update_line < __bootstrap_line &&
+    __bootstrap_line < __package_upgrade_line &&
+    __package_upgrade_line < __package_prune_line &&
+    __package_prune_line < __prune_line &&
+    __prune_line < __upgrade_line &&
     __upgrade_line < __reshim_line &&
-    __reshim_line < __repos_line )); then
+    __confirm_count == 1 )); then
     fail "mise initialization phase order is incorrect"
 fi
+for __obsolete_step in \
+    'mise bootstrap packages apply --yes' \
+    'mise bootstrap dotfiles apply --yes' \
+    'mise bootstrap files apply --yes' \
+    'mise bootstrap repos apply --yes' \
+    'mise install'; do
+    if grep -qF "$__obsolete_step" scripts/mise.zsh; then
+        fail "lifecycle-owned step remains procedural: $__obsolete_step"
+    fi
+done
+
+local __mise_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/mise.zsh"' scripts/init.zsh | cut -d: -f1)"
+local __vm_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/vm.zsh"' scripts/init.zsh | cut -d: -f1)"
+local __os_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/os.zsh"' scripts/init.zsh | cut -d: -f1)"
+local __display_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/betterdisplay.zsh"' scripts/init.zsh | cut -d: -f1)"
+(( __mise_phase_line < __vm_phase_line &&
+    __vm_phase_line < __os_phase_line &&
+    __os_phase_line < __display_phase_line )) ||
+    fail "mise initialization phase order changed"
 
 grep -qF 'includes = ["scripts/tasks"]' .mise/conf.d/tasks.toml || fail "task include path is missing"
 local __task_listing
@@ -92,14 +111,34 @@ grep -qF '["validate_skill_evals"]' hk.pkl || fail "skill evaluation validation 
 grep -qF '["validate_skill_name_conflicts"]' hk.pkl || fail "skill name conflict hook is missing"
 grep -qF '["validate_task_name_conflicts"]' hk.pkl || fail "task name conflict hook is missing"
 
-grep -qF 'unset MISE_ENV' scripts/mise.zsh || fail "mise environment override is not cleared"
 if grep -qF 'export MISE_ENV=' scripts/mise.zsh; then
     fail "scripts/mise.zsh must not export MISE_ENV"
 fi
 grep -qF 'env = ["personal", "mise"' home/.config/mise/miserc.toml || fail "personal profile bridge is missing"
 grep -qF 'env = ["work", "mise"' home/.config/mise/miserc.toml || fail "work profile bridge is missing"
+if grep -qF '"profiles"' home/.config/mise/miserc.toml; then
+    fail "retired profiles environment remains selected"
+fi
 grep -qF "env_conf_d = true" home/.config/mise/miserc.toml || fail "env_conf_d is not enabled"
 grep -qF 'minimum_release_age = "7d"' home/.config/mise/config.toml || fail "minimum release age is missing"
+grep -qF 'trusted_config_paths = ["~/dev/personal", "~/dev/personal/dot", "~/dev/work"]' home/.config/mise/config.toml ||
+    fail "workspace trust paths are missing"
+local __trust_data="$(mktemp -d)"
+for __workspace in personal work; do
+    local __trust_status="$(
+        env -u MISE_ENV MISE_DATA_DIR="$__trust_data" \
+            mise -C "$HOME/dev/$__workspace" trust --show 2>&1
+    )"
+    print -r -- "$__trust_status" | grep -qF "~/dev/$__workspace: trusted" ||
+        fail "workspace trust path is not active: $__workspace"
+done
+local __dot_trust_status="$(
+    env -u MISE_ENV MISE_DATA_DIR="$__trust_data" \
+        mise -C "$__root_dir" trust --show 2>&1
+)"
+print -r -- "$__dot_trust_status" | grep -qF "~/dev/personal/dot: trusted" ||
+    fail "repository trust path is not active"
+rm -rf "$__trust_data"
 grep -qF '[settings.dotfiles]' home/.config/mise/config.toml || fail "dotfiles settings are missing"
 grep -qF 'relative_symlinks = true' home/.config/mise/config.toml || fail "relative symlinks are not enabled"
 grep -qF '"~/.config/mise/conf.d/module.mise.toml"' home/.config/mise/conf.d/module.mise.toml || fail "mise module must manage itself"
@@ -108,12 +147,12 @@ if grep -R -qF '../../../home' home/.config/mise; then
 fi
 grep -qF 'source = "~/dev/personal/dot/home/AGENTS.md"' home/.config/mise/conf.d/module.copilot.toml ||
     fail "Copilot source path is not canonical"
-grep -qF 'source = "~/dev/personal/dot/home/dev/profile.mise.toml"' home/.config/mise/conf.d/module.profiles.toml || fail "profile source path is not canonical"
+[[ ! -e "home/.config/mise/conf.d/module.profiles.toml" ]] || fail "retired profile module remains"
 
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 local __mise_link_count
 __mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 81 ]] || fail "expected 81 managed mise links, found $__mise_link_count"
+[[ "$__mise_link_count" -eq 79 ]] || fail "expected 79 managed mise links, found $__mise_link_count"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \
