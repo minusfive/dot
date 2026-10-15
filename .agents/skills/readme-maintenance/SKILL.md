@@ -11,12 +11,15 @@ Use `README.md` as the human-facing guide. Keep it clear, educational, and focus
 
 Keep README content general. Name a tool, package, application, package manager, extension, or configuration component only from the approved list. Use general terms when a specific name is not needed. Ask me before adding another name; that approval applies only to the current change unless I add it to the list.
 
+Wrap each named tool, package, application, operating system, or other technical noun in single backticks, including linked text.
+
 Approved names:
 
 - `Git`
 - `Hammerspoon`
 - `Homebrew`
 - `hk`
+- `macOS`
 - `mise`
 - `Neovim`
 - `Nix`
@@ -41,11 +44,15 @@ Do not change `README.md` for internal refactors that do not affect what readers
 1. Read the complete `README.md`, the change diff, and the files that define the changed behavior.
 2. Update the smallest section that explains the reader-facing change and its reason.
 3. Explain what a component does before explaining how to use it.
-4. Use short paragraphs, clear headings, lists for separate facts, and one source line per paragraph.
-5. Use repository-relative links for tracked files and canonical links for external tools.
-6. Put a tool link beside its first mention. Remove stale commands, paths, links, and claims.
-7. Keep profile descriptions general and omit personal package or cask examples unless setup requires them.
-8. Inspect the complete diff and run checks for the changed README content.
+4. Load `writing-style`, then `simple-english`, before drafting or reviewing README prose.
+5. Keep explanatory README sections, including profile, architecture, ownership, and workflow overviews, descriptive and neutral. State facts about choices and effects instead of telling readers what to choose or do. Reserve imperative wording for explicit setup steps and commands. Put operational directives for agents or contributors in instruction files, not in README explanations.
+6. Use plain language for readers who do not know the repository internals. Avoid jargon, buzzwords, unexplained abbreviations, and internal terms. Keep technical terms only when readers need them, and explain them at first use.
+7. Use short paragraphs, clear headings, lists for separate facts, and one source line per paragraph.
+8. Use repository-relative links for tracked files and canonical links for external tools.
+9. Put a tool link beside its first mention. Remove stale commands, paths, links, and claims.
+10. Keep profile descriptions general and omit personal package or cask examples unless setup requires them.
+11. Run a full critique cycle with `critique-workflow` before running checks. Resolve its findings and finalize the edit.
+12. Run checks against the final README edit before declaring the README update complete.
 
 ## Final checklist
 
