@@ -12,6 +12,9 @@ local __config="home/.config/mise/conf.d/module.repos.toml"
 grep -qF '"~/.config/mise/conf.d/module.repos.toml"' home/.config/mise/conf.d/module.mise.toml ||
     fail "mise control-plane module does not deploy module.repos.toml"
 grep -qF "[bootstrap.repos]" "$__config" || fail "repository bootstrap section is missing"
+if grep -qF 'ohmyzsh/ohmyzsh.git' "$__config"; then
+    fail "Oh My Zsh must have its own module"
+fi
 
 local -a __repos=(
     "powerlevel10k|https://github.com/romkatv/powerlevel10k.git|$HOME/.config/oh-my-zsh/custom/themes/powerlevel10k"
