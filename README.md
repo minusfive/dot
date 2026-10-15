@@ -50,7 +50,7 @@ The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`boot
 
 - A `symlink` links one file directly to the repository. Edits at the installed path change the repository file and appear as repository changes. Edits made by external tools to linked files appear as repository changes. Those changes are then checked by hooks, and reviewed by agents and myself, before every commit.
 - `symlink-each` links every file that it finds in a source directory. It does not copy files that exist only at the target. Repository-only files need explicit exclusions.
-- A `template` dynamically creates target output file from a source file and arbitrary inputs. Edits to the output do not change the source.
+- A `template` dynamically creates a target output file from a source file and arbitrary inputs. Edits to the output do not change the source.
 - A `merge` can update specific entries or values in a target file without managing the whole file. Combined with `template` those values can be dynamically rendered from other inputs.
 
 This granular file management approach means other generated files or values such as histories, caches, databases, credentials, etc., stay in their original location, outside this repository. This prevents accidental check-ins of sensitive data, and preserves application-managed permissions and cleanup.
