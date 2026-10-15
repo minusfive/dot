@@ -20,15 +20,7 @@ cd ~/dev/personal/dot
 
 ### Bootstrapped with `mise`
 
-The `--mise` option starts setup with `mise` on a new machine.
-
-[`mise`][mise] manages global files, packages, and repository tools. Its global configuration files live in [home/.config/mise/conf.d/](./home/.config/mise/conf.d/). `mise` links these files into `~/.config/mise/`.
-
-The files are grouped by purpose. Each module manages related resources. A `dotfiles` entry can manage a whole file or selected configuration values. This keeps each setup area small and easier to understand.
-
-Package lists use separate module files. Related declarations share a module. `miserc.toml` selects the modules for each profile.
-
-[`dotfiles`][mise-dotfiles] entries tell `mise` how to manage user files. It can link, copy, create from templates, track, or remove them. [`bootstrap.files`][mise-bootstrap] entries create or render files during setup. [`bootstrap.directories`][mise-bootstrap] entries set directory properties, such as permissions. Together, these entries describe what setup manages and when it manages it.
+The `--mise` option runs all `mise` setup steps. It asks for approval once before it updates `mise` itself, places files, installs tools and applications, clones repositories, runs scripts, and performs maintenance such as updates and cleanup.
 
 ### `Homebrew`
 
@@ -50,33 +42,20 @@ Each profile loads a different group of `mise` modules. These modules list the f
 
 ### File ownership and application data
 
-The `home/` tree contains files owned by this repository. `mise` places selected files where the corresponding tool or application expects to find them, including `mise` itself. A placed file is not a second copy of the source. When a tool edits a linked file, it edits the repository file.
+The `home/` directory mirrors the target user's `$HOME` layout. `mise` places selected files where the corresponding tool or application expects to find them, including `mise` itself. A placed file is not a second copy of the source. When a tool edits a linked file, it edits the repository file.
 
-`mise` supports several ways to place files:
+The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`bootstrap.directories`][mise-bootstrap] entries describe how and when `mise` manages files and directories.
 
-- A `symlink` links one file directly to the repository. Edits at the installed path change the repository file and appear as repository changes.
-- `symlink-each` gives a directory a real target and links each file found in the source directory. It does not copy files that exist only at the target. By default, it reads the source directory instead of the list of files tracked by `Git`. Repository-only files need explicit exclusions because the source directory is scanned by default. A manifest lists tracked files and limits the target to those files.
-- A template dynamically creates target output from a shared source and the current profile or machine settings. Edits to the output do not change the source. A profile-specific merge template can update selected values in an application-owned file without moving that file into the source tree.
+`mise` supports several ways to define how files are managed. This repository primarily uses the following types:
 
-The granular `symlink` approach allows other generated files (such as histories, caches, databases, credentials, etc.), to stay outside this repository, in their original location. This prevents accidental check-ins of sensitive data, and preserves application-managed permissions and cleanup.
+- A `symlink` links one file directly to the repository. Edits at the installed path change the repository file and appear as repository changes. Edits made by external tools to linked files appear as repository changes. Those changes are then checked by hooks, and reviewed by agents and myself, before every commit.
+- `symlink-each` links every file that it finds in a source directory. It does not copy files that exist only at the target. Repository-only files need explicit exclusions.
+- A `template` dynamically creates target output file from a source file and arbitrary inputs. Edits to the output do not change the source.
+- A `merge` can update specific entries or values in a target file without managing the whole file. Combined with `template` those values can be dynamically rendered from other inputs.
 
-Repository-only guidance or maintenance files can stay co-located with managed files without placing them at installed locations.
+This granular file management approach means other generated files or values such as histories, caches, databases, credentials, etc., stay in their original location, outside this repository. This prevents accidental check-ins of sensitive data, and preserves application-managed permissions and cleanup.
 
-Edits made by external tools to managed files appear as repository changes. Those changes are then checked by hooks, and reviewed by agents and myself, before every commit.
-
-The `--mise` option runs all `mise` setup steps. It asks for approval once before it updates `mise` itself, places files, installs tools and applications, clones repositories, runs scripts, and performs maintenance such as updates and cleanup.
-
-### Global agent instructions and skills
-
-The repository keeps global agent instructions and skills in `home/`. `home/AGENTS.md` and `home/.agents/skills/` are source files. The `mise` agents module manages these sources like any other module. Harness-specific modules symlink the same files to each harness's global instruction and skill locations. This keeps one source of truth while allowing each harness to use its own paths.
-
-The root `AGENTS.md` and `.agents/` directory are repository-only. They guide work in this repository and are not deployed as global files.
-
-`mise` tasks keep the root and `home/` skill indexes synchronized. They validate the global skill evaluation files and check for name conflicts between repository-only and global skills. The `hk` check and pre-commit hooks run these validations with the other repository checks.
-
-## Repository layout
-
-The `home/` directory contains files that belong under `$HOME`. Its layout matches the installed layout, so each source path also shows where the file is installed.
+The files are grouped by purpose. Each module manages related resources. A `dotfiles` entry can manage a whole file or selected configuration values. This keeps each setup area small and easier to understand. Repository-only guidance or maintenance files can stay co-located with managed files without polluting target locations.
 
 ```text
 .
@@ -109,6 +88,14 @@ The `home/` directory contains files that belong under `$HOME`. Its layout match
 ├── tests/                           # script tests
 └── ...
 ```
+
+#### Global agent instructions and skills
+
+The repository keeps global agent instructions and skills in `home/`. `home/AGENTS.md` and `home/.agents/skills/` are source files. The `mise` agents module manages these sources like any other module. Harness-specific modules symlink the same files to each harness's global instruction and skill locations. This keeps one source of truth while allowing each harness to use its own paths.
+
+The root `AGENTS.md` and `.agents/` directory are repository-only. They guide work in this repository and are not deployed as global files.
+
+`mise` tasks keep the root and `home/` skill indexes synchronized. They validate the global skill evaluation files and check for name conflicts between repository-only and global skills. The `hk` check and pre-commit hooks run these validations with the other repository checks.
 
 ## Development
 
