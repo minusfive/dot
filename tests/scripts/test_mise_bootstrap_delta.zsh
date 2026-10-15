@@ -14,10 +14,10 @@ assert_tool_module delta 'delta = "latest"'
 [[ -f "$__source" ]] || fail "missing delta theme source"
 grep -qF '"~/.config/delta" = { source = "~/dev/personal/dot/home/.config/delta", mode = "symlink-each" }' "$__config" ||
     fail "delta symlink-each declaration is missing"
-grep -qF 'pre-dotfiles = '\''mise exec gh@latest -- gh api -H "Accept: application/vnd.github.raw" repos/catppuccin/delta/contents/catppuccin.gitconfig?ref=main > "$HOME/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig"'\''' "$__config" ||
+grep -qF 'pre-dotfiles = '\''mise run gh:download:file -- --api-path "repos/catppuccin/delta/contents/catppuccin.gitconfig?ref=main" --output "$HOME/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig"'\''' "$__config" ||
     fail "delta theme pre-dotfiles hook is missing"
-if grep -qF 'wget -O' "$__config"; then
-    fail "delta theme download still uses wget"
+if grep -qF 'gh api' "$__config"; then
+    fail "delta theme API download must be owned by the task"
 fi
 [[ -d "$HOME/.config/delta" && ! -L "$HOME/.config/delta" ]] ||
     fail "delta target must be a physical directory"

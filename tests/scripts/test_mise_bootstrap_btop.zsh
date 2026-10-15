@@ -15,10 +15,10 @@ local __target="$HOME/.config/btop"
 [[ -f "$__source/themes/catppuccin_mocha.theme" ]] || fail "missing btop theme source"
 grep -qF '"~/.config/btop" = { source = "~/dev/personal/dot/home/.config/btop", mode = "symlink-each" }' "$__config" ||
     fail "btop symlink-each declaration is missing"
-grep -qF 'pre-dotfiles = '\''mise exec gh@latest -- gh api -H "Accept: application/vnd.github.raw" repos/catppuccin/btop/contents/themes/catppuccin_mocha.theme?ref=main > "$HOME/dev/personal/dot/home/.config/btop/themes/catppuccin_mocha.theme"'\''' "$__config" ||
+grep -qF 'pre-dotfiles = '\''mise run gh:download:file -- --api-path "repos/catppuccin/btop/contents/themes/catppuccin_mocha.theme?ref=main" --output "$HOME/dev/personal/dot/home/.config/btop/themes/catppuccin_mocha.theme"'\''' "$__config" ||
     fail "btop theme pre-dotfiles hook is missing"
-if grep -qF 'wget -O' "$__config"; then
-    fail "btop theme download still uses wget"
+if grep -qF 'gh api' "$__config"; then
+    fail "btop theme API download must be owned by the task"
 fi
 
 [[ -d "$__target" && ! -L "$__target" ]] || fail "btop target must be a physical directory"

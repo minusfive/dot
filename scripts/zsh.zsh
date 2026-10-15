@@ -22,7 +22,7 @@ function {
         return 0
     fi
 
-    # Important variables to ensure managed files are not overriden by installers
+    # Important variables to ensure managed files are not overridden by installers
     export ZSH="$XDG_CONFIG_HOME/oh-my-zsh"
     export ZSH_CUSTOM="$ZSH/custom"
     export CHSH="no"

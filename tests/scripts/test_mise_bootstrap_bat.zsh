@@ -17,10 +17,10 @@ grep -qF '"~/.config/bat" = { source = "~/dev/personal/dot/home/.config/bat", mo
     fail "bat symlink-each declaration is missing"
 grep -qF 'post-dotfiles = "bat cache --build"' "$__config" ||
     fail "bat cache post-dotfiles hook is missing"
-grep -qF 'pre-dotfiles = '\''mise exec gh@latest -- gh api -H "Accept: application/vnd.github.raw" repos/catppuccin/bat/contents/themes/Catppuccin%20Mocha.tmTheme?ref=main > "$HOME/dev/personal/dot/home/.config/bat/themes/Catppuccin Mocha.tmTheme"'\''' "$__config" ||
+grep -qF 'pre-dotfiles = '\''mise run gh:download:file -- --api-path "repos/catppuccin/bat/contents/themes/Catppuccin%20Mocha.tmTheme?ref=main" --output "$HOME/dev/personal/dot/home/.config/bat/themes/Catppuccin Mocha.tmTheme"'\''' "$__config" ||
     fail "bat theme pre-dotfiles hook is missing"
-if grep -qF 'wget -O' "$__config"; then
-    fail "bat theme download still uses wget"
+if grep -qF 'gh api' "$__config"; then
+    fail "bat theme API download must be owned by the task"
 fi
 [[ ! -e home/.config/mise/conf.d/module.bat.toml.bak ]] || fail "unexpected bat backup declaration"
 

@@ -5,4 +5,4 @@ delta = "latest"
 "~/.config/delta" = { source = "~/dev/personal/dot/home/.config/delta", mode = "symlink-each" }
 
 [bootstrap.hooks]
-pre-dotfiles = 'mise exec gh@latest -- gh api -H "Accept: application/vnd.github.raw" repos/catppuccin/delta/contents/catppuccin.gitconfig?ref=main > "$HOME/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig"'
+pre-dotfiles = 'mise run gh:download:file -- --api-path "repos/catppuccin/delta/contents/catppuccin.gitconfig?ref=main" --output "$HOME/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig"'
