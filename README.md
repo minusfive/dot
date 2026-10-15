@@ -180,7 +180,7 @@ The `home/` directory contains files that belong under `$HOME`. Its layout match
 │   │   ├── wezterm/
 │   │   ├── yazi/
 │   │   └── zsh/
-│   ├── .ssh/
+│   └── .ssh/
 │   │   └── config                   # ~/.ssh/config
 ├── scripts/                         # setup and development tasks
 ├── tests/                           # script tests
