@@ -23,6 +23,12 @@ fi
 if grep -qE 'MISE_GLOBAL_CONFIG_FILE|--only|--skip|mise -E ' scripts/mise.zsh; then
     fail "mise lifecycle must use the repository context without filters"
 fi
+grep -qF 'command -v gh >/dev/null 2>&1 && gh auth status --hostname github.com >/dev/null 2>&1' scripts/mise.zsh ||
+    fail "GitHub CLI authentication status check is missing"
+grep -qF 'mise exec gh@latest -- gh auth login --hostname github.com --git-protocol https --web' scripts/mise.zsh ||
+    fail "GitHub CLI web authentication is missing"
+grep -qF 'mise exec gh@latest -- gh auth setup-git --hostname github.com' scripts/mise.zsh ||
+    fail "GitHub CLI git authentication setup is missing"
 
 local __gh_config="home/.config/mise/conf.d/module.gh.toml"
 grep -qF '[bootstrap.hooks]' "$__gh_config" ||
@@ -98,6 +104,9 @@ printf '%s\n' "${*:-<none>}" >> "$MISE_CALL_LOG"
 if [[ "$*" == *"bootstrap --yes"* ]]; then
     [[ "${MISE_STUB_BOOTSTRAP_STATUS:-ok}" == "ok" ]] || exit 94
 fi
+if [[ "$*" == *"gh auth status --hostname github.com"* ]]; then
+    [[ "${MISE_STUB_GH_AUTH_STATUS:-ok}" == "ok" ]] || exit 95
+fi
 EOF
 chmod +x "$__stub_dir/mise"
 
@@ -145,6 +154,7 @@ run_fixture() {
         FIXTURE_CONFIRM="${FIXTURE_CONFIRM:-no}" \
         FIXTURE_ROOT="$__root_dir" MISE_CALL_LOG="$__log_file" MISE_EXPECT_CONTEXT="$__root_dir" \
         MISE_STUB_BOOTSTRAP_STATUS="$__fixture_bootstrap_status" \
+        MISE_STUB_GH_AUTH_STATUS="${MISE_STUB_GH_AUTH_STATUS:-ok}" \
         MISE_STUB_SOURCE="$__stub_dir/mise" "$@" /bin/zsh "$__fixture_dir/run-mise.zsh" \
         > "$__output_file" 2>&1; then
         __run_fixture_status=0
@@ -170,6 +180,7 @@ FIXTURE_CONFIRM=yes run_fixture "$__stub_dir:/usr/bin:/bin"
 [[ "$__run_fixture_status" -eq 0 ]] || fail "successful lifecycle fixture failed"
 cat > "$__expected_file" <<EOF
 -C $__root_dir self-update --yes
+exec gh@latest -- gh auth status --hostname github.com
 -C $__root_dir bootstrap --yes
 EOF
 diff -u "$__expected_file" "$__log_file" || fail "successful lifecycle order is incorrect"
@@ -184,12 +195,19 @@ if grep -qF "Mise maintenance complete" "$__output_file"; then
     fail "bootstrap completion is logged twice"
 fi
 
+FIXTURE_CONFIRM=yes MISE_STUB_GH_AUTH_STATUS=fail run_fixture "$__stub_dir:/usr/bin:/bin"
+[[ "$__run_fixture_status" -eq 0 ]] || fail "GitHub CLI authentication fixture failed"
+grep -qF -- 'exec gh@latest -- gh auth login --hostname github.com --git-protocol https --web' "$__log_file" ||
+    fail "GitHub CLI login was not attempted"
+grep -qF -- 'exec gh@latest -- gh auth setup-git --hostname github.com' "$__log_file" ||
+    fail "GitHub CLI git setup was not attempted"
+
 FIXTURE_CONFIRM=yes run_fixture "$__installer_dir:/usr/bin:/bin"
 [[ "$__run_fixture_status" -eq 0 ]] || fail "newly installed mise fixture failed"
 if grep -qF -- '-C '"$__root_dir"' self-update --yes' "$__log_file"; then
     fail "newly installed mise self-updated during the same run"
 fi
-head -n 1 "$__log_file" | grep -qF -- '-C '"$__root_dir"' bootstrap --yes' ||
+grep -qF -- '-C '"$__root_dir"' bootstrap --yes' "$__log_file" ||
     fail "newly installed mise did not reach bootstrap"
 
 rm -rf "$__fixture_dir"

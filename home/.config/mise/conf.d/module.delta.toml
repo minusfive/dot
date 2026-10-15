@@ -3,3 +3,6 @@ delta = "latest"
 
 [dotfiles]
 "~/.config/delta" = { source = "~/dev/personal/dot/home/.config/delta", mode = "symlink-each" }
+
+[bootstrap.hooks]
+pre-dotfiles = 'mise exec gh@latest -- gh api -H "Accept: application/vnd.github.raw" repos/catppuccin/delta/contents/catppuccin.gitconfig?ref=main > "$HOME/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig"'

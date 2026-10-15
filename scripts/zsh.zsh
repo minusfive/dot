@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-# Zsh plugins and themes installation
+# OhMyZsh and custom plugin/theme setup
 
 # Exit immediately if a command fails and treat unset vars as error
 set -euo pipefail
@@ -9,21 +9,20 @@ set -euo pipefail
 function {
     local __context=" ZSH"
     local __proceed="$__install_zsh_theme_plugins"
-    local __dotfiles_root="$(realpath "$(dirname "$ZSH_ARGZERO")/..")"
-    local __bat_theme_source="$__dotfiles_root/home/.config/bat/themes/Catppuccin Mocha.tmTheme"
 
     if [[ "$__proceed" == true ]]; then
         echo "\n"
-        _v_log_info $__context "Installing $(_v_fmt_u Zsh) plugins and themes..."
+        _v_log_info $__context "Setting up $(_v_fmt_u OhMyZsh) and its plugins/themes..."
         _v_confirm_proceed
     fi
 
     if [[ "$__proceed" != true ]]; then
         echo "\n"
-        _v_log_warn $__context "Skipping $(_v_fmt_u Zsh) plugins and themes installation"
+        _v_log_warn $__context "Skipping $(_v_fmt_u OhMyZsh) and its plugins/themes setup"
         return 0
     fi
 
+    # Important variables to ensure managed files are not overriden by installers
     export ZSH="$XDG_CONFIG_HOME/oh-my-zsh"
     export ZSH_CUSTOM="$ZSH/custom"
     export CHSH="no"
@@ -76,43 +75,4 @@ function {
         fi
     fi
 
-    # Update bat theme
-    if [[ $(command -v bat) != "" ]]; then
-        echo "\n"
-        _v_log_info $__context "Updating $(_v_fmt_u bat) theme"
-        wget -O "$__bat_theme_source" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Mocha.tmTheme
-
-        if [[ $? == 0 ]]; then
-            _v_log_ok $__context "$(_v_fmt_u bat) theme updated"
-        fi
-
-        _v_log_info $__context "Refreshing $(_v_fmt_u Bat) cache"
-        bat cache --build
-
-        if [[ $? == 0 ]]; then
-            _v_log_ok $__context "$(_v_fmt_u Bat) cache refreshed"
-        fi
-    fi
-
-    # Update btop theme
-    if [[ $(command -v btop) != "" ]]; then
-        echo "\n"
-        _v_log_info $__context "Updating $(_v_fmt_u btop) theme"
-        wget -O "$__dotfiles_root/home/.config/btop/themes/catppuccin_mocha.theme" https://github.com/catppuccin/btop/raw/main/themes/catppuccin_mocha.theme
-
-        if [[ $? == 0 ]]; then
-            _v_log_ok $__context "$(_v_fmt_u btop) theme updated"
-        fi
-    fi
-
-    # Update delta theme
-    if [[ $(command -v delta) != "" ]]; then
-        echo "\n"
-        _v_log_info $__context "Updating $(_v_fmt_u delta) theme"
-        wget -O "$__dotfiles_root/home/.config/delta/themes/catppuccin.gitconfig" https://github.com/catppuccin/delta/raw/main/catppuccin.gitconfig
-
-        if [[ $? == 0 ]]; then
-            _v_log_ok $__context "$(_v_fmt_u delta) theme updated"
-        fi
-    fi
 }

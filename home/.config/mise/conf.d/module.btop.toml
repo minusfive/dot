@@ -3,3 +3,6 @@
 
 [dotfiles]
 "~/.config/btop" = { source = "~/dev/personal/dot/home/.config/btop", mode = "symlink-each" }
+
+[bootstrap.hooks]
+pre-dotfiles = 'mise exec gh@latest -- gh api -H "Accept: application/vnd.github.raw" repos/catppuccin/btop/contents/themes/catppuccin_mocha.theme?ref=main > "$HOME/dev/personal/dot/home/.config/btop/themes/catppuccin_mocha.theme"'

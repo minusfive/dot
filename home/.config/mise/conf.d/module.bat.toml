@@ -5,4 +5,5 @@
 "~/.config/bat" = { source = "~/dev/personal/dot/home/.config/bat", mode = "symlink-each" }
 
 [bootstrap.hooks]
+pre-dotfiles = 'mise exec gh@latest -- gh api -H "Accept: application/vnd.github.raw" repos/catppuccin/bat/contents/themes/Catppuccin%20Mocha.tmTheme?ref=main > "$HOME/dev/personal/dot/home/.config/bat/themes/Catppuccin Mocha.tmTheme"'
 post-dotfiles = "bat cache --build"

@@ -66,6 +66,16 @@ function {
 
     hash -r
 
+    if (command -v gh >/dev/null 2>&1 && gh auth status --hostname github.com >/dev/null 2>&1) ||
+        mise exec gh@latest -- gh auth status --hostname github.com >/dev/null 2>&1; then
+        _v_log_ok $__context "$(_v_fmt_u GitHub CLI) is already authenticated"
+    else
+        _v_log_info $__context "Authenticating $(_v_fmt_u GitHub CLI)..."
+        mise exec gh@latest -- gh auth login --hostname github.com --git-protocol https --web
+        mise exec gh@latest -- gh auth setup-git --hostname github.com
+        _v_log_ok $__context "$(_v_fmt_u GitHub CLI) authenticated"
+    fi
+
     mise -C "$__dotfiles_dir" bootstrap --yes
     _v_log_ok $__context "Mise bootstrap and maintenance complete"
 
