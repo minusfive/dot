@@ -20,7 +20,7 @@ function {
     local __noop=false
 
     # Load important environment variables
-    source "$__dotfiles_dir/home/.zshenv"
+    source "$__dotfiles_dir/home/.config/zsh/.zshenv"
 
     # Load functions
     source "$__dotfiles_scripts_dir/functions.zsh"

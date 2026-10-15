@@ -52,10 +52,10 @@ Look in these directories when you customize the configuration:
 │   │   ├── hammerspoon/             # ~/.config/hammerspoon
 │   │   ├── mise/                    # ~/.config/mise
 │   │   ├── nvim/                    # ~/.config/nvim
+│   │   ├── zsh/                     # ~/.config/zsh
 │   │   └── ...
 │   ├── .ssh/
 │   │   └── config                   # ~/.ssh/config
-│   └── .zshenv                      # ~/.zshenv
 ├── scripts/                         # bootstrap and development tasks
 ├── tests/                           # script tests
 └── ...
