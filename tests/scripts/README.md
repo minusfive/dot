@@ -70,6 +70,12 @@ Each package module has a focused package assertion in its matching module test.
 
 Tests Homebrew adoption and shared profile selection for `module.brew.toml`.
 
+#### `test_mise_bootstrap_macos.zsh`
+
+Tests native macOS preferences, the post-defaults hook, platform loading, and the remaining imperative OS operations.
+
+Manual macOS operations are exposed as global mise tasks under the `macos:` prefix.
+
 #### `test_mise_bootstrap_packages.zsh`
 
 Tests the shared package maintenance hook and profile selection for `module.packages.toml`.

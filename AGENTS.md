@@ -12,7 +12,7 @@
 - Keep tool-owned runtime files outside tracked sources and mise declarations.
 - Keep each `home/.config/mise/conf.d/module.<name>.toml` boundary in its own `tests/scripts/test_mise_bootstrap_<name>.zsh`. Do not aggregate assertions for multiple modules in one test.
 - Run focused module tests before the aggregate checks.
-- Run `mise run check` after changing instructions or skills; it validates both the root and `home/` skill indexes.
+- Run `mise run fix` after changing instructions or skills; it applies configured autofixes and reports only unfixable failures, including root and `home/` skill-index validation.
 - Update `README.md` in the same change when setup, layout, ownership, tooling, migration status, or user-facing workflows change. Load `readme-maintenance` for README decisions and edits.
 - Before every commit, review the complete diff with the user and complete a fresh critique pass.
 - Preserve unrelated worktree changes.

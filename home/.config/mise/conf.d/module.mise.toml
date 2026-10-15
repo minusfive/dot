@@ -8,6 +8,7 @@
 "~/.config/mise/conf.d/module.coreutils.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.coreutils.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.curl.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.curl.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.dockutil.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.dockutil.toml", mode = "symlink" }
+"~/.config/mise/conf.d/macos" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/macos", mode = "symlink-each" }
 "~/.config/mise/conf.d/module.eza.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.eza.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.findutils.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.findutils.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.ghostscript.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.ghostscript.toml", mode = "symlink" }

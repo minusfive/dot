@@ -46,6 +46,6 @@ Do not print credentials, runtime databases, or other sensitive file contents.
 
 1. Run the changed focused test.
 2. Run the related profile or lifecycle test.
-3. Run `mise run check`.
+3. Run `mise run fix`.
 
 Use the [mise bootstrap reference](https://mise.jdx.dev/bootstrap.html) and [mise task configuration reference](https://mise.jdx.dev/tasks/task-configuration.html) for command behavior. Keep test assertions aligned with current mise output and repository configuration.

@@ -21,12 +21,19 @@ assert_module_package() {
     local __module="$1"
     local __package="$2"
     local __config="home/.config/mise/conf.d/module.$__module.toml"
-    local __profile_count
     [[ -f "$__config" ]] || fail "missing $__config"
     grep -q "\"$__package\" = \"latest\"" "$__config" ||
         fail "$__package is missing from $__config"
-    __profile_count="$(grep -o "\"$__module\"" home/.config/mise/miserc.toml | wc -l | tr -d ' ')"
-    [[ "$__profile_count" -eq 2 ]] || fail "$__module must be selected by both profiles"
+    local __profile_config
+    for __profile in work personal; do
+        __profile_config="$(
+            env -u MISE_ENV DOT_PROFILE="$__profile" \
+                MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
+                mise -C "$__root_dir" config ls --no-truncate
+        )"
+        print -r -- "$__profile_config" | grep -qF "module.$__module.toml" ||
+            fail "$__module must be selected by the $__profile profile"
+    done
 }
 
 assert_tool_module() {
@@ -49,15 +56,26 @@ assert_personal_module_package() {
     local __module="$1"
     local __package="$2"
     local __config="home/.config/mise/conf.d/module.$__module.toml"
-    local __personal_count
-    local __work_count
     [[ -f "$__config" ]] || fail "missing $__config"
     grep -q "\"$__package\" = \"latest\"" "$__config" ||
         fail "$__package is missing from $__config"
-    __personal_count="$(sed -n '2p' home/.config/mise/miserc.toml | grep -o "\"$__module\"" | wc -l | tr -d ' ')"
-    __work_count="$(sed -n '/{% else %}/,$p' home/.config/mise/miserc.toml | grep -o "\"$__module\"" | wc -l | tr -d ' ' || true)"
-    [[ "$__personal_count" -eq 1 && "$__work_count" -eq 0 ]] ||
-        fail "$__module must be selected only by the personal profile"
+    local __personal_config
+    local __work_config
+    __personal_config="$(
+        env -u MISE_ENV DOT_PROFILE=personal \
+            MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
+            mise -C "$__root_dir" config ls --no-truncate
+    )"
+    print -r -- "$__personal_config" | grep -qF "module.$__module.toml" ||
+        fail "$__module must be selected by the personal profile"
+    __work_config="$(
+        env -u MISE_ENV DOT_PROFILE=work \
+            MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
+            mise -C "$__root_dir" config ls --no-truncate
+    )"
+    if print -r -- "$__work_config" | grep -qF "module.$__module.toml"; then
+        fail "$__module must not be selected by the work profile"
+    fi
 }
 
 cd "$__root_dir"

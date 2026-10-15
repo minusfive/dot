@@ -1,2 +1,5 @@
 [bootstrap.packages]
 "brew:dockutil" = "latest"
+
+[bootstrap.hooks]
+post-user = "mise run macos:dock:folders"

@@ -1,0 +1,144 @@
+[vars]
+macos_screenshots_dir = "{{ env.HOME }}/Pictures/screenshots"
+macos_wallpaper_color = "11111b"
+
+[env]
+MACOS_SCREENSHOTS_DIR = "{{ vars.macos_screenshots_dir }}"
+MACOS_WALLPAPER_COLOR = "{{ vars.macos_wallpaper_color }}"
+
+[task_config]
+includes = ["tasks"]
+
+[bootstrap.directories."~/Pictures/screenshots"]
+
+[bootstrap.macos.dock]
+autohide = true
+tilesize = 64
+magnification = true
+largesize = 72
+
+[bootstrap.macos.finder]
+show_all_files = true
+show_pathbar = true
+show_status_bar = true
+preferred_view_style = "column"
+sort_folders_first = true
+show_extensions_warning = true
+
+[bootstrap.macos.defaults."com.apple.AppleMultitouchTrackpad"]
+Clicking = true
+TrackpadThreeFingerTapGesture = 0
+TrackpadThreeFingerHorizSwipeGesture = 1
+
+[bootstrap.macos.defaults."NSGlobalDomain"]
+"com.apple.trackpad.scaling" = 3.0
+AppleKeyboardUIMode = 2
+AppleInterfaceStyle = "Dark"
+AppleICUForce24HourTime = true
+AppleShowAllExtensions = true
+WebKitDeveloperExtras = true
+AppleSpacesSwitchOnActivate = true
+NSToolbarTitleViewRolloverDelay = 0.0
+AppleFontSmoothing = 2
+
+[bootstrap.macos.defaults."com.apple.screensaver"]
+askForPassword = true
+askForPasswordDelay = 0
+
+[bootstrap.macos.defaults."com.apple.print.PrintingPrefs"]
+"Quit When Finished" = true
+
+[bootstrap.macos.defaults."com.apple.menuextra.clock"]
+DateFormat = "EEE d MMM H:mm"
+Show24Hour = true
+ShowAMPM = false
+ShowDay = true
+ShowDayOfWeek = true
+ShowMonth = true
+ShowSeconds = false
+IsAnalog = false
+
+[bootstrap.macos.defaults."com.apple.controlcenter"]
+"NSStatusItem Visible Bluetooth" = false
+"NSStatusItem Visible Sound" = false
+
+[bootstrap.macos.defaults."com.apple.airplay"]
+showInMenuBarIfPresent = false
+"NSStatusItem Visible NowPlaying" = false
+
+[bootstrap.macos.defaults."com.apple.Safari"]
+IncludeDevelopMenu = true
+WebKitDeveloperExtrasEnabledPreferenceKey = true
+"com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled" = true
+ShowFullURLInSmartSearchField = true
+ShowStandaloneTabBar = false
+EnableNarrowTabs = false
+TabCreationPolicy = 2
+OpenNewTabsInFront = true
+DownloadsClearingPolicy = 2
+PreloadTopHit = false
+WebsiteSpecificSearchEnabled = false
+ShowFavoritesUnderSmartSearchField = false
+AutoFillCreditCardData = false
+AutoFillFromAddressBook = false
+AutoFillMiscellaneousForms = false
+AutoFillPasswords = false
+
+[bootstrap.macos.defaults."com.apple.finder"]
+ShowPreviewPane = true
+ShowSidebar = true
+FinderSpawnTab = true
+FXDefaultSearchScope = "SCcf"
+FXRemoveOldTrashItems = true
+_FXSortFoldersFirstOnDesktop = true
+_FXShowPosixPathInTitle = false
+ShowHardDrivesOnDesktop = true
+ShowExternalHardDrivesOnDesktop = true
+ShowRemovableMediaOnDesktop = true
+ShowMountedServersOnDesktop = true
+
+[bootstrap.macos.defaults."com.apple.universalaccess"]
+showWindowTitlebarIcons = true
+
+[bootstrap.macos.defaults."com.apple.desktopservices"]
+DSDontWriteUSBStores = true
+DSDontWriteNetworkStores = true
+
+[bootstrap.macos.defaults."com.apple.dock"]
+"static-only" = false
+"enable-spring-load-actions-on-all-items" = true
+"expose-group-apps" = true
+
+[bootstrap.macos.defaults."com.apple.spaces"]
+"spans-displays" = false
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.Spotlight"
+key = "MenuItemHidden"
+host = "current"
+value = 1
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.finder"
+key = "DesktopViewSettings"
+path = ["IconViewSettings", "arrangeBy"]
+value = "name"
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.finder"
+key = "FK_StandardViewSettings"
+path = ["IconViewSettings", "arrangeBy"]
+value = "name"
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.finder"
+key = "StandardViewSettings"
+path = ["IconViewSettings", "arrangeBy"]
+value = "name"
+
+[bootstrap.hooks]
+post-defaults = [
+    "defaults write com.apple.screencapture location -string {{ vars.macos_screenshots_dir | quote }}",
+    "defaults write com.apple.finder NewWindowTarget -string {{ env.HOME | quote }}",
+    "killall Dock Finder SystemUIServer >/dev/null 2>&1 || true",
+]

@@ -44,4 +44,4 @@ Preserve the installer branch behavior. A newly installed mise does not self-upd
 - Run `tests/scripts/test_mise_config.zsh`.
 - Preview both `work` and `personal` full bootstrap plans.
 - Verify that a bootstrap error prevents later work.
-- Run `mise run check` after the focused tests pass.
+- Run `mise run fix` after the focused tests pass.
