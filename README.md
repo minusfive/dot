@@ -18,11 +18,13 @@ cd ~/dev/personal/dot
 ./scripts/init.zsh --mise
 ```
 
-### Bootstrapped with `mise`
+### Bootstrapped with [`mise`][mise] and [`gh`][github-cli]
 
 The `--mise` option runs all `mise` setup steps. It asks for approval once before it updates `mise` itself, places files, installs tools and applications, clones repositories, runs scripts, and performs maintenance such as updates and cleanup.
 
-### `Homebrew`
+`gh` is used to download certain files from GitHub repositories as part of the bootstrap process. When no existing `gh` session is available, a browser-based authentication flow is triggered and configures `Git` credentials for authenticated resource downloads.
+
+### [`Homebrew`][homebrew]
 
 [`Homebrew`][homebrew] is optional because `mise` installs the listed packages directly. It can be installed by running `./scripts/init.zsh --brew`.
 
@@ -120,6 +122,7 @@ The [`hk` configuration](./hk.pkl) defines the checks and fixes in one place. Ma
 I previously maintained a configuration based on [`Nix`][nix-config]. I no longer maintain it because `mise` now provides many of the features I used from `Nix`.
 
 [homebrew]: https://brew.sh
+[github-cli]: https://cli.github.com/
 [keyboard-layout]: https://github.com/minusfive/zmk-config
 [mise]: https://mise.jdx.dev
 [mise-bootstrap]: https://mise.jdx.dev/bootstrap.html
