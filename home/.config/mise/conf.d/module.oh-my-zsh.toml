@@ -1,0 +1,5 @@
+[bootstrap.repos]
+"~/.config/oh-my-zsh" = { url = "https://github.com/ohmyzsh/ohmyzsh.git" }
+
+[bootstrap.hooks]
+post-dotfiles = "mise run omz:update"

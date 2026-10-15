@@ -13,7 +13,6 @@ function {
     local __brew=false
     local __configure_os_settings=false
     local __install_mise_dev_tools=false
-    local __install_zsh_theme_plugins=false
     local __install_vm=false
     local __manage_betterdisplay=false
     local __profile="work" # work or personal; work = safest
@@ -37,8 +36,7 @@ function {
         m -mise \
         o -os \
         p: -profile: \
-        v -vm \
-        z -zsh ||
+        v -vm ||
     (_v_log_error "ERROR" "Invalid options provided\n" && _v_print_help && exit 1)
 
     if [[ $#__options -eq 0 ]]; then
@@ -77,9 +75,6 @@ function {
             -v|--vm)
                 __install_vm=true
                 ;;
-            -z|--zsh)
-                __install_zsh_theme_plugins=true
-                ;;
         esac
     done
 
@@ -96,9 +91,6 @@ function {
 
     # Homebrew bootstrap helper
     source "$__dotfiles_scripts_dir/brew.zsh"
-
-    # Install Zsh theme + plugins
-    source "$__dotfiles_scripts_dir/zsh.zsh"
 
     # Install mise dev tools
     source "$__dotfiles_scripts_dir/mise.zsh"

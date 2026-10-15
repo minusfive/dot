@@ -97,5 +97,4 @@ function _v_print_help {
     printf " $(_v_arg "-o" "--os")          Configure OS settings\n"
     printf " $(_v_arg "-p" "--profile")     Valid profiles: $(_v_color_fg green "'work'") (default, safest), or $(_v_color_fg yellow "'personal'"). Persists for future runs and selects the mise package environment. e.g. \`$(_v_color_fg green "$ZSH_ARGZERO -p personal")\`\n"
     printf " $(_v_arg "-v" "--vm")          Install VM and containerization tools\n"
-    printf " $(_v_arg "-z" "--zsh")         Install Zsh plugins and themes\n"
 }

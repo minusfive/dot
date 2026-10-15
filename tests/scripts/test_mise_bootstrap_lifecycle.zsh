@@ -31,6 +31,9 @@ grep -qF 'mise exec gh@latest -- gh auth setup-git --hostname github.com' script
     fail "GitHub CLI git authentication setup is missing"
 
 local __gh_config="home/.config/mise/conf.d/module.gh.toml"
+local __mise_config="home/.config/mise/conf.d/module.mise.toml"
+grep -qF 'final = "mise fix"' "$__mise_config" ||
+    fail "mise final bootstrap hook is missing"
 grep -qF '[bootstrap.hooks]' "$__gh_config" ||
     fail "GitHub module hook declaration is missing"
 grep -qF "post-packages = 'gh extension install --force" "$__gh_config" ||
@@ -71,6 +74,10 @@ print -r -- "$__work_dry_run" | grep -qF 'mise upgrade --prune' ||
     fail "work dry run is missing tool upgrade maintenance"
 print -r -- "$__work_dry_run" | grep -qF 'mise reshim -f' ||
     fail "work dry run is missing tool reshim maintenance"
+print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap: final hooks' ||
+    fail "work dry run is missing the final hook"
+print -r -- "$__work_dry_run" | grep -qF 'mise fix' ||
+    fail "work dry run is missing mise fix"
 
 local __personal_packages
 __personal_packages="$(env -u MISE_ENV DOT_PROFILE=personal MISE_CONFIG_DIR="$__root_dir/home/.config/mise" \
