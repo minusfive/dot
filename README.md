@@ -66,122 +66,45 @@ Edits made by external tools to managed files appear as repository changes. Thos
 
 The `--mise` option runs all `mise` setup steps. It asks for approval once before it updates `mise` itself, places files, installs tools and applications, clones repositories, runs scripts, and performs maintenance such as updates and cleanup.
 
+### Global agent instructions and skills
+
+The repository keeps global agent instructions and skills in `home/`. `home/AGENTS.md` and `home/.agents/skills/` are source files. The `mise` agents module manages these sources like any other module. Harness-specific modules symlink the same files to each harness's global instruction and skill locations. This keeps one source of truth while allowing each harness to use its own paths.
+
+The root `AGENTS.md` and `.agents/` directory are repository-only. They guide work in this repository and are not deployed as global files.
+
+`mise` tasks keep the root and `home/` skill indexes synchronized. They validate the global skill evaluation files and check for name conflicts between repository-only and global skills. The `hk` check and pre-commit hooks run these validations with the other repository checks.
+
 ## Repository layout
 
 The `home/` directory contains files that belong under `$HOME`. Its layout matches the installed layout, so each source path also shows where the file is installed.
 
 ```text
 .
-├── .agents/                         # guidance, skills, and evaluation files
+├── .agents/                         # repository-only guidance, skills, and evaluation files
+├── AGENTS.md                        # repository instructions
 ├── .mise/                           # repository-local tools and tasks
 ├── assets/                          # images
 ├── home/                            # files mirrored under ~/
+│   ├── .agents/
+│   │   └── skills/                  # global agent skills
 │   ├── .config/
 │   │   ├── 1Password/
 │   │   ├── BetterDisplay/
-│   │   ├── bat/
-│   │   ├── btop/
-│   │   ├── delta/
-│   │   ├── fd/
-│   │   ├── fzf/
-│   │   ├── gh/
-│   │   ├── ghostty/
-│   │   ├── git/
-│   │   ├── hammerspoon/
-│   │   ├── harper/
-│   │   ├── lazygit/
-│   │   ├── mise/
-│   │   │   ├── conf.d/
-│   │   │   │   ├── module.1password.toml
-│   │   │   │   ├── module.agents.toml
-│   │   │   │   ├── module.bat.toml
-│   │   │   │   ├── module.betterdisplay.toml
-│   │   │   │   ├── module.brew.toml
-│   │   │   │   ├── module.btop.toml
-│   │   │   │   ├── module.bun.toml
-│   │   │   │   ├── module.claude.toml
-│   │   │   │   ├── module.copilot.toml
-│   │   │   │   ├── module.coreutils.toml
-│   │   │   │   ├── module.curl.toml
-│   │   │   │   ├── module.delta.toml
-│   │   │   │   ├── module.discord.toml
-│   │   │   │   ├── module.docker-desktop.toml
-│   │   │   │   ├── module.dockutil.toml
-│   │   │   │   ├── module.editorconfig.toml
-│   │   │   │   ├── module.eza.toml
-│   │   │   │   ├── module.fd.toml
-│   │   │   │   ├── module.findutils.toml
-│   │   │   │   ├── module.fzf.toml
-│   │   │   │   ├── module.gh.toml
-│   │   │   │   ├── module.ghostscript.toml
-│   │   │   │   ├── module.ghostty.toml
-│   │   │   │   ├── module.git.toml
-│   │   │   │   ├── module.github-copilot.toml
-│   │   │   │   ├── module.go.toml
-│   │   │   │   ├── module.google-chrome.toml
-│   │   │   │   ├── module.gpg-suite.toml
-│   │   │   │   ├── module.hammerspoon.toml
-│   │   │   │   ├── module.harper.toml
-│   │   │   │   ├── module.htop.toml
-│   │   │   │   ├── module.imagemagick.toml
-│   │   │   │   ├── module.imageoptim.toml
-│   │   │   │   ├── module.jq.toml
-│   │   │   │   ├── module.just.toml
-│   │   │   │   ├── module.lazygit.toml
-│   │   │   │   ├── module.libtiff.toml
-│   │   │   │   ├── module.libyaml.toml
-│   │   │   │   ├── module.luarocks.toml
-│   │   │   │   ├── module.mas.toml
-│   │   │   │   ├── module.mermaid-cli.toml
-│   │   │   │   ├── module.mermaid-formatter.toml
-│   │   │   │   ├── module.mise.toml
-│   │   │   │   ├── module.node.toml
-│   │   │   │   ├── module.nvim.toml
-│   │   │   │   ├── module.obsidian.toml
-│   │   │   │   ├── module.opencode.toml
-│   │   │   │   ├── module.packages.toml
-│   │   │   │   ├── module.pitchfork.toml
-│   │   │   │   ├── module.pkl-lsp.toml
-│   │   │   │   ├── module.prettier.toml
-│   │   │   │   ├── module.python.toml
-│   │   │   │   ├── module.qmd.toml
-│   │   │   │   ├── module.repos.toml
-│   │   │   │   ├── module.ripgrep.toml
-│   │   │   │   ├── module.ruby.toml
-│   │   │   │   ├── module.rumdl.toml
-│   │   │   │   ├── module.rust.toml
-│   │   │   │   ├── module.softraid.toml
-│   │   │   │   ├── module.sqlite.toml
-│   │   │   │   ├── module.stow.toml
-│   │   │   │   ├── module.stylua.toml
-│   │   │   │   ├── module.tectonic.toml
-│   │   │   │   ├── module.tmux.toml
-│   │   │   │   ├── module.tree-sitter.toml
-│   │   │   │   ├── module.vivid.toml
-│   │   │   │   ├── module.wallpaper.toml
-│   │   │   │   ├── module.wezterm.toml
-│   │   │   │   ├── module.wget.toml
-│   │   │   │   ├── module.whatsapp.toml
-│   │   │   │   ├── module.yazi.toml
-│   │   │   │   ├── module.yq.toml
-│   │   │   │   ├── module.yubico-authenticator.toml
-│   │   │   │   ├── module.zoxide.toml
-│   │   │   │   └── module.zsh.toml
-│   │   │   ├── config.toml
-│   │   │   ├── mise.lock
-│   │   │   ├── miserc.toml
-│   │   │   ├── tasks/
-│   │   │   └── utils/
-│   │   ├── nvim/
-│   │   ├── opencode/
-│   │   ├── ripgrep/
-│   │   ├── tmp/
-│   │   ├── tmux/
-│   │   ├── wezterm/
-│   │   ├── yazi/
-│   │   └── zsh/
-│   └── .ssh/
+│   │   ├── ...
+│   │   └── mise/
+│   │       ├── conf.d/              # per-tool module files
+│   │       │   ├── module.1password.toml
+│   │       │   ├── module.agents.toml
+│   │       │   ├── module.bat.toml
+│   │       │   └── ...
+│   │       ├── config.toml
+│   │       ├── mise.lock
+│   │       ├── miserc.toml
+│   │       ├── tasks/
+│   │       └── utils/
+│   ├── .ssh/
 │   │   └── config                   # ~/.ssh/config
+│   └── AGENTS.md                    # global agent instructions
 ├── scripts/                         # setup and development tasks
 ├── tests/                           # script tests
 └── ...
