@@ -14,6 +14,7 @@
 - Run focused module tests before the aggregate checks.
 - Run `mise run check` after changing instructions or skills; it validates both the root and `home/` skill indexes.
 - Update `README.md` in the same change when setup, layout, ownership, tooling, migration status, or user-facing workflows change. Load `readme-maintenance` for README decisions and edits.
+- Before every commit, review the complete diff with the user and complete a fresh critique pass.
 - Preserve unrelated worktree changes.
 
 ## Skills

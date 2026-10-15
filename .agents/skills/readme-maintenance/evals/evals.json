@@ -11,7 +11,11 @@
         "Explains why the migration matters to readers.",
         "Uses general terms instead of internal module names and configuration keys when readers do not need them.",
         "Does not copy the full migration procedure into README.md.",
-        "Keeps README.md focused on reader-facing facts."
+        "Keeps README.md focused on reader-facing facts.",
+        "Fences named tools, packages, applications, operating systems, and other technical nouns in README.md, including linked text.",
+        "Uses descriptive prose instead of imperative agent or contributor instructions for architecture guidance.",
+        "Uses plain language and avoids unexplained jargon.",
+        "Runs a full critique cycle before final checks and checks the final README edit."
       ]
     },
     {

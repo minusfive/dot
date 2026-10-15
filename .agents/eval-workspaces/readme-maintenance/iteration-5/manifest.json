@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skill_name": "readme-maintenance",
+  "iteration": 5,
+  "case_ids": [
+    "bootstrap-boundary-change",
+    "primary-tool-change",
+    "internal-only-change"
+  ],
+  "workspace": ".agents/eval-workspaces/readme-maintenance"
+}
