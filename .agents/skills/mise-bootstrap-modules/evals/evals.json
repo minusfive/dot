@@ -1,0 +1,28 @@
+{
+  "skill_name": "mise-bootstrap-modules",
+  "evals": [
+    {
+      "id": "add-shared-package-module",
+      "prompt": "Add a new shared Homebrew package to this repository's mise bootstrap configuration. Keep the declaration modular and update every required maintenance surface.",
+      "expected_output": "The response adds a dedicated module, wires it through the mise control plane, selects it in both profiles, adds a focused test, and runs the required validation.",
+      "assertions": [
+        "Creates one dedicated module file for the package.",
+        "Adds the module to the control-plane dotfile declarations.",
+        "Selects the module in both work and personal profile lists.",
+        "Adds or updates a focused test for the module boundary."
+      ]
+    },
+    {
+      "id": "remove-profile-module",
+      "prompt": "Remove a personal-only mise module after the migration is complete. The module has package declarations and must be cleaned up without losing the declarations before mise plans removal.",
+      "expected_output": "The response changes profile selection first, keeps the declaration available, previews and applies module removal, handles package cleanup separately, and verifies the remaining profile.",
+      "assertions": [
+        "Removes the module from the personal profile before cleanup.",
+        "Keeps the module declaration until unapply planning completes.",
+        "Uses a dry run before applying module removal.",
+        "Treats package pruning as separate cleanup.",
+        "Verifies that shared modules remain selected."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "skill_name": "mise-bootstrap-profiles",
+  "iteration": 1,
+  "case_ids": ["preserve-shared-profile-modules", "remove-personal-module"],
+  "workspace": ".agents/eval-workspaces/mise-bootstrap-profiles"
+}

@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "skill_name": "mise-bootstrap-testing",
+  "iteration": 1,
+  "case_ids": ["add-module-regression-test", "test-lifecycle-failure"],
+  "workspace": ".agents/eval-workspaces/mise-bootstrap-testing"
+}

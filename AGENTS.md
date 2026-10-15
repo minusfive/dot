@@ -4,7 +4,6 @@
 - Keep repository-only guidance in this file or under `.agents/`.
 - This repository stores global skill sources under `home/.agents/skills`; pass `--skills-path home/.agents/skills` to the global `ai:skills:evals:*` tasks.
 - Keep repository-local instruction files and task names distinct from global entrypoints.
-- Use `mise-bootstrap-migration` when you migrate dotfiles or bootstrap resources to mise.
 - Group `home/.config/mise/conf.d/` files by logical boundary.
 - Group tightly coupled declarations in one `module.<name>.toml` file.
 - Use the profile lists in `home/.config/mise/miserc.toml` to select modules for each environment. Keep profile-specific modules out of profiles that should not load them.
@@ -23,5 +22,8 @@ The skills below are available under `.agents/skills/`. **MUST NOT** preload any
 
 ### Index
 
-- `mise-bootstrap-migration` — Migrate repository-managed dotfiles and bootstrap resources to mise.
+- `mise-bootstrap-lifecycle` — Maintain the full mise initialization lifecycle, hooks, confirmations, and failure behavior.
+- `mise-bootstrap-modules` — Maintain mise module boundaries, declarations, control-plane links, and profile selection.
+- `mise-bootstrap-profiles` — Maintain work and personal profile state, rendering, and module cleanup.
+- `mise-bootstrap-testing` — Maintain focused tests for mise modules, profiles, lifecycle hooks, and ownership.
 - `readme-maintenance` — Keep `README.md` current, educational, and accurate when repository behavior or structure changes.
