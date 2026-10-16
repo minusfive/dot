@@ -40,7 +40,7 @@ Tests full-lifecycle dry runs for both profiles, package and tool maintenance ho
 
 #### `test_mise_bootstrap_copilot.zsh`
 
-Tests the Copilot module declaration, direct shared-instructions source, statusline link, and runtime preservation.
+Tests the Copilot module ownership, exactly nine safe settings, isolated key-level merge behavior, shared-instructions and statusline links, and runtime preservation.
 
 #### `test_mise_bootstrap_agents.zsh`
 
