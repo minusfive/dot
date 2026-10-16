@@ -27,8 +27,9 @@ if find home/.config/gnu-sed -type f ! -name zshrc.zsh | grep -q .; then
     fail "GNU sed source tree contains runtime files"
 fi
 
-mkdir -p "$__root_dir/.test-fixtures"
-local __fixture="$(mktemp -d "$__root_dir/.test-fixtures/gnu-sed.XXXXXX")"
+local __fixture
+__fixture="$(mktemp -d "${TMPDIR:-/tmp}/gnu-sed.XXXXXX")" ||
+    fail "could not create GNU sed fixture"
 local __fake_bin="$__fixture/bin"
 local __fake_prefix="$__fixture/homebrew/opt/gnu-sed"
 local __fallback_bin="$__fixture/fallback-bin"
