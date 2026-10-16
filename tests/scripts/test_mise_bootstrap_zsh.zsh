@@ -117,6 +117,24 @@ print -r -- "$__migration_output" | grep -qF "$__migration_backup" ||
     fail "Zsh migration did not report the backup path"
 rm -rf "$__migration_home"
 
+local __profile_migration_home="$(mktemp -d)"
+local __profile_migration_config="$__profile_migration_home/.config/zsh"
+local __profile_migration_target="$__profile_migration_config/.zprofile"
+local __profile_migration_backup="$__profile_migration_target.bak"
+mkdir -p "$__profile_migration_config"
+ln -s "$__root_dir/home/.config/zsh/.zprofile" "$__profile_migration_target"
+local __profile_migration_output="$(
+    env HOME="$__profile_migration_home" XDG_CONFIG_HOME="$__profile_migration_home/.config" \
+        MISE_PROJECT_ROOT="$__root_dir" zsh "$__root_dir/$__migration_task" 2>&1
+)"
+[[ ! -L "$__profile_migration_target" ]] || fail "legacy Zsh profile symlink was not removed"
+[[ -f "$__profile_migration_backup" ]] || fail "legacy Zsh profile backup was not created"
+grep -qF 'eval "$(/opt/homebrew/bin/brew shellenv)"' "$__profile_migration_backup" ||
+    fail "legacy Zsh profile backup was not recovered from Git history"
+print -r -- "$__profile_migration_output" | grep -qF 'from Git history' ||
+    fail "Zsh profile recovery was not reported"
+rm -rf "$__profile_migration_home"
+
 local __foreign_home="$(mktemp -d)"
 local __foreign_config="$__foreign_home/.config/zsh"
 local __foreign_target="$__foreign_config/.zshrc"
