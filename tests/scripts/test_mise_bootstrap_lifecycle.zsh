@@ -12,6 +12,8 @@ grep -qF 'export MISE_ENV_CONF_D=true' scripts/mise.zsh ||
     fail "MISE_ENV_CONF_D is not enabled"
 grep -qF 'unset MISE_ENV' scripts/mise.zsh ||
     fail "inherited MISE_ENV is not cleared"
+grep -qF 'unset MISE_AUTO_ENV' scripts/mise.zsh ||
+    fail "inherited MISE_AUTO_ENV is not cleared"
 grep -qF 'mise -C "$__dotfiles_dir" bootstrap --yes' scripts/mise.zsh ||
     fail "full mise bootstrap command is missing"
 if grep -qF 'mise install' scripts/mise.zsh; then
@@ -58,6 +60,12 @@ print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap: repos' ||
     fail "work dry run is missing repository bootstrap"
 print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap: dotfiles' ||
     fail "work dry run is missing dotfile bootstrap"
+print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap: system defaults' ||
+    fail "work dry run is missing macOS defaults"
+print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap: post-defaults hooks' ||
+    fail "work dry run is missing macOS post-defaults maintenance"
+print -r -- "$__work_dry_run" | grep -qF "killall Dock Finder SystemUIServer" ||
+    fail "work dry run is missing macOS application restart maintenance"
 print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap: tools' ||
     fail "work dry run is missing tool bootstrap"
 print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap: post-packages hooks' ||
@@ -106,6 +114,7 @@ set -euo pipefail
 [[ "${MISE_CONFIG_DIR:-}" == "${MISE_EXPECT_CONTEXT}/home/.config/mise" ]] || exit 91
 [[ "${MISE_ENV_CONF_D:-}" == "true" ]] || exit 92
 [[ -z "${MISE_ENV:-}" ]] || exit 93
+[[ -z "${MISE_AUTO_ENV:-}" ]] || exit 96
 printf '%s\n' "${*:-<none>}" >> "$MISE_CALL_LOG"
 
 if [[ "$*" == *"bootstrap --yes"* ]]; then

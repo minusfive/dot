@@ -118,7 +118,7 @@ mise run ai:skills:evals:validate
 mise run ai:skills:validate-conflicts
 mise run mise:tasks:validate-conflicts
 mise run lint-skill-index --base-path home
-mise run check
+mise run fix
 ```
 
 The evaluation validator checks the JSON shape, case IDs, local workspace location, required iteration reports, and accidental symlinks. The conflict validator checks local skill and task names against global names. Fix validation errors before reviewing benchmark results.

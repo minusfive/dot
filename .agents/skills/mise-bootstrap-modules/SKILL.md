@@ -37,6 +37,7 @@ Read the [mise bootstrap reference](https://mise.jdx.dev/bootstrap.html), [machi
 
 - Keep shared modules in both profile lists.
 - Keep personal-only modules in the `personal` list.
+- Use Tera list spread in `miserc.toml` when both profiles share a common environment list.
 - Keep module selection in the rendered `miserc.toml`.
 - Use `mise-bootstrap-profiles` for profile state, rendering, and cleanup behavior.
 
@@ -53,4 +54,4 @@ Read the [mise bootstrap reference](https://mise.jdx.dev/bootstrap.html), [machi
 - Add or update `tests/scripts/test_mise_bootstrap_<name>.zsh` for each module boundary.
 - Verify the declaration, control-plane link, profile selection, target ownership, and runtime exclusions.
 - Run the focused module test before aggregate checks.
-- Run `mise run check` after the focused test passes.
+- Run `mise run fix` after the focused test passes.

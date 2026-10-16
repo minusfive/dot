@@ -34,6 +34,7 @@ grep -qF 'export MISE_CONFIG_DIR="$__mise_config_dir"' scripts/mise.zsh ||
 grep -qF 'export MISE_ENV_CONF_D=true' scripts/mise.zsh ||
     fail "MISE_ENV_CONF_D is not enabled"
 grep -qF 'unset MISE_ENV' scripts/mise.zsh || fail "inherited MISE_ENV is not cleared"
+grep -qF 'unset MISE_AUTO_ENV' scripts/mise.zsh || fail "inherited MISE_AUTO_ENV is not cleared"
 grep -qF 'mise -C "$__dotfiles_dir" bootstrap --yes' scripts/mise.zsh ||
     fail "full bootstrap lifecycle command is missing"
 if grep -qF 'tasks info bootstrap' scripts/mise.zsh; then
@@ -75,12 +76,8 @@ for __obsolete_step in \
 done
 
 local __mise_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/mise.zsh"' scripts/init.zsh | cut -d: -f1)"
-local __vm_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/vm.zsh"' scripts/init.zsh | cut -d: -f1)"
-local __os_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/os.zsh"' scripts/init.zsh | cut -d: -f1)"
 local __display_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/betterdisplay.zsh"' scripts/init.zsh | cut -d: -f1)"
-(( __mise_phase_line < __vm_phase_line &&
-    __vm_phase_line < __os_phase_line &&
-    __os_phase_line < __display_phase_line )) ||
+(( __mise_phase_line < __display_phase_line )) ||
     fail "mise initialization phase order changed"
 
 grep -qF 'includes = ["scripts/tasks"]' .mise/conf.d/tasks.toml || fail "task include path is missing"
@@ -108,8 +105,26 @@ grep -qF '["validate_task_name_conflicts"]' hk.pkl || fail "task name conflict h
 if grep -qF 'export MISE_ENV=' scripts/mise.zsh; then
     fail "scripts/mise.zsh must not export MISE_ENV"
 fi
-grep -qF 'env = ["personal", "mise"' home/.config/mise/miserc.toml || fail "personal profile bridge is missing"
-grep -qF 'env = ["work", "mise"' home/.config/mise/miserc.toml || fail "work profile bridge is missing"
+grep -qF "shared_modules" home/.config/mise/miserc.toml ||
+    fail "shared profile module list is missing"
+grep -qF "work_profile_modules" home/.config/mise/miserc.toml ||
+    fail "work profile module list is missing"
+grep -qF "personal_profile_modules" home/.config/mise/miserc.toml ||
+    fail "personal profile module list is missing"
+grep -qF "{% if env.DOT_PROFILE" home/.config/mise/miserc.toml ||
+    fail "profile selection template is missing"
+local __profile_config
+for __profile in work personal; do
+    __profile_config="$(
+        env -u MISE_ENV DOT_PROFILE="$__profile" \
+            MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
+            mise -C "$__root_dir" config ls --no-truncate
+    )"
+    print -r -- "$__profile_config" | grep -qF "module.dockutil.toml" ||
+        fail "dockutil module is missing from the $__profile profile"
+    print -r -- "$__profile_config" | grep -qF "module.hammerspoon.toml" ||
+        fail "Hammerspoon module is missing from the $__profile profile"
+done
 if grep -qF '"profiles"' home/.config/mise/miserc.toml; then
     fail "retired profiles environment remains selected"
 fi
@@ -144,9 +159,16 @@ grep -qF 'source = "~/dev/personal/dot/home/AGENTS.md"' home/.config/mise/conf.d
 [[ ! -e "home/.config/mise/conf.d/module.profiles.toml" ]] || fail "retired profile module remains"
 
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
+grep -qF 'auto_env = true' home/.config/mise/miserc.toml ||
+    fail "auto_env must load platform-specific conf.d modules"
+if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/init.zsh scripts/functions.zsh; then
+    fail "removed Homebrew and VM options remain in the initializer"
+fi
+[[ ! -e scripts/os.zsh ]] || fail "OS operations must use mise macos tasks"
+
 local __mise_link_count
 __mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 97 ]] || fail "expected 97 managed mise links, found $__mise_link_count"
+[[ "$__mise_link_count" -eq 105 ]] || fail "expected 105 managed mise links, found $__mise_link_count"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \
@@ -181,14 +203,12 @@ mkdir -p "$__tmp_home/.config/mise/conf.d"
 cp home/.config/mise/config.toml "$__tmp_home/.config/mise/config.toml"
 cp home/.config/mise/miserc.toml "$__tmp_home/.config/mise/miserc.toml"
 cp home/.config/mise/conf.d/module.discord.toml "$__tmp_home/.config/mise/conf.d/module.discord.toml"
-printf '[env]\nMISE_PROFILE_SMOKE_WORK = "1"\n' > "$__tmp_home/.config/mise/config.work.toml"
 printf '\n[env]\nMISE_PROFILE_SMOKE_BASE = "1"\n' >> "$__tmp_home/.config/mise/config.toml"
 printf '\n[env]\nMISE_PROFILE_SMOKE_PERSONAL = "1"\n' >> "$__tmp_home/.config/mise/conf.d/module.discord.toml"
 
 local __work_env
 __work_env="$(env -u MISE_ENV HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" DOT_PROFILE=work mise -C "$__tmp_home" env --json)"
 print -r -- "$__work_env" | grep -q '"MISE_PROFILE_SMOKE_BASE": "1"' || fail "work profile should load base config"
-print -r -- "$__work_env" | grep -q '"MISE_PROFILE_SMOKE_WORK": "1"' || fail "work profile should load work config"
 if print -r -- "$__work_env" | grep -q '"MISE_PROFILE_SMOKE_PERSONAL": "1"'; then
     fail "work profile should not load personal config"
 fi
@@ -197,8 +217,5 @@ local __personal_env
 __personal_env="$(env -u MISE_ENV HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" DOT_PROFILE=personal mise -C "$__tmp_home" env --json)"
 print -r -- "$__personal_env" | grep -q '"MISE_PROFILE_SMOKE_BASE": "1"' || fail "personal profile should load base config"
 print -r -- "$__personal_env" | grep -q '"MISE_PROFILE_SMOKE_PERSONAL": "1"' || fail "personal profile should load personal config"
-if print -r -- "$__personal_env" | grep -q '"MISE_PROFILE_SMOKE_WORK": "1"'; then
-    fail "personal profile should not load work config"
-fi
 
 echo "Global mise configuration passed."

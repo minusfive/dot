@@ -3,3 +3,8 @@
 
 [dotfiles]
 "~/.config/hammerspoon" = { source = "~/dev/personal/dot/home/.config/hammerspoon", mode = "symlink-each", exclude = [".luarc.json"] }
+
+[bootstrap.hooks]
+post-dotfiles = [
+    "defaults write org.hammerspoon.Hammerspoon MJConfigFile {{ (env.HOME ~ '/.config/hammerspoon/init.lua') | quote }}",
+]

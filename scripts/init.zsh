@@ -10,10 +10,7 @@ function {
     local __dotfiles_dir="$(dirname "$__dotfiles_scripts_dir")"
 
     # Defaults
-    local __brew=false
-    local __configure_os_settings=false
     local __install_mise_dev_tools=false
-    local __install_vm=false
     local __manage_betterdisplay=false
     local __profile="work" # work or personal; work = safest
     local __noop=false
@@ -30,13 +27,10 @@ function {
     # Parse parameters and or display help and exit
     zmodload zsh/zutil
     zparseopts -D -E -F -A __options - \
-        b -brew \
         d -display \
         h -help \
         m -mise \
-        o -os \
-        p: -profile: \
-        v -vm ||
+        p: -profile: ||
     (_v_log_error "ERROR" "Invalid options provided\n" && _v_print_help && exit 1)
 
     if [[ $#__options -eq 0 ]]; then
@@ -47,9 +41,6 @@ function {
 
     for opt arg in "${(kv@)__options}"; do
         case "$opt" in
-            -b|--brew)
-                __brew=true
-                ;;
             -d|--display)
                 __manage_betterdisplay=true
                 ;;
@@ -60,9 +51,6 @@ function {
             -m|--mise)
                 __install_mise_dev_tools=true
                 ;;
-            -o|--os)
-                __configure_os_settings=true
-                ;;
             -p|--profile)
                 if _v_profile_is_valid "$arg"; then
                     __profile="$arg"
@@ -71,9 +59,6 @@ function {
                     _v_print_help
                     exit 1
                 fi
-                ;;
-            -v|--vm)
-                __install_vm=true
                 ;;
         esac
     done
@@ -89,17 +74,8 @@ function {
         exit 1
     fi
 
-    # Homebrew bootstrap helper
-    source "$__dotfiles_scripts_dir/brew.zsh"
-
     # Install mise dev tools
     source "$__dotfiles_scripts_dir/mise.zsh"
-
-    # Install VM and containerization tools
-    source "$__dotfiles_scripts_dir/vm.zsh"
-
-    # Configure OS settings
-    source "$__dotfiles_scripts_dir/os.zsh"
 
     # Manage BetterDisplay settings
     source "$__dotfiles_scripts_dir/betterdisplay.zsh"

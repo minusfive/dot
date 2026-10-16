@@ -38,7 +38,7 @@ Read the [mise machine modules reference](https://mise.jdx.dev/bootstrap/modules
 3. Update the matching focused test.
 4. Preview both profiles with `mise bootstrap --dry-run`.
 5. Verify that personal-only resources do not appear in the `work` profile.
-6. Run the focused test and aggregate checks.
+6. Run the focused test and `mise run fix`.
 
 Use the repository's established context for each preview.
 

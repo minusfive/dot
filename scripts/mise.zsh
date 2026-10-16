@@ -28,6 +28,7 @@ function {
     export MISE_CONFIG_DIR="$__mise_config_dir"
     export MISE_ENV_CONF_D=true
     unset MISE_ENV
+    unset MISE_AUTO_ENV
 
     if [[ $(command -v mise) == "" ]]; then
         echo "\n"
