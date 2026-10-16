@@ -41,15 +41,22 @@ assert_tool_module() {
     local __declaration="$2"
     local __config="home/.config/mise/conf.d/module.$__module.toml"
     local __control_plane="home/.config/mise/conf.d/module.mise.toml"
-    local __profile_count
     [[ -f "$__config" ]] || fail "missing $__config"
     grep -qF "[tools]" "$__config" || fail "tools section is missing from $__config"
     grep -qF "$__declaration" "$__config" ||
         fail "$__declaration is missing from $__config"
     grep -qF "\"~/.config/mise/conf.d/module.$__module.toml\"" "$__control_plane" ||
         fail "control-plane module does not deploy module.$__module.toml"
-    __profile_count="$(grep -o "\"$__module\"" home/.config/mise/miserc.toml | wc -l | tr -d ' ')"
-    [[ "$__profile_count" -eq 2 ]] || fail "$__module must be selected by both profiles"
+    local __profile_config
+    for __profile in work personal; do
+        __profile_config="$(
+            env -u MISE_ENV DOT_PROFILE="$__profile" \
+                MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
+                mise -C "$__root_dir" config ls --no-truncate
+        )"
+        print -r -- "$__profile_config" | grep -qF "module.$__module.toml" ||
+            fail "$__module must be selected by the $__profile profile"
+    done
 }
 
 assert_personal_module_package() {
