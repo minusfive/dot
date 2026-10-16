@@ -73,7 +73,13 @@ function getStateFile(): string {
 function parseNumbers(): number[] {
   return PULL_REQUESTS.split(/\s+/)
     .filter(Boolean)
-    .map((value) => Number(value))
+    .map((value) => {
+      const unquoted =
+        (value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))
+          ? value.slice(1, -1)
+          : value;
+      return Number(unquoted);
+    })
     .filter((value) => Number.isSafeInteger(value) && value > 0);
 }
 
