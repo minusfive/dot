@@ -68,8 +68,7 @@ cp "$__settings" "$__fixture_repo/home/.copilot/settings.json"
 cp home/AGENTS.md "$__fixture_repo/home/AGENTS.md"
 cp home/.copilot/statusline-context.sh "$__fixture_repo/home/.copilot/statusline-context.sh"
 cp "$__config" "$__fixture_config/conf.d/module.copilot.toml"
-:
->"$__fixture_config/config.toml"
+: >"$__fixture_config/config.toml"
 cat >"$__fixture_config/miserc.toml" <<'EOF'
 env_conf_d = true
 env = ["copilot"]
