@@ -1,0 +1,5 @@
+[bootstrap.packages]
+"brew:gnu-sed" = "latest"
+
+[dotfiles]
+"~/.config/zsh/.zshrc-zone-0.zsh/gnu-sed" = { source = "~/dev/personal/dot/home/.config/gnu-sed/zshrc.zsh", template = "tera" }

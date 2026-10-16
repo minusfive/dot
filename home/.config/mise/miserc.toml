@@ -26,6 +26,7 @@ auto_env = true
     'ghostty',
     'git',
     'github-copilot',
+    'gnu-sed',
     'go',
     'google-chrome',
     'gpg-suite',
