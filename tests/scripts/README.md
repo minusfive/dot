@@ -62,7 +62,9 @@ Tests GitHub package and post-packages hook declarations, files, directories, so
 
 Tests the global EditorConfig link.
 
-The remaining migrated application boundaries use the same focused-test pattern: `test_mise_bootstrap_<module>.zsh`. Current module tests cover `1password`, `bat`, `btop`, `delta`, `editorconfig`, `fd`, `fzf`, `ghostty`, `git`, `hammerspoon`, `harper`, `lazygit`, `nvim`, `ripgrep`, `tmux`, `wezterm`, `yazi`, and `zsh`.
+The remaining migrated application boundaries use the same focused-test pattern: `test_mise_bootstrap_<module>.zsh`. Current module tests cover `1password`, `bat`, `btop`, `coreutils`, `curl`, `delta`, `editorconfig`, `fd`, `findutils`, `fzf`, `git`, `ghostty`, `hammerspoon`, `harper`, `lazygit`, `nvim`, `p10k`, `ripgrep`, `tmux`, `wezterm`, `yarn`, `yazi`, and `zsh`.
+
+The `Oh My Zsh` test covers its custom plugin repositories. The `Neovim` test covers the LazyVim repository.
 
 Each package module has a focused package assertion in its matching module test.
 
@@ -83,10 +85,6 @@ Tests the shared package maintenance hook and profile selection for `module.pack
 #### `test_mise_bootstrap_discord.zsh`, `test_mise_bootstrap_softraid.zsh`, `test_mise_bootstrap_whatsapp.zsh`
 
 Tests personal-only package selection for each personal cask module.
-
-#### `test_mise_bootstrap_repos.zsh`
-
-Tests repository bootstrap declarations.
 
 #### `test_mise_bootstrap_<module>.zsh`
 

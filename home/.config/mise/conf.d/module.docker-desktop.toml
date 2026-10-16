@@ -1,2 +1,5 @@
 [bootstrap.packages]
 "brew-cask:docker-desktop" = "latest"
+
+[dotfiles]
+"~/.config/zsh/.zshrc-zone-3.zsh/docker-desktop" = { source = "~/dev/personal/dot/home/.config/docker-desktop/zshrc.zsh", template = "tera" }

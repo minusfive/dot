@@ -30,7 +30,7 @@ fi
 grep -qF '"~/.config/mise/tasks/brew/install.zsh"' home/.config/mise/conf.d/module.mise.toml ||
     fail "mise control-plane module does not deploy the Homebrew installation task"
 local __task_info="$(
-    MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
+    env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
         mise -C "$__root_dir" tasks info brew:install
 )"
 print -r -- "$__task_info" | grep -qF "home/.config/mise/tasks/brew/install.zsh" ||

@@ -2,4 +2,6 @@
 "brew:lazygit" = "latest"
 
 [dotfiles]
-"~/.config/lazygit" = { source = "~/dev/personal/dot/home/.config/lazygit", mode = "symlink-each" }
+"~/.config/lazygit/config.yml" = { source = "~/dev/personal/dot/home/.config/lazygit/config.yml", mode = "symlink" }
+"~/.config/lazygit/theme.yml" = { source = "~/dev/personal/dot/home/.config/lazygit/theme.yml", mode = "symlink" }
+"~/.config/zsh/.zshrc-zone-3.zsh/lazygit" = { source = "~/dev/personal/dot/home/.config/lazygit/zshrc.zsh", template = "tera" }

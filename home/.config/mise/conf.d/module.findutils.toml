@@ -1,2 +1,5 @@
 [bootstrap.packages]
 "brew:findutils" = "latest"
+
+[dotfiles]
+"~/.config/zsh/.zshrc-zone-0.zsh/findutils" = { source = "~/dev/personal/dot/home/.config/findutils/zshrc.zsh", template = "tera" }

@@ -2,4 +2,5 @@
 "brew:ripgrep" = "latest"
 
 [dotfiles]
-"~/.config/ripgrep" = { source = "~/dev/personal/dot/home/.config/ripgrep", mode = "symlink-each" }
+"~/.config/ripgrep/.ripgreprc" = { source = "~/dev/personal/dot/home/.config/ripgrep/.ripgreprc", mode = "symlink" }
+"~/.config/zsh/.zshrc-zone-3.zsh/ripgrep" = { source = "~/dev/personal/dot/home/.config/ripgrep/zshrc.zsh", template = "tera" }

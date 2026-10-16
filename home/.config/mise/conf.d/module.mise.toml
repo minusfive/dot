@@ -34,7 +34,6 @@
 "~/.config/mise/conf.d/module.imageoptim.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.imageoptim.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.obsidian.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.obsidian.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.yubico-authenticator.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.yubico-authenticator.toml", mode = "symlink" }
-"~/.config/mise/conf.d/module.repos.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.repos.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.agents.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.agents.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.bat.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.bat.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.btop.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.btop.toml", mode = "symlink" }
@@ -48,11 +47,13 @@
 "~/.config/mise/conf.d/module.hammerspoon.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.hammerspoon.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.harper.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.harper.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.nvim.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.nvim.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.p10k.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.p10k.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.lazygit.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.lazygit.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.ripgrep.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.ripgrep.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.tmux.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.tmux.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.wezterm.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.wezterm.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.yazi.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.yazi.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.yarn.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.yarn.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.zsh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.zsh.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.oh-my-zsh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.oh-my-zsh.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.claude.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.claude.toml", mode = "symlink" }
@@ -74,6 +75,7 @@
 "~/.config/mise/tasks/mise/tasks/validate-conflicts.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/tasks/validate-conflicts.zsh", mode = "symlink" }
 "~/.config/mise/tasks/ai/skills/evals/validate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/validate.zsh", mode = "symlink" }
 "~/.config/mise/tasks/omz/update.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/omz/update.zsh", mode = "symlink" }
+"~/.config/mise/tasks/zsh/migrate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/zsh/migrate.zsh", mode = "symlink" }
 "~/.config/mise/tasks/md/preview.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/md/preview.ts", mode = "symlink" }
 "~/.config/mise/tasks/pr/stack.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack.ts", mode = "symlink" }
 "~/.config/mise/tasks/pr/stack-sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack-sync.ts", mode = "symlink" }

@@ -1,2 +1,5 @@
 [bootstrap.packages]
 "brew:coreutils" = "latest"
+
+[dotfiles]
+"~/.config/zsh/.zshrc-zone-0.zsh/coreutils" = { source = "~/dev/personal/dot/home/.config/coreutils/zshrc.zsh", template = "tera" }

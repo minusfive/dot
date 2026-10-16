@@ -2,4 +2,5 @@
 "brew:git" = "latest"
 
 [dotfiles]
-"~/.config/git" = { source = "~/dev/personal/dot/home/.config/git", mode = "symlink-each" }
+"~/.config/git" = { source = "~/dev/personal/dot/home/.config/git", mode = "symlink-each", exclude = ["zshrc.zsh"] }
+"~/.config/zsh/.zshrc-zone-0.zsh/git" = { source = "~/dev/personal/dot/home/.config/git/zshrc.zsh", template = "tera" }

@@ -40,7 +40,7 @@ Each profile loads a different group of `mise` modules. These modules list the f
 
 ### File ownership and application data
 
-The `home/` directory mirrors the target user's `$HOME` layout. `mise` places selected files where the corresponding tool or application expects to find them, including `mise` itself. A placed file is not a second copy of the source. When a tool edits a linked file, it edits the repository file.
+The `home/` directory mirrors the target user's `$HOME` layout. `mise` places selected files where the corresponding tool or application expects to find them, including `mise` itself. A placed file can be a link, a copy, or an edit of an existing file.
 
 The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`bootstrap.directories`][mise-bootstrap] entries describe how and when `mise` manages files and directories.
 
@@ -48,7 +48,9 @@ The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`boot
 
 - A `symlink` links one file directly to the repository. Edits at the installed path change the repository file and appear as repository changes. Edits made by external tools to linked files appear as repository changes. Those changes are then checked by hooks, and reviewed by agents and myself, before every commit.
 - `symlink-each` links every file that it finds in a source directory. It does not copy files that exist only at the target. Repository-only files need explicit exclusions.
+- A `copy` creates a regular target file from a source file. `block` and `line` edits can then manage selected parts of that target without making it a link.
 - A `template` dynamically creates a target output file from a source file and arbitrary inputs. Edits to the output do not change the source.
+- A `block` manages text between marker comments. A `line` manages one exact line. Both leave the rest of the target unchanged.
 - A `merge` can update specific entries or values in a target file without managing the whole file. Combined with `template` those values can be dynamically rendered from other inputs.
 
 This granular file management approach means other generated files or values such as histories, caches, databases, credentials, etc., stay in their original location, outside this repository. This prevents accidental check-ins of sensitive data, and preserves application-managed permissions and cleanup.

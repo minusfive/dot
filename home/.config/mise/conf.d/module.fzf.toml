@@ -2,4 +2,5 @@
 "brew:fzf" = "latest"
 
 [dotfiles]
-"~/.config/fzf" = { source = "~/dev/personal/dot/home/.config/fzf", mode = "symlink-each" }
+"~/.config/fzf/fzf.conf" = { source = "~/dev/personal/dot/home/.config/fzf/fzf.conf", mode = "symlink" }
+"~/.config/zsh/.zshrc-zone-3.zsh/fzf" = { source = "~/dev/personal/dot/home/.config/fzf/zshrc.zsh", template = "tera" }

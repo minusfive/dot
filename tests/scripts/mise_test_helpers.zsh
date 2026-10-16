@@ -59,6 +59,37 @@ assert_tool_module() {
     done
 }
 
+assert_module_repo() {
+    local __module="$1"
+    local __url="$2"
+    local __target="$3"
+    local __ref="${4:-}"
+    local __config="home/.config/mise/conf.d/module.$__module.toml"
+    local __control_plane="home/.config/mise/conf.d/module.mise.toml"
+    [[ -f "$__config" ]] || fail "missing $__config"
+    grep -qF "[bootstrap.repos]" "$__config" || fail "repository bootstrap section is missing from $__config"
+    grep -qF "$__url" "$__config" || fail "$__url is missing from $__config"
+    grep -qF "\"~/.config/mise/conf.d/module.$__module.toml\"" "$__control_plane" ||
+        fail "control-plane module does not deploy module.$__module.toml"
+    for __profile in work personal; do
+        local __profile_config="$(
+            env -u MISE_ENV DOT_PROFILE="$__profile" \
+                MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
+                mise -C "$__root_dir" config ls --no-truncate
+        )"
+        print -r -- "$__profile_config" | grep -qF "module.$__module.toml" ||
+            fail "$__module must be selected by the $__profile profile"
+    done
+    [[ -d "$__target" && ! -L "$__target" ]] || fail "repository target is not a physical directory: $__target"
+    local __origin="$(git -C "$__target" config --get remote.origin.url)"
+    [[ "${__origin%.git}" == "${__url%.git}" ]] ||
+        fail "repository target origin is incorrect: $__target"
+    if [[ -n "$__ref" ]]; then
+        [[ "$(git -C "$__target" symbolic-ref --short HEAD)" == "$__ref" ]] ||
+            fail "repository target is not on $__ref: $__target"
+    fi
+}
+
 assert_personal_module_package() {
     local __module="$1"
     local __package="$2"

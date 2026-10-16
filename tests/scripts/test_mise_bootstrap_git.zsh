@@ -10,11 +10,16 @@ local __config="home/.config/mise/conf.d/module.git.toml"
 assert_module_package git brew:git
 local __source_config="home/.config/git/config"
 local __source_ignore="home/.config/git/ignore"
+local __source_zsh="home/.config/git/zshrc.zsh"
 local __target="$HOME/.config/git"
 [[ -f "$__config" && -f "$__source_config" && -f "$__source_ignore" ]] ||
     fail "Git source or declaration is missing"
-grep -qF '"~/.config/git" = { source = "~/dev/personal/dot/home/.config/git", mode = "symlink-each" }' "$__config" ||
+[[ -f "$__source_zsh" ]] || fail "missing Git Zsh source"
+zsh -n "$__source_zsh" || fail "Git Zsh source has syntax errors"
+grep -qF '"~/.config/git" = { source = "~/dev/personal/dot/home/.config/git", mode = "symlink-each", exclude = ["zshrc.zsh"] }' "$__config" ||
     fail "Git symlink-each declaration is missing"
+grep -qF '"~/.config/zsh/.zshrc-zone-0.zsh/git"' "$__config" ||
+    fail "Git Zsh edit is missing"
 [[ -d "$__target" && ! -L "$__target" ]] || fail "Git target must be a physical directory"
 for __path in "$__target/config" "$__target/ignore"; do
     [[ -L "$__path" ]] || fail "Git target is not a symlink: $__path"

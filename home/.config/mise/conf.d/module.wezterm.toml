@@ -2,4 +2,7 @@
 "brew-cask:wezterm@nightly" = "latest"
 
 [dotfiles]
-"~/.config/wezterm" = { source = "~/dev/personal/dot/home/.config/wezterm", mode = "symlink-each", exclude = ["AGENTS.md", "CLAUDE.md"] }
+"~/.config/wezterm/wezterm.lua" = { source = "~/dev/personal/dot/home/.config/wezterm/wezterm.lua", mode = "symlink" }
+"~/.config/wezterm/shell-completion.zsh" = { source = "~/dev/personal/dot/home/.config/wezterm/shell-completion.zsh", mode = "symlink" }
+"~/.config/wezterm/shell-integration.zsh" = { source = "~/dev/personal/dot/home/.config/wezterm/shell-integration.zsh", mode = "symlink" }
+"~/.config/zsh/.zshrc-zone-3.zsh/wezterm" = { source = "~/dev/personal/dot/home/.config/wezterm/zshrc.zsh", template = "tera" }

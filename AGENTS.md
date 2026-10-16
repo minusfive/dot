@@ -7,6 +7,7 @@
 - Group `home/.config/mise/conf.d/` files by logical boundary.
 - Group tightly coupled declarations in one `module.<name>.toml` file.
 - Use the profile lists in `home/.config/mise/miserc.toml` to select modules for each environment. Keep profile-specific modules out of profiles that should not load them.
+- Keep module names in each `home/.config/mise/miserc.toml` profile list alphabetized.
 - When you add or move package declarations between `home/.config/mise/conf.d/` modules, inspect `home/.config/mise/miserc.toml`. Update the `work` and `personal` module lists when selection changes, keep personal-only packages out of `work`, and cover the boundary in focused package tests.
 - Wire new bootstrap phases into `scripts/mise.zsh` when `scripts/init.zsh --mise` must apply them.
 - Keep tool-owned runtime files outside tracked sources and mise declarations.
@@ -25,6 +26,7 @@ The skills below are available under `.agents/skills/`. **MUST NOT** preload any
 
 - `mise-bootstrap-lifecycle` — Maintain the full mise initialization lifecycle, hooks, confirmations, and failure behavior.
 - `mise-bootstrap-modules` — Maintain mise module boundaries, declarations, control-plane links, and profile selection.
+- `mise-bootstrap-zsh` — Maintain Zsh startup zones, module-owned shell blocks, path precedence, and related bootstrap tests.
 - `mise-bootstrap-profiles` — Maintain work and personal profile state, rendering, and module cleanup.
 - `mise-bootstrap-testing` — Maintain focused tests for mise modules, profiles, lifecycle hooks, and ownership.
 - `readme-maintenance` — Keep `README.md` current, educational, and accurate when repository behavior or structure changes.

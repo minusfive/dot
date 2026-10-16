@@ -11,11 +11,13 @@ assert_module_package yazi brew:yazi
 local __source="home/.config/yazi"
 local __target="$HOME/.config/yazi"
 [[ -f "$__config" ]] || fail "missing $__config"
-grep -qF '"~/.config/yazi" = { source = "~/dev/personal/dot/home/.config/yazi", mode = "symlink-each" }' "$__config" ||
+grep -qF '"~/.config/yazi" = { source = "~/dev/personal/dot/home/.config/yazi", mode = "symlink-each", exclude = ["zshrc.zsh"] }' "$__config" ||
     fail "Yazi symlink-each declaration is missing"
+grep -qF '"~/.config/zsh/.zshrc-zone-3.zsh/yazi"' "$__config" ||
+    fail "Yazi zshrc edit is missing"
 [[ -d "$__target" && ! -L "$__target" ]] || fail "Yazi target must be a physical directory"
 local __source_count="$(find "$__source" -type f | wc -l | tr -d ' ')"
-[[ "$__source_count" == "14" ]] || fail "expected 14 tracked Yazi source files, found $__source_count"
+[[ "$__source_count" == "15" ]] || fail "expected 15 tracked Yazi source files, found $__source_count"
 local __target_count="$(find "$__target" -type l | wc -l | tr -d ' ')"
 [[ "$__target_count" == "14" ]] || fail "expected 14 Yazi links, found $__target_count"
 find "$__target" -type l -exec sh -c 'for path do case "$(readlink "$path")" in /*) exit 1;; esac; done' sh {} + ||

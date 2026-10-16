@@ -1,5 +1,14 @@
 [bootstrap.repos]
 "~/.config/oh-my-zsh" = { url = "https://github.com/ohmyzsh/ohmyzsh.git" }
+"~/.config/oh-my-zsh/custom/plugins/fast-syntax-highlighting" = { url = "https://github.com/zdharma-continuum/fast-syntax-highlighting.git" }
+"~/.config/oh-my-zsh/custom/plugins/fzf-tab" = { url = "https://github.com/Aloxaf/fzf-tab.git" }
+"~/.config/oh-my-zsh/custom/plugins/fzf-tab-source" = { url = "https://github.com/Freed-Wu/fzf-tab-source.git" }
+"~/.config/oh-my-zsh/custom/plugins/ohmyzsh-full-autoupdate" = { url = "https://github.com/Pilaton/OhMyZsh-full-autoupdate.git" }
+"~/.config/oh-my-zsh/custom/plugins/zsh-autosuggestions" = { url = "https://github.com/zsh-users/zsh-autosuggestions.git" }
+"~/.config/oh-my-zsh/custom/plugins/zsh-vi-mode" = { url = "https://github.com/jeffreytse/zsh-vi-mode.git" }
+
+[dotfiles]
+"~/.config/zsh/.zshrc-zone-1.zsh/oh-my-zsh" = { source = "~/dev/personal/dot/home/.config/oh-my-zsh/zshrc.zsh", template = "tera" }
 
 [bootstrap.hooks]
 post-dotfiles = "mise run omz:update"
