@@ -85,7 +85,6 @@ done
 cp home/.config/zsh/.zshenv "$__fixture_root/.zshenv"
 cp home/.config/zsh/.zshrc "$__fixture_root/.config/zsh/.zshrc"
 cp home/.config/zsh/.zshrc-zones.zsh "$__fixture_root/.config/zsh/.zshrc-zones.zsh"
-cp home/.config/zsh/.zshrc-zone-0.zsh "$__fixture_root/.config/zsh/.zshrc-zone-0.zsh"
 cp home/.config/zsh/.zshrc-zone-2.zsh "$__fixture_root/.config/zsh/.zshrc-zone-2.zsh"
 cp home/.config/zsh/.aliases "$__fixture_root/.config/zsh/.aliases"
 cp home/.config/zsh/custom_functions.zsh "$__fixture_root/.config/zsh/custom_functions.zsh"
