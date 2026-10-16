@@ -88,6 +88,7 @@
 "~/.config/mise/conf.d/module.bun.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.bun.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.go.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.go.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.github-copilot.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.github-copilot.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.gnu-sed.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.gnu-sed.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.mermaid-cli.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.mermaid-cli.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.mermaid-formatter.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.mermaid-formatter.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.node.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.node.toml", mode = "symlink" }

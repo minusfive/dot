@@ -9,6 +9,7 @@
 .config/zsh/.zshrc-zone-0.zsh	curl
 .config/zsh/.zshrc-zone-0.zsh	findutils
 .config/zsh/.zshrc-zone-0.zsh	git
+.config/zsh/.zshrc-zone-0.zsh	gnu-sed
 .config/zsh/.zshrc-zone-0.zsh	yarn
 .config/zsh/.zshrc-zone-1.zsh	oh-my-zsh
 .config/zsh/.zshrc-zone-2.zsh	aliases
