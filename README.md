@@ -55,7 +55,7 @@ The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`boot
 
 This granular file management approach means other generated files or values such as histories, caches, databases, credentials, etc., stay in their original location, outside this repository. This prevents accidental check-ins of sensitive data, and preserves application-managed permissions and cleanup.
 
-The files are grouped by purpose. Each module manages related resources. Shared package modules such as `coreutils`, `findutils`, and `gnu-sed` keep their Homebrew package declaration beside the small Zone 0 path fragment that exposes the package's commands. A `dotfiles` entry can manage a whole file or selected configuration values. This keeps each setup area small and easier to understand. Repository-only guidance or maintenance files can stay co-located with managed files without polluting target locations.
+The files are grouped by purpose. Each module manages related resources. A `dotfiles` entry can manage a whole file or selected configuration values. This keeps each setup area small and easier to understand. Repository-only guidance or maintenance files can stay co-located with managed files without polluting target locations.
 
 ```text
 .
