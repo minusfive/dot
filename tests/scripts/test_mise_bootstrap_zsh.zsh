@@ -25,7 +25,7 @@ local __task_info="$(
 )"
 print -r -- "$__task_info" | grep -qF "home/.config/mise/tasks/zsh/migrate.zsh" ||
     fail "Zsh migration task is not discoverable"
-grep -qF '"~/.config/zsh" = { source = "~/dev/personal/dot/home/.config/zsh", mode = "symlink-each", exclude = [".p10k.zsh", ".zshrc", ".zshrc-zone-0.zsh", ".zshrc-zone-2.zsh", ".zshrc-zones.zsh"] }' "$__config" ||
+grep -qF '"~/.config/zsh" = { source = "~/dev/personal/dot/home/.config/zsh", mode = "symlink-each", exclude = [".aliases", ".p10k.zsh", ".zshrc", ".zshrc-zone-0.zsh", ".zshrc-zone-2.zsh", ".zshrc-zones.zsh"] }' "$__config" ||
     fail "zsh symlink-each declaration is missing"
 for __entry in \
     '~/.config/zsh/.zshrc/zshrc' \
@@ -73,7 +73,7 @@ for __declaration in 'typeset -aU path' 'typeset -aU fpath' 'typeset -aU manpath
         fail "Zsh array declaration is missing: $__declaration"
 done
 for __path in \
-    .aliases .zshenv custom_functions.zsh \
+    .zshenv custom_functions.zsh \
     plugins/zsh-vi-mode/config.zsh; do
     [[ -f "$__source/$__path" ]] || fail "missing zsh source: $__path"
     [[ -L "$__target/$__path" ]] || fail "zsh target is not a symlink: $__path"
