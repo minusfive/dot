@@ -55,8 +55,6 @@ The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`boot
 
 This granular file management approach means other generated files or values such as histories, caches, databases, credentials, etc., stay in their original location, outside this repository. This prevents accidental check-ins of sensitive data, and preserves application-managed permissions and cleanup.
 
-`mise` keeps shell framework and plugin configuration in its managed startup files. It places the vi-mode hooks before plugin initialization so the hooks exist when the plugin starts. The prompt repository and prompt files remain in their own module. Runtime repositories, history files, completion dumps, and caches stay outside tracked sources.
-
 The files are grouped by purpose. Each module manages related resources. A `dotfiles` entry can manage a whole file or selected configuration values. This keeps each setup area small and easier to understand. Repository-only guidance or maintenance files can stay co-located with managed files without polluting target locations.
 
 ```text
