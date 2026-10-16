@@ -4,6 +4,7 @@ auto_env = true
 {% set shared_modules = [
     '1password',
     'agents',
+    'aliases',
     'betterdisplay',
     'bat',
     'brew',
