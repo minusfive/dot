@@ -1,0 +1,26 @@
+{
+  "renderMarkdown": true,
+  "screenReader": false,
+  "theme": "default",
+  "footer": {
+    "showModelEffort": true,
+    "showDirectory": true,
+    "showBranch": true,
+    "showContextWindow": true,
+    "showQuota": true,
+    "showAiUsed": true,
+    "showAgent": true,
+    "showCodeChanges": true,
+    "showUsername": true,
+    "showSandbox": true,
+    "showYolo": true,
+    "showCiStatus": true,
+    "showPullRequest": true,
+    "showCustom": false
+  },
+  "colorMode": "default",
+  "experimental": true,
+  "showReasoning": false,
+  "effortLevel": "high",
+  "contextTier": "long_context"
+}
