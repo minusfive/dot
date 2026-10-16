@@ -55,7 +55,6 @@ auto_env = true
     'prettier',
     'python',
     'qmd',
-    'repos',
     'ripgrep',
     'ruby',
     'rumdl',
