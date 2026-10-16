@@ -65,7 +65,7 @@ fi
 [[ ! -e "home/.config/zsh/.zsh_history" && ! -e "home/.config/zsh/.zcompdump" ]] ||
     fail "Zsh runtime files must remain outside the tracked source"
 
-local __fixture_dir="$__root_dir/.agents/eval-workspaces/aliases-module-$$"
+local __fixture_dir="$(mktemp -d "${TMPDIR:-/tmp}/aliases-module.XXXXXX")"
 local __fixture_home="$__fixture_dir/home"
 local __fixture_config="$__fixture_home/.config/mise"
 local __fixture_zone="$__fixture_home/.config/zsh/.zshrc-zone-2.zsh"
@@ -155,7 +155,7 @@ cmp -s "$__fixture_unmanaged" "$__fixture_unmanaged_before" ||
     fail "unmanaged fixture file changed"
 zsh -n "$__fixture_zone" || fail "generated Zone 2 file has syntax errors"
 
-rm -rf "$__fixture_dir"
+rm -rf -- "$__fixture_dir"
 trap - EXIT
 
 echo "aliases bootstrap configuration passed."
