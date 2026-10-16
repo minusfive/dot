@@ -7,6 +7,8 @@ description: Execute deterministic story plans through dependency-aware workflow
 
 Use this skill after planning is complete and you need to execute an existing plan through issues, board cards, PRs, and merges.
 
+For multi-issue GitHub delivery with independent worktrees, separate PRs, review watching, or manual merge handoff, load `pr-orchestration` first. This skill supplies the story lifecycle and dependency gates; `pr-orchestration` supplies the lane, runtime-isolation, review, and merge-authority rules.
+
 ## Canonical lifecycle
 
 Use this lifecycle for every story and transition:
@@ -25,7 +27,7 @@ Use this lifecycle for every story and transition:
 3. Resolve and use the exact accepted plan artifact path provided by planning handoff (or an explicit path I provide) before starting execution; do not infer default paths.
 4. When I identify GitHub issues as the plan source, treat each issue description as that story's canonical plan.
 5. Refine each issue description before implementation when required plan fields are missing, inconsistent, or non-actionable.
-6. Have a separate critique agent review each proposed issue-plan update before you submit it to GitHub.
+6. Have an independent critique subagent review each proposed issue-plan update before you submit it to GitHub.
 7. If no explicit plan artifact or issue-based plan source is available, stop and request one before execution.
 8. Do not rewrite accepted story specs during execution; if execution discovers drift, trigger the drift protocol and request a targeted planning update.
 9. Keep story execution in topological dependency order.

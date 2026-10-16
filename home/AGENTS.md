@@ -99,6 +99,7 @@ The skills below are available under [`.agents/skills/`](.agents/skills/). **MUS
 - `opencode-copilot-multipliers` — Sync GitHub Copilot model alias multiplier labels in the OpenCode config with current `github/docs` paid multipliers.
 - `planning` — Produce execution-ready implementation plans for multi-step, high-risk, ambiguous, or multi-file/service work.
 - `pr-guidelines` — Push branches, keep open pull requests current, and open pull requests using the project's title/body conventions and linked issues.
+- `pr-orchestration` — Orchestrate multi-issue GitHub delivery with issue plans, independent worktrees, isolated tests, critique gates, review watching, and manual merge handoff.
 - `preview-docs` — Manage Markdown preview servers by listing, starting, selecting, refreshing, reconciling, or stopping previews.
 - `project-overview` — Discover project structure, architecture, and tooling before implementation in an unfamiliar area.
 - `qmd-setup` — Set up QMD in a repository with repository scanning, collection planning, YAML-defined collections, and approval-gated execution.
