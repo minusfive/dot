@@ -168,7 +168,7 @@ fi
 
 local __mise_link_count
 __mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 109 ]] || fail "expected 109 managed mise links, found $__mise_link_count"
+[[ "$__mise_link_count" -eq 110 ]] || fail "expected 110 managed mise links, found $__mise_link_count"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \

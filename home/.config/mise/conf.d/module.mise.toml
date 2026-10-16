@@ -79,6 +79,7 @@
 "~/.config/mise/tasks/omz/update.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/omz/update.zsh", mode = "symlink" }
 "~/.config/mise/tasks/zsh/migrate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/zsh/migrate.zsh", mode = "symlink" }
 "~/.config/mise/tasks/md/preview.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/md/preview.ts", mode = "symlink" }
+"~/.config/mise/tasks/pr/review-watch.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/review-watch.ts", mode = "symlink" }
 "~/.config/mise/tasks/pr/stack.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack.ts", mode = "symlink" }
 "~/.config/mise/tasks/pr/stack-sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack-sync.ts", mode = "symlink" }
 "~/.config/mise/tasks/pr/sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/sync.ts", mode = "symlink" }

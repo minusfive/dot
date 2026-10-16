@@ -1,0 +1,37 @@
+{
+  "skill_name": "pr-orchestration",
+  "evals": [
+    {
+      "id": "parallel-issue-pr-delivery",
+      "prompt": "Implement issues #101, #102, and #103 in parallel. Each issue needs its own PR. Use separate worktrees, keep the live home directory safe, and wait for me to merge the PRs.",
+      "expected_output": "Refine each issue description first, create one branch and worktree per issue, run independent implementation and critique cycles, create separate PRs, and leave merging to the user.",
+      "assertions": [
+        "The response treats each issue description as the durable plan before implementation.",
+        "The response assigns independent worktrees and separate PRs to the issues.",
+        "The response requires an independent critique subagent before each commit or push.",
+        "The response states that the agent must not merge PRs."
+      ]
+    },
+    {
+      "id": "isolated-bootstrap-validation",
+      "prompt": "Move a bootstrap-managed shell file into a new module without changing the live shell.",
+      "expected_output": "Use a separate worktree and isolated dummy HOME or temporary fixture, preserve runtime exclusions, and validate the focused behavior before commit.",
+      "assertions": [
+        "The response requires an isolated dummy tree or temporary fixture.",
+        "The response excludes the live HOME and runtime state from test mutations.",
+        "The response includes focused validation before the critique and commit gates."
+      ]
+    },
+    {
+      "id": "review-watch-lifecycle",
+      "prompt": "Watch open PRs for review comments. Address new comments as they arrive and stop watching merged PRs.",
+      "expected_output": "Use the one-shot review-watch task on an external schedule, inspect new reviews and comments, fix each PR in its matching worktree with an independent critique subagent, synchronize metadata after pushes, and remove merged or closed PRs from the watch state.",
+      "assertions": [
+        "The response uses the review-watch task as a one-shot poll.",
+        "The response removes merged or closed PRs from the watch state.",
+        "The response requires an independent critique subagent before review-fix commits and pushes.",
+        "The response closes the watch only when no open watched PR remains."
+      ]
+    }
+  ]
+}
