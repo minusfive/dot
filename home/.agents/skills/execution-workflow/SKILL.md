@@ -23,9 +23,12 @@ Use this lifecycle for every story and transition:
    - Acceptance checks
    - Rollback/mitigation notes
 3. Resolve and use the exact accepted plan artifact path provided by planning handoff (or an explicit path I provide) before starting execution; do not infer default paths.
-4. If no explicit plan artifact path is available, stop and request it before execution.
-5. Do not rewrite story specs during execution; if plan fields are missing, inconsistent, or non-actionable, trigger the drift protocol and request a targeted planning update.
-6. Keep story execution in topological dependency order.
+4. When I identify GitHub issues as the plan source, treat each issue description as that story's canonical plan.
+5. Refine each issue description before implementation when required plan fields are missing, inconsistent, or non-actionable.
+6. Have a separate critique agent review each proposed issue-plan update before you submit it to GitHub.
+7. If no explicit plan artifact or issue-based plan source is available, stop and request one before execution.
+8. Do not rewrite accepted story specs during execution; if execution discovers drift, trigger the drift protocol and request a targeted planning update.
+9. Keep story execution in topological dependency order.
 
 ## Execution topology
 
