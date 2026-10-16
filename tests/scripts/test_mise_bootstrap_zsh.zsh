@@ -103,7 +103,9 @@ for __declaration in 'typeset -aU path' 'typeset -aU fpath' 'typeset -aU manpath
     grep -qF "$__declaration" "$__source/.zshrc" ||
         fail "Zsh array declaration is missing: $__declaration"
 done
-for __path in .aliases .zshenv custom_functions.zsh; do
+for __path in \
+    .zshenv custom_functions.zsh \
+    plugins/zsh-vi-mode/config.zsh; do
     [[ -f "$__source/$__path" ]] || fail "missing zsh source: $__path"
     [[ -L "$__target/$__path" ]] || fail "zsh target is not a symlink: $__path"
     case "$(readlink "$__target/$__path")" in

@@ -4,6 +4,7 @@ auto_env = true
 {% set shared_modules = [
     '1password',
     'agents',
+    'aliases',
     'betterdisplay',
     'bat',
     'brew',
@@ -26,6 +27,7 @@ auto_env = true
     'ghostty',
     'git',
     'github-copilot',
+    'gnu-sed',
     'go',
     'google-chrome',
     'gpg-suite',
