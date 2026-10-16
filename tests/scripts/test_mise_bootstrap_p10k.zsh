@@ -35,9 +35,11 @@ for __other_config in home/.config/mise/conf.d/module.*.toml; do
     fi
 done
 
-local __fixture_root="$__root_dir/.test-fixture-p10k-$PPID"
-rm -rf "$__fixture_root"
-trap 'rm -rf "$__fixture_root"' EXIT
+local __fixture_root
+__fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/p10k.XXXXXX")" ||
+    fail "could not create Powerlevel10k fixture"
+__fixture_root="$(realpath "$__fixture_root")"
+trap 'rm -rf -- "$__fixture_root"' EXIT
 mkdir -p \
     "$__fixture_root/.config/zsh" \
     "$__fixture_root/.config/oh-my-zsh/custom/themes/powerlevel10k" \

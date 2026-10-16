@@ -64,9 +64,11 @@ local __task_info="$(
 print -r -- "$__task_info" | grep -qF 'Task: omz:update' ||
     fail "Oh My Zsh update task is not discoverable"
 
-local __fixture_root="$__root_dir/.test-fixture-oh-my-zsh-$PPID"
-rm -rf "$__fixture_root"
-trap 'rm -rf "$__fixture_root"' EXIT
+local __fixture_root
+__fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/oh-my-zsh.XXXXXX")" ||
+    fail "could not create Oh My Zsh fixture"
+__fixture_root="$(realpath "$__fixture_root")"
+trap 'rm -rf -- "$__fixture_root"' EXIT
 mkdir -p \
     "$__fixture_root/.config/zsh" \
     "$__fixture_root/.config/oh-my-zsh/custom/plugins" \
@@ -81,6 +83,16 @@ for __plugin in \
     zsh-autosuggestions \
     zsh-vi-mode; do
     mkdir -p "$__fixture_root/.config/oh-my-zsh/custom/plugins/$__plugin"
+done
+for __profile in work personal; do
+    local __profile_config="$(
+        env -u MISE_ENV HOME="$__fixture_root" XDG_CONFIG_HOME="$__fixture_root/.config" \
+            MISE_DATA_DIR="$__fixture_root/mise-data" MISE_CACHE_DIR="$__fixture_root/mise-cache" \
+            DOT_PROFILE="$__profile" MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
+            mise -C "$__root_dir" config ls --no-truncate
+    )"
+    print -r -- "$__profile_config" | grep -qF "module.oh-my-zsh.toml" ||
+        fail "Oh My Zsh must be selected by the $__profile profile"
 done
 cp home/.config/zsh/.zshenv "$__fixture_root/.zshenv"
 cp home/.config/zsh/.zshrc "$__fixture_root/.config/zsh/.zshrc"

@@ -9,9 +9,11 @@ echo "Testing zsh bootstrap configuration..."
 local __config="home/.config/mise/conf.d/module.zsh.toml"
 assert_module_package zsh brew:zsh
 local __source="home/.config/zsh"
-local __fixture_root="$__root_dir/.test-fixture-zsh-$PPID"
-rm -rf "$__fixture_root"
-trap 'rm -rf "$__fixture_root"' EXIT
+local __fixture_root
+__fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/zsh-bootstrap.XXXXXX")" ||
+    fail "could not create Zsh fixture"
+__fixture_root="$(realpath "$__fixture_root")"
+trap 'rm -rf -- "$__fixture_root"' EXIT
 local __target="$__fixture_root/.config/zsh"
 mkdir -p "$__target" "$__fixture_root/.local/state" "$__fixture_root/.local/share" "$__fixture_root/.cache"
 local __relative_source
