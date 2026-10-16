@@ -1,4 +1,5 @@
 [dotfiles]
+"~/.config/mise/conf.d/module.aliases.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.aliases.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.gh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.gh.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.discord.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.discord.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.softraid.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.softraid.toml", mode = "symlink" }
