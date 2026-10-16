@@ -23,6 +23,8 @@ for __source_path in home/.config/p10k/zshrc.zsh home/.config/p10k/zshrc-zone-2.
     [[ -f "$__source_path" ]] || fail "missing Powerlevel10k Zsh source: $__source_path"
     zsh -n "$__source_path" || fail "Powerlevel10k Zsh source has syntax errors: $__source_path"
 done
+grep -qF 'ZSH_THEME="powerlevel10k/powerlevel10k"' home/.config/p10k/zshrc.zsh ||
+    fail "Powerlevel10k module does not own ZSH_THEME"
 grep -qF '"~/.config/mise/conf.d/module.p10k.toml"' home/.config/mise/conf.d/module.mise.toml ||
     fail "mise control-plane module does not deploy module.p10k.toml"
 for __other_config in home/.config/mise/conf.d/module.*.toml; do

@@ -15,6 +15,17 @@ local __old_source="home/.config/zsh/plugins/zsh-vi-mode/config.zsh"
 zsh -n "$__source" || fail "tracked vi-mode source has syntax errors"
 zsh -n home/.config/oh-my-zsh/zshrc.zsh || fail "Oh My Zsh source has syntax errors"
 zsh -n home/.config/zsh/.zshrc-zone-0.zsh || fail "Zone 0 source has syntax errors"
+if grep -qE '^[[:space:]]*ZSH_THEME=' home/.config/oh-my-zsh/zshrc.zsh; then
+    fail "Powerlevel10k theme selection must not be owned by Oh My Zsh"
+fi
+
+local __plugins_block="$(sed -n '/^plugins=(/,/^)/p' home/.config/oh-my-zsh/zshrc.zsh)"
+for __plugin in \
+    git zsh-vi-mode zoxide fzf fzf-tab fzf-tab-source zsh-autosuggestions \
+    fast-syntax-highlighting colored-man-pages ohmyzsh-full-autoupdate mise bun; do
+    grep -qF "    $__plugin" <<< "$__plugins_block" ||
+        fail "Oh My Zsh plugin array is missing $__plugin"
+done
 
 grep -qF '[bootstrap.repos]' "$__config" || fail "repository bootstrap section is missing"
 grep -qF '"~/.config/oh-my-zsh" = { url = "https://github.com/ohmyzsh/ohmyzsh.git" }' "$__config" ||
