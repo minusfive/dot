@@ -7,7 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing aliases bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/module.aliases.toml"
-local __source="home/.config/zsh/.aliases"
+local __source="home/.config/aliases/.aliases"
 local __alias_source="home/.config/aliases/zshrc.zsh"
 local __zone_source="home/.config/zsh/.zshrc-zone-2.zsh"
 local __control_plane="home/.config/mise/conf.d/module.mise.toml"
@@ -17,7 +17,7 @@ local __zsh_config="home/.config/mise/conf.d/module.zsh.toml"
 [[ -f "$__source" ]] || fail "missing $__source"
 [[ -f "$__alias_source" ]] || fail "missing $__alias_source"
 grep -qF '[dotfiles]' "$__config" || fail "aliases dotfiles section is missing"
-grep -qF '"~/.config/zsh/.aliases" = { source = "~/dev/personal/dot/home/.config/zsh/.aliases", mode = "symlink" }' "$__config" ||
+grep -qF '"~/.config/zsh/.aliases" = { source = "~/dev/personal/dot/home/.config/aliases/.aliases", mode = "symlink" }' "$__config" ||
     fail "aliases symlink declaration is missing"
 grep -qF '"~/.config/zsh/.zshrc-zone-2.zsh/aliases" = { source = "~/dev/personal/dot/home/.config/aliases/zshrc.zsh", template = "tera" }' "$__config" ||
     fail "aliases Zone 2 declaration is missing"
@@ -39,8 +39,9 @@ for __profile in work personal; do
     print -r -- "$__profile_config" | grep -qF "module.aliases.toml" ||
         fail "aliases must be selected by the $__profile profile"
 done
-grep -qF 'exclude = [".aliases", ' "$__zsh_config" ||
-    fail "Zsh symlink-each declaration does not exclude .aliases"
+if grep -qF '.aliases' "$__zsh_config"; then
+    fail "generic Zsh module must not own aliases"
+fi
 grep -qF '.config/zsh/.zshrc-zone-2.zsh	aliases' home/.config/mise/cleanup.blocks ||
     fail "cleanup inventory does not record the aliases block"
 
@@ -57,8 +58,8 @@ if grep -qF '.aliases' "$__zone_source"; then
 fi
 grep -qF 'KEYTIMEOUT=1' "$__zone_source" ||
     fail "generic Zone 2 settings were removed"
-[[ ! -e "home/.config/aliases/.aliases" ]] ||
-    fail "aliases directory must not contain a second source"
+[[ "$(find home/.config/aliases -type f -name .aliases | wc -l | tr -d ' ')" -eq 1 ]] ||
+    fail "aliases must have one dedicated source"
 if grep -qF '"~/.config/aliases"' "$__config"; then
     fail "aliases module must not deploy the source directory"
 fi
@@ -139,7 +140,7 @@ env -u MISE_ENV "${__mise_env[@]}" \
 case "$(readlink "$__fixture_aliases")" in
     /*) fail "aliases target link is absolute" ;;
 esac
-[[ "$(realpath "$__fixture_aliases")" == "$(realpath "$__root_dir/home/.config/zsh/.aliases")" ]] ||
+[[ "$(realpath "$__fixture_aliases")" == "$(realpath "$__root_dir/home/.config/aliases/.aliases")" ]] ||
     fail "aliases target resolves to the wrong source"
 [[ "$(grep -cF 'source "$ZDOTDIR/.aliases"' "$__fixture_zone")" -eq 1 ]] ||
     fail "rendered Zone 2 file must contain one active aliases import"

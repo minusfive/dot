@@ -1,3 +1,3 @@
 [dotfiles]
-"~/.config/zsh/.aliases" = { source = "~/dev/personal/dot/home/.config/zsh/.aliases", mode = "symlink" }
+"~/.config/zsh/.aliases" = { source = "~/dev/personal/dot/home/.config/aliases/.aliases", mode = "symlink" }
 "~/.config/zsh/.zshrc-zone-2.zsh/aliases" = { source = "~/dev/personal/dot/home/.config/aliases/zshrc.zsh", template = "tera" }

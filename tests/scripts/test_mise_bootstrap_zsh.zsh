@@ -25,7 +25,7 @@ local __task_info="$(
 )"
 print -r -- "$__task_info" | grep -qF "home/.config/mise/tasks/zsh/migrate.zsh" ||
     fail "Zsh migration task is not discoverable"
-grep -qF '"~/.config/zsh" = { source = "~/dev/personal/dot/home/.config/zsh", mode = "symlink-each", exclude = [".aliases", ".p10k.zsh", ".zshrc", ".zshrc-zone-0.zsh", ".zshrc-zone-2.zsh", ".zshrc-zones.zsh"] }' "$__config" ||
+grep -qF '"~/.config/zsh" = { source = "~/dev/personal/dot/home/.config/zsh", mode = "symlink-each", exclude = [".p10k.zsh", ".zshrc", ".zshrc-zone-0.zsh", ".zshrc-zone-2.zsh", ".zshrc-zones.zsh"] }' "$__config" ||
     fail "zsh symlink-each declaration is missing"
 for __entry in \
     '~/.config/zsh/.zshrc/zshrc' \
