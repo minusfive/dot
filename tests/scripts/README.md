@@ -78,6 +78,16 @@ Tests native macOS preferences, the post-defaults hook, platform loading, and th
 
 Manual macOS operations are exposed as global mise tasks under the `macos:` prefix.
 
+#### `test_mise_task_mise_cleanup.zsh`
+
+Tests that the final cleanup task removes stale repository-managed links while preserving active and external links.
+
+The cleanup task uses `cleanup.paths`, which the inventory task updates from current and historical repository paths.
+
+#### `test_mise_task_mise_cleanup_inventory.zsh`
+
+Tests that the cleanup inventory includes current and historical paths without widening the scan to the whole development directory.
+
 #### `test_mise_bootstrap_packages.zsh`
 
 Tests the shared package maintenance hook and profile selection for `module.packages.toml`.
@@ -107,7 +117,7 @@ Tests hidden project creation and promotion to a checked-in workspace.
 ./tests/scripts/test_betterdisplay.zsh
 ./tests/scripts/test_betterdisplay_integration.zsh
 ./tests/scripts/test_mise_config.zsh
-for test in tests/scripts/test_mise_bootstrap_*.zsh; do
+for test in tests/scripts/test_mise_bootstrap_*.zsh tests/scripts/test_mise_task_*.zsh; do
     zsh "$test"
 done
 ./tests/scripts/test_mise_skill_evals.zsh

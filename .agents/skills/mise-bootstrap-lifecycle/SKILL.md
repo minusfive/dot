@@ -35,7 +35,9 @@ Preserve the installer branch behavior. A newly installed mise does not self-upd
 - Put tool maintenance in the control-plane module's `post-tools` hook.
 - Put application cache rebuilds in the owning module's `post-dotfiles` hook.
 - Keep hooks repeatable and safe to run on every bootstrap.
+- Set hook-invoked tasks to quiet unless their output is an intentional user-facing result.
 - Do not duplicate hook commands in `scripts/mise.zsh`.
+- Keep link cleanup scoped to an additive tracked historical path inventory, exclude mise runtime state, support dry runs, and resolve physical source containment before removal.
 
 ## Validation
 

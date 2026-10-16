@@ -20,7 +20,7 @@ cd ~/dev/personal/dot
 
 ### Bootstrapped with [`mise`][mise] and [`gh`][github-cli]
 
-The `--mise` option runs all `mise` setup steps. It asks for approval once before it updates `mise` itself, `macOS` preferences, places files; installs tools, applications, and themes; clones repositories, runs scripts, and performs maintenance such as updates and cleanup.
+The `--mise` option runs all `mise` setup steps. It asks for approval once before it updates `mise` itself, `macOS` preferences, places files; installs tools, applications, and themes; clones repositories, runs scripts, and performs maintenance such as updates and cleanup. The final `mise` hook adds paths to the historical inventory and removes broken repository-managed links from those paths. The inventory is additive and stays in the repository.
 
 `gh` is used to download certain files from GitHub repositories as part of the bootstrap process. When no existing `gh` session is available, a browser-based authentication flow is triggered and configures `Git` credentials for authenticated resource downloads.
 

@@ -12,6 +12,10 @@ grep -qF '"~/.config/mise/conf.d/module.mise.toml"' "$__config" ||
     fail "mise control-plane module does not manage itself"
 grep -qF '"~/.config/mise/tasks/global-install-packages-all.sh"' "$__config" ||
     fail "aggregate package task is missing"
+grep -qF '"~/.config/mise/tasks/mise/cleanup.zsh"' "$__config" ||
+    fail "stale-link cleanup task is missing"
+grep -qF '"~/.config/mise/tasks/mise/cleanup/inventory.zsh"' "$__config" ||
+    fail "cleanup inventory task is missing"
 grep -qF '"mise upgrade --prune"' "$__config" ||
     fail "tool upgrade hook is missing"
 grep -qF '"mise reshim -f"' "$__config" ||

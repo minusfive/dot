@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
 #MISE description="Verify an AGENTS.md skill index is in sync with its .agents/skills/"
+#MISE quiet=true
 #USAGE flag "--base-path <path>" help="Directory to validate; defaults to the current project root"
 #MISE dir="{{cwd}}"
 

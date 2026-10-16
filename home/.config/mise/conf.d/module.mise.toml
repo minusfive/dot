@@ -73,6 +73,7 @@
 "~/.config/mise/tasks/ai/skills/evals/prepare.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/prepare.zsh", mode = "symlink" }
 "~/.config/mise/tasks/ai/skills/validate-conflicts.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/validate-conflicts.zsh", mode = "symlink" }
 "~/.config/mise/tasks/mise/tasks/validate-conflicts.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/tasks/validate-conflicts.zsh", mode = "symlink" }
+"~/.config/mise/tasks/mise/cleanup/inventory.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/cleanup/inventory.zsh", mode = "symlink" }
 "~/.config/mise/tasks/ai/skills/evals/validate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/validate.zsh", mode = "symlink" }
 "~/.config/mise/tasks/omz/update.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/omz/update.zsh", mode = "symlink" }
 "~/.config/mise/tasks/zsh/migrate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/zsh/migrate.zsh", mode = "symlink" }
@@ -80,6 +81,7 @@
 "~/.config/mise/tasks/pr/stack.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack.ts", mode = "symlink" }
 "~/.config/mise/tasks/pr/stack-sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack-sync.ts", mode = "symlink" }
 "~/.config/mise/tasks/pr/sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/sync.ts", mode = "symlink" }
+"~/.config/mise/tasks/mise/cleanup.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/cleanup.zsh", mode = "symlink" }
 "~/.config/mise/utils/git.ts" = { source = "~/dev/personal/dot/home/.config/mise/utils/git.ts", mode = "symlink" }
 "~/.config/mise/conf.d/module.mise.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.mise.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.bun.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.bun.toml", mode = "symlink" }
@@ -103,4 +105,8 @@ post-tools = [
     "mise upgrade --prune",
     "mise reshim -f",
 ]
-final = "mise fix"
+final = [
+    "mise run mise:cleanup:inventory",
+    "mise run mise:cleanup",
+    "mise fix",
+]

@@ -34,8 +34,25 @@ grep -qF 'mise exec gh@latest -- gh auth setup-git --hostname github.com' script
 
 local __gh_config="home/.config/mise/conf.d/module.gh.toml"
 local __mise_config="home/.config/mise/conf.d/module.mise.toml"
-grep -qF 'final = "mise fix"' "$__mise_config" ||
+grep -qF 'final = [' "$__mise_config" ||
     fail "mise final bootstrap hook is missing"
+grep -qF '"mise run mise:cleanup"' "$__mise_config" ||
+    fail "mise stale-link cleanup is missing from the final hook"
+grep -qF '"mise run mise:cleanup:inventory"' "$__mise_config" ||
+    fail "mise cleanup inventory is missing from the final hook"
+grep -qF '"mise fix"' "$__mise_config" ||
+    fail "mise fix is missing from the final hook"
+for __quiet_task in \
+    "home/.config/mise/tasks/global-install-packages-all.sh" \
+    "home/.config/mise/tasks/global-install-packages-npm.sh" \
+    "home/.config/mise/tasks/global-install-packages-python.sh" \
+    "home/.config/mise/tasks/global-install-packages-ruby.sh" \
+    "home/.config/mise/tasks/lint-skill-index.zsh" \
+    "home/.config/mise/tasks/ai/skills/evals/validate.zsh" \
+    "scripts/tasks/fix.zsh"; do
+    grep -qF '#MISE quiet=true' "$__quiet_task" ||
+        fail "hook-invoked task is not quiet: $__quiet_task"
+done
 grep -qF '[bootstrap.hooks]' "$__gh_config" ||
     fail "GitHub module hook declaration is missing"
 grep -qF "post-packages = 'gh extension install --force" "$__gh_config" ||
@@ -84,9 +101,17 @@ print -r -- "$__work_dry_run" | grep -qF 'mise reshim -f' ||
     fail "work dry run is missing tool reshim maintenance"
 print -r -- "$__work_dry_run" | grep -qF 'mise bootstrap: final hooks' ||
     fail "work dry run is missing the final hook"
+print -r -- "$__work_dry_run" | grep -qF 'mise run mise:cleanup' ||
+    fail "work dry run is missing stale-link cleanup"
+print -r -- "$__work_dry_run" | grep -qF 'mise run mise:cleanup:inventory' ||
+    fail "work dry run is missing cleanup inventory"
 print -r -- "$__work_dry_run" | grep -qF 'mise fix' ||
     fail "work dry run is missing mise fix"
-
+local __cleanup_line="$(print -r -- "$__work_dry_run" | grep -nF "mise run mise:cleanup'" | cut -d: -f1)"
+local __inventory_line="$(print -r -- "$__work_dry_run" | grep -nF "mise run mise:cleanup:inventory'" | cut -d: -f1)"
+local __fix_line="$(print -r -- "$__work_dry_run" | grep -nF 'mise fix' | cut -d: -f1)"
+(( __inventory_line < __cleanup_line && __cleanup_line < __fix_line )) ||
+    fail "cleanup inventory, cleanup, and mise fix order is incorrect"
 local __personal_packages
 __personal_packages="$(env -u MISE_ENV DOT_PROFILE=personal MISE_CONFIG_DIR="$__root_dir/home/.config/mise" \
     MISE_ENV_CONF_D=true mise -C "$__root_dir" bootstrap packages status 2>&1)"

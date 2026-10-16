@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
 #MISE description="Validate skill evaluation specs and repository-local workspaces"
+#MISE quiet=true
 #USAGE flag "--base-path <path>" help="Directory to validate; defaults to the current project root"
 #USAGE flag "--skills-path <path>" help="Skill source directory; defaults to .agents/skills"
 #MISE dir="{{cwd}}"
