@@ -26,7 +26,7 @@ esac
 [[ ! -e "$__source/.zsh_history" && ! -e "$__source/.zcompdump" ]] ||
     fail "zsh runtime files must remain outside the tracked source"
 for __path in \
-    .aliases .p10k.zsh .zprofile .zshenv .zshrc custom_functions.zsh \
+    .aliases .p10k.zsh .zshenv .zshrc custom_functions.zsh \
     plugins/zsh-vi-mode/config.zsh; do
     [[ -f "$__source/$__path" ]] || fail "missing zsh source: $__path"
     [[ -L "$__target/$__path" ]] || fail "zsh target is not a symlink: $__path"
@@ -40,6 +40,9 @@ done
     fail "zsh completion runtime file was not preserved"
 [[ "$(stat -c '%a' "$__target/.zsh_history")" == "600" ]] || fail "zsh history mode changed"
 [[ "$(stat -c '%a' "$__target/.zcompdump")" == "644" ]] || fail "zsh completion dump mode changed"
+[[ ! -e "$__source/.zprofile" ]] || fail "zsh module source still contains the brew-owned .zprofile"
+grep -qF '"~/.config/zsh/.zprofile/brew-shellenv"' home/.config/mise/conf.d/module.brew.toml ||
+    fail "brew module does not own the zprofile shell environment entry"
 grep -Fq 'ZDOTDIR="$XDG_CONFIG_HOME/zsh"' home/.config/zsh/.zshenv || fail "ZDOTDIR source is missing"
 if find "$__source" -name '.zsh_history' -o -name '.zcompdump' | grep -q .; then
     fail "zsh runtime files remain in the source tree"

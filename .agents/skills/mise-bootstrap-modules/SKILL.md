@@ -32,6 +32,9 @@ Read the [mise bootstrap reference](https://mise.jdx.dev/bootstrap.html), [machi
 - Use explicit `~/dev/personal/dot/home/...` sources for declarations loaded from the deployed global configuration.
 - Keep `relative_symlinks = true` in the global mise configuration.
 - Keep the module declaration, control-plane link, profile selection, and focused test in the same change.
+- Follow `mise-tasks`: make every file task under `home/.config/mise/tasks/` executable, and test its executable bit and discovery.
+- If a file task installs a package manager with a shell-environment command, run that command after installation.
+- Use `/opt/homebrew` as the Homebrew prefix. Do not add Intel `/usr/local` fallback paths.
 
 ## Profile selection
 
