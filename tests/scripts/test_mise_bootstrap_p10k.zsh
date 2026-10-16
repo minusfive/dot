@@ -41,5 +41,9 @@ for __profile in work personal; do
     print -r -- "$__profile_config" | grep -qF "module.p10k.toml" ||
         fail "Powerlevel10k module must be selected by the $__profile profile"
 done
+local __p10k_block_line="$(grep -nF '# >>> mise:p10k >>>' "$HOME/.config/zsh/.zshrc" | cut -d: -f1)"
+local __zones_block_line="$(grep -nF '# >>> mise:zones >>>' "$HOME/.config/zsh/.zshrc" | cut -d: -f1)"
+[[ -n "$__p10k_block_line" && -n "$__zones_block_line" && $__p10k_block_line -lt $__zones_block_line ]] ||
+    fail "Powerlevel10k block must render before the Zsh zones block"
 
 echo "Powerlevel10k bootstrap configuration passed."

@@ -80,9 +80,9 @@ Manual macOS operations are exposed as global mise tasks under the `macos:` pref
 
 #### `test_mise_task_mise_cleanup.zsh`
 
-Tests that the final cleanup task removes stale repository-managed links while preserving active and external links.
+Tests that the final cleanup task removes stale repository-managed links and blocks while preserving active and external entries.
 
-The cleanup task uses `cleanup.paths`, which the inventory task updates from current and historical repository paths.
+The cleanup task uses `cleanup.paths` and `cleanup.blocks`, which the inventory task updates from current and historical module declarations.
 
 #### `test_mise_task_mise_cleanup_inventory.zsh`
 

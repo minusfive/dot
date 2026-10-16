@@ -14,6 +14,7 @@ local __source_dir="$__fixture_root/home"
 local __target_dir="$__fixture_home/.config/mise"
 local __output="$__fixture_dir/output"
 local __failure_output="$__fixture_dir/failure-output"
+local __block_failure_output="$__fixture_dir/block-failure-output"
 trap 'rm -rf "$__fixture_dir"' EXIT
 
 [[ -x "$__task" ]] || fail "cleanup task is not executable"
@@ -31,12 +32,34 @@ mkdir -p \
     "$__target_dir/conf.d/old" \
     "$__fixture_home/.config/zsh" \
     "$__fixture_home/.local/state/mise/tracked-configs"
+cat > "$__source_dir/.config/mise/conf.d/module.fixture.toml" <<'EOF'
+[dotfiles]
+"~/.config/zsh/.zshrc/active" = { block = '''
+active
+''' }
+EOF
 printf 'external\n' > "$__fixture_dir/external"
 cat > "$__source_dir/.config/mise/cleanup.paths" <<'EOF'
 # fixture inventory
 .config/mise
 .config/zsh
 .local/state/mise
+EOF
+printf '# Relative target paths and block IDs that historically belonged to this repository.\n' \
+    > "$__source_dir/.config/mise/cleanup.blocks"
+printf '%s\t%s\n' '.config/zsh/.zshrc' active >> "$__source_dir/.config/mise/cleanup.blocks"
+printf '%s\t%s\n' '.config/zsh/.zshrc' removed >> "$__source_dir/.config/mise/cleanup.blocks"
+cat > "$__fixture_home/.config/zsh/.zshrc" <<'EOF'
+header
+# >>> mise:active >>> managed by mise — do not edit between markers
+active
+# <<< mise:active <<<
+# >>> mise:removed >>> managed by mise — do not edit between markers
+removed
+# <<< mise:removed <<<
+# >>> mise:foreign >>> managed by mise — do not edit between markers
+foreign
+# <<< mise:foreign <<<
 EOF
 printf 'active\n' > "$__source_dir/.config/mise/conf.d/active.toml"
 printf 'active\n' > "$__source_dir/.config/mise/active/current"
@@ -69,7 +92,11 @@ env \
 
 grep -qF "would remove stale mise link" "$__output" ||
     fail "dry run did not report stale links"
+grep -qF "would remove stale mise block" "$__output" ||
+    fail "dry run did not report stale blocks"
 [[ -L "$__target_dir/conf.d/removed.toml" ]] || fail "dry run removed a stale link"
+grep -qF 'mise:removed' "$__fixture_home/.config/zsh/.zshrc" ||
+    fail "dry run removed a stale block"
 [[ -L "$__fixture_home/.config/zsh/removed.zsh" ]] ||
     fail "dry run removed a stale link outside mise"
 [[ -L "$__fixture_home/.local/state/mise/tracked-configs/config" ]] ||
@@ -90,11 +117,34 @@ env \
     fail "stale link with a missing source directory remains"
 [[ -L "$__target_dir/active/current" ]] || fail "active symlink-each link was removed"
 [[ ! -L "$__target_dir/active/removed" ]] || fail "stale symlink-each link remains"
+grep -qF 'mise:active' "$__fixture_home/.config/zsh/.zshrc" ||
+    fail "active mise block was removed"
+if grep -qF 'mise:removed' "$__fixture_home/.config/zsh/.zshrc"; then
+    fail "stale mise block remains"
+fi
+grep -qF 'mise:foreign' "$__fixture_home/.config/zsh/.zshrc" ||
+    fail "unlisted mise block was removed"
 [[ ! -L "$__fixture_home/.config/zsh/removed.zsh" ]] ||
     fail "stale link outside the mise directory remains"
 [[ -L "$__fixture_home/.local/state/mise/tracked-configs/config" ]] ||
     fail "tracked-config link was removed"
 [[ -L "$__fixture_home/external-broken" ]] || fail "external broken link was removed"
+
+local __blocks_backup="$__fixture_dir/cleanup.blocks.backup"
+cp "$__source_dir/.config/mise/cleanup.blocks" "$__blocks_backup"
+printf '%s\t%s\n' '../outside' removed >> "$__source_dir/.config/mise/cleanup.blocks"
+if env \
+    HOME="$__fixture_home" \
+    XDG_CONFIG_HOME="$__fixture_home/.config" \
+    MISE_PROJECT_ROOT="$__fixture_root" \
+    zsh "$__task" > "$__block_failure_output" 2>&1; then
+    fail "cleanup accepted a block target outside HOME"
+fi
+grep -qF "outside HOME" "$__block_failure_output" ||
+    fail "cleanup did not explain the block path containment refusal"
+mv "$__blocks_backup" "$__source_dir/.config/mise/cleanup.blocks"
+
+
 [[ -L "$__target_dir/external" ]] || fail "external link was removed"
 
 mkdir -p "$__fixture_dir/external-source"

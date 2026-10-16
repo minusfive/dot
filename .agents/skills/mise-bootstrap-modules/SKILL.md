@@ -23,6 +23,7 @@ Use these declaration types:
 - Use `[bootstrap.repos]` for Git repositories.
 - Use `[dotfiles]` for user files that mise links, copies, templates, or edits.
 - Use `[bootstrap.hooks]` for repeatable commands tied to a bootstrap phase.
+- Define every dotfiles block with a source file instead of inline multiline content.
 
 Read the [mise bootstrap reference](https://mise.jdx.dev/bootstrap.html), [machine modules reference](https://mise.jdx.dev/bootstrap/modules.html), and [dotfiles reference](https://mise.jdx.dev/dotfiles.html) before changing declaration semantics.
 

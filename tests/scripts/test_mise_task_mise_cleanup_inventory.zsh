@@ -10,6 +10,7 @@ local __task="home/.config/mise/tasks/mise/cleanup/inventory.zsh"
 local __fixture_dir="$(mktemp -d)"
 local __fixture_root="$__fixture_dir/repository"
 local __manifest="$__fixture_root/home/.config/mise/cleanup.paths"
+local __blocks_manifest="$__fixture_root/home/.config/mise/cleanup.blocks"
 trap 'rm -rf "$__fixture_dir"' EXIT
 
 [[ -x "$__task" ]] || fail "cleanup inventory task is not executable"
@@ -21,6 +22,9 @@ mkdir -p "$__fixture_root/home/.config/mise/conf.d"
 cat > "$__fixture_root/home/.config/mise/conf.d/module.example.toml" <<'EOF'
 [dotfiles]
 "~/.config/example" = { source = "~/dev/personal/dot/home/.config/example", mode = "symlink-each" }
+"~/.config/example/config.toml/old" = { block = '''
+old
+''' }
 EOF
 mkdir -p "$__fixture_root/home/.config/example"
 printf '# Relative paths under $HOME that historically contained repository-managed targets.\nlegacy/managed\n' \
@@ -38,6 +42,8 @@ grep -qF 'legacy/managed' "$__manifest" ||
     fail "inventory removed an existing historical path"
 grep -qF '.config/example' "$__manifest" ||
     fail "inventory omitted a current module path"
+grep -qF $'.config/example/config.toml\told' "$__blocks_manifest" ||
+    fail "inventory omitted a current block"
 if grep -qF '"' "$__manifest"; then
     fail "cleanup inventory contains quoted paths"
 fi

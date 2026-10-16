@@ -5,10 +5,10 @@ source "$ZDOTDIR/custom_functions.zsh"
 export DOT_PROFILE="$(read_dot_profile)"
 
 path=(
-    $path
     /usr/local/bin
     /usr/local/sbin
     $HOME/.local/bin
+    $path
 )
 
 export PATH

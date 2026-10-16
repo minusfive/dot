@@ -95,6 +95,7 @@ __mise_dir="$HOME/.config/mise"
 __mise_state_dir="${MISE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/mise}"
 __mise_data_dir="${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}"
 __mise_cache_dir="${MISE_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/mise}"
+__blocks_manifest="$__project_root/home/.config/mise/cleanup.blocks"
 
 typeset -A __scan_paths=()
 while IFS= read -r __scan_root; do
@@ -150,3 +151,101 @@ for __scan_root in "${__scan_roots[@]}"; do
     remove_stale_link "$__link" "$__physical_source_path"
     done < <(find "$__scan_path" -xdev -type l -print)
 done
+
+typeset -a __active_blocks=()
+
+add_active_block() {
+    local __target="$1"
+    local __relative="${__target#\~/}"
+    local __id="${__relative##*/}"
+    local __block_target="${__relative%/*}"
+
+    [[ "$__block_target" != "$__relative" ]] || return
+    [[ "$(basename "$__block_target")" == *.* ]] || return
+    __active_blocks+=("$__block_target|$__id")
+}
+
+is_active_block() {
+    local __active_block
+    for __active_block in "${__active_blocks[@]}"; do
+        [[ "$__active_block" == "$1" ]] && return 0
+    done
+    return 1
+}
+
+collect_active_blocks() {
+    local __line __target
+    while IFS=$'\t' read -r __target __line; do
+        [[ "$__line" == *'block = '* ||
+            "$__line" == *'template = "tera"'* ]] || continue
+        [[ "$__line" != *'merge = '* ]] || continue
+        add_active_block "$__target"
+    done < <(sed -E -n 's/^"([^"]*)".*/\1\t&/p' "$1")
+}
+
+remove_stale_block() {
+    local __target="$1"
+    local __id="$2"
+    local __start="# >>> mise:$__id >>> managed by mise — do not edit between markers"
+    local __end="# <<< mise:$__id <<<"
+    local __temporary="$(mktemp "${__target}.stale.XXXXXX")"
+    local __awk_status=0
+
+    awk -v start="$__start" -v end="$__end" '
+        $0 == start {
+            if (in_block) exit 2
+            in_block = 1
+            removed = 1
+            next
+        }
+        $0 == end {
+            if (!in_block) exit 3
+            in_block = 0
+            next
+        }
+        !in_block { print }
+        END {
+            if (in_block) exit 4
+            if (!removed) exit 5
+        }
+    ' "$__target" > "$__temporary" || __awk_status=$?
+
+    case "$__awk_status" in
+        0)
+            if [[ "$__dry_run" == "true" ]]; then
+                rm -f "$__temporary"
+                print -r -- "would remove stale mise block $__target (block:$__id)"
+            else
+                cat "$__temporary" > "$__target"
+                rm -f "$__temporary"
+                print -r -- "info: removed stale mise block $__target (block:$__id)"
+            fi
+            ;;
+        5)
+            rm -f "$__temporary"
+            ;;
+        *)
+            rm -f "$__temporary"
+            die "cannot remove malformed mise block $__target (block:$__id)"
+            ;;
+    esac
+}
+
+if [[ -f "$__blocks_manifest" ]]; then
+    while IFS= read -r -d '' __module; do
+        collect_active_blocks "$__module"
+    done < <(find "$__project_root/home/.config/mise/conf.d" -type f -name '*.toml' -print0)
+
+    while IFS=$'\t' read -r __relative __id; do
+        [[ -n "$__relative" && "$__relative" != \#* && -n "$__id" ]] || continue
+        __block_key="$__relative|$__id"
+        is_active_block "$__block_key" && continue
+        __target="$(normalize_path "$HOME/$__relative")"
+        case "$__target" in
+            "$HOME"/*) ;;
+            *) die "refusing stale mise block outside HOME: $__target" ;;
+        esac
+        [[ -f "$__target" && ! -L "$__target" ]] || continue
+        remove_stale_block "$__target" "$__id"
+    done < "$__blocks_manifest"
+fi

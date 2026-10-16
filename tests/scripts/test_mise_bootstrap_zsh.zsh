@@ -25,21 +25,32 @@ local __task_info="$(
 )"
 print -r -- "$__task_info" | grep -qF "home/.config/mise/tasks/zsh/migrate.zsh" ||
     fail "Zsh migration task is not discoverable"
-grep -qF '"~/.config/zsh" = { source = "~/dev/personal/dot/home/.config/zsh", mode = "symlink-each", exclude = [".p10k.zsh", ".zshrc", ".zshrc-zone-0.zsh", ".zshrc-zone-2.zsh"] }' "$__config" ||
+grep -qF '"~/.config/zsh" = { source = "~/dev/personal/dot/home/.config/zsh", mode = "symlink-each", exclude = [".p10k.zsh", ".zshrc", ".zshrc-zone-0.zsh", ".zshrc-zone-2.zsh", ".zshrc-zones.zsh"] }' "$__config" ||
     fail "zsh symlink-each declaration is missing"
 for __entry in \
     '~/.config/zsh/.zshrc/zshrc' \
+    '~/.config/zsh/.zshrc/zones' \
     '~/.config/zsh/.zshrc-zone-0.zsh/bootstrap' \
     '~/.config/zsh/.zshrc-zone-2.zsh/user'; do
     grep -qF "\"$__entry\"" "$__config" ||
         fail "zshrc edit is missing: $__entry"
 done
-for __source_path in .zshrc .zshrc-zone-0.zsh .zshrc-zone-2.zsh; do
+grep -qF '"~/.config/zsh/.zshrc/zones" = { source = "~/dev/personal/dot/home/.config/zsh/.zshrc-zones.zsh", template = "tera" }' "$__config" ||
+    fail "zsh zone bootstrap block source is missing"
+for __source_path in .zshrc .zshrc-zones.zsh .zshrc-zone-0.zsh .zshrc-zone-2.zsh; do
     [[ -f "$__source/$__source_path" ]] ||
         fail "zshrc edit source is missing: $__source_path"
     zsh -n "$__source/$__source_path" ||
         fail "zshrc edit source has syntax errors: $__source_path"
 done
+for __zone in 0 1 2 3; do
+    grep -qF "[[ -r \"\$ZDOTDIR/.zshrc-zone-$__zone.zsh\" ]] && source \"\$ZDOTDIR/.zshrc-zone-$__zone.zsh\"" "$__source/.zshrc-zones.zsh" ||
+        fail "zsh zone $__zone bootstrap source is missing"
+done
+local __expected_path_block=$'path=(\n    /usr/local/bin\n    /usr/local/sbin\n    $HOME/.local/bin\n    $path\n)'
+local __actual_path_block="$(sed -n '/^path=(/,/^)/p' "$__source/.zshrc-zone-0.zsh")"
+[[ "$__actual_path_block" == "$__expected_path_block" ]] ||
+    fail "local Zsh paths must precede inherited default paths"
 for __zone_path in .zshrc .zshrc-zone-0.zsh .zshrc-zone-1.zsh .zshrc-zone-2.zsh .zshrc-zone-3.zsh; do
     [[ -f "$__target/$__zone_path" && ! -L "$__target/$__zone_path" ]] ||
         fail "zsh zone target is not a regular file: $__zone_path"

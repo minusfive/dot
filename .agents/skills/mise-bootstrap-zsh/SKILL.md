@@ -24,6 +24,8 @@ Use this skill when a `mise` module changes how Zsh starts or manages part of a 
 - Put each environment or tool choice in the zone 2 block of the module that provides it.
 - Put each package path entry in that package's module, not in the shared Zsh source file.
 - Add package paths at the front with `path=(<entry> $path)`.
+- When moving a module block between zones, keep its source snippet filename stable unless its ownership or purpose changes.
+- Preserve accurate source comments when a repository implementation detail changes.
 - Keep local paths after package paths in the base startup block.
 - Keep `typeset -aU path`, `typeset -aU fpath`, and `typeset -aU manpath` at the top of `~/.config/zsh/.zshrc`.
 - When a source file is both a `symlink-each` source and a block source, exclude it from the linked files.
