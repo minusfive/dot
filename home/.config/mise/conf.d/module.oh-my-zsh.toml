@@ -8,6 +8,7 @@
 "~/.config/oh-my-zsh/custom/plugins/zsh-vi-mode" = { url = "https://github.com/jeffreytse/zsh-vi-mode.git" }
 
 [dotfiles]
+"~/.config/zsh/.zshrc-zone-0.zsh/oh-my-zsh-zsh-vi-mode" = { source = "~/dev/personal/dot/home/.config/oh-my-zsh/custom/plugins/zsh-vi-mode/config.zsh", template = "tera" }
 "~/.config/zsh/.zshrc-zone-1.zsh/oh-my-zsh" = { source = "~/dev/personal/dot/home/.config/oh-my-zsh/zshrc.zsh", template = "tera" }
 
 [bootstrap.hooks]

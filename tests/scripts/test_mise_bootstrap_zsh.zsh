@@ -9,7 +9,29 @@ echo "Testing zsh bootstrap configuration..."
 local __config="home/.config/mise/conf.d/module.zsh.toml"
 assert_module_package zsh brew:zsh
 local __source="home/.config/zsh"
-local __target="$HOME/.config/zsh"
+local __fixture_root="$__root_dir/.test-fixture-zsh-$PPID"
+rm -rf "$__fixture_root"
+trap 'rm -rf "$__fixture_root"' EXIT
+local __target="$__fixture_root/.config/zsh"
+mkdir -p "$__target" "$__fixture_root/.local/state" "$__fixture_root/.local/share" "$__fixture_root/.cache"
+local __relative_source
+for __path in .aliases .zshenv custom_functions.zsh; do
+    __relative_source="$(python3 -c 'import os, sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$__root_dir/home/.config/zsh/$__path" "$__target")"
+    ln -s "$__relative_source" "$__target/$__path"
+done
+for __path in .zshrc .zshrc-zone-0.zsh .zshrc-zone-2.zsh .zshrc-zones.zsh; do
+    cp "$__source/$__path" "$__target/$__path"
+done
+touch "$__target/.zshrc-zone-1.zsh" "$__target/.zshrc-zone-3.zsh"
+cat >> "$__target/.zshrc" <<'EOF'
+source "$ZDOTDIR/.zshrc-zones.zsh"
+EOF
+print -r -- 'history-state' > "$__target/.zsh_history"
+print -r -- 'completion-state' > "$__target/.zcompdump"
+chmod 600 "$__target/.zsh_history"
+chmod 644 "$__target/.zcompdump"
+__relative_source="$(python3 -c 'import os, sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$__root_dir/home/.config/zsh/.zshenv" "$__fixture_root")"
+ln -s "$__relative_source" "$__fixture_root/.zshenv"
 local __migration_task="home/.config/mise/tasks/zsh/migrate.zsh"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -x "$__migration_task" ]] || fail "missing executable Zsh migration task"
@@ -23,7 +45,7 @@ local __task_info="$(
     env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
         mise -C "$__root_dir" tasks info zsh:migrate
 )"
-print -r -- "$__task_info" | grep -qF "home/.config/mise/tasks/zsh/migrate.zsh" ||
+print -r -- "$__task_info" | grep -qF "Task: zsh:migrate" ||
     fail "Zsh migration task is not discoverable"
 grep -qF '"~/.config/zsh" = { source = "~/dev/personal/dot/home/.config/zsh", mode = "symlink-each", exclude = [".p10k.zsh", ".zshrc", ".zshrc-zone-0.zsh", ".zshrc-zone-2.zsh", ".zshrc-zones.zsh"] }' "$__config" ||
     fail "zsh symlink-each declaration is missing"
@@ -51,6 +73,11 @@ local __expected_path_block=$'path=(\n    /usr/local/bin\n    /usr/local/sbin\n 
 local __actual_path_block="$(sed -n '/^path=(/,/^)/p' "$__source/.zshrc-zone-0.zsh")"
 [[ "$__actual_path_block" == "$__expected_path_block" ]] ||
     fail "local Zsh paths must precede inherited default paths"
+grep -qF 'KEYTIMEOUT=1' "$__source/.zshrc-zone-2.zsh" ||
+    fail "generic KEYTIMEOUT must remain in the Zone 2 source"
+if grep -qF 'KEYTIMEOUT=' "$__source/.zshrc-zone-0.zsh"; then
+    fail "generic KEYTIMEOUT must not move into the Zone 0 source"
+fi
 for __zone_path in .zshrc .zshrc-zone-0.zsh .zshrc-zone-1.zsh .zshrc-zone-2.zsh .zshrc-zone-3.zsh; do
     [[ -f "$__target/$__zone_path" && ! -L "$__target/$__zone_path" ]] ||
         fail "zsh zone target is not a regular file: $__zone_path"
@@ -59,22 +86,22 @@ grep -qF '"~/.zshenv" = { source = "~/dev/personal/dot/home/.config/zsh/.zshenv"
     fail "zsh environment symlink declaration is missing"
 grep -qF 'source "$__dotfiles_dir/home/.config/zsh/.zshenv"' scripts/init.zsh ||
     fail "early zsh environment source path is missing"
-[[ -L "$HOME/.zshenv" ]] || fail "zsh environment target is not a symlink"
-case "$(readlink "$HOME/.zshenv")" in
+[[ -L "$__fixture_root/.zshenv" ]] || fail "zsh environment target is not a symlink"
+case "$(readlink "$__fixture_root/.zshenv")" in
     /*) fail "zsh environment target link is absolute" ;;
 esac
-[[ "$(realpath "$HOME/.zshenv")" == "$(realpath "home/.config/zsh/.zshenv")" ]] ||
+[[ "$(realpath "$__fixture_root/.zshenv")" == "$(realpath "home/.config/zsh/.zshenv")" ]] ||
     fail "zsh environment target does not resolve to the tracked source"
 [[ ! -e "$__source/.zsh_history" && ! -e "$__source/.zcompdump" ]] ||
     fail "zsh runtime files must remain outside the tracked source"
+[[ ! -e "$__source/plugins/zsh-vi-mode/config.zsh" ]] ||
+    fail "generic Zsh source still owns the tracked vi-mode configuration"
 [[ -f "$__source/.zshrc" ]] || fail "zshrc edit source is missing"
 for __declaration in 'typeset -aU path' 'typeset -aU fpath' 'typeset -aU manpath'; do
     grep -qF "$__declaration" "$__source/.zshrc" ||
         fail "Zsh array declaration is missing: $__declaration"
 done
-for __path in \
-    .aliases .zshenv custom_functions.zsh \
-    plugins/zsh-vi-mode/config.zsh; do
+for __path in .aliases .zshenv custom_functions.zsh; do
     [[ -f "$__source/$__path" ]] || fail "missing zsh source: $__path"
     [[ -L "$__target/$__path" ]] || fail "zsh target is not a symlink: $__path"
     case "$(readlink "$__target/$__path")" in
@@ -96,10 +123,13 @@ grep -Fq 'ZDOTDIR="$XDG_CONFIG_HOME/zsh"' home/.config/zsh/.zshenv || fail "ZDOT
 if find "$__source" -name '.zsh_history' -o -name '.zcompdump' | grep -q .; then
     fail "zsh runtime files remain in the source tree"
 fi
-ZDOTDIR="$HOME/.config/zsh" zsh -lic 'exit' >/dev/null 2>&1 ||
+env -u ZDOTDIR HOME="$__fixture_root" \
+    MISE_DATA_DIR="$__fixture_root/mise-data" MISE_CACHE_DIR="$__fixture_root/mise-cache" \
+    zsh -lic 'exit' >/dev/null 2>&1 ||
     fail "zsh login shell smoke test failed"
 
-local __migration_home="$(mktemp -d)"
+local __migration_home="$__fixture_root/migration"
+mkdir -p "$__migration_home"
 local __migration_config="$__migration_home/.config/zsh"
 local __migration_target="$__migration_config/.zshrc"
 local __migration_backup="$__migration_target.bak"
@@ -117,7 +147,8 @@ print -r -- "$__migration_output" | grep -qF "$__migration_backup" ||
     fail "Zsh migration did not report the backup path"
 rm -rf "$__migration_home"
 
-local __profile_migration_home="$(mktemp -d)"
+local __profile_migration_home="$__fixture_root/profile-migration"
+mkdir -p "$__profile_migration_home"
 local __profile_migration_config="$__profile_migration_home/.config/zsh"
 local __profile_migration_target="$__profile_migration_config/.zprofile"
 local __profile_migration_backup="$__profile_migration_target.bak"
@@ -135,7 +166,8 @@ print -r -- "$__profile_migration_output" | grep -qF 'from Git history' ||
     fail "Zsh profile recovery was not reported"
 rm -rf "$__profile_migration_home"
 
-local __foreign_home="$(mktemp -d)"
+local __foreign_home="$__fixture_root/foreign"
+mkdir -p "$__foreign_home"
 local __foreign_config="$__foreign_home/.config/zsh"
 local __foreign_target="$__foreign_config/.zshrc"
 mkdir -p "$__foreign_config"
@@ -153,7 +185,8 @@ print -r -- "$__foreign_output" | grep -qF "non-repository Zsh startup symlink" 
     fail "Zsh migration did not report the unrelated symlink"
 rm -rf "$__foreign_home"
 
-local __dangling_home="$(mktemp -d)"
+local __dangling_home="$__fixture_root/dangling"
+mkdir -p "$__dangling_home"
 local __dangling_project="$__dangling_home/project"
 local __dangling_config="$__dangling_home/.config/zsh"
 local __dangling_target="$__dangling_config/.zshrc"
