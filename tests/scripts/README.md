@@ -62,7 +62,7 @@ Tests GitHub package and post-packages hook declarations, files, directories, so
 
 Tests the global EditorConfig link.
 
-The remaining migrated application boundaries use the same focused-test pattern: `test_mise_bootstrap_<module>.zsh`. Current module tests cover `1password`, `bat`, `btop`, `coreutils`, `curl`, `delta`, `editorconfig`, `fd`, `findutils`, `fzf`, `gnu-sed`, `ghostty`, `git`, `hammerspoon`, `harper`, `lazygit`, `nvim`, `p10k`, `ripgrep`, `tmux`, `wezterm`, `yarn`, `yazi`, and `zsh`.
+The remaining migrated application boundaries use the same focused-test pattern: `test_mise_bootstrap_<module>.zsh`. Current module tests cover `1password`, `bat`, `btop`, `coreutils`, `curl`, `delta`, `editorconfig`, `fd`, `findutils`, `fzf`, `ghostty`, `git`, `gnu-sed`, `hammerspoon`, `harper`, `lazygit`, `nvim`, `p10k`, `ripgrep`, `tmux`, `wezterm`, `yarn`, `yazi`, and `zsh`.
 
 The `Oh My Zsh` test covers its custom plugin repositories. The `Neovim` test covers the LazyVim repository.
 
