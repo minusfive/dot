@@ -17,7 +17,7 @@ trap 'rm -rf -- "$__fixture_root"' EXIT
 local __target="$__fixture_root/.config/zsh"
 mkdir -p "$__target" "$__fixture_root/.local/state" "$__fixture_root/.local/share" "$__fixture_root/.cache"
 local __relative_source
-for __path in .aliases .zshenv custom_functions.zsh; do
+for __path in .zshenv custom_functions.zsh; do
     __relative_source="$(python3 -c 'import os, sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$__root_dir/home/.config/zsh/$__path" "$__target")"
     ln -s "$__relative_source" "$__target/$__path"
 done
