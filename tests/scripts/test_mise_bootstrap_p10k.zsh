@@ -50,12 +50,15 @@ mkdir -p \
     "$__fixture_root/mise-cache"
 ln -s "$__root_dir" "$__fixture_root/dev/personal/dot"
 ln -s "$__root_dir/home/.config/zsh/.p10k.zsh" "$__fixture_root/.config/zsh/.p10k.zsh"
-local __dry_run_output="$(
+local __dry_run_output
+if ! __dry_run_output="$(
     env -u MISE_ENV HOME="$__fixture_root" XDG_CONFIG_HOME="$__fixture_root/.config" \
         MISE_DATA_DIR="$__fixture_root/mise-data" MISE_CACHE_DIR="$__fixture_root/mise-cache" \
         DOT_PROFILE=work MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
         mise -C "$__root_dir" bootstrap dotfiles apply --dry-run 2>&1
-)" || fail "Powerlevel10k dotfile dry run failed"
+)"; then
+    fail "Powerlevel10k dotfile dry run failed"
+fi
 local __p10k_block_line="$(print -r -- "$__dry_run_output" | grep -nF 'edit ~/.config/zsh/.zshrc (block:p10k)' | cut -d: -f1)"
 local __zones_block_line="$(print -r -- "$__dry_run_output" | grep -nF 'edit ~/.config/zsh/.zshrc (block:zones)' | cut -d: -f1)"
 [[ -n "$__p10k_block_line" && -n "$__zones_block_line" && $__p10k_block_line -lt $__zones_block_line ]] ||
