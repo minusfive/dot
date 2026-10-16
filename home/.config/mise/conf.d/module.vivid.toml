@@ -1,2 +1,5 @@
 [bootstrap.packages]
 "brew:vivid" = "latest"
+
+[dotfiles]
+"~/.config/zsh/.zshrc-zone-3.zsh/vivid" = { source = "~/dev/personal/dot/home/.config/vivid/zshrc.zsh", template = "tera" }

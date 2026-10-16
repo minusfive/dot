@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/zsh/.zshrc-zone-0.zsh/yarn" = { source = "~/dev/personal/dot/home/.config/yarn/zshrc.zsh", template = "tera" }

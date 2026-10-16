@@ -1,5 +1,9 @@
 [bootstrap.packages]
 "brew:neovim" = "latest"
 
+[bootstrap.repos]
+"~/dev/personal/nvim-plugins/LazyVim" = { url = "git@github.com:minusfive/LazyVim.git", ref = "minusfive" }
+
 [dotfiles]
-"~/.config/nvim" = { source = "~/dev/personal/dot/home/.config/nvim", mode = "symlink-each" }
+"~/.config/nvim" = { source = "~/dev/personal/dot/home/.config/nvim", mode = "symlink-each", exclude = ["zshrc.zsh"] }
+"~/.config/zsh/.zshrc-zone-2.zsh/nvim" = { source = "~/dev/personal/dot/home/.config/nvim/zshrc.zsh", template = "tera" }

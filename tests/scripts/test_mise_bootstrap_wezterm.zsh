@@ -11,8 +11,12 @@ assert_module_package wezterm brew-cask:wezterm@nightly
 local __source="home/.config/wezterm"
 local __target="$HOME/.config/wezterm"
 [[ -f "$__config" ]] || fail "missing $__config"
-grep -qF '"~/.config/wezterm" = { source = "~/dev/personal/dot/home/.config/wezterm", mode = "symlink-each", exclude = ["AGENTS.md", "CLAUDE.md"] }' "$__config" ||
-    fail "WezTerm symlink-each declaration is missing"
+for __path in wezterm.lua shell-completion.zsh shell-integration.zsh; do
+    grep -qF "\"~/.config/wezterm/$__path\" = { source = \"~/dev/personal/dot/home/.config/wezterm/$__path\", mode = \"symlink\" }" "$__config" ||
+        fail "WezTerm symlink declaration is missing: $__path"
+done
+grep -qF '"~/.config/zsh/.zshrc-zone-3.zsh/wezterm"' "$__config" ||
+    fail "WezTerm zshrc edit is missing"
 for __path in AGENTS.md CLAUDE.md; do
     [[ -e "$__source/$__path" ]] || fail "missing WezTerm local-development source: $__path"
 done

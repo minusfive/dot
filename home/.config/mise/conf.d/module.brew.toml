@@ -1,2 +1,8 @@
 [bootstrap.brew]
 adopt = true
+
+[bootstrap.hooks]
+pre-packages = "mise run brew:install"
+
+[dotfiles]
+"~/.config/zsh/.zprofile/brew-shellenv" = { line = 'eval "$(/opt/homebrew/bin/brew shellenv)"', position = "prepend" }

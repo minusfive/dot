@@ -1,2 +1,5 @@
 [bootstrap.packages]
 "brew:curl" = "latest"
+
+[dotfiles]
+"~/.config/zsh/.zshrc-zone-0.zsh/curl" = { source = "~/dev/personal/dot/home/.config/curl/zshrc.zsh", template = "tera" }

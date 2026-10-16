@@ -12,10 +12,10 @@ local __source="home/.config/ripgrep/.ripgreprc"
 local __target="$HOME/.config/ripgrep/.ripgreprc"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "$__source" ]] || fail "missing ripgrep source"
-grep -qF '"~/.config/ripgrep" = { source = "~/dev/personal/dot/home/.config/ripgrep", mode = "symlink-each" }' "$__config" ||
-    fail "ripgrep symlink-each declaration is missing"
-grep -qF 'RIPGREP_CONFIG_PATH' home/.config/zsh/.zshrc ||
-    fail "RIPGREP_CONFIG_PATH reference is missing"
+grep -qF '"~/.config/ripgrep/.ripgreprc" = { source = "~/dev/personal/dot/home/.config/ripgrep/.ripgreprc", mode = "symlink" }' "$__config" ||
+    fail "ripgrep symlink declaration is missing"
+grep -qF '"~/.config/zsh/.zshrc-zone-3.zsh/ripgrep"' "$__config" ||
+    fail "RIPGREP zshrc edit is missing"
 [[ -d "$HOME/.config/ripgrep" && ! -L "$HOME/.config/ripgrep" ]] ||
     fail "ripgrep target must be a physical directory"
 [[ -L "$__target" ]] || fail "ripgrep target must be a symlink"

@@ -17,10 +17,11 @@ for __path in config.yml theme.yml; do
     case "$(readlink "$__target/$__path")" in
         /*) fail "lazygit target link is absolute: $__path" ;;
     esac
+    grep -qF "\"~/.config/lazygit/$__path\" = { source = \"~/dev/personal/dot/home/.config/lazygit/$__path\", mode = \"symlink\" }" "$__config" ||
+        fail "lazygit symlink declaration is missing: $__path"
 done
-grep -qF '"~/.config/lazygit" = { source = "~/dev/personal/dot/home/.config/lazygit", mode = "symlink-each" }' "$__config" ||
-    fail "lazygit symlink-each declaration is missing"
-grep -qF 'LG_CONFIG_FILE' home/.config/zsh/.zshrc || fail "LG_CONFIG_FILE reference is missing"
+grep -qF '"~/.config/zsh/.zshrc-zone-3.zsh/lazygit"' "$__config" ||
+    fail "Lazygit zshrc edit is missing"
 LG_CONFIG_FILE="$HOME/.config/lazygit/config.yml,$HOME/.config/lazygit/theme.yml" lazygit --version >/dev/null ||
     fail "lazygit smoke test failed"
 

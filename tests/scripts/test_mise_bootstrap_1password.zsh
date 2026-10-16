@@ -15,10 +15,12 @@ local __target="$HOME/.config/1Password/ssh/agent.toml"
 local __ssh_config="home/.ssh/config"
 local __ssh_target="$HOME/.ssh/config"
 [[ -f "$__config" && -f "$__source" ]] || fail "1Password source or declaration is missing"
-grep -qF '"~/.config/1Password" = { source = "~/dev/personal/dot/home/.config/1Password", mode = "symlink-each" }' "$__config" ||
-    fail "1Password symlink-each declaration is missing"
+grep -qF '"~/.config/1Password/ssh/agent.toml" = { source = "~/dev/personal/dot/home/.config/1Password/ssh/agent.toml", mode = "symlink" }' "$__config" ||
+    fail "1Password agent symlink declaration is missing"
 grep -qF '"~/.ssh/config" = { source = "~/dev/personal/dot/home/.ssh/config", mode = "symlink" }' "$__config" ||
     fail "SSH config symlink declaration is missing"
+grep -qF '"~/.config/zsh/.zshrc-zone-3.zsh/onepassword"' "$__config" ||
+    fail "1Password zshrc edit is missing"
 [[ -d "$HOME/.config/1Password" && ! -L "$HOME/.config/1Password" ]] ||
     fail "1Password target must be a physical directory"
 [[ -L "$__target" ]] || fail "1Password agent target must be a symlink"

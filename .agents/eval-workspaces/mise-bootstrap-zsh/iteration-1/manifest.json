@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skill_name": "mise-bootstrap-zsh",
+  "iteration": 1,
+  "case_ids": [
+    "module-owned-path-entry",
+    "startup-zone-order",
+    "module-owned-editor-settings"
+  ],
+  "workspace": ".agents/eval-workspaces/mise-bootstrap-zsh"
+}

@@ -1,0 +1,35 @@
+{
+  "skill_name": "mise-bootstrap-zsh",
+  "evals": [
+    {
+      "id": "module-owned-path-entry",
+      "prompt": "Move the Homebrew path entry for a package out of the shared Zsh bootstrap block and into the package's mise module.",
+      "expected_output": "The package module owns a Zsh zone 0 block with a separate source snippet that prepends its path entry. The shared Zsh bootstrap block no longer owns that package-specific path.",
+      "assertions": [
+        "The package-specific path is declared by the owning module as a block edit targeting the zone 0 file.",
+        "The source snippet prepends its path entry instead of appending it.",
+        "The shared Zsh bootstrap source does not contain the package-specific path."
+      ]
+    },
+    {
+      "id": "startup-zone-order",
+      "prompt": "Add a prompt integration that must run before the Zsh dispatcher and a prompt hook that runs after the user zone.",
+      "expected_output": "The instant-prompt block is owned by the integration module in .zshrc before the dispatcher block. The prompt hook is owned by the same module in zone 2.",
+      "assertions": [
+        "The instant-prompt edit targets .zshrc and is ordered before the dispatcher block.",
+        "The prompt-hook edit targets .zshrc-zone-2.zsh.",
+        "The dispatcher still sources zones 0, 1, 2, and 3 in that order."
+      ]
+    },
+    {
+      "id": "module-owned-editor-settings",
+      "prompt": "Move editor selection out of the generic user Zsh block and make Neovim own it.",
+      "expected_output": "The Neovim module owns the zone 2 editor block and its source snippet. The generic user block no longer defines EDITOR.",
+      "assertions": [
+        "The Neovim module declares a zone 2 block edit for editor selection.",
+        "The editor source snippet is excluded from any Neovim symlink-each tree.",
+        "The generic user zone contains no EDITOR assignment."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+[bootstrap.repos]
+"~/.config/oh-my-zsh/custom/themes/powerlevel10k" = { url = "https://github.com/romkatv/powerlevel10k.git" }
+
+[dotfiles]
+"~/.config/zsh/.p10k.zsh" = { source = "~/dev/personal/dot/home/.config/zsh/.p10k.zsh", mode = "symlink" }
+"~/.config/zsh/.zshrc/p10k" = { source = "~/dev/personal/dot/home/.config/p10k/zshrc.zsh", template = "tera" }
+"~/.config/zsh/.zshrc-zone-2.zsh/p10k" = { source = "~/dev/personal/dot/home/.config/p10k/zshrc-zone-2.zsh", template = "tera" }

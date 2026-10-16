@@ -12,10 +12,10 @@ local __source="home/.config/fzf/fzf.conf"
 local __target="$HOME/.config/fzf/fzf.conf"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "$__source" ]] || fail "missing fzf source"
-grep -qF '"~/.config/fzf" = { source = "~/dev/personal/dot/home/.config/fzf", mode = "symlink-each" }' "$__config" ||
-    fail "fzf symlink-each declaration is missing"
-grep -qF 'FZF_DEFAULT_OPTS_FILE' home/.config/zsh/.zshrc ||
-    fail "FZF_DEFAULT_OPTS_FILE reference is missing"
+grep -qF '"~/.config/fzf/fzf.conf" = { source = "~/dev/personal/dot/home/.config/fzf/fzf.conf", mode = "symlink" }' "$__config" ||
+    fail "fzf symlink declaration is missing"
+grep -qF '"~/.config/zsh/.zshrc-zone-3.zsh/fzf"' "$__config" ||
+    fail "FZF zshrc edit is missing"
 [[ -d "$HOME/.config/fzf" && ! -L "$HOME/.config/fzf" ]] || fail "fzf target must be a physical directory"
 [[ -L "$__target" ]] || fail "fzf target must be a symlink"
 case "$(readlink "$__target")" in
