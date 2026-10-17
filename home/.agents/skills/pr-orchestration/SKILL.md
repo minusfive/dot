@@ -7,6 +7,8 @@ description: Orchestrate multi-issue GitHub delivery with durable issue plans, i
 
 Use this skill for multi-issue work that needs separate branches, worktrees, pull requests, review cycles, or manual merge handoff.
 
+Apply the runtime-isolation rules in `task-orchestration` before implementation and testing.
+
 ## Start with durable plans
 
 1. Load `planning` before drafting or refining a plan.
@@ -25,15 +27,6 @@ Use this skill for multi-issue work that needs separate branches, worktrees, pul
 4. Start independent implementation agents in parallel.
 5. Keep shared-file rebases or merges serialized.
 6. Do not use one PR for multiple issue plans unless I explicitly approve a merged-story plan.
-
-## Protect the live runtime
-
-1. Run implementation and tests inside the issue worktree.
-2. Use a dummy tree, temporary directory, or isolated fixture for bootstrap and shell tests.
-3. Set fixture `HOME`, `XDG_CONFIG_HOME`, `MISE_DATA_DIR`, `MISE_CACHE_DIR`, and `MISE_STATE_DIR` when the test can touch user state.
-4. Use `mktemp -d` for disposable fixtures. Register cleanup before the first fixture mutation.
-5. Do not apply bootstrap changes to the live home directory during development.
-6. Keep runtime repositories, caches, history, credentials, and generated files outside tracked sources.
 
 ## Gate commits and pushes
 

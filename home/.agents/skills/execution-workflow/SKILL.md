@@ -7,7 +7,7 @@ description: Execute deterministic story plans through dependency-aware workflow
 
 Use this skill after planning is complete and you need to execute an existing plan through issues, board cards, PRs, and merges.
 
-For multi-issue GitHub delivery with independent worktrees, separate PRs, review watching, or manual merge handoff, load `pr-orchestration` first. This skill supplies the story lifecycle and dependency gates; `pr-orchestration` supplies the lane, runtime-isolation, review, and merge-authority rules.
+Apply the runtime-isolation rules in `task-orchestration`. For multi-issue GitHub delivery with independent worktrees, separate PRs, review watching, or manual merge handoff, load `pr-orchestration` first. This skill supplies the story lifecycle and dependency gates; `pr-orchestration` supplies the lane, review, and merge-authority rules.
 
 ## Canonical lifecycle
 

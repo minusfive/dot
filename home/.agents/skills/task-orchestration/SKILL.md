@@ -26,6 +26,16 @@ Use this skill when shaping how a task executes: whether to fan out tool calls i
 - Use higher-capability models for ambiguous requirements, cross-file reasoning, architecture decisions, safety-critical changes, or failure recovery.
 - When splitting work across subagents, match model capability to each sub-task instead of using one tier for everything.
 
+## Runtime isolation
+
+- Use a separate worktree for each execution scope that changes repository files. Keep parallel worktrees independent.
+- Run commands that can write user, system, or tool-managed paths against a dummy tree, temporary target directory, or isolated fixture.
+- Bind every environment variable, configuration value, and command option that can affect runtime paths or state to the isolated target before running commands.
+- Use the platform's standard temporary-directory mechanism for disposable targets. Register cleanup before the first target mutation.
+- Keep runtime repositories, caches, history, state, credentials, and generated files outside tracked sources.
+- Do not point development commands at live user or system paths.
+- Remove disposable targets after execution.
+
 ## Orchestration Artifacts
 
 - Coordinate multi-step or multi-agent work through a shared temporary directory; prefer a repository-scoped location (for example, `.agents/projects/<project>/tmp/` — see the `agentic-projects` skill for the path convention) when artifacts should be inspectable during the task, and a session-scoped location otherwise.
