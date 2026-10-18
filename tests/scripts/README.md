@@ -8,16 +8,16 @@ This directory contains tests for the various setup scripts in the `/scripts` di
 
 #### `test_mise_bootstrap_betterdisplay.zsh`
 
-Tests the BetterDisplay package, profile and module ownership, deployed task links, tracked plist ownership, and LaunchAgent declaration.
+Tests the BetterDisplay package, profile and module ownership, exact deployed task links, tracked plist ownership, README exclusion, and the absence of automatic LaunchAgent declarations.
 
 #### `test_mise_task_betterdisplay_settings.zsh`
 
-Tests BetterDisplay mise task discovery and isolated export/import behavior:
+Tests BetterDisplay mise task discovery and isolated manual export/import behavior:
 
 - task discovery and working-directory directives
-- export failure, invalid output, unchanged output, source-change protection, and atomic replacement while holding the shared operation lock
+- export failure, invalid output, unchanged output, source-change protection, atomic replacement, and concurrent manual invocation protection
 - import confirmation, running-app refusal, backup ordering, backup failure, and restart guidance
-- runtime backups and the absence of Git commands
+- tracked-source targeting through a deployed task symlink, runtime backups, and mocked-Git negative behavior
 
 ### mise Configuration Tests
 

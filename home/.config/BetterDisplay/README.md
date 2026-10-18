@@ -9,24 +9,20 @@ This directory contains configuration files for [BetterDisplay](https://github.c
 
 ## Usage
 
-### Via mise
+### Manual mise tasks
 
-The tracked settings source can be exported or imported with the global `mise` tasks:
+Run these `mise` tasks when you need to transfer settings:
 
 ```sh
 mise run betterdisplay:settings:export
 mise run betterdisplay:settings:import
 ```
 
-`config.plist` is the tracked source. Export updates this file only when the live settings differ. Runtime backups created before import are stored under `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/backups/`.
+`config.plist` is the tracked source. The export task writes to this file only when live settings differ. The task resolves the source from the repository, so it does not write through a deployed task symlink.
 
-Export uses macOS atomic replacement with a source snapshot and rollback. External edits observed before replacement remain untouched; edits observed during or immediately after replacement are rejected and preserved under `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/conflicts/`.
+The export task uses atomic replacement with source snapshots and rollback. It refuses source changes during the operation. It preserves conflicting content under `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/conflicts/`.
 
-### Automatic synchronization
-
-The `mise` bootstrap installs a background LaunchAgent that runs the export task when it loads and every 60 seconds. It changes the tracked source in the working tree when live settings change; it does not stage, commit, or push those changes.
-
-The first synchronization can therefore create a visible working-tree change. Review and commit the plist through the normal repository workflow.
+The tasks do not run at login or on a timer. An export can change the working tree, but it does not stage, commit, or push the change. Review the change with normal `Git` commands.
 
 ## Important Notes
 
@@ -54,6 +50,8 @@ BetterDisplay settings are tied to display hardware identifiers (UUIDs). When mo
 
 - BetterDisplay **must be closed** before importing settings
 - The import task refuses to continue while the app is running; quit the app and rerun the task
+- The import task asks for confirmation before it replaces live settings
+- The task saves a runtime backup under `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/backups/`
 - Restart BetterDisplay after importing settings
 
 RISK: macOS provides no lock that BetterDisplay itself honors. If the app launches in the small interval around `defaults import`, the task detects that state and restores the backup, but an app that changes its preferences concurrently can still require manual verification.

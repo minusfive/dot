@@ -7,33 +7,6 @@ typeset -gr BETTERDISPLAY_UTIL_DIR="${${(%):-%N}:A:h}"
 typeset -gr BETTERDISPLAY_LOCK_STALE_AFTER=120
 typeset -g BETTERDISPLAY_LOCK_DIR=""
 typeset -g BETTERDISPLAY_LOCK_TOKEN=""
-typeset -g BETTERDISPLAY_OPERATION_LOCK_DIR=""
-
-betterdisplay_repo_root() {
-    local candidate root
-
-    for candidate in "${MISE_PROJECT_ROOT:-}" "${MISE_ORIGINAL_CWD:-}"; do
-        [[ -n "$candidate" ]] || continue
-        root="$(cd "$candidate" 2>/dev/null && pwd -P)" || continue
-        if betterdisplay_repo_root_is_valid "$root"; then
-            print -r -- "$root"
-            return 0
-        fi
-    done
-
-    for candidate in "${MISE_ORIGINAL_CWD:-}" "$PWD"; do
-        [[ -n "$candidate" ]] || continue
-        root="$(git -C "$candidate" rev-parse --show-toplevel 2>/dev/null)" || continue
-        root="$(cd "$root" 2>/dev/null && pwd -P)" || continue
-        if betterdisplay_repo_root_is_valid "$root"; then
-            print -r -- "$root"
-            return 0
-        fi
-    done
-
-    print -u2 -- "error: could not find the dotfiles repository"
-    return 1
-}
 
 betterdisplay_repo_root_is_valid() {
     local repo_root="$1"
@@ -45,7 +18,8 @@ betterdisplay_repo_root_is_valid() {
 }
 
 betterdisplay_source_file() {
-    local repo_root="${1:-$(betterdisplay_repo_root)}"
+    local repo_root="$1"
+
     print -r -- "$repo_root/home/.config/BetterDisplay/config.plist"
 }
 
@@ -158,158 +132,60 @@ betterdisplay_remove_stale_lock() {
     rmdir "$lock_dir"
 }
 
-betterdisplay_restore_quarantined_lock() {
-    local lock_dir="$1"
-    local quarantine_dir="$2"
-
-    [[ ! -e "$lock_dir" ]] || return 1
-    mv "$quarantine_dir" "$lock_dir"
-}
-
 betterdisplay_quarantine_stale_lock() {
     local runtime_dir="$1"
     local lock_dir="$2"
-    local quarantine_dir owner_file owner_metadata
-    local owner_present=false moved=false
+    local quarantine_dir
     integer attempt
 
     betterdisplay_lock_is_old_enough "$lock_dir" || return 1
     betterdisplay_lock_entries_are_safe "$lock_dir" || return 1
-    owner_file="$lock_dir/owner"
-    if [[ -f "$owner_file" && ! -L "$owner_file" ]]; then
-        owner_present=true
-        owner_metadata="$(cat "$owner_file")"
-    fi
 
     for (( attempt = 1; attempt <= 20; attempt++ )); do
         quarantine_dir="$runtime_dir/.lock.reclaim.$$.$RANDOM.$attempt"
         [[ ! -e "$quarantine_dir" ]] || continue
         mv "$lock_dir" "$quarantine_dir" 2>/dev/null || return 1
-        moved=true
-        break
-    done
-    [[ "$moved" == true && -d "$quarantine_dir" && ! -L "$quarantine_dir" ]] || return 1
-
-    if [[ "$owner_present" == true ]]; then
-        if [[ ! -f "$quarantine_dir/owner" || -L "$quarantine_dir/owner" ||
-            "$(cat "$quarantine_dir/owner")" != "$owner_metadata" ||
-            -z "$(betterdisplay_lock_owner_token "$quarantine_dir/owner")" ]]; then
-            betterdisplay_restore_quarantined_lock "$lock_dir" "$quarantine_dir" || true
-            return 1
+        if betterdisplay_remove_stale_lock "$quarantine_dir"; then
+            return 0
         fi
-        if betterdisplay_lock_owner_is_live "$quarantine_dir/owner"; then
-            betterdisplay_restore_quarantined_lock "$lock_dir" "$quarantine_dir" || true
-            return 1
-        fi
-    elif [[ -e "$quarantine_dir/owner" ]]; then
-        betterdisplay_restore_quarantined_lock "$lock_dir" "$quarantine_dir" || true
+        [[ -e "$lock_dir" ]] || mv "$quarantine_dir" "$lock_dir" 2>/dev/null || true
         return 1
-    fi
-
-    betterdisplay_lock_entries_are_safe "$quarantine_dir" || {
-        betterdisplay_restore_quarantined_lock "$lock_dir" "$quarantine_dir" || true
-        return 1
-    }
-    betterdisplay_remove_stale_lock "$quarantine_dir"
-}
-
-betterdisplay_cleanup_stale_candidates() {
-    local runtime_dir="$1"
-    local candidate name owner_file
-    local -a candidates
-
-    candidates=("$runtime_dir"/.lock.*(N))
-    for candidate in "${candidates[@]}"; do
-        name="${candidate:t}"
-        [[ "$name" =~ '^\.lock\.[0-9]+\.[0-9]+\.[0-9]+$' ]] || continue
-        [[ -d "$candidate" && ! -L "$candidate" ]] || continue
-        owner_file="$candidate/owner"
-        if [[ -f "$owner_file" && ! -L "$owner_file" ]] &&
-            betterdisplay_lock_owner_is_live "$owner_file"; then
-            continue
-        fi
-        betterdisplay_quarantine_stale_lock "$runtime_dir" "$candidate" || true
     done
+
+    return 1
 }
 
-betterdisplay_cleanup_orphaned_reclaims() {
-    local runtime_dir="$1"
-    local reclaim_dir name owner_file
-    local -a reclaim_dirs
-
-    reclaim_dirs=("$runtime_dir"/.lock.reclaim.*(N))
-    for reclaim_dir in "${reclaim_dirs[@]}"; do
-        name="${reclaim_dir:t}"
-        [[ "$name" =~ '^\.lock\.reclaim\.[0-9]+\.[0-9]+\.[0-9]+$' ]] || continue
-        [[ -d "$reclaim_dir" && ! -L "$reclaim_dir" ]] || continue
-        betterdisplay_lock_is_old_enough "$reclaim_dir" || continue
-        betterdisplay_lock_entries_are_safe "$reclaim_dir" || continue
-        owner_file="$reclaim_dir/owner"
-        if [[ -f "$owner_file" && ! -L "$owner_file" ]] &&
-            betterdisplay_lock_owner_is_live "$owner_file"; then
-            continue
-        fi
-        betterdisplay_remove_stale_lock "$reclaim_dir" || true
-    done
-}
-
-betterdisplay_acquire_lock_unserialized() {
-    local runtime_dir lock_dir candidate candidate_name owner_file owner_tmp lock_token installed_token
-    local owner_pid owner_start
-    integer attempt
+betterdisplay_acquire_lock() {
+    local runtime_dir lock_dir owner_file owner_tmp lock_token owner_start
 
     runtime_dir="$(betterdisplay_runtime_dir)"
     mkdir -p "$runtime_dir"
-    betterdisplay_cleanup_orphaned_reclaims "$runtime_dir"
-    betterdisplay_cleanup_stale_candidates "$runtime_dir"
     lock_dir="$runtime_dir/lock"
-
-    owner_pid="${BETTERDISPLAY_LOCK_OWNER_PID:-$$}"
-    owner_start="${BETTERDISPLAY_LOCK_OWNER_START:-$(betterdisplay_process_start "$owner_pid")}"
-    lock_token="$owner_pid.$RANDOM.$(date +%s)"
-    [[ -n "$owner_start" ]] || {
+    owner_start="$(betterdisplay_process_start "$$")" || {
         print -u2 -- "error: could not determine BetterDisplay lock owner start time"
         return 1
     }
-    installed_token=""
+    lock_token="$$.$RANDOM.$(date +%s)"
 
-    for (( attempt = 1; attempt <= 20; attempt++ )); do
-        candidate="$runtime_dir/.lock.$owner_pid.$RANDOM.$attempt"
-        mkdir "$candidate" 2>/dev/null || continue
-        owner_file="$candidate/owner"
-        owner_tmp="$candidate/.owner.$lock_token"
+    if mkdir "$lock_dir" 2>/dev/null; then
+        owner_file="$lock_dir/owner"
+        owner_tmp="$lock_dir/.owner.$lock_token"
         if ! {
-            print -r -- "pid=$owner_pid"
+            print -r -- "pid=$$"
             print -r -- "start=$owner_start"
             print -r -- "token=$lock_token"
         } > "$owner_tmp" || ! mv "$owner_tmp" "$owner_file"; then
             rm -f "$owner_tmp" "$owner_file"
-            rmdir "$candidate" 2>/dev/null || true
+            rmdir "$lock_dir" 2>/dev/null || true
             print -u2 -- "error: could not publish BetterDisplay lock owner metadata"
             return 1
         fi
-        candidate_name="${candidate:t}"
-        if [[ ! -e "$lock_dir" ]] &&
-            mv -n "$candidate" "$lock_dir" 2>/dev/null &&
-            [[ ! -e "$candidate" && -d "$lock_dir" && ! -L "$lock_dir" &&
-                -f "$lock_dir/owner" && ! -L "$lock_dir/owner" ]]; then
-            installed_token="$(betterdisplay_lock_owner_token "$lock_dir/owner")"
-            if [[ "$installed_token" == "$lock_token" ]]; then
-                BETTERDISPLAY_LOCK_DIR="$lock_dir"
-                BETTERDISPLAY_LOCK_TOKEN="$lock_token"
-                return 0
-            fi
-        fi
-        if [[ -d "$lock_dir/$candidate_name" && ! -L "$lock_dir/$candidate_name" ]]; then
-            rm -f "$lock_dir/$candidate_name/owner" "$lock_dir/$candidate_name"/.owner.*(N)
-            rmdir "$lock_dir/$candidate_name" 2>/dev/null || true
-        fi
-        rm -f "$candidate/owner" "$candidate"/.owner.*(N)
-        rmdir "$candidate" 2>/dev/null || true
-        break
-    done
+        BETTERDISPLAY_LOCK_DIR="$lock_dir"
+        BETTERDISPLAY_LOCK_TOKEN="$lock_token"
+        return 0
+    fi
 
-    if [[ ! -d "$lock_dir" || -L "$lock_dir" ]]; then
+    if [[ -L "$lock_dir" || ! -d "$lock_dir" ]]; then
         print -u2 -- "error: another BetterDisplay settings operation is running"
         return 1
     fi
@@ -320,76 +196,13 @@ betterdisplay_acquire_lock_unserialized() {
         print -u2 -- "error: another BetterDisplay settings operation is running"
         return 1
     fi
+
     if ! betterdisplay_quarantine_stale_lock "$runtime_dir" "$lock_dir"; then
-        if [[ -f "$owner_file" && ! -L "$owner_file" ]]; then
-            print -u2 -- "error: BetterDisplay lock owner metadata is invalid or stale"
-        else
-            print -u2 -- "error: another BetterDisplay settings operation is running"
-        fi
+        print -u2 -- "error: BetterDisplay lock is active or cannot be recovered safely"
         return 1
     fi
 
-    betterdisplay_acquire_lock_unserialized
-}
-
-betterdisplay_acquire_lock() {
-    local runtime_dir operation_dir owner_file owner_tmp lock_token owner_start
-    local owner_pid
-    integer attempt
-
-    runtime_dir="$(betterdisplay_runtime_dir)"
-    mkdir -p "$runtime_dir"
-    operation_dir="$runtime_dir/.lock-operation"
-    owner_pid="$$"
-    owner_start="$(betterdisplay_process_start "$$")" || {
-        print -u2 -- "error: could not determine BetterDisplay lock owner start time"
-        return 1
-    }
-
-    for (( attempt = 1; attempt <= 30; attempt++ )); do
-        if mkdir "$operation_dir" 2>/dev/null; then
-            owner_file="$operation_dir/owner"
-            owner_tmp="$operation_dir/.owner.$owner_pid.$RANDOM"
-            if ! {
-                print -r -- "pid=$owner_pid"
-                print -r -- "start=$owner_start"
-            } > "$owner_tmp" || ! mv "$owner_tmp" "$owner_file"; then
-                rm -f "$owner_tmp" "$owner_file"
-                rmdir "$operation_dir" 2>/dev/null || true
-                print -u2 -- "error: could not publish BetterDisplay lock recovery guard"
-                return 1
-            fi
-            set +e
-            betterdisplay_acquire_lock_unserialized
-            local __lock_status=$?
-            set -e
-            if (( __lock_status == 0 )); then
-                BETTERDISPLAY_LOCK_DIR="$runtime_dir/lock"
-                BETTERDISPLAY_OPERATION_LOCK_DIR="$operation_dir"
-                return 0
-            fi
-            rm -f "$owner_file"
-            rmdir "$operation_dir" 2>/dev/null || true
-            return 1
-        fi
-
-        owner_file="$operation_dir/owner"
-        if [[ -f "$owner_file" && ! -L "$owner_file" ]] &&
-            betterdisplay_lock_owner_is_live "$owner_file"; then
-            print -u2 -- "error: another BetterDisplay settings operation is running"
-            return 1
-        fi
-        if [[ -d "$operation_dir" ]] &&
-            betterdisplay_lock_is_old_enough "$operation_dir" &&
-            betterdisplay_lock_entries_are_safe "$operation_dir"; then
-            betterdisplay_remove_stale_lock "$operation_dir" || true
-        else
-            sleep 1
-        fi
-    done
-
-    print -u2 -- "error: could not acquire BetterDisplay lock recovery guard"
-    return 1
+    betterdisplay_acquire_lock
 }
 
 betterdisplay_atomic_swap() {
@@ -423,28 +236,18 @@ betterdisplay_atomic_swap() {
 }
 
 betterdisplay_release_lock() {
-    local owner_token operation_owner_pid
+    local owner_token
 
     if [[ -n "$BETTERDISPLAY_LOCK_DIR" && -f "$BETTERDISPLAY_LOCK_DIR/owner" &&
         ! -L "$BETTERDISPLAY_LOCK_DIR/owner" ]]; then
-        owner_token="$(sed -n 's/^token=\([[:alnum:]._-]*\)$/\1/p' "$BETTERDISPLAY_LOCK_DIR/owner")"
+        owner_token="$(betterdisplay_lock_owner_token "$BETTERDISPLAY_LOCK_DIR/owner")"
         if [[ "$owner_token" == "$BETTERDISPLAY_LOCK_TOKEN" ]]; then
             rm -f "$BETTERDISPLAY_LOCK_DIR/owner"
             rmdir "$BETTERDISPLAY_LOCK_DIR" 2>/dev/null || true
         fi
     fi
-    if [[ -n "$BETTERDISPLAY_OPERATION_LOCK_DIR" &&
-        -f "$BETTERDISPLAY_OPERATION_LOCK_DIR/owner" &&
-        ! -L "$BETTERDISPLAY_OPERATION_LOCK_DIR/owner" ]]; then
-        operation_owner_pid="$(sed -n 's/^pid=\([0-9][0-9]*\)$/\1/p' "$BETTERDISPLAY_OPERATION_LOCK_DIR/owner")"
-        if [[ "$operation_owner_pid" == "$$" ]]; then
-            rm -f "$BETTERDISPLAY_OPERATION_LOCK_DIR/owner"
-            rmdir "$BETTERDISPLAY_OPERATION_LOCK_DIR" 2>/dev/null || true
-        fi
-    fi
     BETTERDISPLAY_LOCK_DIR=""
     BETTERDISPLAY_LOCK_TOKEN=""
-    BETTERDISPLAY_OPERATION_LOCK_DIR=""
 }
 
 betterdisplay_backup_current_settings() {

@@ -86,8 +86,9 @@ grep -qF '"~/.config/mise/tasks/betterdisplay/settings/export.zsh"' home/.config
     fail "BetterDisplay export task is not owned by the mise control plane"
 grep -qF '"~/.config/mise/tasks/betterdisplay/settings/import.zsh"' home/.config/mise/conf.d/module.mise.toml ||
     fail "BetterDisplay import task is not owned by the mise control plane"
-grep -qF '[bootstrap.macos.launchd.agents.betterdisplay-settings-export]' home/.config/mise/conf.d/module.betterdisplay.toml ||
-    fail "BetterDisplay export bootstrap is not owned by its mise module"
+if grep -qiE 'launchd|start_interval|run_at_load' home/.config/mise/conf.d/module.betterdisplay.toml; then
+    fail "BetterDisplay automatic LaunchAgent declarations remain"
+fi
 if grep -qF 'betterdisplay.zsh' scripts/init.zsh; then
     fail "deleted BetterDisplay initializer remains wired into scripts/init.zsh"
 fi
@@ -179,13 +180,6 @@ if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/init.zsh scripts/function
 fi
 [[ ! -e scripts/os.zsh ]] || fail "OS operations must use mise macos tasks"
 
-local __mise_link_count
-__mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ -L "$HOME/.config/mise/tasks/betterdisplay/settings/export.zsh" ]] ||
-    fail "BetterDisplay export task was not deployed as a symlink"
-[[ -L "$HOME/.config/mise/tasks/betterdisplay/settings/import.zsh" ]] ||
-    fail "BetterDisplay import task was not deployed as a symlink"
-[[ "$__mise_link_count" -eq 112 ]] || fail "expected 112 managed mise links, found $__mise_link_count"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \

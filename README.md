@@ -24,7 +24,7 @@ The `--mise` option runs all `mise` setup steps. It asks for approval once befor
 
 `gh` is used to download certain files from GitHub repositories as part of the bootstrap process. When no existing `gh` session is available, a browser-based authentication flow is triggered and configures `Git` credentials for authenticated resource downloads.
 
-`mise` also configures and triggers background processes for automatic maintenance and synchronization.
+`mise` also provides manual maintenance tasks for selected applications.
 
 ### Profiles
 
