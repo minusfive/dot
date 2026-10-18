@@ -51,8 +51,9 @@ Apply the runtime-isolation rules in `task-orchestration` before implementation 
 9. Remove an open PR only after that grace period is clean. Remove merged or closed PRs from the watch state automatically.
 10. Run focused tests and an independent critique subagent before every review-fix commit and push.
 11. Use `commit-guidelines` and `pr-guidelines` for the review-fix commit and push.
-12. Remove the matching worktree after a PR merges and the worktree is clean.
-13. Stop the external schedule when all watched PRs satisfy the grace period, and close the orchestration cycle when no actionable review work remains.
+12. After fixing and pushing review findings, reply to each addressed actionable review thread with concise reasoning and the validating tests, then resolve that thread.
+13. Remove the matching worktree after a PR merges and the worktree is clean.
+14. Stop the external schedule when all watched PRs satisfy the grace period, and close the orchestration cycle when no actionable review work remains.
 
 ## Merge authority
 
