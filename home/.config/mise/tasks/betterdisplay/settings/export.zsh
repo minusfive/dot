@@ -6,12 +6,45 @@
 set -euo pipefail
 
 local __repo_root __source_file __baseline_file __export_file __expected_file __conflict_file __repo_hint
-if [[ -n "${MISE_PROJECT_ROOT:-}" && -d "$MISE_PROJECT_ROOT/home/.config/BetterDisplay" ]]; then
-    __repo_root="$(cd "$MISE_PROJECT_ROOT" && pwd -P)"
+local __task_file="${0:A}" __trusted_root
+local __preserve_displaced=false
+__trusted_root="$(cd "${__task_file:h}/../../../../../../" 2>/dev/null && pwd -P)" || {
+    print -u2 -- "error: could not determine the trusted dotfiles repository"
+    exit 1
+}
+__repo_root_is_valid() {
+    local __candidate="$1"
+    local __candidate_root
+
+    __candidate_root="$(cd "$__candidate" 2>/dev/null && pwd -P)" || return 1
+    [[ "$__candidate_root" == "$__trusted_root" &&
+        -e "$__candidate_root/.git" &&
+        -f "$__candidate_root/home/.config/BetterDisplay/config.plist" &&
+        -f "$__candidate_root/scripts/utils/betterdisplay.zsh" ]]
+}
+if [[ -n "${MISE_PROJECT_ROOT:-}" ]]; then
+    __repo_root="$(cd "$MISE_PROJECT_ROOT" 2>/dev/null && pwd -P)" || {
+        print -u2 -- "error: could not find the dotfiles repository"
+        exit 1
+    }
+    __repo_root_is_valid "$__repo_root" || {
+        print -u2 -- "error: refusing untrusted dotfiles repository: $__repo_root"
+        exit 1
+    }
 else
     __repo_hint="${MISE_ORIGINAL_CWD:-$PWD}"
-    __repo_root="$(git -C "$__repo_hint" rev-parse --show-toplevel 2>/dev/null)" ||
-        { print -u2 -- "error: could not find the dotfiles repository"; exit 1; }
+    __repo_root="$(git -C "$__repo_hint" rev-parse --show-toplevel 2>/dev/null)" || {
+        print -u2 -- "error: could not find the dotfiles repository"
+        exit 1
+    }
+    __repo_root="$(cd "$__repo_root" 2>/dev/null && pwd -P)" || {
+        print -u2 -- "error: could not find the dotfiles repository"
+        exit 1
+    }
+    __repo_root_is_valid "$__repo_root" || {
+        print -u2 -- "error: refusing untrusted dotfiles repository: $__repo_root"
+        exit 1
+    }
 fi
 source "$__repo_root/scripts/utils/betterdisplay.zsh"
 __source_file="$(betterdisplay_source_file "$__repo_root")"
@@ -22,8 +55,15 @@ betterdisplay_acquire_lock
 cleanup() {
     betterdisplay_release_lock
     [[ -n "${__baseline_file:-}" ]] && rm -f "$__baseline_file"
-    [[ -n "${__export_file:-}" ]] && rm -f "$__export_file"
+    if [[ "$__preserve_displaced" != true && -n "${__export_file:-}" ]]; then
+        rm -f "$__export_file"
+    fi
     [[ -n "${__expected_file:-}" ]] && rm -f "$__expected_file"
+    if [[ "$__preserve_displaced" == true ]]; then
+        print -u2 -- "error: displaced tracked content retained at $__export_file"
+        [[ -n "${__conflict_file:-}" ]] &&
+            print -u2 -- "error: recovery copy retained at $__conflict_file"
+    fi
 }
 trap cleanup EXIT
 
@@ -62,13 +102,17 @@ if ! betterdisplay_atomic_swap "$__source_file" "$__export_file"; then
 fi
 
 if ! cmp -s "$__export_file" "$__baseline_file"; then
-    __conflict_file="$(betterdisplay_make_temp_file "$(betterdisplay_runtime_dir)/conflicts")"
-    cp "$__export_file" "$__conflict_file"
+    if ! __conflict_file="$(betterdisplay_make_temp_file "$(betterdisplay_runtime_dir)/conflicts")" ||
+        ! cp "$__export_file" "$__conflict_file"; then
+        rm -f "${__conflict_file:-}"
+        __conflict_file=""
+        __preserve_displaced=true
+        print -u2 -- "error: could not preserve concurrent BetterDisplay settings"
+        exit 1
+    fi
     if ! betterdisplay_atomic_swap "$__source_file" "$__export_file" >/dev/null 2>&1; then
-        __export_file=""
+        __preserve_displaced=true
         print -u2 -- "error: could not roll back the concurrent BetterDisplay settings replacement"
-        print -u2 -- "error: previous tracked content preserved at $__conflict_file"
-        cleanup
         exit 1
     fi
     print -u2 -- "error: tracked BetterDisplay plist changed during replacement; refusing replacement"
@@ -77,13 +121,17 @@ if ! cmp -s "$__export_file" "$__baseline_file"; then
     exit 1
 fi
 if ! cmp -s "$__source_file" "$__expected_file"; then
-    __conflict_file="$(betterdisplay_make_temp_file "$(betterdisplay_runtime_dir)/conflicts")"
-    cp "$__source_file" "$__conflict_file"
+    if ! __conflict_file="$(betterdisplay_make_temp_file "$(betterdisplay_runtime_dir)/conflicts")" ||
+        ! cp "$__source_file" "$__conflict_file"; then
+        rm -f "${__conflict_file:-}"
+        __conflict_file=""
+        __preserve_displaced=true
+        print -u2 -- "error: could not preserve concurrent BetterDisplay settings"
+        exit 1
+    fi
     if ! betterdisplay_atomic_swap "$__source_file" "$__export_file" >/dev/null 2>&1; then
-        __export_file=""
+        __preserve_displaced=true
         print -u2 -- "error: could not roll back the concurrent BetterDisplay settings replacement"
-        print -u2 -- "error: concurrent content preserved at $__conflict_file"
-        cleanup
         exit 1
     fi
     print -u2 -- "error: tracked BetterDisplay plist changed after replacement; refusing replacement"

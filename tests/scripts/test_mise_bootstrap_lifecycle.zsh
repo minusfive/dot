@@ -284,8 +284,28 @@ FIXTURE_CWD="$__relative_fixture_dir" FIXTURE_HOME="$__relative_fixture_dir/home
 [[ "$__run_fixture_status" -eq 0 ]] || fail "relative mise installation fixture failed"
 [[ -L "$__relative_fixture_dir/home/.local/bin/mise" ]] ||
     fail "relative mise installation did not create a stable symlink"
-[[ "$(readlink "$__relative_fixture_dir/home/.local/bin/mise")" == "$(realpath "$__relative_fixture_dir/bin/mise")" ]] ||
-    fail "relative mise stable symlink was not resolved to an absolute physical path"
+[[ "$(readlink "$__relative_fixture_dir/home/.local/bin/mise")" == "$__relative_fixture_dir/bin/mise" ]] ||
+    fail "relative mise stable symlink did not preserve its entrypoint"
+
+local __brew_fixture_dir="$__fixture_dir/brew"
+mkdir -p "$__brew_fixture_dir/bin" "$__brew_fixture_dir/Cellar/mise/1/bin" "$__brew_fixture_dir/Cellar/mise/2/bin"
+cp "$__stub_dir/mise" "$__brew_fixture_dir/Cellar/mise/1/bin/mise"
+cp "$__stub_dir/mise" "$__brew_fixture_dir/Cellar/mise/2/bin/mise"
+chmod +x "$__brew_fixture_dir"/Cellar/mise/*/bin/mise
+ln -s "$__brew_fixture_dir/Cellar/mise/1/bin/mise" "$__brew_fixture_dir/bin/mise"
+local __brew_fixture_home="$__brew_fixture_dir/home"
+FIXTURE_HOME="$__brew_fixture_home" FIXTURE_CONFIRM=yes \
+    run_fixture "$__brew_fixture_dir/bin:/usr/bin:/bin"
+[[ "$__run_fixture_status" -eq 0 ]] || fail "Homebrew-style mise installation fixture failed"
+local __brew_stable_mise="$__brew_fixture_home/.local/bin/mise"
+[[ "$(readlink "$__brew_stable_mise")" == "$__brew_fixture_dir/bin/mise" ]] ||
+    fail "Homebrew-style stable mise symlink pinned the Cellar path"
+ln -sfn "$__brew_fixture_dir/Cellar/mise/2/bin/mise" "$__brew_fixture_dir/bin/mise"
+FIXTURE_HOME="$__brew_fixture_home" FIXTURE_CONFIRM=yes \
+    run_fixture "$__brew_fixture_dir/bin:/usr/bin:/bin"
+[[ "$__run_fixture_status" -eq 0 ]] || fail "Homebrew-style mise upgrade fixture failed"
+[[ "$(readlink "$__brew_stable_mise")" == "$__brew_fixture_dir/bin/mise" ]] ||
+    fail "stable mise symlink did not follow the Homebrew entrypoint after upgrade"
 
 local __unrelated_executable_home="$__fixture_dir/unrelated-executable-home"
 mkdir -p "$__unrelated_executable_home/.local/bin"

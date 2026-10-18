@@ -7,14 +7,15 @@ typeset -gr BETTERDISPLAY_UTIL_DIR="${${(%):-%N}:A:h}"
 typeset -gr BETTERDISPLAY_LOCK_STALE_AFTER=120
 typeset -g BETTERDISPLAY_LOCK_DIR=""
 typeset -g BETTERDISPLAY_LOCK_TOKEN=""
+typeset -g BETTERDISPLAY_OPERATION_LOCK_DIR=""
 
 betterdisplay_repo_root() {
     local candidate root
 
     for candidate in "${MISE_PROJECT_ROOT:-}" "${MISE_ORIGINAL_CWD:-}"; do
         [[ -n "$candidate" ]] || continue
-        if [[ -f "$candidate/home/.config/BetterDisplay/config.plist" ]]; then
-            root="$(cd "$candidate" && pwd -P)"
+        root="$(cd "$candidate" 2>/dev/null && pwd -P)" || continue
+        if betterdisplay_repo_root_is_valid "$root"; then
             print -r -- "$root"
             return 0
         fi
@@ -23,12 +24,24 @@ betterdisplay_repo_root() {
     for candidate in "${MISE_ORIGINAL_CWD:-}" "$PWD"; do
         [[ -n "$candidate" ]] || continue
         root="$(git -C "$candidate" rev-parse --show-toplevel 2>/dev/null)" || continue
-        print -r -- "$root"
-        return 0
+        root="$(cd "$root" 2>/dev/null && pwd -P)" || continue
+        if betterdisplay_repo_root_is_valid "$root"; then
+            print -r -- "$root"
+            return 0
+        fi
     done
 
     print -u2 -- "error: could not find the dotfiles repository"
     return 1
+}
+
+betterdisplay_repo_root_is_valid() {
+    local repo_root="$1"
+
+    [[ -d "$repo_root" &&
+        -e "$repo_root/.git" &&
+        -f "$repo_root/home/.config/BetterDisplay/config.plist" &&
+        -f "$repo_root/scripts/utils/betterdisplay.zsh" ]]
 }
 
 betterdisplay_source_file() {
@@ -320,38 +333,63 @@ betterdisplay_acquire_lock_unserialized() {
 }
 
 betterdisplay_acquire_lock() {
-    local runtime_dir operation_file lock_token owner_start
+    local runtime_dir operation_dir owner_file owner_tmp lock_token owner_start
+    local owner_pid
+    integer attempt
 
     runtime_dir="$(betterdisplay_runtime_dir)"
     mkdir -p "$runtime_dir"
-    operation_file="$runtime_dir/.lock-operation"
+    operation_dir="$runtime_dir/.lock-operation"
+    owner_pid="$$"
     owner_start="$(betterdisplay_process_start "$$")" || {
         print -u2 -- "error: could not determine BetterDisplay lock owner start time"
         return 1
     }
-    command -v lockf >/dev/null 2>&1 || {
-        print -u2 -- "error: lockf is required for BetterDisplay lock recovery"
-        return 1
-    }
-    lock_token="$(
-        BETTERDISPLAY_LOCK_OWNER_PID="$$" \
-        BETTERDISPLAY_LOCK_OWNER_START="$owner_start" \
-        BETTERDISPLAY_LOCK_UTIL="$BETTERDISPLAY_UTIL_DIR/betterdisplay.zsh" \
-            lockf -t 30 "$operation_file" zsh -f -c '
-                source "$BETTERDISPLAY_LOCK_UTIL"
-                betterdisplay_acquire_lock_unserialized
-                print -r -- "$BETTERDISPLAY_LOCK_TOKEN"
-            '
-    )" || {
-        print -u2 -- "error: could not acquire BetterDisplay lock recovery guard"
-        return 1
-    }
-    [[ "$lock_token" == <->.<->.<-> ]] || {
-        print -u2 -- "error: BetterDisplay lock owner token was not published"
-        return 1
-    }
-    BETTERDISPLAY_LOCK_DIR="$runtime_dir/lock"
-    BETTERDISPLAY_LOCK_TOKEN="$lock_token"
+
+    for (( attempt = 1; attempt <= 30; attempt++ )); do
+        if mkdir "$operation_dir" 2>/dev/null; then
+            owner_file="$operation_dir/owner"
+            owner_tmp="$operation_dir/.owner.$owner_pid.$RANDOM"
+            if ! {
+                print -r -- "pid=$owner_pid"
+                print -r -- "start=$owner_start"
+            } > "$owner_tmp" || ! mv "$owner_tmp" "$owner_file"; then
+                rm -f "$owner_tmp" "$owner_file"
+                rmdir "$operation_dir" 2>/dev/null || true
+                print -u2 -- "error: could not publish BetterDisplay lock recovery guard"
+                return 1
+            fi
+            set +e
+            betterdisplay_acquire_lock_unserialized
+            local __lock_status=$?
+            set -e
+            if (( __lock_status == 0 )); then
+                BETTERDISPLAY_LOCK_DIR="$runtime_dir/lock"
+                BETTERDISPLAY_OPERATION_LOCK_DIR="$operation_dir"
+                return 0
+            fi
+            rm -f "$owner_file"
+            rmdir "$operation_dir" 2>/dev/null || true
+            return 1
+        fi
+
+        owner_file="$operation_dir/owner"
+        if [[ -f "$owner_file" && ! -L "$owner_file" ]] &&
+            betterdisplay_lock_owner_is_live "$owner_file"; then
+            print -u2 -- "error: another BetterDisplay settings operation is running"
+            return 1
+        fi
+        if [[ -d "$operation_dir" ]] &&
+            betterdisplay_lock_is_old_enough "$operation_dir" &&
+            betterdisplay_lock_entries_are_safe "$operation_dir"; then
+            betterdisplay_remove_stale_lock "$operation_dir" || true
+        else
+            sleep 1
+        fi
+    done
+
+    print -u2 -- "error: could not acquire BetterDisplay lock recovery guard"
+    return 1
 }
 
 betterdisplay_atomic_swap() {
@@ -385,7 +423,7 @@ betterdisplay_atomic_swap() {
 }
 
 betterdisplay_release_lock() {
-    local owner_token
+    local owner_token operation_owner_pid
 
     if [[ -n "$BETTERDISPLAY_LOCK_DIR" && -f "$BETTERDISPLAY_LOCK_DIR/owner" &&
         ! -L "$BETTERDISPLAY_LOCK_DIR/owner" ]]; then
@@ -395,8 +433,18 @@ betterdisplay_release_lock() {
             rmdir "$BETTERDISPLAY_LOCK_DIR" 2>/dev/null || true
         fi
     fi
+    if [[ -n "$BETTERDISPLAY_OPERATION_LOCK_DIR" &&
+        -f "$BETTERDISPLAY_OPERATION_LOCK_DIR/owner" &&
+        ! -L "$BETTERDISPLAY_OPERATION_LOCK_DIR/owner" ]]; then
+        operation_owner_pid="$(sed -n 's/^pid=\([0-9][0-9]*\)$/\1/p' "$BETTERDISPLAY_OPERATION_LOCK_DIR/owner")"
+        if [[ "$operation_owner_pid" == "$$" ]]; then
+            rm -f "$BETTERDISPLAY_OPERATION_LOCK_DIR/owner"
+            rmdir "$BETTERDISPLAY_OPERATION_LOCK_DIR" 2>/dev/null || true
+        fi
+    fi
     BETTERDISPLAY_LOCK_DIR=""
     BETTERDISPLAY_LOCK_TOKEN=""
+    BETTERDISPLAY_OPERATION_LOCK_DIR=""
 }
 
 betterdisplay_backup_current_settings() {

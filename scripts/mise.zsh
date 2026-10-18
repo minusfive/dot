@@ -18,18 +18,34 @@ function _v_mise_ensure_stable_path {
     local __mise_path="${1:-}"
     local __stable_path="$HOME/.local/bin/mise"
     local __physical_path
+    local __path_dir
+
+    if [[ "$__mise_path" == "$__stable_path" || -z "$__mise_path" ]]; then
+        local -a __path_entries=("${(@s/:/)PATH}")
+        __mise_path=""
+        for __path_dir in "${__path_entries[@]}"; do
+            [[ "$__path_dir" == "$HOME/.local/bin" ]] && continue
+            if [[ -x "$__path_dir/mise" ]]; then
+                __mise_path="$__path_dir/mise"
+                break
+            fi
+        done
+    fi
+    if [[ -z "$__mise_path" && -L "$__stable_path" ]] &&
+        _v_mise_is_valid "$__stable_path"; then
+        export PATH="$HOME/.local/bin:$PATH"
+        hash -r
+        return 0
+    fi
+    if [[ "$__mise_path" != /* ]]; then
+        __mise_path="$(cd "${__mise_path:h}" 2>/dev/null && pwd -P)/${__mise_path:t}" || {
+            _v_log_error "MISE" "Cannot create stable mise path: selected mise entrypoint is invalid"
+            return 1
+        }
+    fi
 
     if [[ -e "$__stable_path" || -L "$__stable_path" ]]; then
-        if _v_mise_is_valid "$__stable_path"; then
-            export PATH="$HOME/.local/bin:$PATH"
-            hash -r
-            return 0
-        fi
         if [[ ! -L "$__stable_path" ]]; then
-            _v_log_error "MISE" "Cannot create stable mise path: $__stable_path is not a valid mise executable"
-            return 1
-        fi
-        if [[ -e "$__stable_path" ]]; then
             _v_log_error "MISE" "Cannot create stable mise path: $__stable_path is not a valid mise executable"
             return 1
         fi
@@ -37,7 +53,6 @@ function _v_mise_ensure_stable_path {
     fi
 
     hash -r
-    __mise_path="${__mise_path:-$(command -v mise || true)}"
     __physical_path="$(realpath "$__mise_path" 2>/dev/null || true)"
     if [[ -z "$__physical_path" || "$__physical_path" == "$__stable_path" ]] ||
         ! _v_mise_is_valid "$__physical_path"; then
@@ -48,7 +63,6 @@ function _v_mise_ensure_stable_path {
         fi
         return 1
     fi
-    __mise_path="$__physical_path"
 
     command mkdir -p "$HOME/.local/bin"
     command ln -s "$__mise_path" "$__stable_path"

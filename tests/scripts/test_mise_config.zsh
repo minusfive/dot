@@ -181,10 +181,11 @@ fi
 
 local __mise_link_count
 __mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-if [[ -L "$HOME/.config/mise/tasks/betterdisplay/settings/export.zsh" &&
-    -L "$HOME/.config/mise/tasks/betterdisplay/settings/import.zsh" ]]; then
-    [[ "$__mise_link_count" -eq 112 ]] || fail "expected 112 managed mise links, found $__mise_link_count"
-fi
+[[ -L "$HOME/.config/mise/tasks/betterdisplay/settings/export.zsh" ]] ||
+    fail "BetterDisplay export task was not deployed as a symlink"
+[[ -L "$HOME/.config/mise/tasks/betterdisplay/settings/import.zsh" ]] ||
+    fail "BetterDisplay import task was not deployed as a symlink"
+[[ "$__mise_link_count" -eq 112 ]] || fail "expected 112 managed mise links, found $__mise_link_count"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \

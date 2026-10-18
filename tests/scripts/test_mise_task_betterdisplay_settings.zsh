@@ -15,18 +15,22 @@ local __bin="$__work_dir/bin"
 local __home="$__work_dir/home"
 local __zdotdir="$__work_dir/zsh"
 local __source="$__fixture/home/.config/BetterDisplay/config.plist"
-local __export_task="$__root_dir/home/.config/mise/tasks/betterdisplay/settings/export.zsh"
-local __import_task="$__root_dir/home/.config/mise/tasks/betterdisplay/settings/import.zsh"
+local __export_task="$__fixture/home/.config/mise/tasks/betterdisplay/settings/export.zsh"
+local __import_task="$__fixture/home/.config/mise/tasks/betterdisplay/settings/import.zsh"
+local __source_export_task="$__root_dir/home/.config/mise/tasks/betterdisplay/settings/export.zsh"
+local __source_import_task="$__root_dir/home/.config/mise/tasks/betterdisplay/settings/import.zsh"
 
 cleanup() {
     rm -rf "$__work_dir"
 }
 trap cleanup EXIT
 
-mkdir -p "$__fixture/home/.config/BetterDisplay" "$__fixture/scripts/utils" "$__bin" "$__home/Applications/BetterDisplay.app" "$__zdotdir"
+mkdir -p "$__fixture/.git" "$__fixture/home/.config/BetterDisplay" "$__fixture/home/.config/mise/tasks/betterdisplay/settings" "$__fixture/scripts/utils" "$__bin" "$__home/Applications/BetterDisplay.app" "$__zdotdir"
 cp "$__root_dir/home/.config/BetterDisplay/config.plist" "$__source"
 cp "$__root_dir/scripts/utils/betterdisplay.zsh" "$__fixture/scripts/utils/betterdisplay.zsh"
 cp "$__root_dir/scripts/utils/betterdisplay_atomic_swap.c" "$__fixture/scripts/utils/betterdisplay_atomic_swap.c"
+cp "$__source_export_task" "$__export_task"
+cp "$__source_import_task" "$__import_task"
 
 cat > "$__bin/defaults" <<'EOF'
 #!/usr/bin/env zsh
@@ -63,6 +67,10 @@ fi
 EOF
 cat > "$__bin/git" <<'EOF'
 #!/usr/bin/env zsh
+if [[ -n "${BD_GIT_ROOT:-}" ]]; then
+    print -r -- "$BD_GIT_ROOT"
+    exit 0
+fi
 print -r -- "$*" >> "$BD_GIT_LOG"
 exit 1
 EOF
@@ -237,6 +245,53 @@ rm -rf "$__lock_state"
 
 [[ "$("$__export_task" 2>&1)" == *"unchanged"* ]] || fail "unchanged export was not reported"
 [[ ! -s "$__git_log" ]] || fail "export invoked Git"
+local __deployed_task="$__work_dir/deployed/.config/mise/tasks/betterdisplay/settings/export.zsh"
+mkdir -p "${__deployed_task:h}"
+ln -s "$__export_task" "$__deployed_task"
+[[ "$("$__deployed_task" 2>&1)" == *"unchanged"* ]] || fail "deployed task symlink was not resolved to its trusted source"
+
+local __untrusted_root="$__work_dir/untrusted-root"
+local __untrusted_marker="$__work_dir/untrusted-sourced"
+mkdir -p "$__untrusted_root/.git" "$__untrusted_root/home/.config/BetterDisplay" "$__untrusted_root/home/.config/mise/tasks/betterdisplay/settings" "$__untrusted_root/scripts/utils"
+cp "$__source" "$__untrusted_root/home/.config/BetterDisplay/config.plist"
+cp "$__source_export_task" "$__untrusted_root/home/.config/mise/tasks/betterdisplay/settings/export.zsh"
+cp "$__source_import_task" "$__untrusted_root/home/.config/mise/tasks/betterdisplay/settings/import.zsh"
+cat > "$__untrusted_root/scripts/utils/betterdisplay.zsh" <<'EOF'
+#!/usr/bin/env zsh
+: > "$BD_UNTRUSTED_MARKER"
+EOF
+export MISE_PROJECT_ROOT="" MISE_ORIGINAL_CWD="$__untrusted_root"
+export BD_GIT_ROOT="$__untrusted_root" BD_UNTRUSTED_MARKER="$__untrusted_marker"
+if "$__export_task" >"$__work_dir/untrusted-output" 2>&1; then
+    fail "export accepted an untrusted fallback repository"
+fi
+[[ ! -e "$__untrusted_marker" ]] || fail "untrusted fallback helper was sourced"
+grep -qF "refusing untrusted dotfiles repository" "$__work_dir/untrusted-output" ||
+    fail "untrusted fallback repository was not rejected"
+if "$__import_task" >"$__work_dir/untrusted-import-output" 2>&1; then
+    fail "import accepted an untrusted fallback repository"
+fi
+[[ ! -e "$__untrusted_marker" ]] || fail "untrusted import fallback helper was sourced"
+grep -qF "refusing untrusted dotfiles repository" "$__work_dir/untrusted-import-output" ||
+    fail "untrusted import fallback repository was not rejected"
+
+local __valid_fallback_root="$__work_dir/valid-fallback-root"
+local __valid_export_task="$__valid_fallback_root/home/.config/mise/tasks/betterdisplay/settings/export.zsh"
+local __valid_import_task="$__valid_fallback_root/home/.config/mise/tasks/betterdisplay/settings/import.zsh"
+mkdir -p "$__valid_fallback_root/.git" "$__valid_fallback_root/home/.config/BetterDisplay" "$__valid_fallback_root/home/.config/mise/tasks/betterdisplay/settings" "$__valid_fallback_root/scripts/utils"
+cp "$__source" "$__valid_fallback_root/home/.config/BetterDisplay/config.plist"
+cp "$__root_dir/scripts/utils/betterdisplay.zsh" "$__valid_fallback_root/scripts/utils/betterdisplay.zsh"
+cp "$__source_export_task" "$__valid_export_task"
+cp "$__source_import_task" "$__valid_import_task"
+export MISE_ORIGINAL_CWD="$__valid_fallback_root" BD_GIT_ROOT="$__valid_fallback_root"
+export BD_EXPORT_SOURCE="$__valid_fallback_root/home/.config/BetterDisplay/config.plist"
+[[ "$("$__valid_export_task" 2>&1)" == *"unchanged"* ]] || fail "valid fallback repository was rejected"
+print -r -- n | "$__valid_import_task" >"$__work_dir/valid-import-output"
+grep -qF "Import cancelled" "$__work_dir/valid-import-output" ||
+    fail "valid import fallback repository was rejected"
+export MISE_PROJECT_ROOT="$__fixture" MISE_ORIGINAL_CWD="$__root_dir"
+export BD_GIT_ROOT="" BD_UNTRUSTED_MARKER=""
+export BD_EXPORT_SOURCE="$__valid_export"
 
 print -r -- '<?xml version="1.0"?><plist version="1.0"><dict><key>Changed</key><true/></dict></plist>' > "$__valid_export"
 "$__export_task" >/dev/null
@@ -285,6 +340,70 @@ find "$XDG_STATE_HOME/minusfive/BetterDisplay/conflicts" -type f -print -quit | 
     fail "concurrent export content was not preserved"
 rm -f "$__race_helper" "$BD_RACE_MARKER"
 unset BD_RACE_MARKER
+cp "$__valid_export" "$__source"
+
+cat > "$__race_helper" <<'EOF'
+#!/usr/bin/env zsh
+local swap_file="$2.swap"
+if [[ ! -e "$BD_RACE_MARKER" ]]; then
+    : > "$BD_RACE_MARKER"
+    /bin/mv "$2" "$swap_file"
+    /bin/mv "$1" "$2"
+    /bin/mv "$swap_file" "$1"
+    print -r -- concurrent > "$1"
+    exit 0
+fi
+/bin/mv "$2" "$swap_file"
+/bin/mv "$1" "$2"
+/bin/mv "$swap_file" "$1"
+EOF
+chmod +x "$__race_helper"
+export BD_RACE_MARKER="$__race_marker"
+local __conflicts_dir="$XDG_STATE_HOME/minusfive/BetterDisplay/conflicts"
+rm -rf "$__conflicts_dir"
+print -r -- blocked > "$__conflicts_dir"
+cp "$__root_dir/home/.config/BetterDisplay/config.plist" "$__source"
+print -r -- '<?xml version="1.0"?><plist version="1.0"><dict><key>FailurePath</key><true/></dict></plist>' > "$__valid_export"
+if "$__export_task" >"$__work_dir/conflict-copy-output" 2>&1; then
+    fail "export accepted a failed conflict-file creation"
+fi
+grep -qF "displaced tracked content retained at" "$__work_dir/conflict-copy-output" ||
+    fail "conflict-file failure did not report the displaced content path"
+find "$__fixture/home/.config/BetterDisplay" -name '.betterdisplay.*' -type f -print -quit | grep -q . ||
+    fail "conflict-file failure deleted the displaced content"
+rm -f "$__race_helper" "$BD_RACE_MARKER"
+unset BD_RACE_MARKER
+rm -f "$__conflicts_dir"
+cp "$__valid_export" "$__source"
+
+cat > "$__race_helper" <<'EOF'
+#!/usr/bin/env zsh
+local swap_file="$2.swap"
+if [[ ! -e "$BD_RACE_MARKER" ]]; then
+    : > "$BD_RACE_MARKER"
+    /bin/mv "$2" "$swap_file"
+    /bin/mv "$1" "$2"
+    /bin/mv "$swap_file" "$1"
+    print -r -- concurrent > "$1"
+    exit 0
+fi
+exit 1
+EOF
+chmod +x "$__race_helper"
+export BD_RACE_MARKER="$__race_marker"
+cp "$__root_dir/home/.config/BetterDisplay/config.plist" "$__source"
+if "$__export_task" >"$__work_dir/rollback-output" 2>&1; then
+    fail "export accepted a failed rollback"
+fi
+grep -qF "could not roll back" "$__work_dir/rollback-output" ||
+    fail "rollback failure was not reported"
+grep -qF "recovery copy retained at" "$__work_dir/rollback-output" ||
+    fail "rollback failure did not report its recovery path"
+find "$XDG_STATE_HOME/minusfive/BetterDisplay/conflicts" -type f -print -quit | grep -q . ||
+    fail "rollback failure did not preserve a recovery copy"
+rm -f "$__race_helper" "$BD_RACE_MARKER"
+unset BD_RACE_MARKER
+cp "$__valid_export" "$__source"
 
 mv "$__source" "$__source.missing"
 if print -r -- y | "$__import_task" >/dev/null 2>&1; then
