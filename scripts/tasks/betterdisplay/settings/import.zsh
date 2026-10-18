@@ -52,11 +52,11 @@ function {
         }
     }
 
-    __validate_physical_file "BetterDisplay helper" "$__helper" || exit 1
     __validate_physical_file "Tracked BetterDisplay plist" "$__tracked_plist" || exit 1
+    __validate_physical_file "BetterDisplay helper" "$__helper" || exit 1
 
     local __source_identity
-    if ! __source_identity="$(stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
+    if ! __source_identity="$(/usr/bin/stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
         [[ -z "$__source_identity" ]]; then
         print -u2 -- "Could not identify the tracked BetterDisplay settings."
         exit 1
@@ -132,17 +132,20 @@ function {
     __abort_after_stop() {
         local __message="$1"
         local __restart_error=""
+        local __restart_attempted=false
 
         if [[ "$__was_running" == true ]] && ! betterdisplay::is_running; then
-            if ! open -a "BetterDisplay" >/dev/null 2>&1 ||
-                ! betterdisplay::wait_for_state running 10; then
+            __restart_attempted=true
+            if ! open -a "BetterDisplay" >/dev/null 2>&1; then
                 __restart_error="Could not restore the running BetterDisplay state."
+            elif ! betterdisplay::wait_for_state running "$__wait_timeout_seconds"; then
+                __restart_error="Could not confirm that BetterDisplay returned to the running state within ${__wait_timeout_seconds} seconds."
             fi
         fi
         print -u2 -- "$__message"
         if [[ -n "$__restart_error" ]]; then
             print -u2 -- "$__restart_error"
-        elif [[ "$__was_running" == true ]]; then
+        elif [[ "$__restart_attempted" == true ]]; then
             print -u2 -- "BetterDisplay was restarted."
         fi
         [[ -n "$__backup_file" ]] && print -u2 -- "Backup: $__backup_file"
@@ -192,19 +195,23 @@ function {
         __abort_after_stop "Could not revalidate the tracked BetterDisplay settings."
     fi
     if [[ "$__source_identity" != "$__current_identity" ]]; then
-        __abort_after_stop "Tracked BetterDisplay settings changed during import preparation. Backup: $__backup_file"
+        __abort_after_stop "Tracked BetterDisplay settings changed during import preparation."
     fi
 
     __validate_physical_file "Tracked BetterDisplay plist" "$__tracked_plist" ||
-        __abort_after_stop "Tracked BetterDisplay plist path is no longer physical. Backup: $__backup_file"
+        __abort_after_stop "Tracked BetterDisplay plist path is no longer physical."
     if ! defaults import "$(betterdisplay::bundle_id)" "$__tracked_plist"; then
-        __abort_after_stop "BetterDisplay import failed. Backup: $__backup_file"
+        __abort_after_stop "BetterDisplay import failed."
     fi
 
     if [[ "$__was_running" == true ]]; then
-        if ! open -a "BetterDisplay" >/dev/null 2>&1 ||
-            ! betterdisplay::wait_for_state running "$__wait_timeout_seconds"; then
-            __abort_after_stop "BetterDisplay settings imported, but the app could not be restarted."
+        if ! open -a "BetterDisplay" >/dev/null 2>&1; then
+            __abort_after_stop "BetterDisplay settings imported, but the app could not be started."
+        fi
+        if ! betterdisplay::wait_for_state running "$__wait_timeout_seconds"; then
+            print -u2 -- "BetterDisplay settings imported, but the app restart could not be confirmed within ${__wait_timeout_seconds} seconds."
+            print -u2 -- "Backup: $__backup_file"
+            exit 1
         fi
     fi
 

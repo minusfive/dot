@@ -11,7 +11,7 @@ betterdisplay::is_running() {
 }
 
 betterdisplay::source_identity() {
-    stat -f '%d:%i:%z:%m' "$1"
+    /usr/bin/stat -f '%d:%i:%z:%m' "$1"
 }
 
 betterdisplay::wait_for_state() {

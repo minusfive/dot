@@ -66,7 +66,7 @@ function {
     fi
 
     local __source_identity
-    if ! __source_identity="$(stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
+    if ! __source_identity="$(/usr/bin/stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
         [[ -z "$__source_identity" ]]; then
         print -u2 -- "Could not identify the tracked BetterDisplay settings."
         exit 1
@@ -123,7 +123,7 @@ function {
         __abort_export "Tracked BetterDisplay plist changed during export."
     fi
     local __current_identity
-    if ! __current_identity="$(stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
+    if ! __current_identity="$(/usr/bin/stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
         [[ -z "$__current_identity" ]]; then
         __abort_export "Could not revalidate the tracked BetterDisplay settings."
     fi
@@ -135,7 +135,7 @@ function {
         __abort_export "Tracked BetterDisplay plist is no longer physical."
     if ! __current_source_path="$(__physical_path "$__tracked_plist")" ||
         [[ "$__source_path" != "$__current_source_path" ]] ||
-        ! __current_identity="$(stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
+        ! __current_identity="$(/usr/bin/stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
         [[ -z "$__current_identity" ]] ||
         [[ "$__source_identity" != "$__current_identity" ]]; then
         __abort_export "Tracked BetterDisplay plist changed before replacement."

@@ -4,32 +4,127 @@ set -euo pipefail
 
 source "$(dirname "$0")/mise_test_helpers.zsh"
 
-local __fixture_dir="$(mktemp -d)"
-trap __cleanup_fixture EXIT
-__fixture_dir="$(realpath "$__fixture_dir")"
+local __fixture_dir=""
+local __system_temp_dir=""
+__fixture_dir="$(mktemp -d)" || exit 1
+[[ -n "$__fixture_dir" ]] || exit 1
+__fixture_dir="$(realpath "$__fixture_dir")" || exit 1
+[[ -n "${TMPDIR:-}" ]] || exit 1
+__system_temp_dir="$(realpath "$TMPDIR")" || exit 1
+[[ -n "$__system_temp_dir" && -d "$__system_temp_dir" &&
+    "$__fixture_dir" == "$__system_temp_dir"/* &&
+    "$__fixture_dir" != "$__system_temp_dir" ]] || exit 1
 local __bin_dir="$__fixture_dir/bin"
+local __shadow_bin_dir="$__fixture_dir/shadow-bin"
+local __osascript_executable="$__bin_dir/osascript"
 local __state_home="$__fixture_dir/state"
 local __log_file="$__fixture_dir/commands.log"
 local __process_state="$__fixture_dir/process.state"
+local __backup_complete_marker="$__fixture_dir/backup-complete"
+local __source_mutation_marker="$__fixture_dir/source-mutation"
 local __task_export="$__fixture_dir/scripts/tasks/betterdisplay/settings/export.zsh"
 local __task_import="$__fixture_dir/scripts/tasks/betterdisplay/settings/import.zsh"
 local __tracked_plist="$__fixture_dir/home/.config/BetterDisplay/config.plist"
 local __mise_bin="$(command -v mise)"
 local __helper_source_marker="$__fixture_dir/helper-sourced"
 
+__fixture_cleanup_is_safe() {
+    local __canonical_fixture_dir=""
+    [[ -n "$__fixture_dir" && -n "$__system_temp_dir" ]] || return 1
+    [[ -d "$__fixture_dir" ]] || return 1
+    __canonical_fixture_dir="$(realpath "$__fixture_dir")" || return 1
+    [[ "$__canonical_fixture_dir" == "$__fixture_dir" ]] || return 1
+    [[ "$__fixture_dir" == "$__system_temp_dir"/* &&
+        "$__fixture_dir" != "$__system_temp_dir" ]]
+}
+
+__fixture_temp_plist_exists() {
+    [[ -d "$__fixture_dir/home/.config/BetterDisplay" ]] &&
+        find "$__fixture_dir/home/.config/BetterDisplay" \
+            -maxdepth 1 -name '.config.plist.*' -type f -print -quit |
+        grep -q .
+}
+
+__fixture_backup_file_exists() {
+    [[ -d "$__state_home/minusfive" ]] &&
+        find "$__state_home/minusfive" -type f -print -quit |
+        grep -q .
+}
+
+__fixture_marker_exists() {
+    [[ -e "$__backup_complete_marker" ||
+        -e "$__source_mutation_marker" ||
+        -e "$__fixture_dir/osascript.pid" ]]
+}
+
+__fixture_osascript_pid_matches() {
+    local __pid="$1"
+    local __command=""
+    __command="$(/bin/ps -p "$__pid" -o command= 2>/dev/null)" || return 1
+    [[ "$__command" == "$__osascript_executable" ||
+        "$__command" == "$__osascript_executable "* ||
+        "$__command" == *" $__osascript_executable" ||
+        "$__command" == *" $__osascript_executable "* ]]
+}
+
 __cleanup_fixture() {
     local __pid=""
+    local __cleanup_status=0
+    __fixture_cleanup_is_safe || return 0
     if [[ -r "$__fixture_dir/osascript.pid" ]]; then
         __pid="$(<"$__fixture_dir/osascript.pid")"
-        if [[ "$__pid" == <-> ]] && kill -0 "$__pid" 2>/dev/null; then
-            kill -KILL "$__pid" 2>/dev/null || true
+        if [[ "$__pid" == <-> ]]; then
+            if __fixture_osascript_pid_matches "$__pid"; then
+                if kill -0 "$__pid" 2>/dev/null; then
+                    kill -TERM "$__pid" 2>/dev/null || true
+                    wait "$__pid" 2>/dev/null || true
+                fi
+                if kill -0 "$__pid" 2>/dev/null; then
+                    kill -KILL "$__pid" 2>/dev/null || true
+                    wait "$__pid" 2>/dev/null || true
+                fi
+                if kill -0 "$__pid" 2>/dev/null; then
+                    print -u2 -- "FAIL: fixture osascript PID remained after cleanup: $__pid"
+                    __cleanup_status=1
+                fi
+            else
+                print -u2 -- "WARN: stale fixture osascript PID not signaled: $__pid"
+            fi
         fi
     fi
+    if __fixture_temp_plist_exists; then
+        print -u2 -- "FAIL: fixture export temporary file remained after cleanup"
+        __cleanup_status=1
+    fi
+    if __fixture_backup_file_exists; then
+        print -u2 -- "FAIL: fixture backup or state file remained after cleanup"
+        __cleanup_status=1
+    fi
+    if __fixture_marker_exists; then
+        print -u2 -- "FAIL: fixture task marker remained after cleanup"
+        __cleanup_status=1
+    fi
+    if [[ -d "$__fixture_dir/home/.config/BetterDisplay" ]]; then
+        find "$__fixture_dir/home/.config/BetterDisplay" \
+            -maxdepth 1 -name '.config.plist.*' -type f -delete ||
+            __cleanup_status=1
+    fi
+    if [[ -d "$__state_home/minusfive" ]]; then
+        rm -rf -- "$__state_home/minusfive" || __cleanup_status=1
+    fi
+    rm -f -- \
+        "$__backup_complete_marker" \
+        "$__source_mutation_marker" || __cleanup_status=1
+    __fixture_cleanup_is_safe || return "$__cleanup_status"
     rm -rf -- "$__fixture_dir"
+    return "$__cleanup_status"
 }
+
+trap __cleanup_fixture EXIT
 
 mkdir -p \
     "$__bin_dir" \
+    "$__shadow_bin_dir" \
     "$__fixture_dir/empty" \
     "$__state_home" \
     "$__fixture_dir/scripts/tasks/betterdisplay/settings" \
@@ -53,10 +148,26 @@ set -euo pipefail
 print -r -- "$*" >> "$BETTERDISPLAY_COMMAND_LOG"
 case "$1" in
     export)
+        if [[ "${BETTERDISPLAY_ASSERT_STOPPED_COMMANDS:-no}" == "yes" ]]; then
+            local __process_state_snapshot="$(<"$BETTERDISPLAY_PROCESS_STATE")"
+            print -r -- "backup export observed $__process_state_snapshot" >> "$BETTERDISPLAY_COMMAND_LOG"
+            [[ "$__process_state_snapshot" == "stopped" ]] || exit 1
+        fi
         print -r -- "${BETTERDISPLAY_EXPORT_CONTENT:-backup}" >| "$3"
+        if [[ ! -e "${BETTERDISPLAY_SOURCE_MUTATION_MARKER:-}" &&
+            "${BETTERDISPLAY_STAT_FLIP:-no}" == "yes" ]]; then
+            print -r -- "mutated" >| "$BETTERDISPLAY_TRACKED_PLIST"
+            : >| "$BETTERDISPLAY_SOURCE_MUTATION_MARKER"
+            print -r -- "source mutation" >> "$BETTERDISPLAY_COMMAND_LOG"
+        fi
         [[ "${BETTERDISPLAY_EXPORT_STATUS:-ok}" == "ok" ]] || exit 1
         ;;
     import)
+        if [[ "${BETTERDISPLAY_ASSERT_STOPPED_COMMANDS:-no}" == "yes" ]]; then
+            local __process_state_snapshot="$(<"$BETTERDISPLAY_PROCESS_STATE")"
+            print -r -- "import observed $__process_state_snapshot" >> "$BETTERDISPLAY_COMMAND_LOG"
+            [[ "$__process_state_snapshot" == "stopped" ]] || exit 1
+        fi
         [[ "${BETTERDISPLAY_IMPORT_STATUS:-ok}" == "ok" ]] || exit 1
         ;;
 esac
@@ -67,7 +178,23 @@ cat > "$__bin_dir/plutil" <<'EOF'
 set -euo pipefail
 
 [[ "${BETTERDISPLAY_PLUTIL_STATUS:-ok}" == "ok" ]] || exit 1
-grep -qF invalid "$2" && exit 1
+local __plist="$2"
+[[ -f "$__plist" ]] || exit 1
+if grep -qF invalid "$__plist"; then
+    exit 1
+fi
+if [[ "$__plist" == "$BETTERDISPLAY_BACKUP_DIR"/BetterDisplay-live.plist.* &&
+    "${BETTERDISPLAY_EXPORT_STATUS:-ok}" == "ok" ]]; then
+    print -r -- "backup validated" >> "$BETTERDISPLAY_COMMAND_LOG"
+    : >| "$BETTERDISPLAY_BACKUP_COMPLETE_MARKER"
+    print -r -- "backup complete" >> "$BETTERDISPLAY_COMMAND_LOG"
+    if [[ ! -e "${BETTERDISPLAY_SOURCE_MUTATION_MARKER:-}" &&
+        "${BETTERDISPLAY_IDENTITY_CHANGES_AFTER_BACKUP:-no}" == "yes" ]]; then
+        print -r -- "mutated" >| "$BETTERDISPLAY_TRACKED_PLIST"
+        : >| "$BETTERDISPLAY_SOURCE_MUTATION_MARKER"
+        print -r -- "source mutation" >> "$BETTERDISPLAY_COMMAND_LOG"
+    fi
+fi
 exit 0
 EOF
 
@@ -114,9 +241,12 @@ cat > "$__bin_dir/osascript" <<'EOF'
 set -euo pipefail
 
 print -r -- "osascript $*" >> "$BETTERDISPLAY_COMMAND_LOG"
+print -r -- "osascript quit requested" >> "$BETTERDISPLAY_COMMAND_LOG"
 if [[ "${BETTERDISPLAY_OSASCRIPT_STATUS:-ok}" != "ok" ]]; then
-    [[ "${BETTERDISPLAY_OSASCRIPT_EXIT_BEFORE_ERROR:-no}" == "yes" ]] &&
+    if [[ "${BETTERDISPLAY_OSASCRIPT_EXIT_BEFORE_ERROR:-no}" == "yes" ]]; then
         print -r -- "stopped" >| "$BETTERDISPLAY_PROCESS_STATE"
+        print -r -- "process stopped" >> "$BETTERDISPLAY_COMMAND_LOG"
+    fi
     exit 1
 fi
 if [[ "${BETTERDISPLAY_OSASCRIPT_HANG:-no}" == "yes" ]]; then
@@ -125,7 +255,10 @@ if [[ "${BETTERDISPLAY_OSASCRIPT_HANG:-no}" == "yes" ]]; then
     while true; do :; done
 fi
 [[ "${BETTERDISPLAY_OSASCRIPT_KEEP_RUNNING:-no}" == "yes" ]] ||
-    print -r -- "stopped" >| "$BETTERDISPLAY_PROCESS_STATE"
+    {
+        print -r -- "stopped" >| "$BETTERDISPLAY_PROCESS_STATE"
+        print -r -- "process stopped" >> "$BETTERDISPLAY_COMMAND_LOG"
+    }
 EOF
 
 cat > "$__bin_dir/open" <<'EOF'
@@ -134,7 +267,8 @@ set -euo pipefail
 
 print -r -- "open $*" >> "$BETTERDISPLAY_COMMAND_LOG"
 [[ "${BETTERDISPLAY_OPEN_STATUS:-ok}" == "ok" ]] || exit 1
-print -r -- "running" >| "$BETTERDISPLAY_PROCESS_STATE"
+[[ "${BETTERDISPLAY_OPEN_LEAVE_STOPPED:-no}" == "yes" ]] ||
+    print -r -- "running" >| "$BETTERDISPLAY_PROCESS_STATE"
 EOF
 
 cat > "$__bin_dir/sleep" <<'EOF'
@@ -153,11 +287,24 @@ if [[ -f "$__count_file" ]]; then
 fi
 (( __count += 1 ))
 print -r -- "$__count" >| "$__count_file"
-if [[ "${BETTERDISPLAY_STAT_FLIP:-no}" == "yes" && "$__count" -gt 1 ]]; then
-    print -r -- "changed"
-else
-    print -r -- "same"
+local __flip_after="${BETTERDISPLAY_STAT_FLIP_AFTER:-1}"
+if [[ ! -e "${BETTERDISPLAY_SOURCE_MUTATION_MARKER:-}" &&
+    ( ( -e "${BETTERDISPLAY_BACKUP_COMPLETE_MARKER:-}" &&
+        "${BETTERDISPLAY_IDENTITY_CHANGES_AFTER_BACKUP:-no}" == "yes" ) ||
+        ( "${BETTERDISPLAY_STAT_FLIP:-no}" == "yes" && "$__count" -gt "$__flip_after" ) ) ]]; then
+    print -r -- "mutated" >| "$BETTERDISPLAY_TRACKED_PLIST"
+    : >| "$BETTERDISPLAY_SOURCE_MUTATION_MARKER"
+    print -r -- "source mutation" >> "$BETTERDISPLAY_COMMAND_LOG"
 fi
+exec /usr/bin/stat "$@"
+EOF
+
+cat > "$__shadow_bin_dir/stat" <<'EOF'
+#!/usr/bin/env zsh
+set -euo pipefail
+
+print -r -- "shadow stat invoked" >> "$BETTERDISPLAY_STAT_SHADOW_LOG"
+exit 97
 EOF
 
 cat > "$__bin_dir/git" <<'EOF'
@@ -169,20 +316,29 @@ exit 99
 EOF
 
 chmod +x "$__bin_dir"/*
+chmod +x "$__shadow_bin_dir/stat"
 
 run_task() {
     local __task="$1"
     shift
+    local __path="${BETTERDISPLAY_TEST_PATH:-$__bin_dir:/usr/bin:/bin}"
     env -u MISE_ENV -u MISE_AUTO_ENV \
         HOME="$__fixture_dir/home" \
         ZDOTDIR="$__fixture_dir/empty" \
-        PATH="$__bin_dir:/usr/bin:/bin" \
+        PATH="$__path" \
         MISE_PROJECT_ROOT="$__fixture_dir" \
         XDG_STATE_HOME="$__state_home" \
         BETTERDISPLAY_COMMAND_LOG="$__log_file" \
         BETTERDISPLAY_GIT_LOG="$__fixture_dir/git.log" \
         BETTERDISPLAY_PROCESS_STATE="$__process_state" \
+        BETTERDISPLAY_BACKUP_COMPLETE_MARKER="$__backup_complete_marker" \
+        BETTERDISPLAY_SOURCE_MUTATION_MARKER="$__source_mutation_marker" \
+        BETTERDISPLAY_BACKUP_DIR="$__state_home/minusfive/BetterDisplay/backups" \
+        BETTERDISPLAY_TRACKED_PLIST="$__tracked_plist" \
+        BETTERDISPLAY_ASSERT_STOPPED_COMMANDS="${BETTERDISPLAY_ASSERT_STOPPED_COMMANDS:-no}" \
+        BETTERDISPLAY_IDENTITY_CHANGES_AFTER_BACKUP="${BETTERDISPLAY_IDENTITY_CHANGES_AFTER_BACKUP:-no}" \
         BETTERDISPLAY_STAT_COUNT_FILE="$__fixture_dir/stat.count" \
+        BETTERDISPLAY_STAT_SHADOW_LOG="$__fixture_dir/stat-shadow.log" \
         BETTERDISPLAY_HELPER_SOURCE_MARKER="$__helper_source_marker" \
         BETTERDISPLAY_OSASCRIPT_PID_FILE="$__fixture_dir/osascript.pid" \
         MISE_PROJECT_ROOT="${BETTERDISPLAY_PROJECT_ROOT:-$__fixture_dir}" \
@@ -190,17 +346,57 @@ run_task() {
 }
 
 reset_fixture() {
+    local __recorded_pid=""
+    local __had_temp_plist=0
+    local __had_backup_file=0
+    local __had_marker=0
+    if [[ -r "$__fixture_dir/osascript.pid" ]]; then
+        __recorded_pid="$(<"$__fixture_dir/osascript.pid")"
+        if [[ "$__recorded_pid" == <-> ]]; then
+            if __fixture_osascript_pid_matches "$__recorded_pid"; then
+                if kill -0 "$__recorded_pid" 2>/dev/null; then
+                    fail "fixture osascript PID remained before reset: $__recorded_pid"
+                fi
+            else
+                print -u2 -- "WARN: stale fixture osascript PID ignored before reset: $__recorded_pid"
+            fi
+        fi
+    fi
+    if __fixture_temp_plist_exists; then
+        __had_temp_plist=1
+    fi
+    if __fixture_backup_file_exists; then
+        __had_backup_file=1
+    fi
+    if __fixture_marker_exists; then
+        __had_marker=1
+    fi
     print -r -- "valid" >| "$__tracked_plist"
     print -r -- "stopped" >| "$__process_state"
     : >| "$__log_file"
     rm -f \
+        "$__backup_complete_marker" \
+        "$__source_mutation_marker" \
         "$__fixture_dir/stat.count" \
         "$__fixture_dir/git.log" \
         "$__helper_source_marker" \
         "$__fixture_dir/osascript.pid"
-    find "$__fixture_dir/home/.config/BetterDisplay" \
-        -maxdepth 1 -name '.config.plist.*' -type f -delete
-    rm -rf "$__state_home/minusfive"
+    if [[ -d "$__fixture_dir/home/.config/BetterDisplay" ]]; then
+        find "$__fixture_dir/home/.config/BetterDisplay" \
+            -maxdepth 1 -name '.config.plist.*' -type f -delete
+    fi
+    if [[ -d "$__state_home/minusfive" ]]; then
+        rm -rf -- "$__state_home/minusfive"
+    fi
+    if (( __had_temp_plist )) && __fixture_temp_plist_exists; then
+        fail "fixture export temporary file remained after reset"
+    fi
+    if (( __had_backup_file )) && __fixture_backup_file_exists; then
+        fail "fixture backup or state file remained after reset"
+    fi
+    if (( __had_marker )) && __fixture_marker_exists; then
+        fail "fixture task marker remained after reset"
+    fi
 }
 
 reset_fixture
@@ -246,7 +442,8 @@ if run_task "$__task_export" \
     BETTERDISPLAY_STAT_FLIP=yes >| "$__fixture_dir/output" 2>&1; then
     fail "tracked-source identity change was accepted"
 fi
-[[ "$(cat "$__tracked_plist")" == "valid" ]] || fail "tracked-source identity change changed the tracked plist"
+[[ "$(cat "$__tracked_plist")" == "mutated" ]] ||
+    fail "tracked-source identity change did not record the real mutation"
 if grep -q '^mv ' "$__log_file"; then
     fail "tracked-source identity change replaced the tracked plist"
 fi
@@ -345,18 +542,126 @@ rm "$__fixture_dir/project-root-link"
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
-run_task "$__task_import" BETTERDISPLAY_EXPORT_CONTENT=backup
+run_task "$__task_import" \
+    BETTERDISPLAY_ASSERT_STOPPED_COMMANDS=yes \
+    BETTERDISPLAY_EXPORT_CONTENT=backup
 [[ "$(cat "$__process_state")" == "running" ]] || fail "running application was not restarted"
-grep -nF "osascript -e with timeout of 10 seconds" "$__log_file" >/dev/null ||
-    fail "BetterDisplay stop was not bounded at the osascript level"
-grep -nF "export" "$__log_file" >/dev/null || fail "live backup was not exported"
-grep -nF "import" "$__log_file" >/dev/null || fail "tracked settings were not imported"
-grep -nF "open" "$__log_file" >/dev/null || fail "running application was not restarted"
 local __backup_file="$(find "$__state_home/minusfive/BetterDisplay/backups" -type f -print -quit)"
 [[ -n "$__backup_file" ]] || fail "live backup was not saved"
+[[ -e "$__backup_complete_marker" ]] || fail "backup completion marker was not written"
+local __stop_marker='osascript -e with timeout of 10 seconds -e tell application "BetterDisplay" to quit -e end timeout'
+local __export_marker="export pro.betterdisplay.BetterDisplay $__backup_file"
+local __import_marker="import pro.betterdisplay.BetterDisplay $__tracked_plist"
+local __open_marker="open -a BetterDisplay"
+local __stop_line="$(grep -nF -- "$__stop_marker" "$__log_file" | cut -d: -f1 || true)"
+local __quit_requested_line="$(grep -nF -- "osascript quit requested" "$__log_file" | cut -d: -f1 || true)"
+local __process_stopped_line="$(grep -nF -- "process stopped" "$__log_file" | cut -d: -f1 || true)"
+local __export_line="$(grep -nF -- "$__export_marker" "$__log_file" | cut -d: -f1 || true)"
+local __export_observed_line="$(grep -nF -- "backup export observed stopped" "$__log_file" | cut -d: -f1 || true)"
+local __backup_validated_line="$(grep -nF -- "backup validated" "$__log_file" | cut -d: -f1 || true)"
+local __backup_complete_line="$(grep -nF -- "backup complete" "$__log_file" | cut -d: -f1 || true)"
+local __import_line="$(grep -nF -- "$__import_marker" "$__log_file" | cut -d: -f1 || true)"
+local __import_observed_line="$(grep -nF -- "import observed stopped" "$__log_file" | cut -d: -f1 || true)"
+local __open_line="$(grep -nF -- "$__open_marker" "$__log_file" | cut -d: -f1 || true)"
+[[ "$__quit_requested_line" == <-> ]] || fail "BetterDisplay quit request was not logged"
+[[ "$__stop_line" == <-> ]] || fail "BetterDisplay stop was not logged with the bounded osascript command"
+[[ "$__process_stopped_line" == <-> ]] || fail "BetterDisplay stopped state transition was not logged"
+[[ "$__export_line" == <-> ]] || fail "live backup export was not logged exactly"
+[[ "$__export_observed_line" == <-> ]] || fail "backup export did not observe the stopped state"
+[[ "$__backup_validated_line" == <-> ]] || fail "live backup validation was not logged"
+[[ "$__backup_complete_line" == <-> ]] || fail "backup completion was not logged"
+[[ "$__import_line" == <-> ]] || fail "tracked settings import was not logged exactly"
+[[ "$__import_observed_line" == <-> ]] || fail "import did not observe the stopped state"
+[[ "$__open_line" == <-> ]] || fail "running application restart was not logged exactly"
+if ! (( __stop_line < __quit_requested_line &&
+    __quit_requested_line < __process_stopped_line &&
+    __process_stopped_line < __export_line &&
+    __export_line < __export_observed_line &&
+    __export_observed_line < __backup_validated_line &&
+    __backup_validated_line < __backup_complete_line &&
+    __backup_complete_line < __import_line &&
+    __import_line < __import_observed_line &&
+    __import_observed_line < __open_line )); then
+    fail "BetterDisplay quit, stop, backup, import, and restart events were logged out of order"
+fi
+
+reset_fixture
+BETTERDISPLAY_TEST_PATH="$__shadow_bin_dir:$__bin_dir:/usr/bin:/bin" \
+    run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=valid >| "$__fixture_dir/output"
+grep -qF "unchanged" "$__fixture_dir/output" ||
+    fail "export did not pass with a failing shadow stat earlier in PATH"
+[[ ! -e "$__fixture_dir/stat-shadow.log" ]] ||
+    fail "export used the shadow stat instead of /usr/bin/stat"
+
+reset_fixture
+BETTERDISPLAY_TEST_PATH="$__shadow_bin_dir:$__bin_dir:/usr/bin:/bin" \
+    run_task "$__task_import" BETTERDISPLAY_EXPORT_CONTENT=backup >| "$__fixture_dir/output"
+grep -qF "settings imported" "$__fixture_dir/output" ||
+    fail "import did not pass with a failing shadow stat earlier in PATH"
+[[ ! -e "$__fixture_dir/stat-shadow.log" ]] ||
+    fail "import used the shadow stat instead of /usr/bin/stat"
+
+reset_fixture
+print -r -- "running" >| "$__process_state"
+if run_task "$__task_import" \
+    BETTERDISPLAY_ASSERT_STOPPED_COMMANDS=yes \
+    BETTERDISPLAY_IDENTITY_CHANGES_AFTER_BACKUP=yes >| "$__fixture_dir/output" 2>&1; then
+    fail "identity change after stop and backup was accepted"
+fi
+[[ "$(cat "$__process_state")" == "running" ]] ||
+    fail "identity-change recovery did not restore the previously running application"
+local __identity_backup_file="$(find "$__state_home/minusfive/BetterDisplay/backups" -type f -print -quit)"
+[[ -n "$__identity_backup_file" ]] ||
+    fail "identity-change scenario did not create a live backup"
+[[ -e "$__backup_complete_marker" ]] ||
+    fail "identity-change scenario did not write the backup completion marker"
+[[ -e "$__source_mutation_marker" ]] ||
+    fail "identity-change scenario did not write the source mutation marker"
+[[ "$(cat "$__tracked_plist")" == "mutated" ]] ||
+    fail "identity-change scenario did not mutate the tracked plist"
+[[ "$(grep -cF "source mutation" "$__log_file")" == 1 ]] ||
+    fail "identity-change scenario recorded more than one source mutation"
+grep -qF "Backup: $__identity_backup_file" "$__fixture_dir/output" ||
+    fail "identity-change backup path was not reported"
+grep -qF "BetterDisplay was restarted." "$__fixture_dir/output" ||
+    fail "identity-change recovery did not report the restored running state"
+if grep -qF "import pro.betterdisplay.BetterDisplay " "$__log_file"; then
+    fail "identity-change scenario imported settings after the source changed"
+fi
+local __identity_quit_requested_line="$(grep -nF -- "osascript quit requested" "$__log_file" | cut -d: -f1 || true)"
+local __identity_stop_line="$(grep -nF -- "$__stop_marker" "$__log_file" | cut -d: -f1 || true)"
+local __identity_process_stopped_line="$(grep -nF -- "process stopped" "$__log_file" | cut -d: -f1 || true)"
+local __identity_export_marker="export pro.betterdisplay.BetterDisplay $__identity_backup_file"
+local __identity_export_line="$(grep -nF -- "$__identity_export_marker" "$__log_file" | cut -d: -f1 || true)"
+local __identity_export_observed_line="$(grep -nF -- "backup export observed stopped" "$__log_file" | cut -d: -f1 || true)"
+local __identity_backup_validated_line="$(grep -nF -- "backup validated" "$__log_file" | cut -d: -f1 || true)"
+local __identity_backup_complete_line="$(grep -nF -- "backup complete" "$__log_file" | cut -d: -f1 || true)"
+local __identity_source_mutation_line="$(grep -nF -- "source mutation" "$__log_file" | cut -d: -f1 || true)"
+local __identity_open_line="$(grep -nF -- "$__open_marker" "$__log_file" | cut -d: -f1 || true)"
+[[ "$__identity_quit_requested_line" == <-> ]] || fail "identity-change scenario did not request BetterDisplay stop"
+[[ "$__identity_stop_line" == <-> ]] || fail "identity-change scenario did not log the bounded stop command"
+[[ "$__identity_process_stopped_line" == <-> ]] || fail "identity-change scenario did not stop BetterDisplay"
+[[ "$__identity_export_line" == <-> ]] || fail "identity-change scenario did not log the live backup export"
+[[ "$__identity_export_observed_line" == <-> ]] || fail "identity-change backup did not observe the stopped state"
+[[ "$__identity_backup_validated_line" == <-> ]] || fail "identity-change backup validation was not logged"
+[[ "$__identity_backup_complete_line" == <-> ]] || fail "identity-change scenario did not complete the live backup"
+[[ "$__identity_source_mutation_line" == <-> ]] || fail "identity-change scenario did not record source mutation"
+[[ "$__identity_open_line" == <-> ]] || fail "identity-change scenario did not log recovery restart"
+if ! (( __identity_stop_line < __identity_quit_requested_line &&
+    __identity_quit_requested_line < __identity_process_stopped_line &&
+    __identity_process_stopped_line < __identity_export_line &&
+    __identity_export_line < __identity_export_observed_line &&
+    __identity_export_observed_line < __identity_backup_validated_line &&
+    __identity_backup_validated_line < __identity_backup_complete_line &&
+    __identity_backup_complete_line < __identity_source_mutation_line &&
+    __identity_source_mutation_line < __identity_open_line )); then
+    fail "identity-change stop, backup, source mutation, and recovery restart were logged out of order"
+fi
 
 reset_fixture
 run_task "$__task_import" BETTERDISPLAY_EXPORT_CONTENT=backup
+[[ "$(cat "$__process_state")" == "stopped" ]] ||
+    fail "stopped application was started after successful import"
 if grep -qF "open " "$__log_file"; then
     fail "stopped application was restarted"
 fi
@@ -375,6 +680,22 @@ fi
 if find "$__state_home/minusfive/BetterDisplay/backups" -type f -print -quit 2>/dev/null | grep -q .; then
     fail "failed invalid backup was not removed"
 fi
+[[ ! -e "$__backup_complete_marker" ]] ||
+    fail "invalid backup incorrectly recorded completion"
+
+reset_fixture
+if run_task "$__task_import" \
+    BETTERDISPLAY_EXPORT_STATUS=fail \
+    BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture_dir/output" 2>&1; then
+    fail "stopped-app backup failure was accepted"
+fi
+[[ "$(cat "$__process_state")" == "stopped" ]] ||
+    fail "stopped application changed state after backup failure"
+if grep -qF "open " "$__log_file"; then
+    fail "stopped application was restarted after backup failure"
+fi
+[[ ! -e "$__backup_complete_marker" ]] ||
+    fail "stopped invalid backup incorrectly recorded completion"
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
@@ -385,6 +706,8 @@ if run_task "$__task_import" \
 fi
 local __retained_backup="$(find "$__state_home/minusfive/BetterDisplay/backups" -type f -print -quit)"
 [[ -n "$__retained_backup" ]] || fail "valid backup from a failed export was removed"
+[[ ! -e "$__backup_complete_marker" ]] ||
+    fail "failed export incorrectly recorded backup completion"
 grep -qF "$__retained_backup" "$__fixture_dir/output" ||
     fail "retained valid backup path was not reported"
 if grep -qF "import" "$__log_file"; then
@@ -399,6 +722,8 @@ fi
 if find "$__state_home/minusfive/BetterDisplay/backups" -type f -print -quit 2>/dev/null | grep -q .; then
     fail "partial backup file was not removed"
 fi
+[[ ! -e "$__backup_complete_marker" ]] ||
+    fail "failed mktemp incorrectly recorded backup completion"
 if grep -qF "import" "$__log_file"; then
     fail "import ran after partial backup creation"
 fi
@@ -410,6 +735,9 @@ if run_task "$__task_import" BETTERDISPLAY_OSASCRIPT_STATUS=fail >| "$__fixture_
 fi
 if grep -qF "export" "$__log_file"; then
     fail "backup ran after stop failure"
+fi
+if grep -qF "BetterDisplay was restarted." "$__fixture_dir/output"; then
+    fail "stop failure falsely reported a restart"
 fi
 
 reset_fixture
@@ -462,6 +790,7 @@ fi
     fail "hung osascript exceeded the bounded test window"
 local __osascript_pid="$(<"$__fixture_dir/osascript.pid")"
 [[ "$__osascript_pid" == <-> ]] || fail "hung osascript PID was not recorded"
+wait "$__osascript_pid" 2>/dev/null || true
 if kill -0 "$__osascript_pid" 2>/dev/null; then
     fail "hung osascript child remained alive after timeout"
 fi
@@ -475,6 +804,8 @@ fi
 if grep -qF "import" "$__log_file"; then
     fail "import ran after invalid live backup"
 fi
+[[ ! -e "$__backup_complete_marker" ]] ||
+    fail "invalid live backup incorrectly recorded completion"
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
@@ -487,11 +818,30 @@ grep -qF "Backup:" "$__fixture_dir/output" ||
     fail "backup path was not reported after import failure"
 
 reset_fixture
+if run_task "$__task_import" \
+    BETTERDISPLAY_ASSERT_STOPPED_COMMANDS=yes \
+    BETTERDISPLAY_IMPORT_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
+    fail "stopped-state import failure was accepted"
+fi
+[[ "$(cat "$__process_state")" == "stopped" ]] ||
+    fail "stopped-state import failure changed the final process state"
+if grep -qF "open " "$__log_file"; then
+    fail "stopped-state import failure attempted to restart BetterDisplay"
+fi
+local __stopped_import_backup="$(find "$__state_home/minusfive/BetterDisplay/backups" -type f -print -quit)"
+[[ -n "$__stopped_import_backup" ]] ||
+    fail "stopped-state import failure did not create a backup"
+grep -qF "import observed stopped" "$__log_file" ||
+    fail "stopped-state import failure did not observe the stopped state"
+grep -qF "Backup: $__stopped_import_backup" "$__fixture_dir/output" ||
+    fail "stopped-state import failure did not report the backup path"
+
+reset_fixture
 print -r -- "running" >| "$__process_state"
 if run_task "$__task_import" BETTERDISPLAY_OPEN_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
     fail "successful import followed by restart failure was accepted"
 fi
-grep -qF "settings imported, but the app could not be restarted" "$__fixture_dir/output" ||
+grep -qF "settings imported, but the app could not be started." "$__fixture_dir/output" ||
     fail "restart failure after successful import was not reported"
 grep -qiF "could not restore" "$__fixture_dir/output" ||
     fail "restart failure recovery was not reported"
@@ -500,12 +850,34 @@ grep -qF "import" "$__log_file" ||
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
+if run_task "$__task_import" \
+    BETTERDISPLAY_OPEN_LEAVE_STOPPED=yes >| "$__fixture_dir/output" 2>&1; then
+    fail "unconfirmed restart was accepted"
+fi
+grep -qF "settings imported, but the app restart could not be confirmed within 10 seconds." \
+    "$__fixture_dir/output" ||
+    fail "unconfirmed restart was not reported accurately"
+if grep -qF "could not be started" "$__fixture_dir/output"; then
+    fail "unconfirmed restart was reported as a start failure"
+fi
+grep -qF "Backup:" "$__fixture_dir/output" ||
+    fail "backup path was not reported after unconfirmed restart"
+[[ "$(cat "$__process_state")" == "stopped" ]] ||
+    fail "unconfirmed restart changed the stopped fixture state"
+
+reset_fixture
 if run_task "$__task_import" BETTERDISPLAY_STAT_FLIP=yes >| "$__fixture_dir/output" 2>&1; then
     fail "source identity change was accepted"
 fi
 if grep -qF "import" "$__log_file"; then
     fail "import ran after source identity changed"
 fi
+[[ "$(cat "$__tracked_plist")" == "mutated" ]] ||
+    fail "source identity change did not mutate the tracked plist"
+[[ -e "$__source_mutation_marker" ]] ||
+    fail "source identity change did not record the source mutation"
+[[ "$(cat "$__process_state")" == "stopped" ]] ||
+    fail "stopped application changed state after source identity failure"
 
 grep -qF '#MISE confirm={message="Import tracked BetterDisplay settings and overwrite live settings?", default="no"}' "$__task_import" ||
     fail "mise confirmation directive is missing"
