@@ -55,15 +55,80 @@ function {
     __validate_physical_file "BetterDisplay helper" "$__helper" || exit 1
     __validate_physical_file "Tracked BetterDisplay plist" "$__tracked_plist" || exit 1
 
+    local __source_identity
+    if ! __source_identity="$(stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
+        [[ -z "$__source_identity" ]]; then
+        print -u2 -- "Could not identify the tracked BetterDisplay settings."
+        exit 1
+    fi
+    if ! plutil -lint "$__tracked_plist" >/dev/null; then
+        print -u2 -- "Tracked BetterDisplay settings are not valid plist data."
+        exit 1
+    fi
+
     source "$__helper"
 
-    local __source_identity
     local __current_identity
-    __source_identity="$(betterdisplay::source_identity "$__tracked_plist")"
-    plutil -lint "$__tracked_plist" >/dev/null
+    if ! __current_identity="$(betterdisplay::source_identity "$__tracked_plist")" ||
+        [[ -z "$__current_identity" ]]; then
+        print -u2 -- "Could not revalidate the tracked BetterDisplay settings."
+        exit 1
+    fi
 
     local __was_running=false
     local __backup_file=""
+    local __wait_timeout_seconds=10
+    local __termination_grace_seconds=2
+    local __kill_grace_seconds=2
+    __run_osascript_with_timeout() {
+        local __osascript_pid
+        local __deadline
+        local __grace_deadline
+
+        osascript \
+            -e "with timeout of ${__wait_timeout_seconds} seconds" \
+            -e 'tell application "BetterDisplay" to quit' \
+            -e 'end timeout' &
+        __osascript_pid=$!
+        __deadline=$(( SECONDS + __wait_timeout_seconds ))
+
+        while kill -0 "$__osascript_pid" 2>/dev/null; do
+            if (( SECONDS >= __deadline )); then
+                break
+            fi
+            sleep 1
+        done
+
+        if kill -0 "$__osascript_pid" 2>/dev/null; then
+            kill -TERM "$__osascript_pid" 2>/dev/null || true
+            __grace_deadline=$(( SECONDS + __termination_grace_seconds ))
+            while kill -0 "$__osascript_pid" 2>/dev/null; do
+                if (( SECONDS >= __grace_deadline )); then
+                    break
+                fi
+                sleep 1
+            done
+        fi
+
+        if kill -0 "$__osascript_pid" 2>/dev/null; then
+            kill -KILL "$__osascript_pid" 2>/dev/null || true
+            __grace_deadline=$(( SECONDS + __kill_grace_seconds ))
+            while kill -0 "$__osascript_pid" 2>/dev/null; do
+                if (( SECONDS >= __grace_deadline )); then
+                    break
+                fi
+                sleep 1
+            done
+        fi
+
+        if kill -0 "$__osascript_pid" 2>/dev/null; then
+            print -u2 -- "Watchdog could not terminate osascript PID $__osascript_pid."
+            return 124
+        fi
+
+        wait "$__osascript_pid"
+    }
+
     __abort_after_stop() {
         local __message="$1"
         local __restart_error=""
@@ -86,10 +151,10 @@ function {
 
     if betterdisplay::is_running; then
         __was_running=true
-        if ! osascript -e 'tell application "BetterDisplay" to quit'; then
+        if ! __run_osascript_with_timeout; then
             __abort_after_stop "Could not stop BetterDisplay before import."
         fi
-        if ! betterdisplay::wait_for_state stopped 10; then
+        if ! betterdisplay::wait_for_state stopped "$__wait_timeout_seconds"; then
             __abort_after_stop "BetterDisplay did not stop before import."
         fi
     fi
@@ -100,16 +165,27 @@ function {
         __abort_after_stop "Could not create the BetterDisplay backup directory."
     fi
     if ! __backup_file="$(mktemp "$__backup_dir/BetterDisplay-live.plist.XXXXXX")"; then
+        [[ -n "$__backup_file" && -e "$__backup_file" ]] && rm -f -- "$__backup_file"
+        __backup_file=""
         __abort_after_stop "Could not create the live BetterDisplay backup."
     fi
-    if ! defaults export "$(betterdisplay::bundle_id)" "$__backup_file"; then
+
+    local __backup_export_status=0
+    defaults export "$(betterdisplay::bundle_id)" "$__backup_file" || __backup_export_status=$?
+    local __backup_is_valid=false
+    if [[ -f "$__backup_file" ]] && plutil -lint "$__backup_file" >/dev/null 2>&1; then
+        __backup_is_valid=true
+    fi
+    if [[ "$__backup_is_valid" != true ]]; then
         rm -f -- "$__backup_file"
         __backup_file=""
+        if (( __backup_export_status == 0 )); then
+            __abort_after_stop "The live BetterDisplay backup is invalid."
+        fi
         __abort_after_stop "Could not save the live BetterDisplay backup."
     fi
-    if ! plutil -lint "$__backup_file" >/dev/null || [[ ! -f "$__backup_file" ]]; then
-        rm -f -- "$__backup_file"
-        __abort_after_stop "The live BetterDisplay backup is invalid."
+    if (( __backup_export_status != 0 )); then
+        __abort_after_stop "Could not save the live BetterDisplay backup."
     fi
 
     if ! __current_identity="$(betterdisplay::source_identity "$__tracked_plist")"; then
@@ -127,9 +203,8 @@ function {
 
     if [[ "$__was_running" == true ]]; then
         if ! open -a "BetterDisplay" >/dev/null 2>&1 ||
-            ! betterdisplay::wait_for_state running 10; then
-            print -u2 -- "BetterDisplay settings imported, but the app could not be restarted. Backup: $__backup_file"
-            exit 1
+            ! betterdisplay::wait_for_state running "$__wait_timeout_seconds"; then
+            __abort_after_stop "BetterDisplay settings imported, but the app could not be restarted."
         fi
     fi
 

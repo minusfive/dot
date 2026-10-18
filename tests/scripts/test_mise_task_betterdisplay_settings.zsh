@@ -5,7 +5,7 @@ set -euo pipefail
 source "$(dirname "$0")/mise_test_helpers.zsh"
 
 local __fixture_dir="$(mktemp -d)"
-trap 'rm -rf -- "$__fixture_dir"' EXIT
+trap __cleanup_fixture EXIT
 __fixture_dir="$(realpath "$__fixture_dir")"
 local __bin_dir="$__fixture_dir/bin"
 local __state_home="$__fixture_dir/state"
@@ -15,6 +15,18 @@ local __task_export="$__fixture_dir/scripts/tasks/betterdisplay/settings/export.
 local __task_import="$__fixture_dir/scripts/tasks/betterdisplay/settings/import.zsh"
 local __tracked_plist="$__fixture_dir/home/.config/BetterDisplay/config.plist"
 local __mise_bin="$(command -v mise)"
+local __helper_source_marker="$__fixture_dir/helper-sourced"
+
+__cleanup_fixture() {
+    local __pid=""
+    if [[ -r "$__fixture_dir/osascript.pid" ]]; then
+        __pid="$(<"$__fixture_dir/osascript.pid")"
+        if [[ "$__pid" == <-> ]] && kill -0 "$__pid" 2>/dev/null; then
+            kill -KILL "$__pid" 2>/dev/null || true
+        fi
+    fi
+    rm -rf -- "$__fixture_dir"
+}
 
 mkdir -p \
     "$__bin_dir" \
@@ -27,10 +39,12 @@ mkdir -p \
 cp scripts/utils/betterdisplay.zsh "$__fixture_dir/scripts/utils/betterdisplay.zsh"
 cp scripts/tasks/betterdisplay/settings/export.zsh "$__task_export"
 cp scripts/tasks/betterdisplay/settings/import.zsh "$__task_import"
+cat >> "$__fixture_dir/scripts/utils/betterdisplay.zsh" <<'EOF'
+print -r -- sourced >| "$BETTERDISPLAY_HELPER_SOURCE_MARKER"
+EOF
 cp .mise/conf.d/tasks.toml "$__fixture_dir/.mise/conf.d/tasks.toml"
 print -r -- "valid" >| "$__tracked_plist"
 : >| "$__log_file"
-trap 'rm -rf "$__fixture_dir"' EXIT
 
 cat > "$__bin_dir/defaults" <<'EOF'
 #!/usr/bin/env zsh
@@ -39,8 +53,8 @@ set -euo pipefail
 print -r -- "$*" >> "$BETTERDISPLAY_COMMAND_LOG"
 case "$1" in
     export)
-        [[ "${BETTERDISPLAY_EXPORT_STATUS:-ok}" == "ok" ]] || exit 1
         print -r -- "${BETTERDISPLAY_EXPORT_CONTENT:-backup}" >| "$3"
+        [[ "${BETTERDISPLAY_EXPORT_STATUS:-ok}" == "ok" ]] || exit 1
         ;;
     import)
         [[ "${BETTERDISPLAY_IMPORT_STATUS:-ok}" == "ok" ]] || exit 1
@@ -71,6 +85,7 @@ local __file="${__template//XXXXXX/fixture.$$}"
 print -r -- "$__template" >> "$BETTERDISPLAY_COMMAND_LOG"
 : >| "$__file"
 print -r -- "$__file"
+[[ "${BETTERDISPLAY_MKTEMP_STATUS:-ok}" == "ok" ]] || exit 1
 EOF
 
 cat > "$__bin_dir/mv" <<'EOF'
@@ -97,6 +112,11 @@ if [[ "${BETTERDISPLAY_OSASCRIPT_STATUS:-ok}" != "ok" ]]; then
     [[ "${BETTERDISPLAY_OSASCRIPT_EXIT_BEFORE_ERROR:-no}" == "yes" ]] &&
         print -r -- "stopped" >| "$BETTERDISPLAY_PROCESS_STATE"
     exit 1
+fi
+if [[ "${BETTERDISPLAY_OSASCRIPT_HANG:-no}" == "yes" ]]; then
+    print -r -- "$$" >| "$BETTERDISPLAY_OSASCRIPT_PID_FILE"
+    trap '' TERM
+    while true; do :; done
 fi
 [[ "${BETTERDISPLAY_OSASCRIPT_KEEP_RUNNING:-no}" == "yes" ]] ||
     print -r -- "stopped" >| "$BETTERDISPLAY_PROCESS_STATE"
@@ -157,6 +177,8 @@ run_task() {
         BETTERDISPLAY_GIT_LOG="$__fixture_dir/git.log" \
         BETTERDISPLAY_PROCESS_STATE="$__process_state" \
         BETTERDISPLAY_STAT_COUNT_FILE="$__fixture_dir/stat.count" \
+        BETTERDISPLAY_HELPER_SOURCE_MARKER="$__helper_source_marker" \
+        BETTERDISPLAY_OSASCRIPT_PID_FILE="$__fixture_dir/osascript.pid" \
         MISE_PROJECT_ROOT="${BETTERDISPLAY_PROJECT_ROOT:-$__fixture_dir}" \
         "$@" /bin/zsh "$__task"
 }
@@ -165,7 +187,12 @@ reset_fixture() {
     print -r -- "valid" >| "$__tracked_plist"
     print -r -- "stopped" >| "$__process_state"
     : >| "$__log_file"
-    rm -f "$__fixture_dir/stat.count" "$__fixture_dir/git.log"
+    rm -f \
+        "$__fixture_dir/stat.count" \
+        "$__fixture_dir/git.log" \
+        "$__helper_source_marker" \
+        "$__fixture_dir/osascript.pid"
+    rm -rf "$__state_home/minusfive"
 }
 
 reset_fixture
@@ -188,6 +215,17 @@ if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture
     fail "invalid export output was accepted"
 fi
 [[ "$(cat "$__tracked_plist")" == "valid" ]] || fail "invalid export changed the tracked plist"
+
+reset_fixture
+print -r -- invalid >| "$__tracked_plist"
+if run_task "$__task_import" >| "$__fixture_dir/output" 2>&1; then
+    fail "invalid tracked source was accepted"
+fi
+if grep -qE 'osascript|defaults' "$__log_file"; then
+    fail "invalid tracked source reached BetterDisplay commands"
+fi
+[[ ! -e "$__helper_source_marker" ]] ||
+    fail "invalid tracked source sourced the BetterDisplay helper"
 
 reset_fixture
 mv "$__fixture_dir/scripts/utils/betterdisplay.zsh" "$__fixture_dir/scripts/utils/betterdisplay.real.zsh"
@@ -269,7 +307,8 @@ reset_fixture
 print -r -- "running" >| "$__process_state"
 run_task "$__task_import" BETTERDISPLAY_EXPORT_CONTENT=backup
 [[ "$(cat "$__process_state")" == "running" ]] || fail "running application was not restarted"
-grep -nF "osascript" "$__log_file" >/dev/null || fail "running application was not stopped"
+grep -nF "osascript -e with timeout of 10 seconds" "$__log_file" >/dev/null ||
+    fail "BetterDisplay stop was not bounded at the osascript level"
 grep -nF "export" "$__log_file" >/dev/null || fail "live backup was not exported"
 grep -nF "import" "$__log_file" >/dev/null || fail "tracked settings were not imported"
 grep -nF "open" "$__log_file" >/dev/null || fail "running application was not restarted"
@@ -284,12 +323,44 @@ fi
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
-if run_task "$__task_import" BETTERDISPLAY_EXPORT_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
+if run_task "$__task_import" \
+    BETTERDISPLAY_EXPORT_STATUS=fail \
+    BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture_dir/output" 2>&1; then
     fail "backup failure was accepted"
 fi
 [[ "$(cat "$__process_state")" == "running" ]] || fail "backup failure did not restore the running application"
 if grep -qF "import" "$__log_file"; then
     fail "import ran after backup failure"
+fi
+if find "$__state_home/minusfive/BetterDisplay/backups" -type f -print -quit 2>/dev/null | grep -q .; then
+    fail "failed invalid backup was not removed"
+fi
+
+reset_fixture
+print -r -- "running" >| "$__process_state"
+if run_task "$__task_import" \
+    BETTERDISPLAY_EXPORT_STATUS=fail \
+    BETTERDISPLAY_EXPORT_CONTENT=backup >| "$__fixture_dir/output" 2>&1; then
+    fail "failed backup with valid output was accepted"
+fi
+local __retained_backup="$(find "$__state_home/minusfive/BetterDisplay/backups" -type f -print -quit)"
+[[ -n "$__retained_backup" ]] || fail "valid backup from a failed export was removed"
+grep -qF "$__retained_backup" "$__fixture_dir/output" ||
+    fail "retained valid backup path was not reported"
+if grep -qF "import" "$__log_file"; then
+    fail "import ran after failed backup with valid output"
+fi
+
+reset_fixture
+print -r -- "running" >| "$__process_state"
+if run_task "$__task_import" BETTERDISPLAY_MKTEMP_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
+    fail "partial backup creation was accepted"
+fi
+if find "$__state_home/minusfive/BetterDisplay/backups" -type f -print -quit 2>/dev/null | grep -q .; then
+    fail "partial backup file was not removed"
+fi
+if grep -qF "import" "$__log_file"; then
+    fail "import ran after partial backup creation"
 fi
 
 reset_fixture
@@ -328,6 +399,36 @@ if grep -qF "export" "$__log_file"; then
 fi
 
 reset_fixture
+print -r -- "running" >| "$__process_state"
+local __hang_start=$SECONDS
+local __task_pid
+run_task "$__task_import" BETTERDISPLAY_OSASCRIPT_HANG=yes >| "$__fixture_dir/output" 2>&1 &
+__task_pid=$!
+local __task_deadline=$(( SECONDS + 18 ))
+while kill -0 "$__task_pid" 2>/dev/null; do
+    if (( SECONDS >= __task_deadline )); then
+        kill -TERM "$__task_pid" 2>/dev/null || true
+        kill -KILL "$__task_pid" 2>/dev/null || true
+        fail "hung osascript task exceeded the bounded test window"
+    fi
+    sleep 1
+done
+local __task_status=0
+wait "$__task_pid" || __task_status=$?
+if (( __task_status == 0 )); then
+    fail "hung osascript was accepted"
+fi
+(( SECONDS - __hang_start < 20 )) ||
+    fail "hung osascript exceeded the bounded test window"
+local __osascript_pid="$(<"$__fixture_dir/osascript.pid")"
+[[ "$__osascript_pid" == <-> ]] || fail "hung osascript PID was not recorded"
+if kill -0 "$__osascript_pid" 2>/dev/null; then
+    fail "hung osascript child remained alive after timeout"
+fi
+grep -qF "Could not stop BetterDisplay before import." "$__fixture_dir/output" ||
+    fail "hung osascript failure was not reported"
+
+reset_fixture
 if run_task "$__task_import" BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture_dir/output" 2>&1; then
     fail "invalid live backup was accepted"
 fi
@@ -352,6 +453,8 @@ if run_task "$__task_import" BETTERDISPLAY_OPEN_STATUS=fail >| "$__fixture_dir/o
 fi
 grep -qF "settings imported, but the app could not be restarted" "$__fixture_dir/output" ||
     fail "restart failure after successful import was not reported"
+grep -qiF "could not restore" "$__fixture_dir/output" ||
+    fail "restart failure recovery was not reported"
 grep -qF "import" "$__log_file" ||
     fail "successful import did not run before restart failure"
 

@@ -26,7 +26,10 @@ done
 if grep -qF '~/.config/mise/tasks/betterdisplay' "$__control_plane"; then
     fail "global BetterDisplay task links remain"
 fi
-if grep -Eiq 'launchagent|timer' home/.config/mise/conf.d/module.betterdisplay.toml "$__control_plane" scripts/mise.zsh; then
+if grep -Eiq 'launchagent|timer|start_interval|run_at_load' \
+    home/.config/mise/conf.d/module.betterdisplay.toml \
+    "$__control_plane" \
+    scripts/mise.zsh; then
     fail "BetterDisplay launch-agent or timer declarations remain"
 fi
 

@@ -54,6 +54,17 @@ function {
     __validate_physical_file "BetterDisplay helper" "$__helper" || exit 1
     __validate_physical_file "Tracked BetterDisplay plist" "$__tracked_plist" || exit 1
 
+    local __source_identity
+    if ! __source_identity="$(stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
+        [[ -z "$__source_identity" ]]; then
+        print -u2 -- "Could not identify the tracked BetterDisplay settings."
+        exit 1
+    fi
+    if ! plutil -lint "$__tracked_plist" >/dev/null; then
+        print -u2 -- "Tracked BetterDisplay settings are not valid plist data."
+        exit 1
+    fi
+
     source "$__helper"
 
     local __temporary_plist
