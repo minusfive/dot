@@ -107,9 +107,9 @@ print -r -- "$__work_dry_run" | grep -qF 'mise run mise:cleanup:inventory' ||
     fail "work dry run is missing cleanup inventory"
 print -r -- "$__work_dry_run" | grep -qF 'mise fix' ||
     fail "work dry run is missing mise fix"
-local __cleanup_line="$(print -r -- "$__work_dry_run" | grep -nF "mise run mise:cleanup'" | cut -d: -f1)"
-local __inventory_line="$(print -r -- "$__work_dry_run" | grep -nF "mise run mise:cleanup:inventory'" | cut -d: -f1)"
-local __fix_line="$(print -r -- "$__work_dry_run" | grep -nF 'mise fix' | cut -d: -f1)"
+local __cleanup_line="$(print -r -- "$__work_dry_run" | grep -nF "mise run mise:cleanup'" | cut -d: -f1 | head -n1)"
+local __inventory_line="$(print -r -- "$__work_dry_run" | grep -nF "mise run mise:cleanup:inventory'" | cut -d: -f1 | head -n1)"
+local __fix_line="$(print -r -- "$__work_dry_run" | grep -nF 'mise fix' | cut -d: -f1 | head -n1)"
 (( __inventory_line < __cleanup_line && __cleanup_line < __fix_line )) ||
     fail "cleanup inventory, cleanup, and mise fix order is incorrect"
 local __personal_packages

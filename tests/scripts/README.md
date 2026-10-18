@@ -6,25 +6,13 @@ This directory contains tests for the various setup scripts in the `/scripts` di
 
 ### BetterDisplay Tests
 
-#### `test_betterdisplay.zsh`
+#### `test_mise_bootstrap_betterdisplay.zsh`
 
-Comprehensive unit tests for BetterDisplay integration:
+Tests the `BetterDisplay` package and tracked property-list ownership. It also checks local task discovery, the absence of global task links, and the absence of launch-agent or timer declarations.
 
-- ✅ Script file existence
-- ✅ Configuration directory structure
-- ✅ Documentation files
-- ✅ Integration with main init script
-- ✅ Help text integration
-- ✅ Script syntax validation
-- ✅ Script sourcing capability
+#### `test_mise_task_betterdisplay_settings.zsh`
 
-#### `test_betterdisplay_integration.zsh`
-
-Integration tests for BetterDisplay script execution:
-
-- ✅ Script execution flow
-- ✅ Error handling for missing BetterDisplay app
-- ⚠️ User interaction simulation (limited)
+Tests the local export and import tasks with isolated command mocks. The cases cover unchanged and changed exports, temporary-file replacement, invalid output, source identity checks, `mise` confirmation, cancellation, backup ordering and errors, stopped and running application states, stop and wait errors, import errors, restart errors, and the absence of `Git` calls.
 
 ### mise Configuration Tests
 
@@ -118,8 +106,8 @@ Tests hidden project creation and promotion to a checked-in workspace.
 
 ```bash
 # From project root
-./tests/scripts/test_betterdisplay.zsh
-./tests/scripts/test_betterdisplay_integration.zsh
+zsh tests/scripts/test_mise_bootstrap_betterdisplay.zsh
+zsh tests/scripts/test_mise_task_betterdisplay_settings.zsh
 ./tests/scripts/test_mise_config.zsh
 for test in tests/scripts/test_mise_bootstrap_*.zsh tests/scripts/test_mise_task_*.zsh; do
     zsh "$test"
@@ -131,11 +119,9 @@ done
 ### Run Individual Test Categories
 
 ```bash
-# Unit tests only
-./tests/scripts/test_betterdisplay.zsh
-
-# Integration tests only
-./tests/scripts/test_betterdisplay_integration.zsh
+# BetterDisplay ownership and task tests
+zsh tests/scripts/test_mise_bootstrap_betterdisplay.zsh
+zsh tests/scripts/test_mise_task_betterdisplay_settings.zsh
 ```
 
 ## Test Results Interpretation
@@ -156,11 +142,11 @@ Test failed and indicates an issue that should be addressed.
 
 ### User Interaction
 
-Many scripts require user input and confirmation. Integration tests use simulation techniques but may not cover all interaction paths.
+The import task uses the `mise` confirmation directive. Tests use isolated `mise` configuration and command mocks.
 
 ### External Dependencies
 
-Some tests depend on external applications (like BetterDisplay) being installed. Tests attempt to handle missing dependencies gracefully.
+The BetterDisplay task tests do not use the installed application or live settings. They use isolated files and command mocks.
 
 ### System State
 

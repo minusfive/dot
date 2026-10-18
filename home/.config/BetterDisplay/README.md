@@ -1,86 +1,46 @@
 # BetterDisplay Configuration
 
-This directory contains configuration files for [BetterDisplay](https://github.com/waydabber/BetterDisplay), a macOS utility for display management and HiDPI/scaling support.
+This directory contains the tracked `BetterDisplay` property list. The `BetterDisplay` module owns the application package and this directory. `mise` links the property list into `~/.config/BetterDisplay`.
 
-## Files
+## Export and import
 
-- `config.plist` - Main configuration file containing all BetterDisplay settings
-- `config.backup.*.plist` - Automatic backups created before importing settings
-
-## Usage
-
-### Via Bootstrap Script
-
-The BetterDisplay settings can be managed through the main bootstrap script:
+Run the local `mise` tasks from the repository root:
 
 ```bash
-# Export current BetterDisplay settings to config.plist
-./scripts/init.zsh -d
-
-# Import settings from config.plist (interactive)
-./scripts/init.zsh -d
+mise -C ~/dev/personal/dot run betterdisplay:settings:export
+mise -C ~/dev/personal/dot run betterdisplay:settings:import
 ```
 
-### Manual Export/Import
+The export task writes a temporary file beside `config.plist`. It checks the file and replaces the tracked file only when the content changes.
 
-You can also manually export and import settings using the `defaults` command:
+The import task asks for confirmation. It checks the tracked file before it changes live settings. It stops `BetterDisplay` only when the application is running, then starts it again only when it was running before the import.
+
+The tasks do not synchronize settings in the background. A bootstrap run does not export or import application settings.
+
+## Backup recovery
+
+Before an import, the task saves one live backup under:
+
+```text
+${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/backups/
+```
+
+The task reports the backup path. If an import or restart fails, use the reported backup with `defaults import` after `BetterDisplay` stops:
 
 ```bash
-# Export settings
-defaults export pro.betterdisplay.BetterDisplay ~/.config/BetterDisplay/config.plist
-
-# Import settings (BetterDisplay must be closed)
-defaults import pro.betterdisplay.BetterDisplay ~/.config/BetterDisplay/config.plist
+defaults import pro.betterdisplay.BetterDisplay path/to/backup
 ```
 
-## Important Notes
+The backup is a runtime file. It is not part of the repository.
 
-### Display-Specific Settings
+## Property list limits
 
-BetterDisplay settings are tied to display hardware identifiers (UUIDs). When moving configurations between different Macs or after macOS reinstallation, display-specific settings may not apply correctly due to different system-assigned identifiers.
+The tracked file must remain a valid property list. Run `plutil -lint` after manual edits. Property-list syntax does not preserve comments or formatting metadata during export.
 
-**Solutions:**
+Display settings can contain hardware identifiers. A display identifier differs between computers, user accounts, and system installations. Settings for one display can fail to apply to another display.
 
-1. **Change identification method** (recommended): In BetterDisplay, go to `Settings > Displays > [display] > General Settings > Additional settings... > Display identification method` and select "Match basic identifiers" before exporting settings.
+Use the `BetterDisplay` display identification setting to match basic identifiers before export when the file will move to another computer. The application transfer feature can also copy settings between displays.
 
-2. **Manual plist editing**: Use a plist editor (Xcode or BBEdit) to update display identifier data under the `storedIdentifier@(...)` keys.
+## Version compatibility
 
-3. **Transfer settings UI**: Use BetterDisplay's built-in transfer feature at `Settings > Displays > [current display] > Additional settings > Transfer settings from:` to copy settings from a disconnected display.
-
-### Version Compatibility
-
-- Settings from BetterDisplay v4.x are not compatible with v1.x
-- Avoid importing settings from newer app versions to older versions
-- The bundle identifier changed between versions:
-  - v4.x: `pro.betterdisplay.BetterDisplay`
-  - v1.x: `me.waydabber.BetterDummy`
-
-### Import Requirements
-
-- BetterDisplay **must be closed** before importing settings
-- The script will attempt to quit the app automatically with user confirmation
-- Settings take effect when the app is restarted
-
-## Troubleshooting
-
-### Export Fails
-
-- Ensure BetterDisplay has been configured at least once
-- Check that the app is installed in `/Applications/` or `~/Applications/`
-
-### Import Fails
-
-- Verify the config file exists and is valid
-- Ensure BetterDisplay is completely closed
-- Check file permissions on the config file
-
-### Settings Don't Apply
-
-- Verify display hardware compatibility (see Display-Specific Settings above)
-- Check app version compatibility
-- Try transferring settings using BetterDisplay's built-in transfer feature
-
-## Resources
-
-- [BetterDisplay Wiki - Export and Import Settings](https://github.com/waydabber/BetterDisplay/wiki/Export-and-import-app-settings)
-- [BetterDisplay GitHub Repository](https://github.com/waydabber/BetterDisplay)
+Use a `BetterDisplay` version that matches the version that created the tracked file. A newer file can use keys that an older version does not understand. The current bundle identifier is `pro.betterdisplay.BetterDisplay`. Older releases used a different bundle identifier and are not compatible with this task.
