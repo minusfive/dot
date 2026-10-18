@@ -78,4 +78,34 @@ diff -u "$__launchagent_fixture/expected.log" "$__launchagent_log" ||
 rm -rf "$__launchagent_fixture"
 trap - EXIT
 
+local __dotfiles_fixture="$__root_dir/.agents/test-runs/betterdisplay-dotfiles-$$"
+local __dotfiles_home="$__dotfiles_fixture/home"
+local __dotfiles_repo="$__dotfiles_home/dev/personal/dot"
+local __dotfiles_config="$__dotfiles_home/.config/mise"
+local __dotfiles_target="$__dotfiles_home/.config/BetterDisplay"
+trap 'rm -rf -- "${__dotfiles_fixture:-}"' EXIT
+mkdir -p "$__dotfiles_home/dev/personal" "$__dotfiles_config/conf.d"
+ln -s "$__root_dir" "$__dotfiles_repo"
+cp "$__module" "$__dotfiles_config/conf.d/module.betterdisplay.toml"
+cat > "$__dotfiles_config/config.toml" <<'EOF'
+EOF
+cat > "$__dotfiles_config/miserc.toml" <<'EOF'
+env_conf_d = true
+env = ["betterdisplay"]
+EOF
+env -u MISE_ENV HOME="$__dotfiles_home" \
+    XDG_CONFIG_HOME="$__dotfiles_home/.config" \
+    MISE_DATA_DIR="$__dotfiles_fixture/data" \
+    MISE_STATE_DIR="$__dotfiles_fixture/state" \
+    MISE_CONFIG_DIR="$__dotfiles_config" \
+    MISE_CONFIG_ROOT="$__dotfiles_config" \
+    MISE_TRUSTED_CONFIG_PATHS="$__root_dir" DOT_PROFILE=work \
+    mise -C "$__dotfiles_repo" bootstrap --only dotfiles --yes >/dev/null
+[[ -L "$__dotfiles_target/config.plist" ]] || fail "deployed BetterDisplay plist is not a symlink"
+[[ "$(realpath "$__dotfiles_target/config.plist")" == "$(realpath home/.config/BetterDisplay/config.plist)" ]] ||
+    fail "deployed BetterDisplay plist does not resolve to the tracked source"
+[[ ! -e "$__dotfiles_target/README.md" ]] || fail "repository-only BetterDisplay README was deployed"
+rm -rf "$__dotfiles_fixture"
+trap - EXIT
+
 echo "BetterDisplay package bootstrap configuration passed."
