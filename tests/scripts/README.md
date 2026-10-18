@@ -21,15 +21,23 @@ Tests BetterDisplay mise task discovery and isolated manual export/import behavi
 
 ### mise Configuration Tests
 
+#### `test_mise_task_bootstrap.zsh`
+
+Tests bootstrap task discovery, native Usage metadata, profile validation, profile persistence, `DOT_PROFILE` handoff, environment cleanup, confirmation, and dry-run state immutability.
+
+#### `test_mise_bootstrap_compatibility.zsh`
+
+Tests the `scripts/init.zsh` compatibility shim, official `mise` acquisition at `$HOME/.local/bin/mise`, exact profile forwarding, and the absence of profile persistence in the shim.
+
 #### `test_mise_config.zsh`
 
-Tests global mise configuration, rendered profile selection, repository-scoped lifecycle wiring, initialization phase ordering, and Git ignore bootstrap behavior.
+Tests global mise configuration, bootstrap task discovery and help, rendered profile selection, module boundaries, and Git ignore bootstrap behavior.
 
 The source file `home/.config/git/ignore` is not a repository `.gitignore`. Mise links it to `$XDG_CONFIG_HOME/git/ignore`, where Git reads the global excludes file. The test uses a temporary home to verify that mise installs this source file and that its patterns affect Git.
 
 #### `test_mise_bootstrap_lifecycle.zsh`
 
-Tests full-lifecycle dry runs for both profiles, package and tool maintenance hooks, the single confirmation boundary, installer behavior, and failure stops.
+Tests full-lifecycle dry runs for both profiles, task-owned acquisition, authentication, the single confirmation boundary, failure propagation, and runtime exclusions.
 
 #### `test_mise_bootstrap_copilot.zsh`
 

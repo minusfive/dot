@@ -68,6 +68,11 @@ grep -qF "'oh-my-zsh'," home/.config/mise/miserc.toml ||
     fail "missing Oh My Zsh update task"
 zsh -n home/.config/mise/tasks/omz/update.zsh ||
     fail "Oh My Zsh update task has syntax errors"
+grep -qF 'mise' home/.config/oh-my-zsh/zshrc.zsh ||
+    fail "Oh My Zsh does not load the mise plugin"
+if grep -qE 'mise (activate|completion)' scripts/tasks/bootstrap.zsh; then
+    fail "bootstrap task must not own shell activation or completion"
+fi
 local __task_info="$(
     env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
         mise -C "$__root_dir" tasks info omz:update

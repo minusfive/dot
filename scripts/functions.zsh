@@ -13,62 +13,6 @@ function _v_log_ok { print -P "$(_v_color_fg green "$(_v_fmt_s "   $1 ") $2")
 function _v_log_warn { print -P "$(_v_color_fg yellow "$(_v_fmt_s "   $1 ") $2")" }
 function _v_log_q { print -P "$(_v_color_fg white "$(_v_fmt_s "   $1 ") $2")" }
 
-function _v_profile_file_path {
-    local __xdg_state_home="${XDG_STATE_HOME:-$HOME/.local/state}"
-    print -r -- "$__xdg_state_home/minusfive/profile"
-}
-
-function _v_profile_is_valid {
-    local __profile="${1:-}"
-    [[ "$__profile" == "work" || "$__profile" == "personal" ]]
-}
-
-function _v_profile_read {
-    local __profile_file="$(_v_profile_file_path)"
-    local __profile="work"
-
-    if [[ -r "$__profile_file" ]]; then
-        local __stored_profile
-        __stored_profile="$(<"$__profile_file")"
-        __stored_profile="${__stored_profile//$'\n'/}"
-
-        if _v_profile_is_valid "$__stored_profile"; then
-            __profile="$__stored_profile"
-        fi
-    fi
-
-    print -r -- "$__profile"
-}
-
-function _v_profile_write {
-    local __profile="${1:-}"
-
-    if ! _v_profile_is_valid "$__profile"; then
-        return 1
-    fi
-
-    local __profile_file="$(_v_profile_file_path)"
-    mkdir -p "${__profile_file:h}"
-    print -r -- "$__profile" >| "$__profile_file"
-}
-
-function _v_confirm_proceed {
-    local __reply
-    vared -p "$(print -P "$(_v_log_q $__context "Proceed?") $(_v_color_fg green $(_v_fmt_u y))es | $(_v_color_fg yellow $(_v_fmt_u N))o | $(_v_color_fg red $(_v_fmt_u q))uit $(_v_color_fg green $(_v_fmt_b ⟩)) "
-    )" -c __reply
-    if [[ $__reply =~ ^[Yy]$ ]]; then
-        __proceed=true
-    elif [[ $__reply == "" || $__reply =~ ^[Nn]$ ]]; then
-        __proceed=false
-    elif [[ $__reply =~ ^[Qq]$ ]]; then
-        _v_log_error "QUIT" "Bye  "
-        exit 0
-    else
-        _v_log_error "ERROR" "Invalid input. Bye  "
-        exit 1
-    fi
-}
-
 # From https://github.com/ohmyzsh/ohmyzsh/blob/d82669199b5d900b50fd06dd3518c277f0def869/lib/cli.zsh#L668-L676
 function _v_reload {
     _v_log_warn " ZSH" "Reloading Zsh. Bye  "
@@ -80,17 +24,4 @@ function _v_reload {
 
     # Check whether to run a login shell
     [[ "$zsh" = -* || -o login ]] && exec -l "${zsh#-}" || exec "$zsh"
-}
-
-function _v_print_help {
-    function _v_arg {
-        printf "$(_v_color_fg green $1), $(_v_color_fg green $2)"
-    }
-
-    _v_log_info " HELP" "Bootstraps macOS with minusfive's configuration and software (https://github.com/minusfive/dot)"
-    printf "\nUsage: $(_v_color_fg green "$ZSH_ARGZERO [options]")\n"
-    printf "\nOptions:\n"
-    printf " $(_v_arg "-h" "--help")        Show this help message\n"
-    printf " $(_v_arg "-m" "--mise")        Apply the full mise bootstrap lifecycle and maintenance\n"
-    printf " $(_v_arg "-p" "--profile")     Valid profiles: $(_v_color_fg green "'work'") (default, safest), or $(_v_color_fg yellow "'personal'"). Persists for future runs and selects the mise package environment. e.g. \`$(_v_color_fg green "$ZSH_ARGZERO -p personal")\`\n"
 }

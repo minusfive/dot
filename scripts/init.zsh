@@ -1,86 +1,78 @@
 #!/usr/bin/env zsh
 
-# Exit immediately if a command fails and treat unset vars as error
 set -euo pipefail
 
-# Immediately invoked anonymous function used to contain variables and functions scope
 function {
-    local __options
     local __dotfiles_scripts_dir="$(realpath "$(dirname "$ZSH_ARGZERO")")"
     local __dotfiles_dir="$(dirname "$__dotfiles_scripts_dir")"
+    local __profile_args=()
+    local __run_mise=false
 
-    # Defaults
-    local __install_mise_dev_tools=false
-    local __profile="work" # work or personal; work = safest
-    local __noop=false
+    print_help() {
+        print -r -- "Usage: $ZSH_ARGZERO [options]"
+        print -r -- ""
+        print -r -- "Options:"
+        print -r -- "  -h, --help              Show this help"
+        print -r -- "  -m, --mise              Forward to mise run bootstrap"
+        print -r -- "  -p, --profile PROFILE   Forward a profile to the bootstrap task"
+    }
 
-    # Load important environment variables
-    source "$__dotfiles_dir/home/.config/zsh/.zshenv"
-
-    # Load functions
-    source "$__dotfiles_scripts_dir/functions.zsh"
-
-    # Default to persisted profile (fall back to 'work')
-    __profile="$(_v_profile_read)"
-
-    # Parse parameters and or display help and exit
-    zmodload zsh/zutil
-    zparseopts -D -E -F -A __options - \
-        h -help \
-        m -mise \
-        p: -profile: ||
-    (_v_log_error "ERROR" "Invalid options provided\n" && _v_print_help && exit 1)
-
-    if [[ $#__options -eq 0 ]]; then
-        _v_log_warn "WARN" "No options provided\n"
-        _v_print_help
-        __noop=true
-    fi
-
-    for opt arg in "${(kv@)__options}"; do
-        case "$opt" in
+    local __arg
+    while (( $# > 0 )); do
+        __arg="$1"
+        shift
+        case "$__arg" in
             -h|--help)
-                _v_print_help
+                print_help
                 exit 0
                 ;;
             -m|--mise)
-                __install_mise_dev_tools=true
+                __run_mise=true
                 ;;
             -p|--profile)
-                if _v_profile_is_valid "$arg"; then
-                    __profile="$arg"
-                else
-                    _v_log_error "ERROR" "Valid profile name is required for the \`$opt\` option. Use 'work' or 'personal'. Received: '$arg'"
-                    _v_print_help
-                    exit 1
-                fi
+                (( $# > 0 )) || {
+                    print -u2 -- "error: --profile requires a value"
+                    exit 2
+                }
+                __profile_args+=(--profile "$1")
+                shift
+                ;;
+            --profile=*)
+                __profile_args+=(--profile "${__arg#*=}")
+                ;;
+            *)
+                print -u2 -- "error: unknown option: $__arg"
+                print_help
+                exit 2
                 ;;
         esac
     done
 
-    echo "\n"
-    local __profile_color=$([[ "$__profile" == "work" ]] && echo green || echo yellow)
-    _v_log_info "PRFL" "Profile: $(_v_color_fg $__profile_color "$__profile")"
-
-    # Make selected profile available to all scripts and future runs
-    export DOT_PROFILE="$__profile"
-    if ! _v_profile_write "$__profile"; then
-        _v_log_error "ERROR" "Failed to persist selected profile '$__profile'"
-        exit 1
-    fi
-
-    # Install mise dev tools
-    source "$__dotfiles_scripts_dir/mise.zsh"
-
-    # Exit if no options were provided
-    if $__noop; then
-        echo "\n"
-        _v_log_warn "WARN" "Nothing to do. Bye  "
+    if [[ "$__run_mise" != true ]]; then
+        print_help
         exit 0
     fi
 
-    # Finish
-    echo "\n"
-    _v_log_ok "DONE" "Bootstrap complete"
-    _v_reload
+    source "$__dotfiles_scripts_dir/utils/mise.zsh"
+    local __mise_path="$HOME/.local/bin/mise"
+    if [[ -e "$__mise_path" || -L "$__mise_path" ]]; then
+        _v_mise_ensure_stable_path "$__mise_path"
+    else
+        local __existing_mise="$(command -v mise || true)"
+        if [[ -n "$__existing_mise" ]]; then
+            _v_mise_ensure_stable_path "$__existing_mise"
+        else
+            print -r -- "mise was not found at $__mise_path. Installing mise..."
+            curl -fsSL https://mise.run | sh
+        fi
+    fi
+    [[ -x "$__mise_path" ]] || {
+        print -u2 -- "error: mise is not available at $__mise_path"
+        exit 1
+    }
+
+    export PATH="$HOME/.local/bin:$PATH"
+    hash -r
+    cd "$__dotfiles_dir"
+    exec "$__mise_path" run bootstrap "${__profile_args[@]}"
 } "$@"
