@@ -3,5 +3,6 @@
 
 set -euo pipefail
 
+mise install
 bun install
 hk install --mise

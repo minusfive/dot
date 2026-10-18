@@ -25,6 +25,10 @@ Tests BetterDisplay mise task discovery and isolated manual export/import behavi
 
 Tests bootstrap task discovery, native Usage metadata, profile validation, profile persistence, `DOT_PROFILE` handoff, environment cleanup, confirmation, and dry-run state immutability.
 
+#### `test_mise_task_setup.zsh`
+
+Tests `mise` tool provisioning from an empty cache, then runs setup, checks, and fixes with the provisioned tools.
+
 #### `test_mise_bootstrap_compatibility.zsh`
 
 Tests the `scripts/init.zsh` compatibility shim, official `mise` acquisition at `$HOME/.local/bin/mise`, exact profile forwarding, and the absence of profile persistence in the shim.

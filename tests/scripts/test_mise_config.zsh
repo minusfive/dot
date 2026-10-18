@@ -18,6 +18,8 @@ echo "Testing global mise configuration..."
 [[ -f "home/.config/mise/conf.d/module.mise.toml" ]] || fail "missing mise control plane"
 [[ ! -e scripts/mise.zsh ]] || fail "retired mise lifecycle script remains"
 [[ -x scripts/tasks/bootstrap.zsh ]] || fail "bootstrap task is not executable"
+[[ -x scripts/tasks/setup.zsh ]] || fail "setup task is not executable"
+[[ -x tests/scripts/test_mise_task_setup.zsh ]] || fail "setup task test is not executable"
 [[ -f scripts/utils/profile.zsh ]] || fail "profile helper is missing"
 [[ -f scripts/utils/mise.zsh ]] || fail "mise helper is missing"
 zsh -n scripts/init.zsh scripts/tasks/bootstrap.zsh scripts/utils/profile.zsh scripts/utils/mise.zsh ||
@@ -37,6 +39,8 @@ grep -qF 'run_auto_install = false' .mise/config.toml ||
     fail "outer task auto-installation is not disabled"
 grep -qF 'export MISE_TASK_RUN_AUTO_INSTALL=0' scripts/init.zsh ||
     fail "compatibility entrypoint does not disable outer task auto-installation"
+grep -qxF 'mise install' scripts/tasks/setup.zsh ||
+    fail "setup task does not provision development tools explicitly"
 grep -qF 'includes = ["scripts/tasks"]' .mise/conf.d/tasks.toml ||
     fail "task include path is missing"
 local __task_listing

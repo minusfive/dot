@@ -109,7 +109,7 @@ The root `AGENTS.md` and `.agents/` directory are repository-only. They guide wo
 
 The repository manages the tools used for development. When you enter the repository, `mise` activates its project tools.
 
-Run the setup task to install project dependencies and add automatic `hk` checks to `mise`:
+Run the setup task to install the repository tools and project dependencies. The task also adds automatic `hk` checks to `mise`:
 
 ```sh
 mise run setup
