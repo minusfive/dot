@@ -10,6 +10,14 @@ grep -qF 'export MISE_CONFIG_DIR="$__mise_config_dir"' scripts/mise.zsh ||
     fail "mise config directory is not exported"
 grep -qF 'export MISE_ENV_CONF_D=true' scripts/mise.zsh ||
     fail "MISE_ENV_CONF_D is not enabled"
+grep -qF 'function _v_mise_ensure_stable_path' scripts/mise.zsh ||
+    fail "stable mise path helper is missing"
+grep -qF 'function _v_mise_is_valid' scripts/mise.zsh ||
+    fail "stable mise validation helper is missing"
+grep -qF 'command ln -s "$__mise_path" "$__stable_path"' scripts/mise.zsh ||
+    fail "stable mise path symlink is missing"
+grep -qF 'Cannot create stable mise path recursively' scripts/mise.zsh ||
+    fail "stable mise path recursion guard is missing"
 grep -qF 'unset MISE_ENV' scripts/mise.zsh ||
     fail "inherited MISE_ENV is not cleared"
 grep -qF 'unset MISE_AUTO_ENV' scripts/mise.zsh ||
@@ -140,8 +148,12 @@ set -euo pipefail
 [[ "${MISE_ENV_CONF_D:-}" == "true" ]] || exit 92
 [[ -z "${MISE_ENV:-}" ]] || exit 93
 [[ -z "${MISE_AUTO_ENV:-}" ]] || exit 96
-printf '%s\n' "${*:-<none>}" >> "$MISE_CALL_LOG"
 
+if [[ "$*" == "--version" ]]; then
+    printf '%s\n' '2026.10.7 macos-arm64 (fixture)'
+    exit 0
+fi
+printf '%s\n' "${*:-<none>}" >> "$MISE_CALL_LOG"
 if [[ "$*" == *"bootstrap --yes"* ]]; then
     [[ "${MISE_STUB_BOOTSTRAP_STATUS:-ok}" == "ok" ]] || exit 94
 fi
@@ -190,14 +202,18 @@ run_fixture() {
     local __path="$1"
     shift
     local __fixture_bootstrap_status="${MISE_STUB_BOOTSTRAP_STATUS:-ok}"
+    local __fixture_home="${FIXTURE_HOME:-$__fixture_dir/home}"
+    local __fixture_cwd="${FIXTURE_CWD:-$__root_dir}"
     : > "$__log_file"
-    if env -u MISE_ENV HOME="$__fixture_dir/home" PATH="$__path" \
-        FIXTURE_CONFIRM="${FIXTURE_CONFIRM:-no}" \
-        FIXTURE_ROOT="$__root_dir" MISE_CALL_LOG="$__log_file" MISE_EXPECT_CONTEXT="$__root_dir" \
-        MISE_STUB_BOOTSTRAP_STATUS="$__fixture_bootstrap_status" \
-        MISE_STUB_GH_AUTH_STATUS="${MISE_STUB_GH_AUTH_STATUS:-ok}" \
-        MISE_STUB_SOURCE="$__stub_dir/mise" "$@" /bin/zsh "$__fixture_dir/run-mise.zsh" \
-        > "$__output_file" 2>&1; then
+    if (
+        cd "$__fixture_cwd"
+        env -u MISE_ENV HOME="$__fixture_home" PATH="$__path" \
+            FIXTURE_CONFIRM="${FIXTURE_CONFIRM:-no}" \
+            FIXTURE_ROOT="$__root_dir" MISE_CALL_LOG="$__log_file" MISE_EXPECT_CONTEXT="$__root_dir" \
+            MISE_STUB_BOOTSTRAP_STATUS="$__fixture_bootstrap_status" \
+            MISE_STUB_GH_AUTH_STATUS="${MISE_STUB_GH_AUTH_STATUS:-ok}" \
+            MISE_STUB_SOURCE="$__stub_dir/mise" "$@" /bin/zsh "$__fixture_dir/run-mise.zsh"
+    ) > "$__output_file" 2>&1; then
         __run_fixture_status=0
     else
         __run_fixture_status=$?
@@ -242,6 +258,54 @@ grep -qF -- 'exec gh@latest -- gh auth login --hostname github.com --git-protoco
     fail "GitHub CLI login was not attempted"
 grep -qF -- 'exec gh@latest -- gh auth setup-git --hostname github.com' "$__log_file" ||
     fail "GitHub CLI git setup was not attempted"
+
+local __external_mise_home="$__fixture_dir/external-mise-home"
+mkdir -p "$__external_mise_home"
+FIXTURE_HOME="$__external_mise_home" FIXTURE_CONFIRM=yes run_fixture "$__stub_dir:/usr/bin:/bin"
+[[ "$__run_fixture_status" -eq 0 ]] || fail "external mise installation fixture failed"
+local __stable_mise="$__external_mise_home/.local/bin/mise"
+[[ -L "$__stable_mise" ]] || fail "external mise installation did not create a stable symlink"
+[[ "$(readlink "$__stable_mise")" == "$(realpath "$__stub_dir/mise")" ]] ||
+    fail "stable mise symlink points to the wrong existing installation"
+[[ -x "$__stable_mise" ]] || fail "stable mise symlink is not executable"
+grep -qF -- '-C '"$__root_dir"' self-update --yes' "$__log_file" ||
+    fail "external mise installation did not invoke the stable path"
+env MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
+    MISE_EXPECT_CONTEXT="$__root_dir" MISE_CALL_LOG="$__log_file" \
+    "$__stable_mise" --stable-path-probe
+grep -qF -- '--stable-path-probe' "$__log_file" ||
+    fail "stable mise path did not invoke the existing mise installation"
+
+local __relative_fixture_dir="$__fixture_dir/relative"
+mkdir -p "$__relative_fixture_dir/bin"
+cp "$__stub_dir/mise" "$__relative_fixture_dir/bin/mise"
+FIXTURE_CWD="$__relative_fixture_dir" FIXTURE_HOME="$__relative_fixture_dir/home" FIXTURE_CONFIRM=yes \
+    run_fixture "./bin:/usr/bin:/bin"
+[[ "$__run_fixture_status" -eq 0 ]] || fail "relative mise installation fixture failed"
+[[ -L "$__relative_fixture_dir/home/.local/bin/mise" ]] ||
+    fail "relative mise installation did not create a stable symlink"
+[[ "$(readlink "$__relative_fixture_dir/home/.local/bin/mise")" == "$(realpath "$__relative_fixture_dir/bin/mise")" ]] ||
+    fail "relative mise stable symlink was not resolved to an absolute physical path"
+
+local __unrelated_executable_home="$__fixture_dir/unrelated-executable-home"
+mkdir -p "$__unrelated_executable_home/.local/bin"
+printf '%s\n' 'unrelated executable' > "$__unrelated_executable_home/.local/bin/mise"
+chmod +x "$__unrelated_executable_home/.local/bin/mise"
+FIXTURE_HOME="$__unrelated_executable_home" FIXTURE_CONFIRM=yes \
+    run_fixture "$__stub_dir:/usr/bin:/bin"
+[[ "$__run_fixture_status" -ne 0 ]] || fail "unrelated stable executable was accepted"
+[[ -f "$__unrelated_executable_home/.local/bin/mise" ]] ||
+    fail "unrelated stable executable was removed"
+grep -qF 'unrelated executable' "$__unrelated_executable_home/.local/bin/mise" ||
+    fail "unrelated stable executable was replaced"
+
+local __directory_home="$__fixture_dir/directory-home"
+mkdir -p "$__directory_home/.local/bin/mise"
+FIXTURE_HOME="$__directory_home" FIXTURE_CONFIRM=yes \
+    run_fixture "$__stub_dir:/usr/bin:/bin"
+[[ "$__run_fixture_status" -ne 0 ]] || fail "stable mise directory was accepted"
+[[ -d "$__directory_home/.local/bin/mise" ]] ||
+    fail "stable mise directory was removed"
 
 FIXTURE_CONFIRM=yes run_fixture "$__installer_dir:/usr/bin:/bin"
 [[ "$__run_fixture_status" -eq 0 ]] || fail "newly installed mise fixture failed"

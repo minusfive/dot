@@ -76,6 +76,8 @@
 "~/.config/mise/tasks/mise/tasks/validate-conflicts.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/tasks/validate-conflicts.zsh", mode = "symlink" }
 "~/.config/mise/tasks/mise/cleanup/inventory.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/cleanup/inventory.zsh", mode = "symlink" }
 "~/.config/mise/tasks/ai/skills/evals/validate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/validate.zsh", mode = "symlink" }
+"~/.config/mise/tasks/betterdisplay/settings/export.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/betterdisplay/settings/export.zsh", mode = "symlink" }
+"~/.config/mise/tasks/betterdisplay/settings/import.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/betterdisplay/settings/import.zsh", mode = "symlink" }
 "~/.config/mise/tasks/omz/update.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/omz/update.zsh", mode = "symlink" }
 "~/.config/mise/tasks/zsh/migrate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/zsh/migrate.zsh", mode = "symlink" }
 "~/.config/mise/tasks/md/preview.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/md/preview.ts", mode = "symlink" }

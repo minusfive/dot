@@ -3,3 +3,15 @@
 
 [dotfiles]
 "~/.config/BetterDisplay" = { source = "~/dev/personal/dot/home/.config/BetterDisplay", mode = "symlink-each", exclude = ["README.md"] }
+
+[bootstrap.macos.launchd.agents.betterdisplay-settings-export]
+program = "~/.local/bin/mise"
+args = ["run", "betterdisplay:settings:export"]
+working_directory = "{{ env.HOME }}/dev/personal/dot"
+environment = { HOME = "{{ env.HOME }}", PATH = "{{ env.PATH }}" }
+start_interval = 60
+run_at_load = true
+throttle_interval = 60
+process_type = "Background"
+stdout_path = "~/Library/Logs/betterdisplay-settings-export.log"
+stderr_path = "~/Library/Logs/betterdisplay-settings-export.err.log"

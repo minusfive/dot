@@ -5,33 +5,28 @@ This directory contains configuration files for [BetterDisplay](https://github.c
 ## Files
 
 - `config.plist` - Main configuration file containing all BetterDisplay settings
-- `config.backup.*.plist` - Automatic backups created before importing settings
+- Runtime backups are stored outside this directory under `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/backups/`
 
 ## Usage
 
-### Via Bootstrap Script
+### Via mise
 
-The BetterDisplay settings can be managed through the main bootstrap script:
+The tracked settings source can be exported or imported with the global `mise` tasks:
 
-```bash
-# Export current BetterDisplay settings to config.plist
-./scripts/init.zsh -d
-
-# Import settings from config.plist (interactive)
-./scripts/init.zsh -d
+```sh
+mise run betterdisplay:settings:export
+mise run betterdisplay:settings:import
 ```
 
-### Manual Export/Import
+`config.plist` is the tracked source. Export updates this file only when the live settings differ. Runtime backups created before import are stored under `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/backups/`.
 
-You can also manually export and import settings using the `defaults` command:
+Export uses macOS atomic replacement with a source snapshot and rollback. External edits observed before replacement remain untouched; edits observed during or immediately after replacement are rejected and preserved under `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/conflicts/`.
 
-```bash
-# Export settings
-defaults export pro.betterdisplay.BetterDisplay ~/.config/BetterDisplay/config.plist
+### Automatic synchronization
 
-# Import settings (BetterDisplay must be closed)
-defaults import pro.betterdisplay.BetterDisplay ~/.config/BetterDisplay/config.plist
-```
+The `mise` bootstrap installs a background LaunchAgent that runs the export task when it loads and every 60 seconds. It changes the tracked source in the working tree when live settings change; it does not stage, commit, or push those changes.
+
+The first synchronization can therefore create a visible working-tree change. Review and commit the plist through the normal repository workflow.
 
 ## Important Notes
 
@@ -58,8 +53,12 @@ BetterDisplay settings are tied to display hardware identifiers (UUIDs). When mo
 ### Import Requirements
 
 - BetterDisplay **must be closed** before importing settings
-- The script will attempt to quit the app automatically with user confirmation
-- Settings take effect when the app is restarted
+- The import task refuses to continue while the app is running; quit the app and rerun the task
+- Restart BetterDisplay after importing settings
+
+RISK: macOS provides no lock that BetterDisplay itself honors. If the app launches in the small interval around `defaults import`, the task detects that state and restores the backup, but an app that changes its preferences concurrently can still require manual verification.
+
+RISK: An external writer can act after the export task's final verification. The task detects and preserves changes observed during replacement, but no shell-level operation can prevent a writer that runs after that verification.
 
 ## Troubleshooting
 

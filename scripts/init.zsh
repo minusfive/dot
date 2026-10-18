@@ -11,7 +11,6 @@ function {
 
     # Defaults
     local __install_mise_dev_tools=false
-    local __manage_betterdisplay=false
     local __profile="work" # work or personal; work = safest
     local __noop=false
 
@@ -27,7 +26,6 @@ function {
     # Parse parameters and or display help and exit
     zmodload zsh/zutil
     zparseopts -D -E -F -A __options - \
-        d -display \
         h -help \
         m -mise \
         p: -profile: ||
@@ -41,9 +39,6 @@ function {
 
     for opt arg in "${(kv@)__options}"; do
         case "$opt" in
-            -d|--display)
-                __manage_betterdisplay=true
-                ;;
             -h|--help)
                 _v_print_help
                 exit 0
@@ -76,9 +71,6 @@ function {
 
     # Install mise dev tools
     source "$__dotfiles_scripts_dir/mise.zsh"
-
-    # Manage BetterDisplay settings
-    source "$__dotfiles_scripts_dir/betterdisplay.zsh"
 
     # Exit if no options were provided
     if $__noop; then

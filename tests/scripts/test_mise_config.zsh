@@ -28,7 +28,12 @@ fi
 zsh -n scripts/mise.zsh || fail "scripts/mise.zsh has syntax errors"
 grep -qF 'curl -fsSL https://mise.run | sh' scripts/mise.zsh || fail "mise installer bridge missing"
 grep -qF 'if [[ -x "$HOME/.local/bin/mise" ]]; then' scripts/mise.zsh || fail "PATH refresh bridge missing"
-grep -qF 'if [[ $(command -v mise) == "" ]]; then' scripts/mise.zsh || fail "mise availability check missing"
+grep -qF 'local __mise_path="$(command -v mise || true)"' scripts/mise.zsh ||
+    fail "mise availability lookup missing"
+grep -qF 'if [[ -z "$__mise_path" ]]; then' scripts/mise.zsh ||
+    fail "mise availability check missing"
+grep -qF '_v_mise_ensure_stable_path "$__mise_path"' scripts/mise.zsh ||
+    fail "stable mise path setup is missing"
 grep -qF 'export MISE_CONFIG_DIR="$__mise_config_dir"' scripts/mise.zsh ||
     fail "repository-scoped mise config is not selected"
 grep -qF 'export MISE_ENV_CONF_D=true' scripts/mise.zsh ||
@@ -75,10 +80,17 @@ for __obsolete_step in \
     fi
 done
 
-local __mise_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/mise.zsh"' scripts/init.zsh | cut -d: -f1)"
-local __display_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/betterdisplay.zsh"' scripts/init.zsh | cut -d: -f1)"
-(( __mise_phase_line < __display_phase_line )) ||
-    fail "mise initialization phase order changed"
+grep -qF 'module.betterdisplay.toml' home/.config/mise/conf.d/module.mise.toml ||
+    fail "BetterDisplay module is not owned by the mise control plane"
+grep -qF '"~/.config/mise/tasks/betterdisplay/settings/export.zsh"' home/.config/mise/conf.d/module.mise.toml ||
+    fail "BetterDisplay export task is not owned by the mise control plane"
+grep -qF '"~/.config/mise/tasks/betterdisplay/settings/import.zsh"' home/.config/mise/conf.d/module.mise.toml ||
+    fail "BetterDisplay import task is not owned by the mise control plane"
+grep -qF '[bootstrap.macos.launchd.agents.betterdisplay-settings-export]' home/.config/mise/conf.d/module.betterdisplay.toml ||
+    fail "BetterDisplay export bootstrap is not owned by its mise module"
+if grep -qF 'betterdisplay.zsh' scripts/init.zsh; then
+    fail "deleted BetterDisplay initializer remains wired into scripts/init.zsh"
+fi
 
 grep -qF 'includes = ["scripts/tasks"]' .mise/conf.d/tasks.toml || fail "task include path is missing"
 local __task_listing
@@ -141,9 +153,10 @@ for __workspace in personal work; do
     print -r -- "$__trust_status" | grep -qF "~/dev/$__workspace: trusted" ||
         fail "workspace trust path is not active: $__workspace"
 done
+local __dot_trust_root="$HOME/dev/personal/dot"
 local __dot_trust_status="$(
     env -u MISE_ENV MISE_DATA_DIR="$__trust_data" \
-        mise -C "$__root_dir" trust --show 2>&1
+        mise -C "$__dot_trust_root" trust --show 2>&1
 )"
 print -r -- "$__dot_trust_status" | grep -qF "~/dev/personal/dot: trusted" ||
     fail "repository trust path is not active"
@@ -168,7 +181,10 @@ fi
 
 local __mise_link_count
 __mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 110 ]] || fail "expected 110 managed mise links, found $__mise_link_count"
+if [[ -L "$HOME/.config/mise/tasks/betterdisplay/settings/export.zsh" &&
+    -L "$HOME/.config/mise/tasks/betterdisplay/settings/import.zsh" ]]; then
+    [[ "$__mise_link_count" -eq 112 ]] || fail "expected 112 managed mise links, found $__mise_link_count"
+fi
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \

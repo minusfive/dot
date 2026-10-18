@@ -6,25 +6,18 @@ This directory contains tests for the various setup scripts in the `/scripts` di
 
 ### BetterDisplay Tests
 
-#### `test_betterdisplay.zsh`
+#### `test_mise_bootstrap_betterdisplay.zsh`
 
-Comprehensive unit tests for BetterDisplay integration:
+Tests the BetterDisplay package, profile and module ownership, deployed task links, tracked plist ownership, and LaunchAgent declaration.
 
-- ✅ Script file existence
-- ✅ Configuration directory structure
-- ✅ Documentation files
-- ✅ Integration with main init script
-- ✅ Help text integration
-- ✅ Script syntax validation
-- ✅ Script sourcing capability
+#### `test_mise_task_betterdisplay_settings.zsh`
 
-#### `test_betterdisplay_integration.zsh`
+Tests BetterDisplay mise task discovery and isolated export/import behavior:
 
-Integration tests for BetterDisplay script execution:
-
-- ✅ Script execution flow
-- ✅ Error handling for missing BetterDisplay app
-- ⚠️ User interaction simulation (limited)
+- task discovery and working-directory directives
+- export failure, invalid output, unchanged output, source-change protection, and atomic replacement while holding the shared operation lock
+- import confirmation, running-app refusal, backup ordering, backup failure, and restart guidance
+- runtime backups and the absence of Git commands
 
 ### mise Configuration Tests
 
@@ -118,24 +111,14 @@ Tests hidden project creation and promotion to a checked-in workspace.
 
 ```bash
 # From project root
-./tests/scripts/test_betterdisplay.zsh
-./tests/scripts/test_betterdisplay_integration.zsh
+./tests/scripts/test_mise_bootstrap_betterdisplay.zsh
+./tests/scripts/test_mise_task_betterdisplay_settings.zsh
 ./tests/scripts/test_mise_config.zsh
 for test in tests/scripts/test_mise_bootstrap_*.zsh tests/scripts/test_mise_task_*.zsh; do
     zsh "$test"
 done
 ./tests/scripts/test_mise_skill_evals.zsh
 ./tests/scripts/test_agentic_projects.zsh
-```
-
-### Run Individual Test Categories
-
-```bash
-# Unit tests only
-./tests/scripts/test_betterdisplay.zsh
-
-# Integration tests only
-./tests/scripts/test_betterdisplay_integration.zsh
 ```
 
 ## Test Results Interpretation
