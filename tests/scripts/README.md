@@ -15,9 +15,9 @@ Tests the BetterDisplay package, profile and module ownership, exact deployed ta
 Tests BetterDisplay mise task discovery and isolated manual export/import behavior:
 
 - task discovery and working-directory directives
-- export failure, invalid output, unchanged output, source-change protection, atomic replacement, and concurrent manual invocation protection
+- export failure, invalid output, unchanged output, source-change protection, symlinked-source rejection, same-directory replacement, conflict recovery files, and concurrent manual invocation protection
 - import confirmation, running-app refusal, backup ordering, backup failure, and restart guidance
-- tracked-source targeting through a deployed task symlink, runtime backups, and mocked-Git negative behavior
+- tracked-source targeting through a deployed task symlink, runtime backups, stale-lock manual removal, and mocked-Git negative behavior
 
 ### mise Configuration Tests
 

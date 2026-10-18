@@ -38,7 +38,10 @@ if grep -qiE 'launchd|start_interval|run_at_load' "$__module"; then
 fi
 grep -qF 'plutil -lint' scripts/utils/betterdisplay.zsh || fail "plist validation helper is missing"
 grep -qF 'XDG_STATE_HOME' scripts/utils/betterdisplay.zsh || fail "runtime backup path is missing"
-grep -qF 'BETTERDISPLAY_LOCK_STALE_AFTER' scripts/utils/betterdisplay.zsh || fail "manual-operation lock age bound is missing"
+grep -qF 'mkdir "$lock_dir"' scripts/utils/betterdisplay.zsh || fail "manual-operation lock is missing"
+if find scripts/utils -maxdepth 1 -type f -name '*.c' -print -quit | grep -q .; then
+    fail "native BetterDisplay helper remains"
+fi
 grep -qF 'betterdisplay_acquire_lock' "$__export_task" || fail "export task lock is missing"
 grep -qF 'betterdisplay_acquire_lock' "$__import_task" || fail "import task lock is missing"
 [[ ! -e scripts/betterdisplay.zsh ]] || fail "legacy BetterDisplay script remains"

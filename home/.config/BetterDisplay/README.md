@@ -18,11 +18,13 @@ mise run betterdisplay:settings:export
 mise run betterdisplay:settings:import
 ```
 
-`config.plist` is the tracked source. The export task writes to this file only when live settings differ. The task resolves the source from the repository, so it does not write through a deployed task symlink.
+`config.plist` is the tracked source. It must be a regular file inside the trusted repository; the tasks reject symlinked source files and resolved paths outside the repository. The export task writes to this file only when live settings differ. The task resolves the source from the repository, so it does not write through a deployed task symlink.
 
-The export task uses atomic replacement with source snapshots and rollback. It refuses source changes during the operation. It preserves conflicting content under `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/conflicts/`.
+The export task writes a temporary file beside the tracked source, validates it, and compares the source before replacing it with a standard same-directory `mv`. It refuses source changes during the operation. If a conflict is detected, the exported settings are preserved under `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/conflicts/` and the task fails without attempting a rollback.
 
 The tasks do not run at login or on a timer. An export can change the working tree, but it does not stage, commit, or push the change. Review the change with normal `Git` commands.
+
+The tasks use a manual contention lock under the same BetterDisplay runtime directory. They never reclaim an existing lock automatically. If a task is interrupted and leaves the lock behind, confirm that no BetterDisplay task is running, then remove `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/lock` and retry.
 
 ## Important Notes
 
@@ -54,7 +56,7 @@ BetterDisplay settings are tied to display hardware identifiers (UUIDs). When mo
 - The task saves a runtime backup under `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/BetterDisplay/backups/`
 - Restart BetterDisplay after importing settings
 
-RISK: macOS provides no lock that BetterDisplay itself honors. If the app launches in the small interval around `defaults import`, the task detects that state and restores the backup, but an app that changes its preferences concurrently can still require manual verification.
+RISK: macOS provides no lock that BetterDisplay itself honors. If the app launches after the task's final pre-import check, the import can still require manual verification.
 
 RISK: An external writer can act after the export task's final verification. The task detects and preserves changes observed during replacement, but no shell-level operation can prevent a writer that runs after that verification.
 
