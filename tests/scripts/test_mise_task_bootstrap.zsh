@@ -75,7 +75,7 @@ if grep -qF 'recursive bootstrap task invocation' "$__log_file"; then
 fi
 
 local __mtime_before
-__mtime_before="$(stat -c '%Y' "$__state_file")"
+__mtime_before="$(/usr/bin/stat -f '%m' "$__state_file")"
 local __dry_log="$__fixture_dir/dry.log"
 if (
     env HOME="$__fixture_dir/home" ZDOTDIR="$__fixture_dir/zsh" XDG_STATE_HOME="$__state_dir" \
@@ -89,7 +89,7 @@ else
 fi
 [[ "$__status" -eq 0 ]] || fail "dry run failed"
 [[ "$(<"$__state_file")" == personal ]] || fail "dry run changed profile state"
-[[ "$(stat -c '%Y' "$__state_file")" == "$__mtime_before" ]] ||
+[[ "$(/usr/bin/stat -f '%m' "$__state_file")" == "$__mtime_before" ]] ||
     fail "dry run changed profile state mtime"
 grep -qF 'bootstrap --dry-run|DOT_PROFILE=work' "$__dry_log" ||
     fail "dry run did not hand off the selected profile"
