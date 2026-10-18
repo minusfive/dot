@@ -276,6 +276,18 @@ env MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
 grep -qF -- '--stable-path-probe' "$__log_file" ||
     fail "stable mise path did not invoke the existing mise installation"
 
+local __regular_mise_home="$__fixture_dir/regular-mise-home"
+mkdir -p "$__regular_mise_home/.local/bin"
+cp "$__stub_dir/mise" "$__regular_mise_home/.local/bin/mise"
+chmod +x "$__regular_mise_home/.local/bin/mise"
+FIXTURE_HOME="$__regular_mise_home" FIXTURE_CONFIRM=yes run_fixture "$__stub_dir:/usr/bin:/bin"
+[[ "$__run_fixture_status" -eq 0 ]] || fail "regular mise installation fixture failed"
+[[ -f "$__regular_mise_home/.local/bin/mise" &&
+    ! -L "$__regular_mise_home/.local/bin/mise" ]] ||
+    fail "valid regular mise executable was not preserved"
+grep -qF -- '-C '"$__root_dir"' self-update --yes' "$__log_file" ||
+    fail "regular mise installation did not invoke the stable path"
+
 local __relative_fixture_dir="$__fixture_dir/relative"
 mkdir -p "$__relative_fixture_dir/bin"
 cp "$__stub_dir/mise" "$__relative_fixture_dir/bin/mise"

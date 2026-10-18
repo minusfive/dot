@@ -46,6 +46,11 @@ function _v_mise_ensure_stable_path {
 
     if [[ -e "$__stable_path" || -L "$__stable_path" ]]; then
         if [[ ! -L "$__stable_path" ]]; then
+            if _v_mise_is_valid "$__stable_path"; then
+                export PATH="$HOME/.local/bin:$PATH"
+                hash -r
+                return 0
+            fi
             _v_log_error "MISE" "Cannot create stable mise path: $__stable_path is not a valid mise executable"
             return 1
         fi
