@@ -144,10 +144,10 @@ async function getPullRequest(repository: string, number: number): Promise<PullR
   if (!["OPEN", "CLOSED", "MERGED"].includes(pullRequest.state)) {
     throw new Error(`${description}: response has an invalid state`);
   }
-  if (pullRequest.reviews !== undefined && !Array.isArray(pullRequest.reviews)) {
+  if (!Array.isArray(pullRequest.reviews)) {
     throw new Error(`${description}: reviews is not an array`);
   }
-  if (pullRequest.statusCheckRollup !== undefined && !Array.isArray(pullRequest.statusCheckRollup)) {
+  if (!Array.isArray(pullRequest.statusCheckRollup)) {
     throw new Error(`${description}: statusCheckRollup is not an array`);
   }
   return pullRequest;

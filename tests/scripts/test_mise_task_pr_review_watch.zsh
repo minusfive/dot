@@ -239,6 +239,36 @@ grep -qF 'pull request #7 metadata: response has an invalid state' "$__fixture_d
     fail "invalid pull request state changed state bytes"
 [[ ! -d "$__state_file.lock" ]] || fail "invalid pull request state left the lock"
 
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":8,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+cat > "$__fixture_dir/pr-8.json" <<'EOF'
+{"number":8,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-8","reviewDecision":"APPROVED","statusCheckRollup":[]}
+EOF
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "missing reviews unexpectedly succeeded"
+fi
+grep -qF 'pull request #8 metadata: reviews is not an array' "$__fixture_dir/error" ||
+    fail "missing reviews error was not actionable"
+[[ ! -s "$__poll_output" ]] || fail "missing reviews emitted success JSON"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "missing reviews changed state bytes"
+[[ ! -d "$__state_file.lock" ]] || fail "missing reviews left the lock"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":9,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+cat > "$__fixture_dir/pr-9.json" <<'EOF'
+{"number":9,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-9","reviewDecision":"APPROVED","reviews":[]}
+EOF
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "missing statusCheckRollup unexpectedly succeeded"
+fi
+grep -qF 'pull request #9 metadata: statusCheckRollup is not an array' "$__fixture_dir/error" ||
+    fail "missing statusCheckRollup error was not actionable"
+[[ ! -s "$__poll_output" ]] || fail "missing statusCheckRollup emitted success JSON"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "missing statusCheckRollup changed state bytes"
+[[ ! -d "$__state_file.lock" ]] || fail "missing statusCheckRollup left the lock"
+
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[null]}"
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
 if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then

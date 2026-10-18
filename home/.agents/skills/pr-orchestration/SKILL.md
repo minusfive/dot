@@ -58,7 +58,7 @@ Apply the runtime-isolation rules in `task-orchestration` before implementation 
 
 1. Never merge a pull request yourself.
 2. Leave merge decisions and final review approval to me.
-3. Keep an open PR in the watch state until GitHub reports it merged or closed.
+3. Keep an open PR in the watch state until GitHub reports it merged or closed, except remove it after the documented four-clean-check grace period is clean.
 4. Report blocked merge state, required reviews, failed checks, and unresolved comments plainly.
 
 ## State tracking
