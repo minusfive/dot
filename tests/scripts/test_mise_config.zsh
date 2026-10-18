@@ -23,10 +23,20 @@ echo "Testing global mise configuration..."
 zsh -n scripts/init.zsh scripts/tasks/bootstrap.zsh scripts/utils/profile.zsh scripts/utils/mise.zsh ||
     fail "bootstrap scripts have syntax errors"
 
-grep -qF '#USAGE flag "--profile <work|personal>"' scripts/tasks/bootstrap.zsh ||
+grep -qF '#USAGE flag "--profile <profile>"' scripts/tasks/bootstrap.zsh ||
     fail "profile Usage metadata is missing"
+grep -qF '#USAGE   choices "work" "personal"' scripts/tasks/bootstrap.zsh ||
+    fail "profile Usage choices are missing"
 grep -qF '#USAGE flag "--dry-run"' scripts/tasks/bootstrap.zsh ||
     fail "dry-run Usage metadata is missing"
+grep -qF '#MISE raw=true' scripts/tasks/bootstrap.zsh ||
+    fail "bootstrap task raw mode is missing"
+grep -qF '[settings.task]' .mise/config.toml ||
+    fail "task settings are missing"
+grep -qF 'run_auto_install = false' .mise/config.toml ||
+    fail "outer task auto-installation is not disabled"
+grep -qF 'export MISE_TASK_RUN_AUTO_INSTALL=0' scripts/init.zsh ||
+    fail "compatibility entrypoint does not disable outer task auto-installation"
 grep -qF 'includes = ["scripts/tasks"]' .mise/conf.d/tasks.toml ||
     fail "task include path is missing"
 local __task_listing
@@ -37,10 +47,14 @@ local __task_info
 __task_info="$(MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true mise -C "$__root_dir" tasks info bootstrap)"
 print -r -- "$__task_info" | grep -qF 'Task: bootstrap' ||
     fail "bootstrap task metadata is missing"
+print -r -- "$__task_info" | grep -qF 'Properties: raw' ||
+    fail "bootstrap task raw mode is not active"
 local __task_help
 __task_help="$(MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true mise -C "$__root_dir" run bootstrap --help)"
-print -r -- "$__task_help" | grep -qF -- '--profile <work|personal>' ||
+print -r -- "$__task_help" | grep -qF -- '--profile <profile>' ||
     fail "bootstrap profile help is missing"
+print -r -- "$__task_help" | grep -qF -- '[possible values: work, personal]' ||
+    fail "bootstrap profile choices are missing"
 print -r -- "$__task_help" | grep -qF -- '--dry-run' ||
     fail "bootstrap dry-run help is missing"
 MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \

@@ -1,6 +1,9 @@
 [settings]
 lockfile = true
 
+[settings.task]
+run_auto_install = false
+
 [env]
 HK_MISE = 1
 HK_STAGE = 1

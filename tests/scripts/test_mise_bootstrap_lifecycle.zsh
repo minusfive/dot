@@ -14,6 +14,8 @@ grep -qF 'export MISE_CONFIG_DIR="$__project_root/home/.config/mise"' "$__task" 
     fail "repository-scoped mise configuration is not selected"
 grep -qF 'export MISE_ENV_CONF_D=true' "$__task" ||
     fail "MISE_ENV_CONF_D is not enabled"
+grep -qF '#MISE raw=true' "$__task" ||
+    fail "bootstrap task must preserve terminal stdin and output"
 grep -qF 'unset MISE_ENV' "$__task" || fail "inherited MISE_ENV is not cleared"
 grep -qF 'unset MISE_AUTO_ENV' "$__task" || fail "inherited MISE_AUTO_ENV is not cleared"
 grep -qF 'mise -C "$__project_root" self-update --yes' "$__task" ||

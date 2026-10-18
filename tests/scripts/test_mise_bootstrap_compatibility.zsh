@@ -74,6 +74,32 @@ fi
 [[ ! -e "$__home/.local/state/minusfive/profile" ]] ||
     fail "compatibility shim created profile state"
 
+local __real_mise="$(command -v mise)"
+local __native_stub_dir="$__fixture_dir/native-bin"
+local __native_home="$__fixture_dir/native-home"
+local __native_state="$__fixture_dir/native-state"
+local __native_data="$__fixture_dir/native-data"
+mkdir -p "$__native_stub_dir"
+ln -s "$__real_mise" "$__native_stub_dir/mise"
+if (
+    env HOME="$__native_home" ZDOTDIR="$__fixture_dir/native-zsh" \
+        XDG_STATE_HOME="$__native_state" PATH="$__native_stub_dir:/usr/bin:/bin" \
+        MISE_DATA_DIR="$__native_data" MISE_CACHE_DIR="$__fixture_dir/native-cache" \
+        MISE_OFFLINE=1 MISE_BOOTSTRAP_CONFIRM=no \
+        zsh "$__root_dir/scripts/init.zsh" --mise --profile work
+); then
+    __run_status=0
+else
+    __run_status=$?
+fi
+[[ "$__run_status" -eq 0 ]] || fail "native compatibility decline failed"
+[[ ! -e "$__native_state/minusfive/profile" ]] ||
+    fail "native compatibility decline persisted profile state"
+if [[ -d "$__native_data/installs" ]] &&
+    find "$__native_data/installs" -type f -print -quit | grep -q .; then
+    fail "native compatibility decline installed a tool before confirmation"
+fi
+
 rm -f "$__log_file"
 zsh "$__root_dir/scripts/init.zsh" --profile personal >/dev/null
 [[ ! -e "$__log_file" ]] || fail "no-mise compatibility path invoked mise"

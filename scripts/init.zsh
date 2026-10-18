@@ -72,6 +72,7 @@ function {
     }
 
     export PATH="$HOME/.local/bin:$PATH"
+    export MISE_TASK_RUN_AUTO_INSTALL=0
     hash -r
     cd "$__dotfiles_dir"
     exec "$__mise_path" run bootstrap "${__profile_args[@]}"

@@ -1,7 +1,10 @@
 #!/usr/bin/env zsh
 #MISE description="Bootstrap the machine with the selected profile"
 #MISE quiet=true
-#USAGE flag "--profile <work|personal>" help="Select and persist the bootstrap profile"
+#MISE raw=true
+#USAGE flag "--profile <profile>" help="Select and persist the bootstrap profile" {
+#USAGE   choices "work" "personal"
+#USAGE }
 #USAGE flag "--dry-run" help="Show the bootstrap plan without changing resources or profile state"
 
 set -euo pipefail
