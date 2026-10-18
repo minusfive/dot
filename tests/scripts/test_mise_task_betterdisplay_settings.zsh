@@ -45,6 +45,10 @@ print -r -- "$*" >> "$BD_COMMAND_LOG"
 if [[ "$1" == export ]]; then
     [[ "${BD_FAIL_EXPORT:-false}" != true ]] || exit 1
     [[ "${BD_MUTATE_SOURCE:-false}" != true ]] || print -r -- "mutated" > "$BD_SOURCE"
+    if [[ "${BD_SWAP_SOURCE:-false}" == true ]]; then
+        rm -f "$BD_SOURCE"
+        ln -s "$BD_SWAP_TARGET" "$BD_SOURCE"
+    fi
     [[ -z "${BD_BACKUP_MARKER:-}" ]] || : > "$BD_BACKUP_MARKER"
     cp "$BD_EXPORT_SOURCE" "$3"
 elif [[ "$1" == import ]]; then
@@ -83,6 +87,7 @@ grep -qF '#MISE description="Import the tracked plist into BetterDisplay"' "$__i
     fail "import task description is missing"
 grep -qF '#MISE dir="{{cwd}}"' "$__export_task" || fail "export task directory directive is missing"
 grep -qF '#MISE dir="{{cwd}}"' "$__import_task" || fail "import task directory directive is missing"
+grep -qF '#MISE raw=true' "$__import_task" || fail "import task raw directive is missing"
 [[ "$(zsh -f "$__export_task" 2>&1)" == *"unchanged"* ]] || fail "unchanged export was not reported"
 [[ ! -s "$__git_log" ]] || fail "export invoked Git"
 
@@ -181,6 +186,20 @@ if print -r -- y | zsh -f "$__import_task" >/dev/null 2>&1; then
 fi
 cp "$__valid_export" "$__source"
 
+local __swap_target="$__work_dir/swap-target.plist"
+cp "$__valid_export" "$__swap_target"
+export BD_SWAP_SOURCE=true BD_SWAP_TARGET="$__swap_target"
+if print -r -- y | zsh -f "$__import_task" > "$__work_dir/source-swap-output" 2>&1; then
+    fail "import accepted a source swap during backup"
+fi
+export BD_SWAP_SOURCE=false BD_SWAP_TARGET=""
+[[ -L "$__source" ]] || fail "source-swap fixture did not replace the tracked source"
+if grep -qF "import pro.betterdisplay.BetterDisplay" "$__command_log"; then
+    fail "source swap during backup still invoked defaults import"
+fi
+rm "$__source"
+cp "$__valid_export" "$__source"
+
 : > "$__command_log"
 print -r -- n | zsh -f "$__import_task" > "$__work_dir/cancel-output"
 if grep -qF "import pro.betterdisplay.BetterDisplay" "$__command_log"; then
@@ -195,6 +214,25 @@ grep -qF "Restart BetterDisplay" "$__work_dir/import-output" || fail "import res
 find "$XDG_STATE_HOME/minusfive/BetterDisplay/backups" -type f -name '*.plist' -print -quit | grep -q . ||
     fail "import backup was not created"
 [[ ! -s "$__git_log" ]] || fail "import invoked Git"
+
+local __mise_import_task="$__fixture/.mise/tasks/betterdisplay/settings/import.zsh"
+mkdir -p "${__mise_import_task:h}"
+ln -s "$__import_task" "$__mise_import_task"
+: > "$__command_log"
+if ! print -r -- y | env \
+    HOME="$__home" \
+    XDG_CONFIG_HOME="$__home/.config" \
+    MISE_DATA_DIR="$__work_dir/mise-data" \
+    MISE_STATE_DIR="$__work_dir/mise-state" \
+    MISE_TRUSTED_CONFIG_PATHS="$__fixture" \
+    mise --no-config -C "$__fixture" run betterdisplay:settings:import > "$__work_dir/mise-import-output" 2>&1; then
+    cat "$__work_dir/mise-import-output" >&2
+    fail "mise import invocation failed"
+fi
+grep -qF "import pro.betterdisplay.BetterDisplay" "$__command_log" ||
+    fail "mise import did not receive interactive confirmation"
+grep -qF "Restart BetterDisplay" "$__work_dir/mise-import-output" ||
+    fail "mise import restart guidance is missing"
 
 export BD_RUNNING=true
 if print -r -- y | zsh -f "$__import_task" >/dev/null 2>&1; then

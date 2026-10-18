@@ -16,7 +16,7 @@ Tests BetterDisplay mise task discovery and isolated manual export/import behavi
 
 - task discovery and working-directory directives
 - export failure, invalid output, unchanged output, source-change protection, symlinked-source rejection, same-directory replacement, conflict recovery files, and concurrent manual invocation protection
-- import confirmation, running-app refusal, backup ordering, backup failure, and restart guidance
+- import confirmation through mise, running-app refusal, backup ordering, backup failure, source-swap rejection, and restart guidance
 - tracked-source targeting through a deployed task symlink, runtime backups, stale-lock manual removal, and mocked-Git negative behavior
 
 ### mise Configuration Tests

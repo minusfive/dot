@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 #MISE description="Import the tracked plist into BetterDisplay"
 #MISE quiet=true
+#MISE raw=true
 #MISE dir="{{cwd}}"
 
 set -euo pipefail
@@ -45,6 +46,15 @@ if ! __backup_file="$(betterdisplay_backup_current_settings)"; then
     exit 1
 fi
 print -r -- "Backed up current BetterDisplay settings: $__backup_file"
+
+local __verified_source_file
+if ! __verified_source_file="$(betterdisplay_trusted_source_file "$__trusted_root")" ||
+    [[ "$__verified_source_file" != "$__source_file" ]]; then
+    print -u2 -- "error: tracked BetterDisplay plist changed during import"
+    exit 1
+fi
+__source_file="$__verified_source_file"
+betterdisplay_validate_plist "$__source_file"
 
 if betterdisplay_is_running; then
     print -u2 -- "error: BetterDisplay relaunched after backup; refusing to import settings"

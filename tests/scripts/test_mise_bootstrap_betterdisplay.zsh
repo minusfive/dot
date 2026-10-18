@@ -39,6 +39,8 @@ fi
 grep -qF 'plutil -lint' scripts/utils/betterdisplay.zsh || fail "plist validation helper is missing"
 grep -qF 'XDG_STATE_HOME' scripts/utils/betterdisplay.zsh || fail "runtime backup path is missing"
 grep -qF 'mkdir "$lock_dir"' scripts/utils/betterdisplay.zsh || fail "manual-operation lock is missing"
+grep -qF 'betterdisplay_trusted_source_file' scripts/utils/betterdisplay.zsh || fail "trusted source validation helper is missing"
+grep -qF '#MISE raw=true' "$__import_task" || fail "import task must preserve stdin through mise"
 if find scripts/utils -maxdepth 1 -type f -name '*.c' -print -quit | grep -q .; then
     fail "native BetterDisplay helper remains"
 fi
