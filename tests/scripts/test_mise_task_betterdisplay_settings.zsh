@@ -73,6 +73,12 @@ EOF
 
 cat > "$__bin_dir/cmp" <<'EOF'
 #!/usr/bin/env zsh
+set -euo pipefail
+
+if [[ "${BETTERDISPLAY_CMP_STATUS:-ok}" == "error" ]]; then
+    exit 2
+fi
+
 exec /usr/bin/cmp "$@"
 EOF
 
@@ -192,6 +198,8 @@ reset_fixture() {
         "$__fixture_dir/git.log" \
         "$__helper_source_marker" \
         "$__fixture_dir/osascript.pid"
+    find "$__fixture_dir/home/.config/BetterDisplay" \
+        -maxdepth 1 -name '.config.plist.*' -type f -delete
     rm -rf "$__state_home/minusfive"
 }
 
@@ -215,6 +223,38 @@ if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture
     fail "invalid export output was accepted"
 fi
 [[ "$(cat "$__tracked_plist")" == "valid" ]] || fail "invalid export changed the tracked plist"
+
+reset_fixture
+if run_task "$__task_export" \
+    BETTERDISPLAY_CMP_STATUS=error \
+    BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
+    fail "comparison command failure was accepted"
+fi
+[[ "$(cat "$__tracked_plist")" == "valid" ]] || fail "comparison command failure changed the tracked plist"
+if grep -q '^mv ' "$__log_file"; then
+    fail "comparison command failure replaced the tracked plist"
+fi
+if find "$__fixture_dir/home/.config/BetterDisplay" -name '.config.plist.*' -print -quit | grep -q .; then
+    fail "comparison command failure retained the temporary plist"
+fi
+grep -qF "Could not compare exported BetterDisplay settings." "$__fixture_dir/output" ||
+    fail "comparison command failure was not reported"
+
+reset_fixture
+if run_task "$__task_export" \
+    BETTERDISPLAY_EXPORT_CONTENT=changed \
+    BETTERDISPLAY_STAT_FLIP=yes >| "$__fixture_dir/output" 2>&1; then
+    fail "tracked-source identity change was accepted"
+fi
+[[ "$(cat "$__tracked_plist")" == "valid" ]] || fail "tracked-source identity change changed the tracked plist"
+if grep -q '^mv ' "$__log_file"; then
+    fail "tracked-source identity change replaced the tracked plist"
+fi
+if find "$__fixture_dir/home/.config/BetterDisplay" -name '.config.plist.*' -print -quit | grep -q .; then
+    fail "tracked-source identity change retained the temporary plist"
+fi
+grep -qF "Tracked BetterDisplay plist changed during export." "$__fixture_dir/output" ||
+    fail "tracked-source identity change was not reported"
 
 reset_fixture
 print -r -- invalid >| "$__tracked_plist"
