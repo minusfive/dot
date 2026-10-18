@@ -141,7 +141,7 @@ async function getPullRequest(repository: string, number: number): Promise<PullR
   if (!Number.isSafeInteger(pullRequest.number) || pullRequest.number !== number) {
     throw new Error(`${description}: response has an invalid number`);
   }
-  if (typeof pullRequest.state !== "string") {
+  if (!["OPEN", "CLOSED", "MERGED"].includes(pullRequest.state)) {
     throw new Error(`${description}: response has an invalid state`);
   }
   if (pullRequest.reviews !== undefined && !Array.isArray(pullRequest.reviews)) {
@@ -204,7 +204,9 @@ function timestampValue(value: string): number {
 }
 
 function validateWatchEntry(value: unknown, stateFile: string): value is WatchEntry {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
   const entry = value as Partial<WatchEntry>;
   const number = entry.number;
   if (typeof number !== "number" || !Number.isSafeInteger(number) || number <= 0 || !isValidTimestamp(entry.addedAt)) {
@@ -222,10 +224,17 @@ async function loadState(repository: string, stateFile: string): Promise<WatchSt
     if (parsed.version !== 1 || parsed.repository !== repository || !Array.isArray(parsed.pull_requests)) {
       throw new Error(`invalid watch state: ${stateFile}`);
     }
+    const pullRequests: WatchEntry[] = [];
+    for (const entry of parsed.pull_requests) {
+      if (!validateWatchEntry(entry, stateFile)) {
+        throw new Error(`invalid watch state: ${stateFile}`);
+      }
+      pullRequests.push(entry);
+    }
     return {
       version: 1,
       repository,
-      pull_requests: parsed.pull_requests.filter((entry): entry is WatchEntry => validateWatchEntry(entry, stateFile)),
+      pull_requests: pullRequests,
     };
   } catch (error) {
     if (error instanceof Error && "code" in error && (error as NodeJS.ErrnoException).code === "ENOENT") {

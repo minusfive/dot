@@ -226,6 +226,32 @@ grep -qF 'page 2' "$__fixture_dir/error" || fail "malformed page error omitted p
 [[ ! -d "$__state_file.lock" ]] || fail "malformed poll left the lock"
 [[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "malformed poll left a temporary file"
 
+write_fixture 7 UNKNOWN
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":7,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "unknown pull request state unexpectedly succeeded"
+fi
+grep -qF 'pull request #7 metadata: response has an invalid state' "$__fixture_dir/error" ||
+    fail "unknown pull request state error was not actionable"
+[[ ! -s "$__poll_output" ]] || fail "invalid pull request state emitted success JSON"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "invalid pull request state changed state bytes"
+[[ ! -d "$__state_file.lock" ]] || fail "invalid pull request state left the lock"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[null]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "malformed watch entry unexpectedly succeeded"
+fi
+grep -qF "invalid watch state: $__state_file" "$__fixture_dir/error" ||
+    fail "malformed watch entry error was not actionable"
+[[ ! -s "$__poll_output" ]] || fail "malformed watch entry emitted success JSON"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "malformed watch entry changed state bytes"
+[[ ! -d "$__state_file.lock" ]] || fail "malformed watch entry left the lock"
+[[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "malformed watch entry left a temporary file"
+
 write_fixture 2
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
