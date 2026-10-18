@@ -26,6 +26,8 @@ type Check = {
   name?: string;
   status?: string;
   conclusion?: string;
+  context?: string;
+  state?: string;
 };
 
 type ReviewComment = {
@@ -204,7 +206,8 @@ function timestampValue(value: string): number {
 function validateWatchEntry(value: unknown, stateFile: string): value is WatchEntry {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const entry = value as Partial<WatchEntry>;
-  if (!Number.isSafeInteger(entry.number) || entry.number <= 0 || !isValidTimestamp(entry.addedAt)) {
+  const number = entry.number;
+  if (typeof number !== "number" || !Number.isSafeInteger(number) || number <= 0 || !isValidTimestamp(entry.addedAt)) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
   if (entry.lastSeenAt !== undefined && !isValidTimestamp(entry.lastSeenAt)) {
@@ -233,6 +236,14 @@ async function loadState(repository: string, stateFile: string): Promise<WatchSt
 }
 
 async function saveState(stateFile: string, state: WatchState): Promise<void> {
+  if (state.version !== 1 || !state.repository || !Array.isArray(state.pull_requests)) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  for (const entry of state.pull_requests) {
+    if (!validateWatchEntry(entry, stateFile)) {
+      throw new Error(`invalid watch state: ${stateFile}`);
+    }
+  }
   await mkdir(dirname(stateFile), { recursive: true });
   const temporaryFile = `${stateFile}.tmp.${process.pid}.${randomUUID()}`;
   try {
@@ -244,12 +255,17 @@ async function saveState(stateFile: string, state: WatchState): Promise<void> {
   }
 }
 
+function validateFormat(): void {
+  if (FORMAT !== "json" && FORMAT !== "text") {
+    throw new Error(`unsupported --format value: ${FORMAT}`);
+  }
+}
+
 function emit(value: unknown): void {
   if (FORMAT === "json") {
     console.log(JSON.stringify(value, null, 2));
     return;
   }
-  if (FORMAT !== "text") throw new Error(`unsupported --format value: ${FORMAT}`);
   const payload = value as {
     action?: string;
     repository?: string;
@@ -349,8 +365,8 @@ function newComments(
 
 function checksFor(pullRequest: PullRequest): Array<Record<string, unknown>> {
   return (pullRequest.statusCheckRollup ?? []).map((check) => ({
-    name: check.name,
-    status: check.status,
+    name: check.name ?? check.context,
+    status: check.status ?? check.state,
     conclusion: check.conclusion,
   }));
 }
@@ -366,10 +382,18 @@ function hasFailedChecks(checks: Array<Record<string, unknown>>): boolean {
   });
 }
 
+function hasPendingChecks(checks: Array<Record<string, unknown>>): boolean {
+  return checks.some((check) => {
+    const status = typeof check.status === "string" ? check.status.toUpperCase() : "";
+    return ["EXPECTED", "IN_PROGRESS", "PENDING", "QUEUED", "REQUESTED", "WAITING"].includes(status);
+  });
+}
+
 async function main(): Promise<void> {
   if (!["add", "remove", "list", "poll"].includes(ACTION)) {
     throw new Error("action must be add, remove, list, or poll");
   }
+  validateFormat();
   const { hostname, owner, repo } = resolveUpstreamContext();
   const repository = `${hostname}/${owner}/${repo}`;
   const stateFile = getStateFile();
@@ -406,8 +430,8 @@ async function main(): Promise<void> {
         warnings: [],
         pull_requests: nextState.pull_requests,
       };
-      emit(payload);
       await saveState(stateFile, nextState);
+      emit(payload);
       return;
     }
 
@@ -462,6 +486,7 @@ async function main(): Promise<void> {
       const issueComments = newComments(issueCollection.comments, cutoff, entry.number, "issues", warnings);
       const checks = checksFor(pullRequest);
       const failedChecks = hasFailedChecks(checks);
+      const pendingChecks = hasPendingChecks(checks);
       const hasNewActivity = reviews.length > 0 || inlineComments.length > 0 || issueComments.length > 0;
       openEntries.push({ ...entry, lastSeenAt: now });
       results.push({
@@ -477,7 +502,8 @@ async function main(): Promise<void> {
         issue_comments_pages: issueCollection.pages,
         has_new_activity: hasNewActivity,
         has_failed_checks: failedChecks,
-        action_required: hasNewActivity || failedChecks || pullRequest.reviewDecision === "CHANGES_REQUESTED",
+        action_required:
+          hasNewActivity || failedChecks || pendingChecks || pullRequest.reviewDecision === "CHANGES_REQUESTED",
       });
     }
 
@@ -494,8 +520,8 @@ async function main(): Promise<void> {
       warnings,
       pull_requests: results,
     };
-    emit(payload);
     await saveState(stateFile, nextState);
+    emit(payload);
   } finally {
     if (releaseLock) await releaseLock();
   }

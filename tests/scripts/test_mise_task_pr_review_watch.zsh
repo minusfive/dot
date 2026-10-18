@@ -89,6 +89,22 @@ run_poll() {
         bun "$__task"
 }
 
+run_action() {
+    local __action="$1"
+    local __pull_requests="${2:-}"
+    local __format="${3:-json}"
+    env \
+        PATH="$__bin_dir:$PATH" \
+        GH_REVIEW_WATCH_FIXTURES="$__fixture_dir" \
+        GH_REVIEW_WATCH_LOG="$__log_file" \
+        GH_REVIEW_WATCH_STATE="$__state_file" \
+        usage_action="$__action" \
+        usage_pull_requests="$__pull_requests" \
+        usage_state_file="$__state_file" \
+        usage_format="$__format" \
+        bun "$__task"
+}
+
 write_fixture 1
 cat > "$__fixture_dir/pulls-1.json" <<'EOF'
 [[{"user":{"login":"old-inline"},"created_at":"2023-12-31T23:59:59Z","body":"old"}],[{"user":{"login":"reviewer"},"created_at":"2024-01-02T00:00:00Z","body":"new","path":"src/index.ts","line":12,"html_url":"https://example.test/inline"}]]
@@ -152,6 +168,29 @@ jq -e '
   (.pull_requests[0].new_issue_comments | length == 0)
 ' "$__poll_output" >/dev/null || fail "true zero-page comment responses were not preserved for both endpoints"
 
+cat > "$__fixture_dir/pr-1.json" <<'EOF'
+{"number":1,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-1","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[{"context":"lint","state":"FAILURE"},{"context":"deploy","state":"ERROR"},{"context":"integration","state":"PENDING"}]}
+EOF
+run_poll > "$__poll_output"
+jq -e '
+  .pull_requests[0].has_failed_checks == true and
+  .pull_requests[0].action_required == true and
+  .pull_requests[0].checks == [
+    {"name":"lint","status":"FAILURE"},
+    {"name":"deploy","status":"ERROR"},
+    {"name":"integration","status":"PENDING"}
+  ]
+' "$__poll_output" >/dev/null || fail "StatusContext failures, errors, or pending checks were not normalized"
+
+cat > "$__fixture_dir/pr-1.json" <<'EOF'
+{"number":1,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-1","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[{"context":"integration","state":"PENDING"}]}
+EOF
+run_poll > "$__poll_output"
+jq -e '
+  .pull_requests[0].has_failed_checks == false and
+  .pull_requests[0].action_required == true
+' "$__poll_output" >/dev/null || fail "pending StatusContext did not require action without reporting a failure"
+
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":1,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
 cat > "$__fixture_dir/pulls-1.json" <<'EOF'
 []
@@ -187,6 +226,44 @@ grep -qF 'page 2' "$__fixture_dir/error" || fail "malformed page error omitted p
 [[ ! -d "$__state_file.lock" ]] || fail "malformed poll left the lock"
 [[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "malformed poll left a temporary file"
 
+write_fixture 2
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+chflags uchg "$__state_file"
+if run_action add 2 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "forced add atomic rename failure unexpectedly succeeded"
+fi
+[[ ! -s "$__poll_output" ]] || fail "failed add emitted success JSON"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "failed add changed state bytes"
+[[ ! -d "$__state_file.lock" ]] || fail "failed add left the lock"
+[[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "failed add left a temporary file"
+chflags nouchg "$__state_file"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":2,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+chflags uchg "$__state_file"
+if run_action remove 2 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "forced remove atomic rename failure unexpectedly succeeded"
+fi
+[[ ! -s "$__poll_output" ]] || fail "failed remove emitted success JSON"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "failed remove changed state bytes"
+[[ ! -d "$__state_file.lock" ]] || fail "failed remove left the lock"
+[[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "failed remove left a temporary file"
+chflags nouchg "$__state_file"
+
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_action remove 2 invalid > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "unsupported output format unexpectedly succeeded"
+fi
+grep -qF 'unsupported --format value: invalid' "$__fixture_dir/error" ||
+    fail "unsupported output format error was not actionable"
+[[ ! -s "$__poll_output" ]] || fail "unsupported output format emitted success JSON"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "unsupported output format changed state bytes"
+[[ ! -d "$__state_file.lock" ]] || fail "unsupported output format left the lock"
+
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":1,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
 cat > "$__fixture_dir/pr-1.json" <<'EOF'
 {"number":1,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-1","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
@@ -202,6 +279,7 @@ if GH_REVIEW_WATCH_RENAME_FAIL=1 run_poll > "$__poll_output" 2> "$__fixture_dir/
     fail "forced atomic rename failure unexpectedly succeeded"
 fi
 grep -qE 'EPERM:.*rename' "$__fixture_dir/error" || fail "forced atomic failure did not fail during rename"
+[[ ! -s "$__poll_output" ]] || fail "failed poll emitted success JSON"
 [[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
     fail "atomic rename failure changed state bytes"
 [[ ! -d "$__state_file.lock" ]] || fail "atomic rename failure left the lock"

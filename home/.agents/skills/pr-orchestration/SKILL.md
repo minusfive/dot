@@ -41,14 +41,18 @@ Apply the runtime-isolation rules in `task-orchestration` before implementation 
 ## Watch reviews
 
 1. Add every open PR to the repository's review-watch state.
-2. Poll the watch with `mise run pr:review-watch -- poll` on an external schedule.
-3. Inspect new review summaries, inline comments, review decisions, and failed checks.
-4. Address actionable feedback in the matching worktree.
-5. Run focused tests and an independent critique subagent before every review-fix commit and push.
-6. Use `commit-guidelines` and `pr-guidelines` for the review-fix commit and push.
-7. Remove merged or closed PRs from the watch state automatically.
-8. Remove the matching worktree after a PR merges and the worktree is clean.
-9. Close the orchestration cycle only when no open watched PR remains and no actionable review work remains.
+2. Treat `mise run pr:review-watch -- poll` as a one-shot poll, not a background watcher or notification channel.
+3. Invoke the poll manually or through an external schedule, and consume its machine-readable JSON.
+4. The task does not notify a background agent; the scheduler or poll invocation returns findings to the orchestrator.
+5. Treat a nonzero poll exit as a failed poll with no state advance.
+6. Inspect new review summaries, inline comments, review decisions, and failed or pending checks.
+7. Address actionable feedback in the matching worktree.
+8. After a zero-finding review, keep the PR watched for four additional checks at 15-minute intervals because later automated reviews can appear.
+9. Remove an open PR only after that grace period is clean. Remove merged or closed PRs from the watch state automatically.
+10. Run focused tests and an independent critique subagent before every review-fix commit and push.
+11. Use `commit-guidelines` and `pr-guidelines` for the review-fix commit and push.
+12. Remove the matching worktree after a PR merges and the worktree is clean.
+13. Stop the external schedule when all watched PRs satisfy the grace period, and close the orchestration cycle when no actionable review work remains.
 
 ## Merge authority
 

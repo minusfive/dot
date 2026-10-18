@@ -90,7 +90,7 @@ Tests that the cleanup inventory includes current and historical paths without w
 
 #### `test_mise_task_pr_review_watch.zsh`
 
-Tests transactional review-watch polling with isolated `gh` stubs, including paginated comment collection, timestamp cutoffs, malformed data warnings, state preservation, atomic writes, lock handling, merged/closed cleanup, and stable JSON output.
+Tests transactional review-watch add, remove, and poll actions with isolated `gh` stubs, including paginated comment collection, timestamp cutoffs, normalized check statuses, malformed data warnings, state preservation, atomic writes, lock handling, merged/closed cleanup, and stable JSON output.
 
 #### `test_mise_bootstrap_packages.zsh`
 
