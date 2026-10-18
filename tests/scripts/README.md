@@ -88,6 +88,10 @@ The cleanup task uses `cleanup.paths` and `cleanup.blocks`, which the inventory 
 
 Tests that the cleanup inventory includes current and historical paths without widening the scan to the whole development directory.
 
+#### `test_mise_task_pr_review_watch.zsh`
+
+Tests transactional review-watch add, remove, and poll actions with isolated `gh` stubs, including paginated comment collection, timestamp cutoffs, normalized check statuses, malformed data warnings, state preservation, atomic writes, lock handling, merged/closed cleanup, and stable JSON output.
+
 #### `test_mise_bootstrap_packages.zsh`
 
 Tests the shared package maintenance hook and profile selection for `module.packages.toml`.
