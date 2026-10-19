@@ -11,10 +11,13 @@ local __module="home/.config/mise/conf.d/module.betterdisplay.toml"
 local __control_plane="home/.config/mise/conf.d/module.mise.toml"
 local __config_home="$(mktemp -d)"
 trap 'rm -rf -- "$__config_home"' EXIT
-grep -qF '"~/.config/BetterDisplay" = { source = "~/dev/personal/dot/home/.config/BetterDisplay", mode = "symlink-each", exclude = ["README.md"] }' "$__module" ||
-    fail "BetterDisplay dotfile ownership is missing"
+if grep -qF '~/.config/BetterDisplay' "$__module"; then
+    fail "BetterDisplay plist is still declared as a deployed dotfile"
+fi
 grep -qF '"~/.config/mise/conf.d/module.betterdisplay.toml"' "$__control_plane" ||
     fail "control-plane module does not deploy BetterDisplay ownership"
+plutil -lint home/.config/BetterDisplay/config.plist >/dev/null ||
+    fail "tracked BetterDisplay plist is invalid"
 
 [[ -x scripts/tasks/betterdisplay/sync.zsh ]] ||
     fail "BetterDisplay sync task is not executable"

@@ -1,6 +1,6 @@
 # BetterDisplay Configuration
 
-This directory contains the tracked `BetterDisplay` property list. The `BetterDisplay` module owns the application package and this directory. `mise` links the property list into `~/.config/BetterDisplay`.
+This directory contains the tracked `BetterDisplay` property list. The `BetterDisplay` module owns the application package and this repository data.
 
 ## Export and import
 
@@ -25,6 +25,14 @@ The import operation checks the tracked file before it changes live settings. It
 If the task cannot confirm that a previously running application is running within 10 seconds, it reports the backup path and leaves the application in its current state. The task does not retry or restore the backup. In the normal timeout case, `BetterDisplay` remains stopped. Restore the backup manually after the application stops.
 
 The task does not synchronize settings in the background. A bootstrap run does not export or import application settings.
+
+Earlier versions linked the tracked plist into `~/.config/BetterDisplay`. Run the following command to remove that stale managed link:
+
+```bash
+mise -C ~/dev/personal/dot dot apply --prune
+```
+
+This command removes the deployed link. It does not remove the tracked plist.
 
 ## Backup recovery
 

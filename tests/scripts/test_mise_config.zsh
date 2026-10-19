@@ -200,7 +200,7 @@ env -u MISE_ENV -u MISE_AUTO_ENV \
 local __mise_link_count
 __mise_link_count="$(find "$__mise_fixture_home/.config/mise" -type l | wc -l | tr -d ' ')"
 [[ "$__mise_link_count" -eq 108 ]] ||
-    fail "expected 108 managed mise links from the origin/main invariant, found $__mise_link_count"
+    fail "expected 108 managed mise links after removing BetterDisplay dotfile ownership, found $__mise_link_count"
 [[ -L "$__mise_fixture_home/.config/mise/conf.d/module.betterdisplay.toml" ]] ||
     fail "isolated deployment omitted the BetterDisplay module link"
 if grep -qE '^"~/.config/mise/tasks/betterdisplay' "$__mise_source"; then
