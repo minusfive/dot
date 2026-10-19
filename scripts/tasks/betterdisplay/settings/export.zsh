@@ -5,68 +5,51 @@ set -euo pipefail
 
 function {
     local __project_root_input="${MISE_PROJECT_ROOT:-}"
-    [[ -n "$__project_root_input" ]] || {
-        print -u2 -- "MISE_PROJECT_ROOT is required"
+    local __project_root
+    local __filesystem_utility
+    local __filesystem_utility_parent
+    local __physical_utility_parent
+
+    [[ -n "$__project_root_input" && "$__project_root_input" == /* ]] || {
+        print -u2 -- "MISE_PROJECT_ROOT must be a non-empty canonical physical directory."
         exit 1
     }
-    local __project_root
     if ! __project_root="$(
-        realpath -e "$__project_root_input" 2>/dev/null ||
-            realpath "$__project_root_input" 2>/dev/null
+        builtin cd -P -- "$__project_root_input" 2>/dev/null &&
+            builtin pwd -P
     )"; then
         print -u2 -- "Could not resolve MISE_PROJECT_ROOT: $__project_root_input"
         exit 1
     fi
-    [[ "$__project_root" == "$__project_root_input" ]] || {
+    [[ "$__project_root" == "$__project_root_input" && -d "$__project_root" ]] || {
         print -u2 -- "MISE_PROJECT_ROOT must be a canonical physical directory: $__project_root_input"
         exit 1
     }
-    [[ -d "$__project_root" ]] || {
-        print -u2 -- "MISE_PROJECT_ROOT is not a directory: $__project_root"
-        exit 1
-    }
-
-    local __helper="$__project_root/scripts/utils/betterdisplay.zsh"
-    local __tracked_plist="$__project_root/home/.config/BetterDisplay/config.plist"
-    local __canonical_path
-
-    __physical_path() {
-        local __path="$1"
-
-        realpath -e "$__path" 2>/dev/null ||
-            realpath "$__path" 2>/dev/null
-    }
-
-    __validate_physical_file() {
-        local __label="$1"
-        local __path="$2"
-
-        [[ -f "$__path" ]] || {
-            print -u2 -- "$__label is not a regular file: $__path"
-            return 1
-        }
-        if ! __canonical_path="$(__physical_path "$__path")"; then
-            print -u2 -- "Could not resolve $__label: $__path"
-            return 1
-        fi
-        [[ "$__canonical_path" == "$__path" ]] || {
-            print -u2 -- "$__label has a symlinked or escaped ancestor: $__path"
-            return 1
-        }
-    }
-
-    __validate_physical_file "BetterDisplay helper" "$__helper" || exit 1
-    __validate_physical_file "Tracked BetterDisplay plist" "$__tracked_plist" || exit 1
-
-    local __source_path
-    if ! __source_path="$(__physical_path "$__tracked_plist")" ||
-        [[ "$__source_path" != "$__tracked_plist" ]]; then
-        print -u2 -- "Tracked BetterDisplay plist has a symlinked or escaped ancestor: $__tracked_plist"
+    __filesystem_utility_parent="$__project_root/scripts/utils"
+    if ! __physical_utility_parent="$(
+        builtin cd -P -- "$__filesystem_utility_parent" 2>/dev/null &&
+            builtin pwd -P
+    )"; then
+        print -u2 -- "Could not resolve the filesystem utility directory: $__filesystem_utility_parent"
         exit 1
     fi
+    [[ "$__physical_utility_parent" == "$__filesystem_utility_parent" ]] || {
+        print -u2 -- "Filesystem utility directory must be canonical and physical: $__filesystem_utility_parent"
+        exit 1
+    }
+    __filesystem_utility="$__filesystem_utility_parent/filesystem.zsh"
+    [[ -f "$__filesystem_utility" && ! -L "$__filesystem_utility" ]] || {
+        print -u2 -- "Filesystem utility must be a regular physical file: $__filesystem_utility"
+        exit 1
+    }
+    builtin source "$__filesystem_utility"
+    local __tracked_plist="$__project_root/home/.config/BetterDisplay/config.plist"
+
+    filesystem::validate_physical_file \
+        "Tracked BetterDisplay plist" "$__tracked_plist" || exit 1
 
     local __source_identity
-    if ! __source_identity="$(/usr/bin/stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
+    if ! __source_identity="$(filesystem::identity "$__tracked_plist")" ||
         [[ -z "$__source_identity" ]]; then
         print -u2 -- "Could not identify the tracked BetterDisplay settings."
         exit 1
@@ -76,17 +59,14 @@ function {
         exit 1
     fi
 
-    source "$__helper"
-
     local __temporary_plist=""
     function __cleanup {
-        [[ -n "${__temporary_plist:-}" && -e "$__temporary_plist" ]] &&
-            rm -f -- "$__temporary_plist"
+        filesystem::cleanup_known_temp "${__temporary_plist:-}"
     }
     trap __cleanup EXIT
     __abort_export() {
         local __message="$1"
-        [[ -n "$__temporary_plist" ]] && rm -f -- "$__temporary_plist"
+        filesystem::cleanup_known_temp "$__temporary_plist"
         print -u2 -- "$__message"
         exit 1
     }
@@ -94,7 +74,7 @@ function {
     if ! __temporary_plist="$(mktemp "${__tracked_plist:h}/.config.plist.XXXXXX")"; then
         __abort_export "Could not create temporary BetterDisplay settings."
     fi
-    if ! defaults export "$(betterdisplay::bundle_id)" "$__temporary_plist"; then
+    if ! defaults export "pro.betterdisplay.BetterDisplay" "$__temporary_plist"; then
         __abort_export "Could not export BetterDisplay settings."
     fi
     if ! plutil -lint "$__temporary_plist" >/dev/null; then
@@ -115,30 +95,9 @@ function {
             ;;
     esac
 
-    __validate_physical_file "Tracked BetterDisplay plist" "$__tracked_plist" ||
-        __abort_export "Tracked BetterDisplay plist is no longer physical."
-    local __current_source_path
-    if ! __current_source_path="$(__physical_path "$__tracked_plist")" ||
-        [[ "$__source_path" != "$__current_source_path" ]]; then
+    if ! filesystem::identity_matches \
+        "$__tracked_plist" "$__tracked_plist" "$__source_identity"; then
         __abort_export "Tracked BetterDisplay plist changed during export."
-    fi
-    local __current_identity
-    if ! __current_identity="$(/usr/bin/stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
-        [[ -z "$__current_identity" ]]; then
-        __abort_export "Could not revalidate the tracked BetterDisplay settings."
-    fi
-    if [[ "$__source_identity" != "$__current_identity" ]]; then
-        __abort_export "Tracked BetterDisplay plist changed during export."
-    fi
-
-    __validate_physical_file "Tracked BetterDisplay plist" "$__tracked_plist" ||
-        __abort_export "Tracked BetterDisplay plist is no longer physical."
-    if ! __current_source_path="$(__physical_path "$__tracked_plist")" ||
-        [[ "$__source_path" != "$__current_source_path" ]] ||
-        ! __current_identity="$(/usr/bin/stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
-        [[ -z "$__current_identity" ]] ||
-        [[ "$__source_identity" != "$__current_identity" ]]; then
-        __abort_export "Tracked BetterDisplay plist changed before replacement."
     fi
 
     mv -f -- "$__temporary_plist" "$__tracked_plist"

@@ -22,11 +22,12 @@ local __log_file="$__fixture_dir/commands.log"
 local __process_state="$__fixture_dir/process.state"
 local __backup_complete_marker="$__fixture_dir/backup-complete"
 local __source_mutation_marker="$__fixture_dir/source-mutation"
+local __task_name_marker="$__fixture_dir/task-name"
 local __task_export="$__fixture_dir/scripts/tasks/betterdisplay/settings/export.zsh"
 local __task_import="$__fixture_dir/scripts/tasks/betterdisplay/settings/import.zsh"
 local __tracked_plist="$__fixture_dir/home/.config/BetterDisplay/config.plist"
 local __mise_bin="$(command -v mise)"
-local __helper_source_marker="$__fixture_dir/helper-sourced"
+local __utility_source_marker="$__fixture_dir/utility-sourced"
 
 __fixture_cleanup_is_safe() {
     local __canonical_fixture_dir=""
@@ -54,6 +55,7 @@ __fixture_backup_file_exists() {
 __fixture_marker_exists() {
     [[ -e "$__backup_complete_marker" ||
         -e "$__source_mutation_marker" ||
+        -e "$__task_name_marker" ||
         -e "$__fixture_dir/osascript.pid" ]]
 }
 
@@ -115,6 +117,7 @@ __cleanup_fixture() {
     rm -f -- \
         "$__backup_complete_marker" \
         "$__source_mutation_marker" || __cleanup_status=1
+    rm -f -- "$__task_name_marker" || __cleanup_status=1
     __fixture_cleanup_is_safe || return "$__cleanup_status"
     rm -rf -- "$__fixture_dir"
     return "$__cleanup_status"
@@ -131,11 +134,13 @@ mkdir -p \
     "$__fixture_dir/scripts/utils" \
     "$__fixture_dir/home/.config/BetterDisplay" \
     "$__fixture_dir/.mise/conf.d"
-cp scripts/utils/betterdisplay.zsh "$__fixture_dir/scripts/utils/betterdisplay.zsh"
+cp scripts/utils/filesystem.zsh "$__fixture_dir/scripts/utils/filesystem.zsh"
+cp scripts/utils/application.zsh "$__fixture_dir/scripts/utils/application.zsh"
 cp scripts/tasks/betterdisplay/settings/export.zsh "$__task_export"
 cp scripts/tasks/betterdisplay/settings/import.zsh "$__task_import"
-cat >> "$__fixture_dir/scripts/utils/betterdisplay.zsh" <<'EOF'
-print -r -- sourced >| "$BETTERDISPLAY_HELPER_SOURCE_MARKER"
+cat >> "$__fixture_dir/scripts/utils/application.zsh" <<'EOF'
+print -r -- sourced >| "$BETTERDISPLAY_UTILITY_SOURCE_MARKER"
+print -r -- "${MISE_TASK_NAME:-}" >| "$BETTERDISPLAY_TASK_NAME_MARKER"
 EOF
 cp .mise/conf.d/tasks.toml "$__fixture_dir/.mise/conf.d/tasks.toml"
 print -r -- "valid" >| "$__tracked_plist"
@@ -322,6 +327,8 @@ run_task() {
     local __task="$1"
     shift
     local __path="${BETTERDISPLAY_TEST_PATH:-$__bin_dir:/usr/bin:/bin}"
+    local __task_name="betterdisplay:settings:${${__task:t}%.zsh}"
+    local __task_marker="${BETTERDISPLAY_TASK_MARKER-$__task_name}"
     env -u MISE_ENV -u MISE_AUTO_ENV \
         HOME="$__fixture_dir/home" \
         ZDOTDIR="$__fixture_dir/empty" \
@@ -333,16 +340,46 @@ run_task() {
         BETTERDISPLAY_PROCESS_STATE="$__process_state" \
         BETTERDISPLAY_BACKUP_COMPLETE_MARKER="$__backup_complete_marker" \
         BETTERDISPLAY_SOURCE_MUTATION_MARKER="$__source_mutation_marker" \
+        BETTERDISPLAY_TASK_NAME_MARKER="$__task_name_marker" \
         BETTERDISPLAY_BACKUP_DIR="$__state_home/minusfive/BetterDisplay/backups" \
         BETTERDISPLAY_TRACKED_PLIST="$__tracked_plist" \
         BETTERDISPLAY_ASSERT_STOPPED_COMMANDS="${BETTERDISPLAY_ASSERT_STOPPED_COMMANDS:-no}" \
         BETTERDISPLAY_IDENTITY_CHANGES_AFTER_BACKUP="${BETTERDISPLAY_IDENTITY_CHANGES_AFTER_BACKUP:-no}" \
         BETTERDISPLAY_STAT_COUNT_FILE="$__fixture_dir/stat.count" \
         BETTERDISPLAY_STAT_SHADOW_LOG="$__fixture_dir/stat-shadow.log" \
-        BETTERDISPLAY_HELPER_SOURCE_MARKER="$__helper_source_marker" \
+        BETTERDISPLAY_UTILITY_SOURCE_MARKER="$__utility_source_marker" \
         BETTERDISPLAY_OSASCRIPT_PID_FILE="$__fixture_dir/osascript.pid" \
-        MISE_PROJECT_ROOT="${BETTERDISPLAY_PROJECT_ROOT:-$__fixture_dir}" \
+        MISE_TASK_NAME="$__task_marker" \
         "$@" /bin/zsh "$__task"
+}
+
+run_mise_task() {
+    local __task="$1"
+    shift
+    local __path="${BETTERDISPLAY_TEST_PATH:-$__bin_dir:/usr/bin:/bin}"
+    env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_TASK_NAME \
+        HOME="$__fixture_dir/home" \
+        ZDOTDIR="$__fixture_dir/empty" \
+        PATH="$__path" \
+        MISE_PROJECT_ROOT="$__fixture_dir" \
+        MISE_CONFIG_DIR="$__fixture_dir/mise-config" \
+        MISE_ENV_CONF_D=true \
+        XDG_STATE_HOME="$__state_home" \
+        BETTERDISPLAY_COMMAND_LOG="$__log_file" \
+        BETTERDISPLAY_GIT_LOG="$__fixture_dir/git.log" \
+        BETTERDISPLAY_PROCESS_STATE="$__process_state" \
+        BETTERDISPLAY_BACKUP_COMPLETE_MARKER="$__backup_complete_marker" \
+        BETTERDISPLAY_SOURCE_MUTATION_MARKER="$__source_mutation_marker" \
+        BETTERDISPLAY_TASK_NAME_MARKER="$__task_name_marker" \
+        BETTERDISPLAY_BACKUP_DIR="$__state_home/minusfive/BetterDisplay/backups" \
+        BETTERDISPLAY_TRACKED_PLIST="$__tracked_plist" \
+        BETTERDISPLAY_ASSERT_STOPPED_COMMANDS="${BETTERDISPLAY_ASSERT_STOPPED_COMMANDS:-no}" \
+        BETTERDISPLAY_IDENTITY_CHANGES_AFTER_BACKUP="${BETTERDISPLAY_IDENTITY_CHANGES_AFTER_BACKUP:-no}" \
+        BETTERDISPLAY_STAT_COUNT_FILE="$__fixture_dir/stat.count" \
+        BETTERDISPLAY_STAT_SHADOW_LOG="$__fixture_dir/stat-shadow.log" \
+        BETTERDISPLAY_UTILITY_SOURCE_MARKER="$__utility_source_marker" \
+        BETTERDISPLAY_OSASCRIPT_PID_FILE="$__fixture_dir/osascript.pid" \
+        "$@" "$__mise_bin" -C "$__fixture_dir" run --yes "$__task"
 }
 
 reset_fixture() {
@@ -377,9 +414,10 @@ reset_fixture() {
     rm -f \
         "$__backup_complete_marker" \
         "$__source_mutation_marker" \
+        "$__task_name_marker" \
         "$__fixture_dir/stat.count" \
         "$__fixture_dir/git.log" \
-        "$__helper_source_marker" \
+        "$__utility_source_marker" \
         "$__fixture_dir/osascript.pid"
     if [[ -d "$__fixture_dir/home/.config/BetterDisplay" ]]; then
         find "$__fixture_dir/home/.config/BetterDisplay" \
@@ -461,17 +499,8 @@ fi
 if grep -qE 'osascript|defaults' "$__log_file"; then
     fail "invalid tracked source reached BetterDisplay commands"
 fi
-[[ ! -e "$__helper_source_marker" ]] ||
-    fail "invalid tracked source sourced the BetterDisplay helper"
-
-reset_fixture
-mv "$__fixture_dir/scripts/utils/betterdisplay.zsh" "$__fixture_dir/scripts/utils/betterdisplay.real.zsh"
-ln -s betterdisplay.real.zsh "$__fixture_dir/scripts/utils/betterdisplay.zsh"
-if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
-    fail "symlinked helper was accepted"
-fi
-rm "$__fixture_dir/scripts/utils/betterdisplay.zsh"
-mv "$__fixture_dir/scripts/utils/betterdisplay.real.zsh" "$__fixture_dir/scripts/utils/betterdisplay.zsh"
+[[ ! -e "$__utility_source_marker" ]] ||
+    fail "invalid tracked source sourced the application utility"
 
 reset_fixture
 mv "$__tracked_plist" "$__fixture_dir/home/.config/BetterDisplay/config.real.plist"
@@ -483,62 +512,16 @@ rm "$__tracked_plist"
 mv "$__fixture_dir/home/.config/BetterDisplay/config.real.plist" "$__tracked_plist"
 
 reset_fixture
-mkdir -p "$__fixture_dir/escaped/utils"
-cp "$__fixture_dir/scripts/utils/betterdisplay.zsh" "$__fixture_dir/escaped/utils/betterdisplay.zsh"
-mv "$__fixture_dir/scripts/utils" "$__fixture_dir/scripts/utils.real"
-ln -s "$__fixture_dir/escaped/utils" "$__fixture_dir/scripts/utils"
-if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
-    fail "symlinked helper parent was accepted"
-fi
-grep -qiF "symlinked or escaped ancestor" "$__fixture_dir/output" ||
-    fail "symlinked helper parent was not rejected explicitly"
-rm "$__fixture_dir/scripts/utils"
-mv "$__fixture_dir/scripts/utils.real" "$__fixture_dir/scripts/utils"
-
-reset_fixture
-mkdir -p "$__fixture_dir/escaped-import/utils"
-cp "$__fixture_dir/scripts/utils/betterdisplay.zsh" "$__fixture_dir/escaped-import/utils/betterdisplay.zsh"
-mv "$__fixture_dir/scripts/utils" "$__fixture_dir/scripts/utils.real"
-ln -s "$__fixture_dir/escaped-import/utils" "$__fixture_dir/scripts/utils"
+mv "$__fixture_dir/scripts/utils/application.zsh" "$__fixture_dir/scripts/utils/application.real.zsh"
+ln -s application.real.zsh "$__fixture_dir/scripts/utils/application.zsh"
 if run_task "$__task_import" >| "$__fixture_dir/output" 2>&1; then
-    fail "import accepted a symlinked helper parent"
+    fail "import accepted a symlinked application utility"
 fi
-grep -qiF "symlinked or escaped ancestor" "$__fixture_dir/output" ||
-    fail "import did not reject a symlinked helper parent explicitly"
 if grep -qE 'osascript|defaults' "$__log_file"; then
-    fail "import accessed BetterDisplay after a symlinked helper parent"
+    fail "import accessed BetterDisplay after a symlinked application utility"
 fi
-rm "$__fixture_dir/scripts/utils"
-mv "$__fixture_dir/scripts/utils.real" "$__fixture_dir/scripts/utils"
-
-reset_fixture
-mkdir -p "$__fixture_dir/escaped/plist"
-cp "$__tracked_plist" "$__fixture_dir/escaped/plist/config.plist"
-mv "$__fixture_dir/home/.config/BetterDisplay" "$__fixture_dir/home/.config/BetterDisplay.real"
-ln -s "$__fixture_dir/escaped/plist" "$__fixture_dir/home/.config/BetterDisplay"
-if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
-    fail "symlinked tracked plist parent was accepted"
-fi
-grep -qiF "symlinked or escaped ancestor" "$__fixture_dir/output" ||
-    fail "symlinked tracked plist parent was not rejected explicitly"
-rm "$__fixture_dir/home/.config/BetterDisplay"
-mv "$__fixture_dir/home/.config/BetterDisplay.real" "$__fixture_dir/home/.config/BetterDisplay"
-
-reset_fixture
-mkdir -p "$__fixture_dir/escaped-root/scripts/utils" "$__fixture_dir/escaped-root/home/.config/BetterDisplay"
-cp "$__fixture_dir/scripts/utils/betterdisplay.zsh" \
-    "$__fixture_dir/escaped-root/scripts/utils/betterdisplay.zsh"
-cp "$__tracked_plist" "$__fixture_dir/escaped-root/home/.config/BetterDisplay/config.plist"
-ln -s "$__fixture_dir/escaped-root" "$__fixture_dir/project-root-link"
-for __task in "$__task_export" "$__task_import"; do
-    if BETTERDISPLAY_PROJECT_ROOT="$__fixture_dir/project-root-link" \
-        run_task "$__task" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
-        fail "escaped project root was accepted: $__task"
-    fi
-    grep -qiF "canonical physical directory" "$__fixture_dir/output" ||
-        fail "escaped project root was not rejected explicitly: $__task"
-done
-rm "$__fixture_dir/project-root-link"
+rm "$__fixture_dir/scripts/utils/application.zsh"
+mv "$__fixture_dir/scripts/utils/application.real.zsh" "$__fixture_dir/scripts/utils/application.zsh"
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
@@ -665,6 +648,27 @@ run_task "$__task_import" BETTERDISPLAY_EXPORT_CONTENT=backup
 if grep -qF "open " "$__log_file"; then
     fail "stopped application was restarted"
 fi
+
+reset_fixture
+local __mise_import_output=""
+if ! __mise_import_output="$(
+    run_mise_task betterdisplay:settings:import BETTERDISPLAY_EXPORT_CONTENT=backup 2>&1
+)"; then
+    print -u2 -- "$__mise_import_output"
+    fail "successful mise import was rejected"
+fi
+grep -qF "BetterDisplay settings imported." <<< "$__mise_import_output" ||
+    fail "mise import did not execute the task body"
+[[ "$(cat "$__task_name_marker")" == "betterdisplay:settings:import" ]] ||
+    fail "mise import did not provide the expected MISE_TASK_NAME"
+local __mise_backup_file="$(find "$__state_home/minusfive/BetterDisplay/backups" -type f -print -quit)"
+[[ -n "$__mise_backup_file" ]] || fail "mise import did not create a live backup"
+[[ -e "$__backup_complete_marker" ]] ||
+    fail "mise import did not validate the live backup"
+grep -qF "import pro.betterdisplay.BetterDisplay $__tracked_plist" "$__log_file" ||
+    fail "mise import did not import the tracked settings"
+[[ "$(cat "$__process_state")" == "stopped" ]] ||
+    fail "mise import changed the stopped fixture state"
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
@@ -878,6 +882,16 @@ fi
     fail "source identity change did not record the source mutation"
 [[ "$(cat "$__process_state")" == "stopped" ]] ||
     fail "stopped application changed state after source identity failure"
+
+reset_fixture
+if BETTERDISPLAY_TASK_MARKER="" run_task "$__task_import" >| "$__fixture_dir/output" 2>&1; then
+    fail "direct import invocation was accepted"
+fi
+grep -qF "must be run through mise" "$__fixture_dir/output" ||
+    fail "direct import invocation was not rejected clearly"
+if grep -qE 'osascript|defaults' "$__log_file"; then
+    fail "direct import invocation reached BetterDisplay commands"
+fi
 
 grep -qF '#MISE confirm={message="Import tracked BetterDisplay settings and overwrite live settings?", default="no"}' "$__task_import" ||
     fail "mise confirmation directive is missing"

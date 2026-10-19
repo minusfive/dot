@@ -5,58 +5,58 @@
 set -euo pipefail
 
 function {
-    local __project_root_input="${MISE_PROJECT_ROOT:-}"
-    [[ -n "$__project_root_input" ]] || {
-        print -u2 -- "MISE_PROJECT_ROOT is required"
+    [[ "${MISE_TASK_NAME:-}" == "betterdisplay:settings:import" ]] || {
+        print -u2 -- "Import task must be run through mise (MISE_TASK_NAME=betterdisplay:settings:import)."
         exit 1
     }
+
+    local __project_root_input="${MISE_PROJECT_ROOT:-}"
     local __project_root
+    local __filesystem_utility
+    local __filesystem_utility_parent
+    local __physical_utility_parent
+    [[ -n "$__project_root_input" && "$__project_root_input" == /* ]] || {
+        print -u2 -- "MISE_PROJECT_ROOT must be a non-empty canonical physical directory."
+        exit 1
+    }
     if ! __project_root="$(
-        realpath -e "$__project_root_input" 2>/dev/null ||
-            realpath "$__project_root_input" 2>/dev/null
+        builtin cd -P -- "$__project_root_input" 2>/dev/null &&
+            builtin pwd -P
     )"; then
         print -u2 -- "Could not resolve MISE_PROJECT_ROOT: $__project_root_input"
         exit 1
     fi
-    [[ "$__project_root" == "$__project_root_input" ]] || {
+    [[ "$__project_root" == "$__project_root_input" && -d "$__project_root" ]] || {
         print -u2 -- "MISE_PROJECT_ROOT must be a canonical physical directory: $__project_root_input"
         exit 1
     }
-    [[ -d "$__project_root" ]] || {
-        print -u2 -- "MISE_PROJECT_ROOT is not a directory: $__project_root"
+    __filesystem_utility_parent="$__project_root/scripts/utils"
+    if ! __physical_utility_parent="$(
+        builtin cd -P -- "$__filesystem_utility_parent" 2>/dev/null &&
+            builtin pwd -P
+    )"; then
+        print -u2 -- "Could not resolve the filesystem utility directory: $__filesystem_utility_parent"
+        exit 1
+    fi
+    [[ "$__physical_utility_parent" == "$__filesystem_utility_parent" ]] || {
+        print -u2 -- "Filesystem utility directory must be canonical and physical: $__filesystem_utility_parent"
         exit 1
     }
-
-    local __helper="$__project_root/scripts/utils/betterdisplay.zsh"
-    local __tracked_plist="$__project_root/home/.config/BetterDisplay/config.plist"
-    local __canonical_path
-
-    __validate_physical_file() {
-        local __label="$1"
-        local __path="$2"
-
-        [[ -f "$__path" ]] || {
-            print -u2 -- "$__label is not a regular file: $__path"
-            return 1
-        }
-        if ! __canonical_path="$(
-            realpath -e "$__path" 2>/dev/null ||
-                realpath "$__path" 2>/dev/null
-        )"; then
-            print -u2 -- "Could not resolve $__label: $__path"
-            return 1
-        fi
-        [[ "$__canonical_path" == "$__path" ]] || {
-            print -u2 -- "$__label has a symlinked or escaped ancestor: $__path"
-            return 1
-        }
+    __filesystem_utility="$__filesystem_utility_parent/filesystem.zsh"
+    [[ -f "$__filesystem_utility" && ! -L "$__filesystem_utility" ]] || {
+        print -u2 -- "Filesystem utility must be a regular physical file: $__filesystem_utility"
+        exit 1
     }
+    builtin source "$__filesystem_utility"
+    local __application_utility="$__project_root/scripts/utils/application.zsh"
+    local __tracked_plist="$__project_root/home/.config/BetterDisplay/config.plist"
+    local __application_name="BetterDisplay"
+    local __bundle_id="pro.betterdisplay.BetterDisplay"
 
-    __validate_physical_file "Tracked BetterDisplay plist" "$__tracked_plist" || exit 1
-    __validate_physical_file "BetterDisplay helper" "$__helper" || exit 1
-
+    filesystem::validate_physical_file \
+        "Tracked BetterDisplay plist" "$__tracked_plist" || exit 1
     local __source_identity
-    if ! __source_identity="$(/usr/bin/stat -f '%d:%i:%z:%m' "$__tracked_plist")" ||
+    if ! __source_identity="$(filesystem::identity "$__tracked_plist")" ||
         [[ -z "$__source_identity" ]]; then
         print -u2 -- "Could not identify the tracked BetterDisplay settings."
         exit 1
@@ -66,99 +66,46 @@ function {
         exit 1
     fi
 
-    source "$__helper"
-
-    local __current_identity
-    if ! __current_identity="$(betterdisplay::source_identity "$__tracked_plist")" ||
-        [[ -z "$__current_identity" ]]; then
-        print -u2 -- "Could not revalidate the tracked BetterDisplay settings."
-        exit 1
-    fi
+    filesystem::validate_physical_file \
+        "Application utility" "$__application_utility" || exit 1
+    builtin source "$__application_utility"
 
     local __was_running=false
     local __backup_file=""
     local __wait_timeout_seconds=10
-    local __termination_grace_seconds=2
-    local __kill_grace_seconds=2
-    __run_osascript_with_timeout() {
-        local __osascript_pid
-        local __deadline
-        local __grace_deadline
-
-        osascript \
-            -e "with timeout of ${__wait_timeout_seconds} seconds" \
-            -e 'tell application "BetterDisplay" to quit' \
-            -e 'end timeout' &
-        __osascript_pid=$!
-        __deadline=$(( SECONDS + __wait_timeout_seconds ))
-
-        while kill -0 "$__osascript_pid" 2>/dev/null; do
-            if (( SECONDS >= __deadline )); then
-                break
-            fi
-            sleep 1
-        done
-
-        if kill -0 "$__osascript_pid" 2>/dev/null; then
-            kill -TERM "$__osascript_pid" 2>/dev/null || true
-            __grace_deadline=$(( SECONDS + __termination_grace_seconds ))
-            while kill -0 "$__osascript_pid" 2>/dev/null; do
-                if (( SECONDS >= __grace_deadline )); then
-                    break
-                fi
-                sleep 1
-            done
-        fi
-
-        if kill -0 "$__osascript_pid" 2>/dev/null; then
-            kill -KILL "$__osascript_pid" 2>/dev/null || true
-            __grace_deadline=$(( SECONDS + __kill_grace_seconds ))
-            while kill -0 "$__osascript_pid" 2>/dev/null; do
-                if (( SECONDS >= __grace_deadline )); then
-                    break
-                fi
-                sleep 1
-            done
-        fi
-
-        if kill -0 "$__osascript_pid" 2>/dev/null; then
-            print -u2 -- "Watchdog could not terminate osascript PID $__osascript_pid."
-            return 124
-        fi
-
-        wait "$__osascript_pid"
-    }
-
     __abort_after_stop() {
         local __message="$1"
         local __restart_error=""
-        local __restart_attempted=false
+        local __restart_status=0
 
-        if [[ "$__was_running" == true ]] && ! betterdisplay::is_running; then
-            __restart_attempted=true
-            if ! open -a "BetterDisplay" >/dev/null 2>&1; then
-                __restart_error="Could not restore the running BetterDisplay state."
-            elif ! betterdisplay::wait_for_state running "$__wait_timeout_seconds"; then
-                __restart_error="Could not confirm that BetterDisplay returned to the running state within ${__wait_timeout_seconds} seconds."
+        if [[ "$__was_running" == true ]] &&
+            ! application::is_running "$__application_name"; then
+            application::restart \
+                "$__application_name" "$__application_name" "$__wait_timeout_seconds" ||
+                __restart_status=$?
+            if (( __restart_status != 0 )); then
+                __restart_error="Could not restore the running ${__application_name} state."
+            else
+                print -u2 -- "${__application_name} was restarted."
             fi
         fi
         print -u2 -- "$__message"
-        if [[ -n "$__restart_error" ]]; then
+        [[ -n "$__restart_error" ]] &&
             print -u2 -- "$__restart_error"
-        elif [[ "$__restart_attempted" == true ]]; then
-            print -u2 -- "BetterDisplay was restarted."
-        fi
-        [[ -n "$__backup_file" ]] && print -u2 -- "Backup: $__backup_file"
+        [[ -n "$__backup_file" ]] &&
+            print -u2 -- "Backup: $__backup_file"
         exit 1
     }
 
-    if betterdisplay::is_running; then
+    if application::is_running "$__application_name"; then
         __was_running=true
-        if ! __run_osascript_with_timeout; then
-            __abort_after_stop "Could not stop BetterDisplay before import."
+        if ! application::quit \
+            "$__application_name" "$__wait_timeout_seconds"; then
+            __abort_after_stop "Could not stop ${__application_name} before import."
         fi
-        if ! betterdisplay::wait_for_state stopped "$__wait_timeout_seconds"; then
-            __abort_after_stop "BetterDisplay did not stop before import."
+        if ! application::wait_for_state \
+            "$__application_name" stopped "$__wait_timeout_seconds"; then
+            __abort_after_stop "${__application_name} did not stop before import."
         fi
     fi
 
@@ -168,19 +115,20 @@ function {
         __abort_after_stop "Could not create the BetterDisplay backup directory."
     fi
     if ! __backup_file="$(mktemp "$__backup_dir/BetterDisplay-live.plist.XXXXXX")"; then
-        [[ -n "$__backup_file" && -e "$__backup_file" ]] && rm -f -- "$__backup_file"
+        filesystem::cleanup_known_temp "$__backup_file"
         __backup_file=""
         __abort_after_stop "Could not create the live BetterDisplay backup."
     fi
 
     local __backup_export_status=0
-    defaults export "$(betterdisplay::bundle_id)" "$__backup_file" || __backup_export_status=$?
+    defaults export "$__bundle_id" "$__backup_file" || __backup_export_status=$?
     local __backup_is_valid=false
-    if [[ -f "$__backup_file" ]] && plutil -lint "$__backup_file" >/dev/null 2>&1; then
+    if filesystem::is_physical_file "$__backup_file" &&
+        plutil -lint "$__backup_file" >/dev/null 2>&1; then
         __backup_is_valid=true
     fi
     if [[ "$__backup_is_valid" != true ]]; then
-        rm -f -- "$__backup_file"
+        filesystem::cleanup_known_temp "$__backup_file"
         __backup_file=""
         if (( __backup_export_status == 0 )); then
             __abort_after_stop "The live BetterDisplay backup is invalid."
@@ -191,28 +139,37 @@ function {
         __abort_after_stop "Could not save the live BetterDisplay backup."
     fi
 
-    if ! __current_identity="$(betterdisplay::source_identity "$__tracked_plist")"; then
-        __abort_after_stop "Could not revalidate the tracked BetterDisplay settings."
-    fi
-    if [[ "$__source_identity" != "$__current_identity" ]]; then
+    if ! filesystem::identity_matches \
+        "$__tracked_plist" "$__tracked_plist" "$__source_identity"; then
         __abort_after_stop "Tracked BetterDisplay settings changed during import preparation."
     fi
 
-    __validate_physical_file "Tracked BetterDisplay plist" "$__tracked_plist" ||
-        __abort_after_stop "Tracked BetterDisplay plist path is no longer physical."
-    if ! defaults import "$(betterdisplay::bundle_id)" "$__tracked_plist"; then
+    if ! defaults import "$__bundle_id" "$__tracked_plist"; then
         __abort_after_stop "BetterDisplay import failed."
     fi
 
     if [[ "$__was_running" == true ]]; then
-        if ! open -a "BetterDisplay" >/dev/null 2>&1; then
-            __abort_after_stop "BetterDisplay settings imported, but the app could not be started."
-        fi
-        if ! betterdisplay::wait_for_state running "$__wait_timeout_seconds"; then
-            print -u2 -- "BetterDisplay settings imported, but the app restart could not be confirmed within ${__wait_timeout_seconds} seconds."
-            print -u2 -- "Backup: $__backup_file"
-            exit 1
-        fi
+        local __restart_status=0
+        application::restart \
+            "$__application_name" "$__application_name" "$__wait_timeout_seconds" ||
+            __restart_status=$?
+        case "$__restart_status" in
+            125)
+                __abort_after_stop \
+                    "BetterDisplay settings imported, but the app could not be started."
+                ;;
+            124)
+                print -u2 -- \
+                    "BetterDisplay settings imported, but the app restart could not be confirmed within ${__wait_timeout_seconds} seconds."
+                print -u2 -- "Backup: $__backup_file"
+                exit 1
+                ;;
+            0)
+                ;;
+            *)
+                __abort_after_stop "BetterDisplay settings imported, but the app could not be restarted."
+                ;;
+        esac
     fi
 
     print -r -- "BetterDisplay settings imported. Backup: $__backup_file"

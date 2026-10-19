@@ -14,6 +14,10 @@ Tests the `BetterDisplay` package and tracked property-list ownership. It also c
 
 Tests the local export and import tasks with isolated command mocks. The cases cover unchanged and changed exports, temporary-file replacement, invalid output, source identity checks, `mise` confirmation, cancellation, backup ordering and errors, stopped and running application states, stop and wait errors, import errors, restart errors, and the absence of `Git` calls.
 
+#### `test_script_utils.zsh`
+
+Tests shared filesystem identity checks and generic application state and restart utilities.
+
 ### mise Configuration Tests
 
 #### `test_mise_config.zsh`
@@ -108,6 +112,7 @@ Tests hidden project creation and promotion to a checked-in workspace.
 # From project root
 zsh tests/scripts/test_mise_bootstrap_betterdisplay.zsh
 zsh tests/scripts/test_mise_task_betterdisplay_settings.zsh
+zsh tests/scripts/test_script_utils.zsh
 ./tests/scripts/test_mise_config.zsh
 for test in tests/scripts/test_mise_bootstrap_*.zsh tests/scripts/test_mise_task_*.zsh; do
     zsh "$test"
