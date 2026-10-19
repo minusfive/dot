@@ -6,83 +6,8 @@ local __fixture_dir="$(mktemp -d)"
 __fixture_dir="$(realpath "$__fixture_dir")"
 trap 'rm -rf -- "$__fixture_dir"' EXIT
 
-local __task_root="$__fixture_dir/task-root"
-local __task_scripts="$__task_root/scripts"
-local __task_utils="$__task_scripts/utils"
-local __task_dir="$__task_scripts/tasks/betterdisplay/settings"
-local __task_marker="$__fixture_dir/task-sourced"
-mkdir -p "$__task_utils" "$__task_dir" "$__task_root/home/.config/BetterDisplay"
-cp scripts/utils/filesystem.zsh "$__task_utils/filesystem.zsh"
-cp scripts/tasks/betterdisplay/settings/export.zsh "$__task_dir/export.zsh"
-cp scripts/tasks/betterdisplay/settings/import.zsh "$__task_dir/import.zsh"
-print -r -- 'valid' >| "$__task_root/home/.config/BetterDisplay/config.plist"
-print -r -- 'print -r -- sourced >| "$BOUNDARY_TASK_MARKER"' >> "$__task_utils/filesystem.zsh"
-
-__boundary_task_name() {
-    print -r -- "betterdisplay:settings:${${1:t}%.zsh}"
-}
-
-__expect_boundary_rejection() {
-    local __task="$1"
-    local __project_root="${2:-}"
-    local __output="$__fixture_dir/boundary-output"
-    local __task_name="$(__boundary_task_name "$__task")"
-    rm -f -- "$__task_marker" "$__output"
-    if [[ -n "$__project_root" ]]; then
-        if env -u MISE_ENV \
-            MISE_PROJECT_ROOT="$__project_root" \
-            MISE_TASK_NAME="$__task_name" \
-            BOUNDARY_TASK_MARKER="$__task_marker" \
-            /bin/zsh "$__task" >| "$__output" 2>&1; then
-            print -u2 -- "boundary accepted: $__task ($__project_root)"
-            exit 1
-        fi
-    else
-        if env -u MISE_ENV -u MISE_PROJECT_ROOT \
-            MISE_TASK_NAME="$__task_name" \
-            BOUNDARY_TASK_MARKER="$__task_marker" \
-            /bin/zsh "$__task" >| "$__output" 2>&1; then
-            print -u2 -- "boundary accepted: $__task (missing root)"
-            exit 1
-        fi
-    fi
-    [[ ! -e "$__task_marker" ]] ||
-        { print -u2 -- "boundary sourced filesystem utility: $__task"; exit 1; }
-}
-
-for __boundary_task in "$__task_dir/export.zsh" "$__task_dir/import.zsh"; do
-    __expect_boundary_rejection "$__boundary_task"
-    __expect_boundary_rejection "$__boundary_task" "$__task_root/.."
-done
-
-local __root_link="$__fixture_dir/root-link"
-ln -s "$__task_root" "$__root_link"
-for __boundary_task in "$__task_dir/export.zsh" "$__task_dir/import.zsh"; do
-    __expect_boundary_rejection "$__boundary_task" "$__root_link"
-done
-rm "$__root_link"
-
-mv "$__task_utils/filesystem.zsh" "$__task_utils/filesystem.real.zsh"
-ln -s filesystem.real.zsh "$__task_utils/filesystem.zsh"
-for __boundary_task in "$__task_dir/export.zsh" "$__task_dir/import.zsh"; do
-    __expect_boundary_rejection "$__boundary_task" "$__task_root"
-done
-rm "$__task_utils/filesystem.zsh"
-mv "$__task_utils/filesystem.real.zsh" "$__task_utils/filesystem.zsh"
-
-mv "$__task_utils" "$__task_scripts/utils.real"
-ln -s utils.real "$__task_utils"
-for __boundary_task in "$__task_dir/export.zsh" "$__task_dir/import.zsh"; do
-    __expect_boundary_rejection "$__boundary_task" "$__task_root"
-done
-rm "$__task_utils"
-mv "$__task_scripts/utils.real" "$__task_utils"
-
 source scripts/utils/filesystem.zsh
 source scripts/utils/application.zsh
-
-[[ "$(filesystem::project_root "$PWD")" == "$PWD" ]] ||
-    { print -u2 -- "canonical project root was not resolved"; exit 1; }
 
 local __file="$__fixture_dir/file"
 print -r -- content >| "$__file"

@@ -9,16 +9,6 @@ filesystem::physical_path() {
     print -r -- "${__path:A}"
 }
 
-filesystem::project_root() {
-    local __project_root_input="${1:-${MISE_PROJECT_ROOT:-}}"
-    local __project_root
-
-    [[ -n "$__project_root_input" && -d "$__project_root_input" ]] || return 1
-    __project_root="${__project_root_input:A}"
-    [[ "$__project_root" == "$__project_root_input" ]] || return 1
-    print -r -- "$__project_root"
-}
-
 filesystem::is_physical_file() {
     local __path="$1"
     local __physical_path
