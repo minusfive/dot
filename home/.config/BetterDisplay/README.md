@@ -22,7 +22,7 @@ The export operation writes a temporary file beside `config.plist`. It validates
 
 The import operation checks the tracked file before it changes live settings. It stops `BetterDisplay` only when the application is running. It starts the application again only when it was running before the import.
 
-If the task cannot confirm that a previously running application is running within 10 seconds, it reports the backup path and leaves the application in its current state. The task does not retry or restore the backup. In the normal timeout case, `BetterDisplay` remains stopped. Restore the backup manually after the application stops.
+If the task cannot confirm that a previously running application is running within 10 seconds, it reports the backup path and leaves the application in its current state. The task does not retry or restore the backup. `BetterDisplay` may remain stopped or start after the timeout; verify its state before restoring the backup manually after it stops.
 
 The task does not synchronize settings in the background. A bootstrap run does not export or import application settings.
 

@@ -476,6 +476,23 @@ fi
 
 reset_fixture
 if run_task "$__task_sync" \
+    BETTERDISPLAY_EXPORT_STATUS=fail \
+    BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture_dir/output" 2>&1; then
+    fail "failed invalid export output was accepted"
+fi
+[[ "$(cat "$__tracked_plist")" == "valid" ]] ||
+    fail "failed invalid export changed the tracked plist"
+grep -qF "Could not export BetterDisplay settings." "$__fixture_dir/output" ||
+    fail "failed invalid export was not reported as an export failure"
+if grep -qF "not valid plist data" "$__fixture_dir/output"; then
+    fail "failed invalid export was misreported as invalid plist data"
+fi
+if find "$__fixture_dir/home/.config/BetterDisplay" -name '.config.plist.*' -print -quit | grep -q .; then
+    fail "failed invalid export retained the temporary plist"
+fi
+
+reset_fixture
+if run_task "$__task_sync" \
     BETTERDISPLAY_CMP_STATUS=error \
     BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
     fail "comparison command failure was accepted"

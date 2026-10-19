@@ -9,6 +9,7 @@ set -euo pipefail
 typeset -gr PLIST_EXPORT_SUCCESS=0
 typeset -gr PLIST_EXPORT_COMMAND_FAILED=10
 typeset -gr PLIST_EXPORT_INVALID_OUTPUT=11
+typeset -gr PLIST_EXPORT_COMMAND_FAILED_INVALID_OUTPUT=12
 
 filesystem::physical_path() {
     realpath -e "$1" 2>/dev/null
@@ -61,6 +62,7 @@ plist::export_and_validate() {
     local __bundle_id="$1"
     local __destination="$2"
     local __export_status=0
+    local __validation_status=0
     local __resolved_destination
 
     defaults export "$__bundle_id" "$__destination" >/dev/null 2>&1 ||
@@ -70,12 +72,17 @@ plist::export_and_validate() {
         ! __resolved_destination="$(filesystem::physical_path "$__destination")" ||
         [[ "$__resolved_destination" != "$__destination" ]] ||
         ! plutil -lint "$__destination" >/dev/null 2>&1; then
-        return "$PLIST_EXPORT_INVALID_OUTPUT"
+        __validation_status=1
     fi
 
     if (( __export_status != 0 )); then
+        (( __validation_status != 0 )) &&
+            return "$PLIST_EXPORT_COMMAND_FAILED_INVALID_OUTPUT"
         return "$PLIST_EXPORT_COMMAND_FAILED"
     fi
+
+    (( __validation_status != 0 )) &&
+        return "$PLIST_EXPORT_INVALID_OUTPUT"
 
     return "$PLIST_EXPORT_SUCCESS"
 }
@@ -208,7 +215,7 @@ betterdisplay::export_settings() {
     case "$__export_status" in
         "$PLIST_EXPORT_SUCCESS")
             ;;
-        "$PLIST_EXPORT_COMMAND_FAILED")
+        "$PLIST_EXPORT_COMMAND_FAILED"|"$PLIST_EXPORT_COMMAND_FAILED_INVALID_OUTPUT")
             betterdisplay::export_failure \
                 "Could not export BetterDisplay settings."
             return 1
@@ -328,6 +335,13 @@ betterdisplay::import_settings() {
         "$PLIST_EXPORT_COMMAND_FAILED")
             betterdisplay::recover_after_stop \
                 "Could not save the live BetterDisplay backup."
+            return $?
+            ;;
+        "$PLIST_EXPORT_COMMAND_FAILED_INVALID_OUTPUT")
+            filesystem::cleanup_file "$__backup_file"
+            __backup_file=""
+            betterdisplay::recover_after_stop \
+                "The live BetterDisplay backup is invalid."
             return $?
             ;;
         "$PLIST_EXPORT_INVALID_OUTPUT")
