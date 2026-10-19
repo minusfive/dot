@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 #MISE description="Export live BetterDisplay settings or import tracked settings"
 #MISE quiet=true
-#MISE confirm={message="{% if usage.import == \"true\" %}Import tracked BetterDisplay settings and overwrite live settings?{% else %}Export live BetterDisplay settings to the tracked plist?{% endif %}", default="no"}
+#MISE confirm={message="{% if usage.import == true or usage.import == \"true\" %}Import tracked BetterDisplay settings and overwrite live settings?{% else %}Export live BetterDisplay settings to the tracked plist?{% endif %}", default="no"}
 #USAGE flag "-i --import" help="Import tracked settings instead of exporting live settings" default=#false
 
 set -euo pipefail
