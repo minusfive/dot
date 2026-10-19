@@ -208,10 +208,6 @@ if grep -qE '^"~/.config/mise/tasks/betterdisplay' "$__mise_source"; then
 fi
 [[ ! -e "$__mise_fixture_home/.config/mise/tasks/betterdisplay" ]] ||
     fail "isolated deployment created BetterDisplay task links"
-[[ ! -e "$__mise_fixture_home/.config/mise/tasks/betterdisplay/settings/export.zsh" ]] ||
-    fail "isolated deployment created the BetterDisplay export task link"
-[[ ! -e "$__mise_fixture_home/.config/mise/tasks/betterdisplay/settings/import.zsh" ]] ||
-    fail "isolated deployment created the BetterDisplay import task link"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \

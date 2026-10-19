@@ -16,11 +16,10 @@ grep -qF '"~/.config/BetterDisplay" = { source = "~/dev/personal/dot/home/.confi
 grep -qF '"~/.config/mise/conf.d/module.betterdisplay.toml"' "$__control_plane" ||
     fail "control-plane module does not deploy BetterDisplay ownership"
 
-for __task in \
-    scripts/tasks/betterdisplay/settings/export.zsh \
-    scripts/tasks/betterdisplay/settings/import.zsh; do
-    [[ -x "$__task" ]] || fail "BetterDisplay task is not executable: $__task"
-done
+[[ -x scripts/tasks/betterdisplay/sync.zsh ]] ||
+    fail "BetterDisplay sync task is not executable"
+[[ ! -e scripts/tasks/betterdisplay/settings ]] ||
+    fail "legacy BetterDisplay task directory remains"
 [[ ! -e "home/.config/mise/tasks/betterdisplay" ]] ||
     fail "BetterDisplay tasks remain in the global task directory"
 if grep -qF '~/.config/mise/tasks/betterdisplay' "$__control_plane"; then
@@ -37,9 +36,12 @@ local __task_listing
 __task_listing="$(env -u MISE_ENV MISE_PROJECT_ROOT="$__root_dir" \
     MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
     XDG_CONFIG_HOME="$__config_home" mise -C "$__root_dir" tasks ls)"
-print -r -- "$__task_listing" | grep -q '^betterdisplay:settings:export[[:space:]]' ||
-    fail "BetterDisplay export task is not discoverable"
-print -r -- "$__task_listing" | grep -q '^betterdisplay:settings:import[[:space:]]' ||
-    fail "BetterDisplay import task is not discoverable"
+print -r -- "$__task_listing" | grep -q '^betterdisplay:sync[[:space:]]' ||
+    fail "BetterDisplay sync task is not discoverable"
+if print -r -- "$__task_listing" |
+    grep -E '^betterdisplay:' |
+    grep -v '^betterdisplay:sync[[:space:]]'; then
+    fail "legacy BetterDisplay tasks remain discoverable"
+fi
 
 echo "BetterDisplay module ownership and local tasks passed."

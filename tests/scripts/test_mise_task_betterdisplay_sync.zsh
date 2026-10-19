@@ -23,9 +23,9 @@ local __log_file="$__fixture_dir/commands.log"
 local __process_state="$__fixture_dir/process.state"
 local __backup_complete_marker="$__fixture_dir/backup-complete"
 local __source_mutation_marker="$__fixture_dir/source-mutation"
-local __task_export="$__fixture_dir/scripts/tasks/betterdisplay/settings/export.zsh"
-local __task_import="$__fixture_dir/scripts/tasks/betterdisplay/settings/import.zsh"
+local __task_sync="$__fixture_dir/scripts/tasks/betterdisplay/sync.zsh"
 local __tracked_plist="$__fixture_dir/home/.config/BetterDisplay/config.plist"
+local __symlinked_project_root="$__fixture_dir/symlinked-checkout"
 local __mise_bin="$(command -v mise)"
 
 __fixture_cleanup_is_safe() {
@@ -127,15 +127,13 @@ mkdir -p \
     "$__shadow_bin_dir" \
     "$__fixture_dir/empty" \
     "$__state_home" \
-    "$__fixture_dir/scripts/tasks/betterdisplay/settings" \
+    "$__fixture_dir/scripts/tasks/betterdisplay" \
     "$__fixture_dir/scripts/utils" \
     "$__fixture_dir/home/.config/BetterDisplay" \
     "$__fixture_dir/.mise/conf.d"
-cp scripts/utils/filesystem.zsh "$__fixture_dir/scripts/utils/filesystem.zsh"
-cp scripts/utils/application.zsh "$__fixture_dir/scripts/utils/application.zsh"
-cp scripts/tasks/betterdisplay/settings/export.zsh "$__task_export"
-cp scripts/tasks/betterdisplay/settings/import.zsh "$__task_import"
+cp scripts/tasks/betterdisplay/sync.zsh "$__task_sync"
 cp .mise/conf.d/tasks.toml "$__fixture_dir/.mise/conf.d/tasks.toml"
+ln -s "$__fixture_dir" "$__symlinked_project_root"
 print -r -- "valid" >| "$__tracked_plist"
 : >| "$__log_file"
 
@@ -264,7 +262,18 @@ cat > "$__bin_dir/open" <<'EOF'
 set -euo pipefail
 
 print -r -- "open $*" >> "$BETTERDISPLAY_COMMAND_LOG"
-[[ "${BETTERDISPLAY_OPEN_STATUS:-ok}" == "ok" ]] || exit 1
+local __open_status="${BETTERDISPLAY_OPEN_STATUS:-ok}"
+if [[ "$__open_status" == fail-once ]]; then
+    local __open_count=0
+    if [[ -f "$BETTERDISPLAY_OPEN_COUNT_FILE" ]]; then
+        __open_count="$(<"$BETTERDISPLAY_OPEN_COUNT_FILE")"
+    fi
+    (( __open_count += 1 ))
+    print -r -- "$__open_count" >| "$BETTERDISPLAY_OPEN_COUNT_FILE"
+    (( __open_count == 1 )) && exit 1
+elif [[ "$__open_status" != ok ]]; then
+    exit 1
+fi
 [[ "${BETTERDISPLAY_OPEN_LEAVE_STOPPED:-no}" == "yes" ]] ||
     print -r -- "running" >| "$BETTERDISPLAY_PROCESS_STATE"
 EOF
@@ -320,7 +329,7 @@ run_task() {
     local __task="$1"
     shift
     local __path="${BETTERDISPLAY_TEST_PATH:-$__bin_dir:$__coreutils_bin_dir:/usr/bin:/bin}"
-    env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_TASK_NAME \
+    env -u MISE_ENV -u MISE_AUTO_ENV \
         HOME="$__fixture_dir/home" \
         ZDOTDIR="$__fixture_dir/empty" \
         PATH="$__path" \
@@ -341,15 +350,36 @@ run_task() {
         "$@" /bin/zsh "$__task"
 }
 
+run_import_task() {
+    run_task "$__task_sync" usage_import=true "$@"
+}
+
 run_mise_task() {
+    local __use_cli_yes=true
+    local __project_root="$__fixture_dir"
+    if [[ "$1" == --no-cli-yes ]]; then
+        __use_cli_yes=false
+        shift
+    fi
+    if [[ "$1" == --symlinked-project-root ]]; then
+        __project_root="$__symlinked_project_root"
+        shift
+    fi
     local __task="$1"
     shift
     local __path="${BETTERDISPLAY_TEST_PATH:-$__bin_dir:$__coreutils_bin_dir:/usr/bin:/bin}"
-    env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_TASK_NAME \
+    local -a __env_args=()
+    while (( $# > 0 )) && [[ "$1" == *=* ]]; do
+        __env_args+=("$1")
+        shift
+    done
+    local -a __mise_flags=()
+    [[ "$__use_cli_yes" == true ]] && __mise_flags+=(--yes)
+    env -u MISE_ENV -u MISE_AUTO_ENV \
         HOME="$__fixture_dir/home" \
         ZDOTDIR="$__fixture_dir/empty" \
         PATH="$__path" \
-        MISE_PROJECT_ROOT="$__fixture_dir" \
+        MISE_PROJECT_ROOT="$__project_root" \
         MISE_CONFIG_DIR="$__fixture_dir/mise-config" \
         MISE_ENV_CONF_D=true \
         XDG_STATE_HOME="$__state_home" \
@@ -365,7 +395,8 @@ run_mise_task() {
         BETTERDISPLAY_STAT_COUNT_FILE="$__fixture_dir/stat.count" \
         BETTERDISPLAY_STAT_SHADOW_LOG="$__fixture_dir/stat-shadow.log" \
         BETTERDISPLAY_OSASCRIPT_PID_FILE="$__fixture_dir/osascript.pid" \
-        "$@" "$__mise_bin" -C "$__fixture_dir" run --yes "$__task"
+        "${__env_args[@]}" "$__mise_bin" -C "$__project_root" run \
+        "${__mise_flags[@]}" "$__task" "$@"
 }
 
 reset_fixture() {
@@ -401,6 +432,7 @@ reset_fixture() {
         "$__backup_complete_marker" \
         "$__source_mutation_marker" \
         "$__fixture_dir/stat.count" \
+        "$__fixture_dir/open.count" \
         "$__fixture_dir/git.log" \
         "$__fixture_dir/osascript.pid"
     if [[ -d "$__fixture_dir/home/.config/BetterDisplay" ]]; then
@@ -422,7 +454,7 @@ reset_fixture() {
 }
 
 reset_fixture
-run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=valid >| "$__fixture_dir/output"
+run_task "$__task_sync" BETTERDISPLAY_EXPORT_CONTENT=valid >| "$__fixture_dir/output"
 grep -qF "unchanged" "$__fixture_dir/output" || fail "unchanged export was not reported"
 [[ "$(cat "$__tracked_plist")" == "valid" ]] || fail "unchanged export changed the tracked plist"
 if grep -q '^mv ' "$__log_file"; then
@@ -430,20 +462,20 @@ if grep -q '^mv ' "$__log_file"; then
 fi
 
 reset_fixture
-run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output"
+run_task "$__task_sync" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output"
 [[ "$(cat "$__tracked_plist")" == "changed" ]] || fail "changed export did not replace the tracked plist"
 grep -qF "mv " "$__log_file" || fail "changed export did not move the temporary plist"
 grep -qF "$__fixture_dir/home/.config/BetterDisplay/.config.plist." "$__log_file" ||
     fail "export temporary file was not beside the tracked plist"
 
 reset_fixture
-if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture_dir/output" 2>&1; then
+if run_task "$__task_sync" BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture_dir/output" 2>&1; then
     fail "invalid export output was accepted"
 fi
 [[ "$(cat "$__tracked_plist")" == "valid" ]] || fail "invalid export changed the tracked plist"
 
 reset_fixture
-if run_task "$__task_export" \
+if run_task "$__task_sync" \
     BETTERDISPLAY_CMP_STATUS=error \
     BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
     fail "comparison command failure was accepted"
@@ -459,7 +491,7 @@ grep -qF "Could not compare exported BetterDisplay settings." "$__fixture_dir/ou
     fail "comparison command failure was not reported"
 
 reset_fixture
-if run_task "$__task_export" \
+if run_task "$__task_sync" \
     BETTERDISPLAY_EXPORT_CONTENT=changed \
     BETTERDISPLAY_STAT_FLIP=yes >| "$__fixture_dir/output" 2>&1; then
     fail "tracked-source identity change was accepted"
@@ -477,7 +509,7 @@ grep -qF "Tracked BetterDisplay plist changed during export." "$__fixture_dir/ou
 
 reset_fixture
 print -r -- invalid >| "$__tracked_plist"
-if run_task "$__task_import" >| "$__fixture_dir/output" 2>&1; then
+if run_task "$__task_sync" >| "$__fixture_dir/output" 2>&1; then
     fail "invalid tracked source was accepted"
 fi
 if grep -qE 'osascript|defaults' "$__log_file"; then
@@ -485,71 +517,17 @@ if grep -qE 'osascript|defaults' "$__log_file"; then
 fi
 
 reset_fixture
-mv "$__fixture_dir/scripts/utils/filesystem.zsh" \
-    "$__fixture_dir/scripts/utils/filesystem.real.zsh"
-ln -s filesystem.real.zsh "$__fixture_dir/scripts/utils/filesystem.zsh"
-if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
-    fail "export accepted a symlinked filesystem utility"
-fi
-if grep -qE 'defaults|osascript' "$__log_file"; then
-    fail "export accessed BetterDisplay after a symlinked filesystem utility"
-fi
-rm "$__fixture_dir/scripts/utils/filesystem.zsh"
-mv "$__fixture_dir/scripts/utils/filesystem.real.zsh" \
-    "$__fixture_dir/scripts/utils/filesystem.zsh"
-
-reset_fixture
-mv "$__fixture_dir/scripts/utils" "$__fixture_dir/scripts/utils.real"
-ln -s utils.real "$__fixture_dir/scripts/utils"
-if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
-    fail "export accepted a symlinked filesystem utility parent"
-fi
-if grep -qE 'defaults|osascript' "$__log_file"; then
-    fail "export accessed BetterDisplay after a symlinked filesystem utility parent"
-fi
-rm "$__fixture_dir/scripts/utils"
-mv "$__fixture_dir/scripts/utils.real" "$__fixture_dir/scripts/utils"
-
-reset_fixture
-mv "$__fixture_dir/scripts/utils/filesystem.zsh" \
-    "$__fixture_dir/scripts/utils/filesystem.real.zsh"
-mkdir "$__fixture_dir/scripts/utils/filesystem.zsh"
-if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
-    fail "export accepted a non-regular filesystem utility"
-fi
-if grep -qE 'defaults|osascript' "$__log_file"; then
-    fail "export accessed BetterDisplay after a non-regular filesystem utility"
-fi
-rmdir "$__fixture_dir/scripts/utils/filesystem.zsh"
-mv "$__fixture_dir/scripts/utils/filesystem.real.zsh" \
-    "$__fixture_dir/scripts/utils/filesystem.zsh"
-
-reset_fixture
 mv "$__tracked_plist" "$__fixture_dir/home/.config/BetterDisplay/config.real.plist"
 ln -s config.real.plist "$__tracked_plist"
-if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
+if run_task "$__task_sync" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
     fail "symlinked tracked plist was accepted"
 fi
 rm "$__tracked_plist"
 mv "$__fixture_dir/home/.config/BetterDisplay/config.real.plist" "$__tracked_plist"
 
 reset_fixture
-mv "$__fixture_dir/scripts/utils/application.zsh" \
-    "$__fixture_dir/scripts/utils/application.real.zsh"
-ln -s application.real.zsh "$__fixture_dir/scripts/utils/application.zsh"
-if run_task "$__task_import" >| "$__fixture_dir/output" 2>&1; then
-    fail "import accepted a symlinked application utility"
-fi
-if grep -qE 'osascript|defaults' "$__log_file"; then
-    fail "import accessed BetterDisplay after a symlinked application utility"
-fi
-rm "$__fixture_dir/scripts/utils/application.zsh"
-mv "$__fixture_dir/scripts/utils/application.real.zsh" \
-    "$__fixture_dir/scripts/utils/application.zsh"
-
-reset_fixture
 print -r -- "running" >| "$__process_state"
-run_task "$__task_import" \
+run_import_task \
     BETTERDISPLAY_ASSERT_STOPPED_COMMANDS=yes \
     BETTERDISPLAY_EXPORT_CONTENT=backup
 [[ "$(cat "$__process_state")" == "running" ]] || fail "running application was not restarted"
@@ -594,7 +572,7 @@ fi
 
 reset_fixture
 BETTERDISPLAY_TEST_PATH="$__shadow_bin_dir:$__bin_dir:$__coreutils_bin_dir:/usr/bin:/bin" \
-    run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=valid >| "$__fixture_dir/output"
+    run_task "$__task_sync" BETTERDISPLAY_EXPORT_CONTENT=valid >| "$__fixture_dir/output"
 grep -qF "unchanged" "$__fixture_dir/output" ||
     fail "export did not pass with a failing shadow stat earlier in PATH"
 [[ ! -e "$__fixture_dir/stat-shadow.log" ]] ||
@@ -602,7 +580,7 @@ grep -qF "unchanged" "$__fixture_dir/output" ||
 
 reset_fixture
 BETTERDISPLAY_TEST_PATH="$__shadow_bin_dir:$__bin_dir:$__coreutils_bin_dir:/usr/bin:/bin" \
-    run_task "$__task_import" BETTERDISPLAY_EXPORT_CONTENT=backup >| "$__fixture_dir/output"
+    run_import_task BETTERDISPLAY_EXPORT_CONTENT=backup >| "$__fixture_dir/output"
 grep -qF "settings imported" "$__fixture_dir/output" ||
     fail "import did not pass with a failing shadow stat earlier in PATH"
 [[ ! -e "$__fixture_dir/stat-shadow.log" ]] ||
@@ -610,7 +588,7 @@ grep -qF "settings imported" "$__fixture_dir/output" ||
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
-if run_task "$__task_import" \
+if run_import_task \
     BETTERDISPLAY_ASSERT_STOPPED_COMMANDS=yes \
     BETTERDISPLAY_IDENTITY_CHANGES_AFTER_BACKUP=yes >| "$__fixture_dir/output" 2>&1; then
     fail "identity change after stop and backup was accepted"
@@ -666,7 +644,7 @@ if ! (( __identity_stop_line < __identity_quit_requested_line &&
 fi
 
 reset_fixture
-run_task "$__task_import" BETTERDISPLAY_EXPORT_CONTENT=backup
+run_import_task BETTERDISPLAY_EXPORT_CONTENT=backup
 [[ "$(cat "$__process_state")" == "stopped" ]] ||
     fail "stopped application was started after successful import"
 if grep -qF "open " "$__log_file"; then
@@ -676,7 +654,7 @@ fi
 reset_fixture
 local __mise_import_output=""
 if ! __mise_import_output="$(
-    run_mise_task betterdisplay:settings:import BETTERDISPLAY_EXPORT_CONTENT=backup 2>&1
+    run_mise_task betterdisplay:sync BETTERDISPLAY_EXPORT_CONTENT=backup --import 2>&1
 )"; then
     print -u2 -- "$__mise_import_output"
     fail "successful mise import was rejected"
@@ -693,8 +671,35 @@ grep -qF "import pro.betterdisplay.BetterDisplay $__tracked_plist" "$__log_file"
     fail "mise import changed the stopped fixture state"
 
 reset_fixture
+if ! run_mise_task betterdisplay:sync BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
+    fail "default mise export was rejected"
+fi
+[[ "$(cat "$__tracked_plist")" == "changed" ]] ||
+    fail "default mise export did not update the tracked plist"
+
+reset_fixture
+if ! run_mise_task --symlinked-project-root betterdisplay:sync \
+    BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
+    fail "symlinked-project-root mise export was rejected"
+fi
+[[ "$(cat "$__tracked_plist")" == "changed" ]] ||
+    fail "symlinked-project-root mise export did not update the tracked plist"
+
+reset_fixture
+local __mise_short_import_output=""
+if ! __mise_short_import_output="$(
+    run_mise_task --no-cli-yes betterdisplay:sync \
+        MISE_YES=1 BETTERDISPLAY_EXPORT_CONTENT=backup -i 2>&1
+)"; then
+    print -u2 -- "$__mise_short_import_output"
+    fail "MISE_YES short-form import was rejected"
+fi
+grep -qF "BetterDisplay settings imported." <<< "$__mise_short_import_output" ||
+    fail "short-form import did not execute the task body"
+
+reset_fixture
 print -r -- "running" >| "$__process_state"
-if run_task "$__task_import" \
+if run_import_task \
     BETTERDISPLAY_EXPORT_STATUS=fail \
     BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture_dir/output" 2>&1; then
     fail "backup failure was accepted"
@@ -710,7 +715,7 @@ fi
     fail "invalid backup incorrectly recorded completion"
 
 reset_fixture
-if run_task "$__task_import" \
+if run_import_task \
     BETTERDISPLAY_EXPORT_STATUS=fail \
     BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture_dir/output" 2>&1; then
     fail "stopped-app backup failure was accepted"
@@ -725,7 +730,7 @@ fi
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
-if run_task "$__task_import" \
+if run_import_task \
     BETTERDISPLAY_EXPORT_STATUS=fail \
     BETTERDISPLAY_EXPORT_CONTENT=backup >| "$__fixture_dir/output" 2>&1; then
     fail "failed backup with valid output was accepted"
@@ -742,7 +747,7 @@ fi
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
-if run_task "$__task_import" BETTERDISPLAY_MKTEMP_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
+if run_import_task BETTERDISPLAY_MKTEMP_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
     fail "partial backup creation was accepted"
 fi
 if find "$__state_home/minusfive/BetterDisplay/backups" -type f -print -quit 2>/dev/null | grep -q .; then
@@ -756,7 +761,7 @@ fi
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
-if run_task "$__task_import" BETTERDISPLAY_OSASCRIPT_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
+if run_import_task BETTERDISPLAY_OSASCRIPT_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
     fail "stop failure was accepted"
 fi
 if grep -qF "export" "$__log_file"; then
@@ -768,7 +773,7 @@ fi
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
-if run_task "$__task_import" \
+if run_import_task \
     BETTERDISPLAY_OSASCRIPT_STATUS=fail \
     BETTERDISPLAY_OSASCRIPT_EXIT_BEFORE_ERROR=yes \
     BETTERDISPLAY_OPEN_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
@@ -785,7 +790,7 @@ fi
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
-if run_task "$__task_import" BETTERDISPLAY_OSASCRIPT_KEEP_RUNNING=yes >| "$__fixture_dir/output" 2>&1; then
+if run_import_task BETTERDISPLAY_OSASCRIPT_KEEP_RUNNING=yes >| "$__fixture_dir/output" 2>&1; then
     fail "stop wait failure was accepted"
 fi
 if grep -qF "export" "$__log_file"; then
@@ -796,7 +801,7 @@ reset_fixture
 print -r -- "running" >| "$__process_state"
 local __hang_start=$SECONDS
 local __task_pid
-run_task "$__task_import" BETTERDISPLAY_OSASCRIPT_HANG=yes >| "$__fixture_dir/output" 2>&1 &
+run_import_task BETTERDISPLAY_OSASCRIPT_HANG=yes >| "$__fixture_dir/output" 2>&1 &
 __task_pid=$!
 local __task_deadline=$(( SECONDS + 18 ))
 while kill -0 "$__task_pid" 2>/dev/null; do
@@ -824,7 +829,7 @@ grep -qF "Could not stop BetterDisplay before import." "$__fixture_dir/output" |
     fail "hung osascript failure was not reported"
 
 reset_fixture
-if run_task "$__task_import" BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture_dir/output" 2>&1; then
+if run_import_task BETTERDISPLAY_EXPORT_CONTENT=invalid >| "$__fixture_dir/output" 2>&1; then
     fail "invalid live backup was accepted"
 fi
 if grep -qF "import" "$__log_file"; then
@@ -835,7 +840,7 @@ fi
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
-if run_task "$__task_import" BETTERDISPLAY_IMPORT_STATUS=fail BETTERDISPLAY_OPEN_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
+if run_import_task BETTERDISPLAY_IMPORT_STATUS=fail BETTERDISPLAY_OPEN_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
     fail "import and restart failure was accepted"
 fi
 grep -qiF "could not restore" "$__fixture_dir/output" ||
@@ -844,7 +849,7 @@ grep -qF "Backup:" "$__fixture_dir/output" ||
     fail "backup path was not reported after import failure"
 
 reset_fixture
-if run_task "$__task_import" \
+if run_import_task \
     BETTERDISPLAY_ASSERT_STOPPED_COMMANDS=yes \
     BETTERDISPLAY_IMPORT_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
     fail "stopped-state import failure was accepted"
@@ -864,7 +869,7 @@ grep -qF "Backup: $__stopped_import_backup" "$__fixture_dir/output" ||
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
-if run_task "$__task_import" BETTERDISPLAY_OPEN_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
+if run_import_task BETTERDISPLAY_OPEN_STATUS=fail >| "$__fixture_dir/output" 2>&1; then
     fail "successful import followed by restart failure was accepted"
 fi
 grep -qF "settings imported, but the app could not be started." "$__fixture_dir/output" ||
@@ -876,7 +881,24 @@ grep -qF "import" "$__log_file" ||
 
 reset_fixture
 print -r -- "running" >| "$__process_state"
-if run_task "$__task_import" \
+if run_import_task \
+    BETTERDISPLAY_OPEN_STATUS=fail-once \
+    BETTERDISPLAY_OPEN_COUNT_FILE="$__fixture_dir/open.count" >| "$__fixture_dir/output" 2>&1; then
+    fail "transient restart failure was accepted"
+fi
+[[ "$(cat "$__process_state")" == "running" ]] ||
+    fail "recovery restart did not restore the running application"
+grep -qF "settings imported, but the app could not be started." "$__fixture_dir/output" ||
+    fail "transient restart failure was not reported"
+grep -qF "BetterDisplay was restarted." "$__fixture_dir/output" ||
+    fail "successful recovery restart was not reported"
+if grep -qF "Could not restore the running BetterDisplay state." "$__fixture_dir/output"; then
+    fail "successful recovery restart was reported as a failure"
+fi
+
+reset_fixture
+print -r -- "running" >| "$__process_state"
+if run_import_task \
     BETTERDISPLAY_OPEN_LEAVE_STOPPED=yes >| "$__fixture_dir/output" 2>&1; then
     fail "unconfirmed restart was accepted"
 fi
@@ -888,11 +910,13 @@ if grep -qF "could not be started" "$__fixture_dir/output"; then
 fi
 grep -qF "Backup:" "$__fixture_dir/output" ||
     fail "backup path was not reported after unconfirmed restart"
+grep -qF "BetterDisplay was left in its current state." "$__fixture_dir/output" ||
+    fail "unconfirmed restart recovery state was not reported"
 [[ "$(cat "$__process_state")" == "stopped" ]] ||
     fail "unconfirmed restart changed the stopped fixture state"
 
 reset_fixture
-if run_task "$__task_import" BETTERDISPLAY_STAT_FLIP=yes >| "$__fixture_dir/output" 2>&1; then
+if run_import_task BETTERDISPLAY_STAT_FLIP=yes >| "$__fixture_dir/output" 2>&1; then
     fail "source identity change was accepted"
 fi
 if grep -qF "import" "$__log_file"; then
@@ -905,17 +929,23 @@ fi
 [[ "$(cat "$__process_state")" == "stopped" ]] ||
     fail "stopped application changed state after source identity failure"
 
-grep -qF '#MISE confirm={message="Import tracked BetterDisplay settings and overwrite live settings?", default="no"}' "$__task_import" ||
+grep -qF '#MISE confirm=' "$__task_sync" ||
     fail "mise confirmation directive is missing"
-if grep -Eq '(^|[[:space:]])(read|vared)[[:space:]]' "$__task_import"; then
-    fail "import task contains a shell confirmation prompt"
+grep -qF 'Import tracked BetterDisplay settings and overwrite live settings?' "$__task_sync" ||
+    fail "import confirmation text is missing"
+grep -qF 'Export live BetterDisplay settings to the tracked plist?' "$__task_sync" ||
+    fail "export confirmation text is missing"
+grep -qF '#USAGE flag "-i --import"' "$__task_sync" ||
+    fail "import usage flag is missing"
+if grep -Eq '#MISE raw=true|(^|[[:space:]])(read|vared)[[:space:]]' "$__task_sync"; then
+    fail "sync task contains a shell confirmation prompt or raw mode"
 fi
 [[ ! -e "$__fixture_dir/git.log" ]] || fail "BetterDisplay task invoked Git"
 
 reset_fixture
 local __confirmation_output
 __confirmation_output="$(
-    print -r -- "n" | env -u MISE_ENV -u MISE_AUTO_ENV \
+    print -r -- "n" | script -q /dev/null env -u MISE_ENV -u MISE_AUTO_ENV \
         HOME="$__fixture_dir/home" \
         ZDOTDIR="$__fixture_dir/empty" \
         PATH="$__bin_dir:/usr/bin:/bin" \
@@ -927,12 +957,41 @@ __confirmation_output="$(
         BETTERDISPLAY_GIT_LOG="$__fixture_dir/git.log" \
         BETTERDISPLAY_PROCESS_STATE="$__process_state" \
         BETTERDISPLAY_STAT_COUNT_FILE="$__fixture_dir/stat.count" \
-        "$__mise_bin" -C "$__fixture_dir" run betterdisplay:settings:import 2>&1
+        "$__mise_bin" -C "$__fixture_dir" run betterdisplay:sync --import 2>&1
 )" || true
-grep -qF "requires confirmation" <<< "$__confirmation_output" ||
+grep -Eq "requires confirmation|aborted by user" <<< "$__confirmation_output" ||
     fail "mise confirmation was not enforced"
+grep -qF "Import tracked BetterDisplay settings and overwrite live settings?" \
+    <<< "$__confirmation_output" ||
+    fail "import confirmation text was not rendered"
 if grep -qF "import" "$__log_file"; then
     fail "cancelled mise confirmation ran the import"
+fi
+
+reset_fixture
+local __export_confirmation_output
+__export_confirmation_output="$(
+    print -r -- "n" | script -q /dev/null env -u MISE_ENV -u MISE_AUTO_ENV \
+        HOME="$__fixture_dir/home" \
+        ZDOTDIR="$__fixture_dir/empty" \
+        PATH="$__bin_dir:/usr/bin:/bin" \
+        MISE_PROJECT_ROOT="$__fixture_dir" \
+        MISE_CONFIG_DIR="$__fixture_dir/mise-config" \
+        MISE_ENV_CONF_D=true \
+        XDG_STATE_HOME="$__state_home" \
+        BETTERDISPLAY_COMMAND_LOG="$__log_file" \
+        BETTERDISPLAY_GIT_LOG="$__fixture_dir/git.log" \
+        BETTERDISPLAY_PROCESS_STATE="$__process_state" \
+        BETTERDISPLAY_STAT_COUNT_FILE="$__fixture_dir/stat.count" \
+        "$__mise_bin" -C "$__fixture_dir" run betterdisplay:sync 2>&1
+)" || true
+grep -Eq "requires confirmation|aborted by user" <<< "$__export_confirmation_output" ||
+    fail "export confirmation was not enforced"
+grep -qF "Export live BetterDisplay settings to the tracked plist?" \
+    <<< "$__export_confirmation_output" ||
+    fail "export confirmation text was not rendered"
+if grep -qF "export " "$__log_file"; then
+    fail "cancelled mise confirmation ran the export"
 fi
 
 echo "BetterDisplay settings task tests passed."

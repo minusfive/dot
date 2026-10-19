@@ -4,18 +4,27 @@ This directory contains the tracked `BetterDisplay` property list. The `BetterDi
 
 ## Export and import
 
-Run the local `mise` tasks from the repository root:
+Run the repository-local `mise` task from the repository root. It exports live settings to `config.plist` by default:
 
 ```bash
-mise -C ~/dev/personal/dot run betterdisplay:settings:export
-mise -C ~/dev/personal/dot run betterdisplay:settings:import
+mise -C ~/dev/personal/dot run betterdisplay:sync
 ```
 
-The export task writes a temporary file beside `config.plist`. It checks the file and replaces the tracked file only when the content changes.
+Use `--import` or `-i` to import the tracked settings:
 
-The import task asks for confirmation. It checks the tracked file before it changes live settings. It stops `BetterDisplay` only when the application is running, then starts it again only when it was running before the import.
+```bash
+mise -C ~/dev/personal/dot run betterdisplay:sync --import
+```
 
-The tasks do not synchronize settings in the background. A bootstrap run does not export or import application settings.
+The task asks for native `mise` confirmation before either operation. Use `--yes` or `MISE_YES=1` for a non-interactive run.
+
+The export operation writes a temporary file beside `config.plist`. It validates and compares the file before it replaces the tracked file.
+
+The import operation checks the tracked file before it changes live settings. It stops `BetterDisplay` only when the application is running. It starts the application again only when it was running before the import.
+
+If the task cannot confirm that a previously running application is running within 10 seconds, it reports the backup path and leaves the application in its current state. The task does not retry or restore the backup. In the normal timeout case, `BetterDisplay` remains stopped. Restore the backup manually after the application stops.
+
+The task does not synchronize settings in the background. A bootstrap run does not export or import application settings.
 
 ## Backup recovery
 
