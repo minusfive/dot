@@ -1,16 +1,16 @@
 ---
 name: mise-bootstrap-lifecycle
-description: Use when changing the repository's mise initialization lifecycle, scripts/mise.zsh, bootstrap hooks, installer behavior, phase order, confirmations, or fail-fast recovery.
+description: Use when changing the repository's canonical system:bootstrap task, init shim, bootstrap hooks, installer behavior, phase order, confirmations, or fail-fast recovery.
 ---
 
 # Mise Bootstrap Lifecycle
 
-Use this skill for the full mise phase selected by `./scripts/init.zsh --mise`.
+Use this skill for the canonical `system:bootstrap` task and the `scripts/init.zsh` acquisition shim.
 
 ## Lifecycle owner
 
-- Keep `scripts/mise.zsh` as the bridge that installs mise, selects the repository context, confirms the operation, and runs the full bootstrap.
-- Preserve the existing repository-scoped context and task resolution. Read `scripts/mise.zsh` and its lifecycle tests before changing them.
+- Keep `scripts/tasks/system/bootstrap.zsh` as the canonical task that selects the profile, confirms the operation, and runs the full bootstrap.
+- Keep `scripts/init.zsh` as the first-run mise acquisition and compatibility forwarding shim.
 - Run the full repository-scoped bootstrap without script-maintained phase filters.
 - Let mise declarations and module hooks own package installation, repository application, dotfile application, tool installation, and repeatable maintenance.
 - Keep lifecycle hooks in the module that owns the related resource.
@@ -41,7 +41,7 @@ Preserve the installer branch behavior. A newly installed mise does not self-upd
 
 ## Validation
 
-- Run `zsh -n scripts/init.zsh` and `zsh -n scripts/mise.zsh`.
+- Run `zsh -n scripts/init.zsh` and `zsh -n scripts/tasks/system/bootstrap.zsh`.
 - Run `tests/scripts/test_mise_bootstrap_lifecycle.zsh`.
 - Run `tests/scripts/test_mise_config.zsh`.
 - Preview both `work` and `personal` full bootstrap plans.

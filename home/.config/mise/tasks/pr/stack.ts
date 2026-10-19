@@ -2,6 +2,7 @@
 //MISE description="Create a GitHub stack from pull requests."
 //MISE dir="{{cwd}}"
 //MISE quiet=true
+//MISE depends=["gh:auth:login"]
 //USAGE arg "<pull-requests>..." help="Pull request numbers from bottom to top"
 //USAGE flag "--dry-run" help="Show the request without creating the stack"
 

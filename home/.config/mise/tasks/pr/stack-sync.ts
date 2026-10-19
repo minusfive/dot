@@ -2,6 +2,7 @@
 //MISE description="Sync a GitHub-rebased stacked pull request branch."
 //MISE dir="{{cwd}}"
 //MISE quiet=true
+//MISE depends=["gh:auth:login"]
 //USAGE flag "--pr-number <number>" help="Open pull request number (default: current branch pull request)"
 //USAGE flag "--dry-run" help="Show the sync plan without changing the branch"
 

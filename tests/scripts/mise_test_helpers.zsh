@@ -10,13 +10,6 @@ fail() {
     exit 1
 }
 
-line_of() {
-    local __needle="$1"
-    local __line
-    __line="$(grep -nF "$__needle" "$__root_dir/scripts/mise.zsh" | head -n1 | cut -d: -f1 || true)"
-    print -r -- "$__line"
-}
-
 assert_module_package() {
     local __module="$1"
     local __package="$2"

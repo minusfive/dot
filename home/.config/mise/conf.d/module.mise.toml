@@ -67,6 +67,7 @@
 "~/.config/mise/miserc.toml" = { source = "~/dev/personal/dot/home/.config/mise/miserc.toml", mode = "symlink" }
 "~/.config/mise/tasks/brew/install.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/brew/install.zsh", mode = "symlink" }
 "~/.config/mise/tasks/gh/download/file.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/download/file.sh", mode = "symlink" }
+"~/.config/mise/tasks/gh/auth/login.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/auth/login.zsh", mode = "symlink" }
 "~/.config/mise/tasks/git/worktree.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/git/worktree.ts", mode = "symlink" }
 "~/.config/mise/tasks/global-install-packages-all.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-all.sh", mode = "symlink" }
 "~/.config/mise/tasks/lint-skill-index.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/lint-skill-index.zsh", mode = "symlink" }

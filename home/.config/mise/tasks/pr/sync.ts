@@ -2,6 +2,7 @@
 //MISE description="Synchronize and verify an open pull request after a push."
 //MISE dir="{{cwd}}"
 //MISE quiet=true
+//MISE depends=["gh:auth:login"]
 //USAGE flag "--title <title>" help="Pull request title derived from the complete change set"
 //USAGE flag "--body-file <path>" help="File containing the pull request body derived from the complete change set"
 //USAGE flag "--change-set-file <path>" help="Optional newline-delimited complete changed-path manifest"
