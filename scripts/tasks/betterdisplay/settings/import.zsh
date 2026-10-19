@@ -5,48 +5,14 @@
 set -euo pipefail
 
 function {
-    [[ "${MISE_TASK_NAME:-}" == "betterdisplay:settings:import" ]] || {
-        print -u2 -- "Import task must be run through mise (MISE_TASK_NAME=betterdisplay:settings:import)."
-        exit 1
-    }
-
-    local __project_root_input="${MISE_PROJECT_ROOT:-}"
-    local __project_root
-    local __filesystem_utility
-    local __filesystem_utility_parent
-    local __physical_utility_parent
-    [[ -n "$__project_root_input" && "$__project_root_input" == /* ]] || {
-        print -u2 -- "MISE_PROJECT_ROOT must be a non-empty canonical physical directory."
-        exit 1
-    }
-    if ! __project_root="$(
-        builtin cd -P -- "$__project_root_input" 2>/dev/null &&
-            builtin pwd -P
-    )"; then
-        print -u2 -- "Could not resolve MISE_PROJECT_ROOT: $__project_root_input"
-        exit 1
-    fi
-    [[ "$__project_root" == "$__project_root_input" && -d "$__project_root" ]] || {
-        print -u2 -- "MISE_PROJECT_ROOT must be a canonical physical directory: $__project_root_input"
-        exit 1
-    }
-    __filesystem_utility_parent="$__project_root/scripts/utils"
-    if ! __physical_utility_parent="$(
-        builtin cd -P -- "$__filesystem_utility_parent" 2>/dev/null &&
-            builtin pwd -P
-    )"; then
-        print -u2 -- "Could not resolve the filesystem utility directory: $__filesystem_utility_parent"
-        exit 1
-    fi
-    [[ "$__physical_utility_parent" == "$__filesystem_utility_parent" ]] || {
-        print -u2 -- "Filesystem utility directory must be canonical and physical: $__filesystem_utility_parent"
-        exit 1
-    }
-    __filesystem_utility="$__filesystem_utility_parent/filesystem.zsh"
-    [[ -f "$__filesystem_utility" && ! -L "$__filesystem_utility" ]] || {
-        print -u2 -- "Filesystem utility must be a regular physical file: $__filesystem_utility"
-        exit 1
-    }
+    local __project_root="$MISE_PROJECT_ROOT"
+    local __filesystem_utility="$__project_root/scripts/utils/filesystem.zsh"
+    [[ -f "$__filesystem_utility" &&
+        "$__filesystem_utility" == "${__filesystem_utility:A}" ]] ||
+        {
+            print -u2 -- "Filesystem utility is not a regular physical file: $__filesystem_utility"
+            exit 1
+        }
     builtin source "$__filesystem_utility"
     local __application_utility="$__project_root/scripts/utils/application.zsh"
     local __tracked_plist="$__project_root/home/.config/BetterDisplay/config.plist"
