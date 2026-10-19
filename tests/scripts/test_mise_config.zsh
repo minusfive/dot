@@ -75,10 +75,8 @@ for __obsolete_step in \
     fi
 done
 
-local __mise_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/mise.zsh"' scripts/init.zsh | cut -d: -f1)"
-local __display_phase_line="$(grep -nF 'source "$__dotfiles_scripts_dir/betterdisplay.zsh"' scripts/init.zsh | cut -d: -f1)"
-(( __mise_phase_line < __display_phase_line )) ||
-    fail "mise initialization phase order changed"
+grep -qF 'source "$__dotfiles_scripts_dir/mise.zsh"' scripts/init.zsh ||
+    fail "mise initialization phase is missing"
 
 grep -qF 'includes = ["scripts/tasks"]' .mise/conf.d/tasks.toml || fail "task include path is missing"
 local __task_listing
@@ -133,6 +131,7 @@ grep -qF 'minimum_release_age = "7d"' home/.config/mise/config.toml || fail "min
 grep -qF 'trusted_config_paths = ["~/dev/personal", "~/dev/personal/dot", "~/dev/work"]' home/.config/mise/config.toml ||
     fail "workspace trust paths are missing"
 local __trust_data="$(mktemp -d)"
+trap 'rm -rf -- "$__trust_data"' EXIT
 for __workspace in personal work; do
     local __trust_status="$(
         env -u MISE_ENV MISE_DATA_DIR="$__trust_data" \
@@ -145,9 +144,9 @@ local __dot_trust_status="$(
     env -u MISE_ENV MISE_DATA_DIR="$__trust_data" \
         mise -C "$__root_dir" trust --show 2>&1
 )"
-print -r -- "$__dot_trust_status" | grep -qF "~/dev/personal/dot: trusted" ||
+local __expected_dot_trust="${__root_dir/#$HOME/~}: trusted"
+print -r -- "$__dot_trust_status" | grep -qF "$__expected_dot_trust" ||
     fail "repository trust path is not active"
-rm -rf "$__trust_data"
 grep -qF '[settings.dotfiles]' home/.config/mise/config.toml || fail "dotfiles settings are missing"
 grep -qF 'relative_symlinks = true' home/.config/mise/config.toml || fail "relative symlinks are not enabled"
 grep -qF '"~/.config/mise/conf.d/module.mise.toml"' home/.config/mise/conf.d/module.mise.toml || fail "mise module must manage itself"
@@ -166,9 +165,49 @@ if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/init.zsh scripts/function
 fi
 [[ ! -e scripts/os.zsh ]] || fail "OS operations must use mise macos tasks"
 
+local __mise_source="home/.config/mise/conf.d/module.mise.toml"
+local __mise_fixture_dir="$(mktemp -d)"
+trap 'rm -rf -- "$__trust_data" "$__mise_fixture_dir"' EXIT
+local __mise_fixture_home="$__mise_fixture_dir/home"
+local __mise_fixture_config="$__mise_fixture_dir/config"
+mkdir -p \
+    "$__mise_fixture_home/dev/personal" \
+    "$__mise_fixture_config" \
+    "$__mise_fixture_dir/data" \
+    "$__mise_fixture_dir/cache" \
+    "$__mise_fixture_dir/state"
+ln -s "$__root_dir" "$__mise_fixture_home/dev/personal/dot"
+{
+    print -r -- "[settings.dotfiles]"
+    print -r -- "relative_symlinks = true"
+    print -r -- ""
+    cat "$__mise_source"
+} >| "$__mise_fixture_config/config.toml"
+env -u MISE_ENV -u MISE_AUTO_ENV \
+    HOME="$__mise_fixture_home" \
+    XDG_CONFIG_HOME="$__mise_fixture_home/.config" \
+    MISE_GLOBAL_CONFIG_FILE="$__mise_fixture_config/config.toml" \
+    MISE_GLOBAL_CONFIG_ROOT="$__mise_fixture_config" \
+    MISE_CONFIG_DIR="$__mise_fixture_config" \
+    MISE_IGNORED_CONFIG_PATHS="$__mise_fixture_home/.config/mise" \
+    MISE_CEILING_PATHS="$__mise_fixture_home" \
+    MISE_DATA_DIR="$__mise_fixture_dir/data" \
+    MISE_CACHE_DIR="$__mise_fixture_dir/cache" \
+    MISE_STATE_DIR="$__mise_fixture_dir/state" \
+    MISE_ENV_CONF_D=true \
+    mise -C "$__mise_fixture_home" dot apply --yes >/dev/null ||
+    fail "isolated mise dotfile deployment failed"
 local __mise_link_count
-__mise_link_count="$(find "$HOME/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 110 ]] || fail "expected 110 managed mise links, found $__mise_link_count"
+__mise_link_count="$(find "$__mise_fixture_home/.config/mise" -type l | wc -l | tr -d ' ')"
+[[ "$__mise_link_count" -eq 108 ]] ||
+    fail "expected 108 managed mise links after removing BetterDisplay dotfile ownership, found $__mise_link_count"
+[[ -L "$__mise_fixture_home/.config/mise/conf.d/module.betterdisplay.toml" ]] ||
+    fail "isolated deployment omitted the BetterDisplay module link"
+if grep -qE '^"~/.config/mise/tasks/betterdisplay' "$__mise_source"; then
+    fail "mise control-plane module still declares BetterDisplay task links"
+fi
+[[ ! -e "$__mise_fixture_home/.config/mise/tasks/betterdisplay" ]] ||
+    fail "isolated deployment created BetterDisplay task links"
 local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
 (( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \
@@ -198,7 +237,7 @@ done
 
 local __tmp_home
 __tmp_home="$(mktemp -d)"
-trap 'rm -rf "$__tmp_home"' EXIT
+trap 'rm -rf -- "$__trust_data" "$__mise_fixture_dir" "$__tmp_home"' EXIT
 mkdir -p "$__tmp_home/.config/mise/conf.d"
 cp home/.config/mise/config.toml "$__tmp_home/.config/mise/config.toml"
 cp home/.config/mise/miserc.toml "$__tmp_home/.config/mise/miserc.toml"
