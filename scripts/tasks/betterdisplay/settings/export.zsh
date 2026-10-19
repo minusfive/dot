@@ -4,15 +4,21 @@
 set -euo pipefail
 
 function {
-    local __project_root="$MISE_PROJECT_ROOT"
+    local __project_root
+    if ! __project_root="$(realpath -e "$MISE_PROJECT_ROOT" 2>/dev/null)"; then
+        print -u2 -- "Could not resolve the mise project root."
+        exit 1
+    fi
     local __filesystem_utility="$__project_root/scripts/utils/filesystem.zsh"
+    local __resolved_filesystem_utility
 
-    [[ -f "$__filesystem_utility" &&
-        "$__filesystem_utility" == "${__filesystem_utility:A}" ]] ||
-        {
-            print -u2 -- "Filesystem utility is not a regular physical file: $__filesystem_utility"
-            exit 1
-        }
+    if [[ ! -f "$__filesystem_utility" ]] ||
+        ! __resolved_filesystem_utility="$(
+        realpath -e "$__filesystem_utility" 2>/dev/null
+    )" || [[ "$__resolved_filesystem_utility" != "$__filesystem_utility" ]]; then
+        print -u2 -- "Filesystem utility is not a regular physical file: $__filesystem_utility"
+        exit 1
+    fi
     builtin source "$__filesystem_utility"
     local __tracked_plist="$__project_root/home/.config/BetterDisplay/config.plist"
 

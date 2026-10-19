@@ -5,8 +5,7 @@ set -euo pipefail
 filesystem::physical_path() {
     local __path="$1"
 
-    [[ -e "$__path" ]] || return 1
-    print -r -- "${__path:A}"
+    realpath -e "$__path" 2>/dev/null
 }
 
 filesystem::is_physical_file() {

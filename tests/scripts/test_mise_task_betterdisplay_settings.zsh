@@ -11,6 +11,7 @@ __fixture_dir="$(mktemp -d)" || exit 1
 __fixture_dir="$(realpath "$__fixture_dir")" || exit 1
 [[ -n "${TMPDIR:-}" ]] || exit 1
 __system_temp_dir="$(realpath "$TMPDIR")" || exit 1
+local __coreutils_bin_dir="${$(dirname "$(command -v realpath)")}"
 [[ -n "$__system_temp_dir" && -d "$__system_temp_dir" &&
     "$__fixture_dir" == "$__system_temp_dir"/* &&
     "$__fixture_dir" != "$__system_temp_dir" ]] || exit 1
@@ -318,7 +319,7 @@ chmod +x "$__shadow_bin_dir/stat"
 run_task() {
     local __task="$1"
     shift
-    local __path="${BETTERDISPLAY_TEST_PATH:-$__bin_dir:/usr/bin:/bin}"
+    local __path="${BETTERDISPLAY_TEST_PATH:-$__bin_dir:$__coreutils_bin_dir:/usr/bin:/bin}"
     env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_TASK_NAME \
         HOME="$__fixture_dir/home" \
         ZDOTDIR="$__fixture_dir/empty" \
@@ -343,7 +344,7 @@ run_task() {
 run_mise_task() {
     local __task="$1"
     shift
-    local __path="${BETTERDISPLAY_TEST_PATH:-$__bin_dir:/usr/bin:/bin}"
+    local __path="${BETTERDISPLAY_TEST_PATH:-$__bin_dir:$__coreutils_bin_dir:/usr/bin:/bin}"
     env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_TASK_NAME \
         HOME="$__fixture_dir/home" \
         ZDOTDIR="$__fixture_dir/empty" \
@@ -510,6 +511,20 @@ rm "$__fixture_dir/scripts/utils"
 mv "$__fixture_dir/scripts/utils.real" "$__fixture_dir/scripts/utils"
 
 reset_fixture
+mv "$__fixture_dir/scripts/utils/filesystem.zsh" \
+    "$__fixture_dir/scripts/utils/filesystem.real.zsh"
+mkdir "$__fixture_dir/scripts/utils/filesystem.zsh"
+if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
+    fail "export accepted a non-regular filesystem utility"
+fi
+if grep -qE 'defaults|osascript' "$__log_file"; then
+    fail "export accessed BetterDisplay after a non-regular filesystem utility"
+fi
+rmdir "$__fixture_dir/scripts/utils/filesystem.zsh"
+mv "$__fixture_dir/scripts/utils/filesystem.real.zsh" \
+    "$__fixture_dir/scripts/utils/filesystem.zsh"
+
+reset_fixture
 mv "$__tracked_plist" "$__fixture_dir/home/.config/BetterDisplay/config.real.plist"
 ln -s config.real.plist "$__tracked_plist"
 if run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=changed >| "$__fixture_dir/output" 2>&1; then
@@ -578,7 +593,7 @@ if ! (( __stop_line < __quit_requested_line &&
 fi
 
 reset_fixture
-BETTERDISPLAY_TEST_PATH="$__shadow_bin_dir:$__bin_dir:/usr/bin:/bin" \
+BETTERDISPLAY_TEST_PATH="$__shadow_bin_dir:$__bin_dir:$__coreutils_bin_dir:/usr/bin:/bin" \
     run_task "$__task_export" BETTERDISPLAY_EXPORT_CONTENT=valid >| "$__fixture_dir/output"
 grep -qF "unchanged" "$__fixture_dir/output" ||
     fail "export did not pass with a failing shadow stat earlier in PATH"
@@ -586,7 +601,7 @@ grep -qF "unchanged" "$__fixture_dir/output" ||
     fail "export used the shadow stat instead of /usr/bin/stat"
 
 reset_fixture
-BETTERDISPLAY_TEST_PATH="$__shadow_bin_dir:$__bin_dir:/usr/bin:/bin" \
+BETTERDISPLAY_TEST_PATH="$__shadow_bin_dir:$__bin_dir:$__coreutils_bin_dir:/usr/bin:/bin" \
     run_task "$__task_import" BETTERDISPLAY_EXPORT_CONTENT=backup >| "$__fixture_dir/output"
 grep -qF "settings imported" "$__fixture_dir/output" ||
     fail "import did not pass with a failing shadow stat earlier in PATH"
