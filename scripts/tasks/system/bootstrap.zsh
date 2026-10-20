@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 #MISE description="Install tools, applications, and configure this system according to the selected profile.{% if env.DOT_PROFILE is defined %}\n\n**Currently applied / persisted profile: `{{ env.DOT_PROFILE }}`**.{% endif %}"
 #MISE env={MISE_TASK_RUN_AUTO_INSTALL="false"}
-#MISE confirm={message="Apply the selected mise bootstrap profile?", default="no"}
+#MISE confirm={message="Apply the {{ usage.profile }} mise bootstrap profile?", default="no"}
 #USAGE flag "-p --profile <profile>" env="DOT_PROFILE" default="work" {
 #USAGE   help "Select the profile to apply"
 #USAGE   warning """

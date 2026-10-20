@@ -11,7 +11,8 @@ local __task="scripts/tasks/system/bootstrap.zsh"
 zsh -n "$__task" || fail "system bootstrap task has syntax errors"
 grep -qF '#MISE env={MISE_TASK_RUN_AUTO_INSTALL="false"}' "$__task" ||
     fail "bootstrap-only task auto-install suppression is missing"
-grep -qF '#MISE confirm=' "$__task" || fail "native bootstrap confirmation is missing"
+grep -qF '#MISE confirm={message="Apply the {{ usage.profile }} mise bootstrap profile?", default="no"}' "$__task" ||
+    fail "native profile confirmation template is missing"
 grep -qF '#USAGE flag "-p --profile <profile>" env="DOT_PROFILE"' "$__task" ||
     fail "native profile Usage is missing"
 grep -qF '#MISE description="Install tools, applications, and configure this system according to the selected profile.' "$__task" ||
