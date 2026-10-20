@@ -25,64 +25,29 @@ fi
 [[ ! -e "home/.config/mise/mise.personal.toml" ]] || fail "obsolete personal config should be removed"
 [[ ! -e "home/.config/mise/files" ]] || fail "obsolete mise files directory should be removed"
 
-zsh -n scripts/mise.zsh || fail "scripts/mise.zsh has syntax errors"
-grep -qF 'curl -fsSL https://mise.run | sh' scripts/mise.zsh || fail "mise installer bridge missing"
-grep -qF 'if [[ -x "$HOME/.local/bin/mise" ]]; then' scripts/mise.zsh || fail "PATH refresh bridge missing"
-grep -qF 'if [[ $(command -v mise) == "" ]]; then' scripts/mise.zsh || fail "mise availability check missing"
-grep -qF 'export MISE_CONFIG_DIR="$__mise_config_dir"' scripts/mise.zsh ||
-    fail "repository-scoped mise config is not selected"
-grep -qF 'export MISE_ENV_CONF_D=true' scripts/mise.zsh ||
-    fail "MISE_ENV_CONF_D is not enabled"
-grep -qF 'unset MISE_ENV' scripts/mise.zsh || fail "inherited MISE_ENV is not cleared"
-grep -qF 'unset MISE_AUTO_ENV' scripts/mise.zsh || fail "inherited MISE_AUTO_ENV is not cleared"
-grep -qF 'mise -C "$__dotfiles_dir" bootstrap --yes' scripts/mise.zsh ||
-    fail "full bootstrap lifecycle command is missing"
-if grep -qF 'tasks info bootstrap' scripts/mise.zsh; then
-    fail "bootstrap task preflight should be replaced by a package hook"
-fi
-
-local __self_update_line="$(line_of 'mise -C "$__dotfiles_dir" self-update --yes')"
-local __bootstrap_line="$(line_of 'mise -C "$__dotfiles_dir" bootstrap --yes')"
-local __confirm_count="$(grep -cF '_v_confirm_proceed' scripts/mise.zsh)"
-
-for __line in \
-    "$__self_update_line" \
-    "$__bootstrap_line"; do
-    [[ -n "$__line" ]] || fail "missing mise initialization step"
-done
-
-if ! (( __self_update_line < __bootstrap_line &&
-    __confirm_count == 1 )); then
-    fail "mise initialization phase order is incorrect"
-fi
-for __hook_command in \
-    'mise bootstrap packages upgrade --yes' \
-    'mise bootstrap packages prune --yes' \
-    'mise upgrade --prune' \
-    'mise reshim -f'; do
-    if grep -qF "$__hook_command" scripts/mise.zsh; then
-        fail "maintenance command remains procedural: $__hook_command"
-    fi
-done
-for __obsolete_step in \
-    'mise bootstrap packages apply --yes' \
-    'mise bootstrap dotfiles apply --yes' \
-    'mise bootstrap files apply --yes' \
-    'mise bootstrap repos apply --yes' \
-    'mise install'; do
-    if grep -qF "$__obsolete_step" scripts/mise.zsh; then
-        fail "lifecycle-owned step remains procedural: $__obsolete_step"
-    fi
-done
-
-grep -qF 'source "$__dotfiles_scripts_dir/mise.zsh"' scripts/init.zsh ||
-    fail "mise initialization phase is missing"
+zsh -n scripts/init.zsh || fail "scripts/init.zsh has syntax errors"
+[[ ! -e scripts/mise.zsh ]] || fail "duplicate mise lifecycle script remains"
+[[ ! -e scripts/functions.zsh ]] || fail "duplicate bootstrap utility script remains"
+grep -qF 'curl -fsSL https://mise.run | sh' scripts/init.zsh || fail "mise installer bridge missing"
+grep -qF 'exec mise "${__task_args[@]}"' scripts/init.zsh ||
+    fail "initializer does not forward to the canonical task"
+grep -qF 'export DOT_MISE_INSTALLED_DURING_RUN=' scripts/init.zsh ||
+    fail "initializer does not preserve installer state"
+grep -qF 'export MISE_CONFIG_DIR=' scripts/tasks/system/bootstrap.zsh ||
+    fail "bootstrap task does not select repository-scoped mise config"
+grep -qF 'export MISE_ENV_CONF_D=true' scripts/tasks/system/bootstrap.zsh ||
+    fail "bootstrap task does not enable mise conf.d modules"
+grep -qF 'unset MISE_ENV' scripts/tasks/system/bootstrap.zsh ||
+    fail "bootstrap task does not clear inherited MISE_ENV"
+grep -qF 'unset MISE_AUTO_ENV' scripts/tasks/system/bootstrap.zsh ||
+    fail "bootstrap task does not clear inherited MISE_AUTO_ENV"
 
 grep -qF 'includes = ["scripts/tasks"]' .mise/conf.d/tasks.toml || fail "task include path is missing"
 local __task_listing
 __task_listing="$(XDG_CONFIG_HOME="$__root_dir/.config" DOT_PROFILE=work mise -C "$__root_dir" tasks ls)"
 print -r -- "$__task_listing" | grep -q '^setup[[:space:]]' || fail "setup task is not discoverable"
 print -r -- "$__task_listing" | grep -q '^check[[:space:]]' || fail "check task is not discoverable"
+print -r -- "$__task_listing" | grep -q '^system:bootstrap[[:space:]]' || fail "system bootstrap task is not discoverable"
 print -r -- "$__task_listing" | grep -q '^lint-skill-index[[:space:]]' || fail "lint-skill-index task is not discoverable"
 print -r -- "$__task_listing" | grep -q '^ai:skills:evals:init[[:space:]]' || fail "ai:skills:evals:init task is not discoverable"
 print -r -- "$__task_listing" | grep -q '^ai:skills:evals:prepare[[:space:]]' || fail "ai:skills:evals:prepare task is not discoverable"
@@ -100,9 +65,8 @@ grep -qF '["validate_skill_evals"]' hk.pkl || fail "skill evaluation validation 
 grep -qF '["validate_skill_name_conflicts"]' hk.pkl || fail "skill name conflict hook is missing"
 grep -qF '["validate_task_name_conflicts"]' hk.pkl || fail "task name conflict hook is missing"
 
-if grep -qF 'export MISE_ENV=' scripts/mise.zsh; then
-    fail "scripts/mise.zsh must not export MISE_ENV"
-fi
+grep -qF '"~/.config/mise/tasks/gh/auth/login.zsh"' home/.config/mise/conf.d/module.mise.toml ||
+    fail "GitHub auth task is not owned by the mise control plane"
 grep -qF "shared_modules" home/.config/mise/miserc.toml ||
     fail "shared profile module list is missing"
 grep -qF "work_profile_modules" home/.config/mise/miserc.toml ||
@@ -160,7 +124,7 @@ grep -qF 'source = "~/dev/personal/dot/home/AGENTS.md"' home/.config/mise/conf.d
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 grep -qF 'auto_env = true' home/.config/mise/miserc.toml ||
     fail "auto_env must load platform-specific conf.d modules"
-if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/init.zsh scripts/functions.zsh; then
+if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/init.zsh; then
     fail "removed Homebrew and VM options remain in the initializer"
 fi
 [[ ! -e scripts/os.zsh ]] || fail "OS operations must use mise macos tasks"
@@ -199,8 +163,8 @@ env -u MISE_ENV -u MISE_AUTO_ENV \
     fail "isolated mise dotfile deployment failed"
 local __mise_link_count
 __mise_link_count="$(find "$__mise_fixture_home/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 108 ]] ||
-    fail "expected 108 managed mise links after removing BetterDisplay dotfile ownership, found $__mise_link_count"
+[[ "$__mise_link_count" -eq 109 ]] ||
+    fail "expected 109 managed mise links after adding GitHub auth ownership, found $__mise_link_count"
 [[ -L "$__mise_fixture_home/.config/mise/conf.d/module.betterdisplay.toml" ]] ||
     fail "isolated deployment omitted the BetterDisplay module link"
 if grep -qE '^"~/.config/mise/tasks/betterdisplay' "$__mise_source"; then
@@ -208,8 +172,6 @@ if grep -qE '^"~/.config/mise/tasks/betterdisplay' "$__mise_source"; then
 fi
 [[ ! -e "$__mise_fixture_home/.config/mise/tasks/betterdisplay" ]] ||
     fail "isolated deployment created BetterDisplay task links"
-local __unset_mise_env_line="$(line_of "unset MISE_ENV")"
-(( __unset_mise_env_line < __self_update_line )) || fail "MISE_ENV must be cleared before mise commands run"
 for __local_pattern in \
     'mise.local.toml' \
     'mise.*.local.toml' \

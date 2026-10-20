@@ -8,8 +8,6 @@ The configuration includes keyboard shortcuts for launching apps, managing windo
 
 ## Machine setup
 
-The initialization script changes system settings and installs software. Read the [initialization script](./scripts/init.zsh) and the scripts that it calls before you run it.
-
 Clone the repository and initialize a machine:
 
 ```bash
@@ -18,21 +16,17 @@ cd ~/dev/personal/dot
 ./scripts/init.zsh --mise
 ```
 
-### Bootstrapped with [`mise`][mise] and [`gh`][github-cli]
-
-The `--mise` option runs all `mise` setup steps. It asks for approval once before it updates `mise` itself, `macOS` preferences, places files; installs tools, applications, and themes; clones repositories, runs scripts, and performs maintenance such as updates and cleanup. The final `mise` hook adds paths to the historical inventory and removes broken repository-managed links from those paths. The inventory is additive and stays in the repository.
-
-`gh` is used to download certain files from GitHub repositories as part of the bootstrap process. When no existing `gh` session is available, a browser-based authentication flow is triggered and configures `Git` credentials for authenticated resource downloads.
+The [`initialization script`](./scripts/init.zsh) acquires mise when needed and invokes the canonical [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task with `mise run system:bootstrap`. The task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs maintenance. The final `mise` hook updates the historical inventory and removes broken repository-managed links from those paths.
 
 ### Profiles
 
 The `work` profile is the default and excludes personal-only tools and applications. To apply the `personal` profile, run:
 
 ```bash
-./scripts/init.zsh --profile personal --mise
+./scripts/init.zsh --mise --profile personal
 ```
 
-The script saves the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` and exports it as `DOT_PROFILE`. Later runs use the saved profile unless a different one is selected.
+The bootstrap task saves the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` after approval and exports it as the `zsh` environment variable `DOT_PROFILE`. A run without `--profile` reuses the persisted profile; when no profile has been saved, it uses `work`.
 
 Each profile loads a different group of `mise` modules. These modules list the files and tools for that profile.
 
@@ -119,7 +113,6 @@ The [`hk` configuration](./hk.pkl) defines the checks and fixes in one place. Ma
 
 I previously maintained a configuration based on [`Nix`][nix-config]. I no longer maintain it because `mise` now provides many of the features I used from `Nix`.
 
-[github-cli]: https://cli.github.com/
 [keyboard-layout]: https://github.com/minusfive/zmk-config
 [mise]: https://mise.jdx.dev
 [mise-bootstrap]: https://mise.jdx.dev/bootstrap.html

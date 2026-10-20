@@ -10,7 +10,7 @@
 
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { resolveUpstreamContext } from "../../utils/git.js";
+import { ensureGitHubAuth, resolveUpstreamContext } from "../../utils/git.js";
 
 export {};
 
@@ -151,6 +151,7 @@ async function main(): Promise<void> {
     throw new Error("a --body-file is required");
   }
   const { hostname, owner, repo, remote } = resolveUpstreamContext();
+  ensureGitHubAuth(hostname);
   const repository = `${hostname}/${owner}/${repo}`;
   const repositoryPath = `${owner}/${repo}`;
   const body = await readFile(BODY_FILE, "utf8");

@@ -1,86 +1,95 @@
 #!/usr/bin/env zsh
 
-# Exit immediately if a command fails and treat unset vars as error
 set -euo pipefail
 
-# Immediately invoked anonymous function used to contain variables and functions scope
 function {
+    local __root_dir
+    local __mise_was_installed=false
+    local __profile=""
+    local __run_mise=false
+    local __show_help=false
     local __options
-    local __dotfiles_scripts_dir="$(realpath "$(dirname "$ZSH_ARGZERO")")"
-    local __dotfiles_dir="$(dirname "$__dotfiles_scripts_dir")"
 
-    # Defaults
-    local __install_mise_dev_tools=false
-    local __profile="work" # work or personal; work = safest
-    local __noop=false
+    local __scripts_dir
+    __scripts_dir="$(realpath "$(dirname "$ZSH_ARGZERO")")"
+    __root_dir="$(realpath "$__scripts_dir/..")" ||
+        {
+            print -u2 -- "error: could not resolve the dotfiles repository root"
+            exit 1
+        }
 
-    # Load important environment variables
-    source "$__dotfiles_dir/home/.config/zsh/.zshenv"
-
-    # Load functions
-    source "$__dotfiles_scripts_dir/functions.zsh"
-
-    # Default to persisted profile (fall back to 'work')
-    __profile="$(_v_profile_read)"
-
-    # Parse parameters and or display help and exit
     zmodload zsh/zutil
     zparseopts -D -E -F -A __options - \
         h -help \
         m -mise \
         p: -profile: ||
-    (_v_log_error "ERROR" "Invalid options provided\n" && _v_print_help && exit 1)
-
-    if [[ $#__options -eq 0 ]]; then
-        _v_log_warn "WARN" "No options provided\n"
-        _v_print_help
-        __noop=true
-    fi
+        {
+            print -u2 -- "error: invalid options"
+            exit 1
+        }
 
     for opt arg in "${(kv@)__options}"; do
         case "$opt" in
             -h|--help)
-                _v_print_help
-                exit 0
+                __show_help=true
                 ;;
             -m|--mise)
-                __install_mise_dev_tools=true
+                __run_mise=true
                 ;;
             -p|--profile)
-                if _v_profile_is_valid "$arg"; then
-                    __profile="$arg"
-                else
-                    _v_log_error "ERROR" "Valid profile name is required for the \`$opt\` option. Use 'work' or 'personal'. Received: '$arg'"
-                    _v_print_help
-                    exit 1
-                fi
+                __profile="$arg"
+                __run_mise=true
                 ;;
         esac
     done
 
-    echo "\n"
-    local __profile_color=$([[ "$__profile" == "work" ]] && echo green || echo yellow)
-    _v_log_info "PRFL" "Profile: $(_v_color_fg $__profile_color "$__profile")"
-
-    # Make selected profile available to all scripts and future runs
-    export DOT_PROFILE="$__profile"
-    if ! _v_profile_write "$__profile"; then
-        _v_log_error "ERROR" "Failed to persist selected profile '$__profile'"
-        exit 1
-    fi
-
-    # Install mise dev tools
-    source "$__dotfiles_scripts_dir/mise.zsh"
-
-    # Exit if no options were provided
-    if $__noop; then
-        echo "\n"
-        _v_log_warn "WARN" "Nothing to do. Bye  "
+    if [[ "$__run_mise" != true && "$__show_help" != true ]]; then
         exit 0
     fi
 
-    # Finish
-    echo "\n"
-    _v_log_ok "DONE" "Bootstrap complete"
-    _v_reload
+    if [[ "$__show_help" == true && "$__run_mise" != true ]]; then
+        if command -v mise >/dev/null 2>&1; then
+            exec mise -C "$__root_dir" run system:bootstrap --help
+        fi
+        print -r -- "Usage: $ZSH_ARGZERO [options]"
+        print -r -- "  -h, --help              Show this help"
+        print -r -- "  -m, --mise              Acquire mise and run system:bootstrap"
+        print -r -- "  -p, --profile PROFILE   Apply a work or personal profile"
+        print -r -- ""
+        print -r -- "mise is not installed; use --mise to acquire it and run bootstrap."
+        exit 0
+    fi
+
+    if ! command -v mise >/dev/null 2>&1; then
+        if ! curl -fsSL https://mise.run | sh; then
+            print -u2 -- "error: mise installation failed"
+            exit 1
+        fi
+        __mise_was_installed=true
+    fi
+
+    if [[ -x "$HOME/.local/bin/mise" ]]; then
+        path=("$HOME/.local/bin" $path)
+        export PATH
+        rehash
+    fi
+
+    if ! command -v mise >/dev/null 2>&1; then
+        print -u2 -- "error: mise was installed but is not available in PATH"
+        exit 1
+    fi
+
+    export DOT_MISE_INSTALLED_DURING_RUN="$__mise_was_installed"
+    cd "$__root_dir"
+
+    local -a __task_args
+    __task_args=(run system:bootstrap)
+    if [[ -n "$__profile" ]]; then
+        __task_args+=(--profile "$__profile")
+    fi
+    if [[ "$__show_help" == true ]]; then
+        __task_args+=(--help)
+    fi
+
+    exec mise "${__task_args[@]}"
 } "$@"

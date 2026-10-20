@@ -5,7 +5,7 @@
 //USAGE flag "--pr-number <number>" help="Open pull request number (default: current branch pull request)"
 //USAGE flag "--dry-run" help="Show the sync plan without changing the branch"
 
-import { resolveUpstreamContext } from "../../utils/git.js";
+import { ensureGitHubAuth, resolveUpstreamContext } from "../../utils/git.js";
 
 export {};
 
@@ -65,6 +65,7 @@ async function getPullRequest(repository: string, selector: string): Promise<Pul
 
 async function main(): Promise<void> {
   const { hostname, owner, repo, remote } = resolveUpstreamContext();
+  ensureGitHubAuth(hostname);
   const repository = `${hostname}/${owner}/${repo}`;
   const branch = await gitValue(["rev-parse", "--abbrev-ref", "HEAD"]);
   if (branch === "HEAD") {
