@@ -4,13 +4,13 @@ set -euo pipefail
 
 source "$(dirname "$0")/mise_test_helpers.zsh"
 
-echo "Testing init.zsh compatibility forwarding..."
+echo "Testing install-mise.zsh mise acquisition..."
 
-local __init="scripts/init.zsh"
-[[ -x "$__init" ]] || fail "initializer is missing or not executable"
-zsh -n "$__init" || fail "initializer has syntax errors"
-if grep -qE '_v_|mise\.zsh|functions\.zsh' "$__init"; then
-    fail "initializer retains retired lifecycle or UI helpers"
+local __installer="scripts/install-mise.zsh"
+[[ -x "$__installer" ]] || fail "mise installer is missing or not executable"
+zsh -n "$__installer" || fail "mise installer has syntax errors"
+if grep -qE '_v_|mise\.zsh|functions\.zsh' "$__installer"; then
+    fail "mise installer retains retired lifecycle or UI helpers"
 fi
 
 local __fixture_dir="$__root_dir/.agents/projects.local/issue-61-mise-bootstrap/tmp/init-test.$$"
@@ -25,34 +25,44 @@ trap 'rm -rf -- "$__fixture_dir"' EXIT
 cat > "$__bin_dir/mise" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-printf 'root=%s args=%s marker=%s\n' "$PWD" "$*" "${DOT_MISE_INSTALLED_DURING_RUN:-}" >> "$INIT_LOG"
+if [[ "${1:-}" == "version" ]]; then
+    printf 'test-version\n'
+    exit 0
+fi
+printf 'root=%s args=%s\n' "$PWD" "$*" >> "$INIT_LOG"
 EOF
 chmod +x "$__bin_dir/mise"
 
+local __message_file="$__fixture_dir/message.txt"
 env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__bin_dir:/usr/bin:/bin" INIT_LOG="$__log_file" \
-    zsh "$__init" --mise --profile personal
-grep -qF "args=run system:bootstrap --profile personal" "$__log_file" ||
-    fail "explicit profile was not forwarded to the canonical task"
-grep -qF "marker=false" "$__log_file" || fail "existing mise was marked as newly installed"
-grep -qF "root=$__root_dir" "$__log_file" || fail "initializer did not run from the repository root"
+    zsh "$__installer" > "$__message_file"
+grep -qF $'\e[36mmise\e[0m is already installed' "$__message_file" ||
+    fail "existing mise output is missing its teal code formatting"
+grep -qF "test-version" "$__message_file" ||
+    fail "existing mise version was not displayed"
+grep -qF $'\e[36mmise system:bootstrap --help\e[0m' "$__message_file" ||
+    fail "existing mise did not print next-step instructions"
+[[ ! -s "$__log_file" ]] || fail "mise installer invoked mise instead of printing instructions"
 
 : > "$__log_file"
 env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__bin_dir:/usr/bin:/bin" INIT_LOG="$__log_file" \
-    zsh "$__init" --mise
-grep -qF "args=run system:bootstrap" "$__log_file" ||
-    fail "profile-free compatibility invocation was not forwarded"
-if grep -qF -- '--profile' "$__log_file"; then
-    fail "profile-free compatibility invocation supplied an unexpected profile"
+    zsh "$__installer" -h > "$__fixture_dir/help.txt"
+grep -qF "Usage:" "$__fixture_dir/help.txt" ||
+    fail "help output is missing"
+grep -qF "[--help]" "$__fixture_dir/help.txt" ||
+    fail "help output is missing its help option"
+grep -qF "Installs " "$__fixture_dir/help.txt" ||
+    fail "help output does not describe the installer's purpose"
+grep -qF "if it is not available." "$__fixture_dir/help.txt" ||
+    fail "help output does not describe the installer's purpose"
+[[ ! -s "$__log_file" ]] || fail "help unexpectedly invoked mise"
+
+: > "$__log_file"
+if env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__bin_dir:/usr/bin:/bin" INIT_LOG="$__log_file" \
+    zsh "$__installer" --profile personal >/dev/null 2>&1; then
+    fail "retired profile option was accepted"
 fi
-
-: > "$__log_file"
-(
-    cd "$__fixture_dir"
-    env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__bin_dir:/usr/bin:/bin" INIT_LOG="$__log_file" \
-        zsh "$__root_dir/$__init" --help > "$__fixture_dir/help-from-outside.txt"
-)
-grep -qF "args=-C $__root_dir run system:bootstrap --help" "$__log_file" ||
-    fail "help did not forward the repository root from outside the repository"
+[[ ! -s "$__log_file" ]] || fail "retired profile option invoked mise"
 
 cat > "$__installer_dir/curl" <<'EOF'
 #!/usr/bin/env bash
@@ -63,11 +73,12 @@ chmod +x "$__installer_dir/curl"
 
 : > "$__log_file"
 env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__installer_dir:/usr/bin:/bin" \
-    MISE_SOURCE="$__bin_dir/mise" INIT_LOG="$__log_file" zsh "$__init" --mise
-grep -qF "args=run system:bootstrap" "$__log_file" ||
-    fail "clean-home acquisition did not reach the canonical task"
-grep -qF "marker=true" "$__log_file" ||
-    fail "clean-home acquisition did not preserve the installer marker"
+    MISE_SOURCE="$__bin_dir/mise" INIT_LOG="$__log_file" zsh "$__installer" > "$__message_file"
+grep -qF $'\e[36mmise\e[0m installed' "$__message_file" ||
+    fail "installed mise output is missing its teal code formatting"
+grep -qF $'\e[36mmise system:bootstrap --help\e[0m' "$__message_file" ||
+    fail "clean-home acquisition did not print next-step instructions"
+[[ ! -s "$__log_file" ]] || fail "clean-home acquisition invoked mise instead of printing instructions"
 
 cat > "$__installer_dir/curl" <<'EOF'
 #!/usr/bin/env bash
@@ -78,9 +89,9 @@ EOF
 chmod +x "$__installer_dir/curl"
 : > "$__log_file"
 env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__installer_dir:/usr/bin:/bin" \
-    INIT_LOG="$__log_file" zsh "$__init" --help > "$__fixture_dir/help.txt"
-grep -qF "Usage: scripts/init.zsh [options]" "$__fixture_dir/help.txt" ||
+    INIT_LOG="$__log_file" zsh "$__installer" --help > "$__fixture_dir/help-without-mise.txt"
+grep -qF "Usage:" "$__fixture_dir/help-without-mise.txt" ||
     fail "help output is missing without mise"
 [[ ! -s "$__log_file" ]] || fail "help attempted to acquire mise"
 
-echo "init.zsh compatibility forwarding passed."
+echo "install-mise.zsh mise acquisition passed."

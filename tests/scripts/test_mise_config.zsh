@@ -25,14 +25,17 @@ fi
 [[ ! -e "home/.config/mise/mise.personal.toml" ]] || fail "obsolete personal config should be removed"
 [[ ! -e "home/.config/mise/files" ]] || fail "obsolete mise files directory should be removed"
 
-zsh -n scripts/init.zsh || fail "scripts/init.zsh has syntax errors"
+zsh -n scripts/install-mise.zsh || fail "scripts/install-mise.zsh has syntax errors"
 [[ ! -e scripts/mise.zsh ]] || fail "duplicate mise lifecycle script remains"
 [[ ! -e scripts/functions.zsh ]] || fail "duplicate bootstrap utility script remains"
-grep -qF 'curl -fsSL https://mise.run | sh' scripts/init.zsh || fail "mise installer bridge missing"
-grep -qF 'exec mise "${__task_args[@]}"' scripts/init.zsh ||
-    fail "initializer does not forward to the canonical task"
-grep -qF 'export DOT_MISE_INSTALLED_DURING_RUN=' scripts/init.zsh ||
-    fail "initializer does not preserve installer state"
+grep -qF 'curl -fsSL https://mise.run | sh' scripts/install-mise.zsh || fail "mise installer bridge missing"
+grep -qF 'local __code_color=$' scripts/install-mise.zsh ||
+    fail "mise installer does not define terminal code formatting"
+grep -qF 'mise system:bootstrap --help${__reset_color}' scripts/install-mise.zsh ||
+    fail "mise installer does not print canonical task instructions"
+if grep -qF 'DOT_MISE_INSTALLED_DURING_RUN' scripts/install-mise.zsh; then
+    fail "mise installer retains obsolete installer state forwarding"
+fi
 grep -qF 'export MISE_CONFIG_DIR=' scripts/tasks/system/bootstrap.zsh ||
     fail "bootstrap task does not select repository-scoped mise config"
 grep -qF 'export MISE_ENV_CONF_D=true' scripts/tasks/system/bootstrap.zsh ||
@@ -124,8 +127,8 @@ grep -qF 'source = "~/dev/personal/dot/home/AGENTS.md"' home/.config/mise/conf.d
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 grep -qF 'auto_env = true' home/.config/mise/miserc.toml ||
     fail "auto_env must load platform-specific conf.d modules"
-if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/init.zsh; then
-    fail "removed Homebrew and VM options remain in the initializer"
+if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/install-mise.zsh; then
+    fail "removed Homebrew and VM options remain in the mise installer"
 fi
 [[ ! -e scripts/os.zsh ]] || fail "OS operations must use mise macos tasks"
 

@@ -10,7 +10,7 @@ Use this skill when a change affects profile selection or profile-specific machi
 ## State ownership
 
 - Treat `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` as the canonical bootstrap source.
-- Let `scripts/init.zsh` read and write that state through the existing profile helpers.
+- Let `scripts/tasks/system/bootstrap.zsh` read and write that state through the existing profile helpers.
 - Export the selected value as `DOT_PROFILE` for the current initialization run.
 - Treat the macOS defaults value `hs.minusfive.profile` as a persistent mirror for Hammerspoon and other macOS consumers.
 - Treat `hs.minusfive.profile.is_work` and `hs.minusfive.profile.is_personal` as derived mirror values.
@@ -24,7 +24,7 @@ Read the [mise machine modules reference](https://mise.jdx.dev/bootstrap/modules
 ## Selection rules
 
 - Keep `work` as the safe default when no profile is stored.
-- Accept only `work` and `personal` in the initializer.
+- Accept only `work` and `personal` in the bootstrap task.
 - Keep the shared module set in both profile branches.
 - Add a personal-only module only to the `personal` branch.
 - Preserve the existing repository context while mise renders the profile.

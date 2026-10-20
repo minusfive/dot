@@ -24,11 +24,11 @@ The source file `home/.config/git/ignore` is not a repository `.gitignore`. Mise
 
 #### `test_mise_bootstrap_lifecycle.zsh`
 
-Tests the canonical `system:bootstrap` task, native profile choices, confirmation, profile persistence, dry-run behavior, installer state, and failure stops.
+Tests the canonical `system:bootstrap` task, native profile choices, confirmation, profile persistence, dry-run behavior, self-update, and failure stops.
 
 #### `test_mise_bootstrap_compatibility.zsh`
 
-Tests `scripts/init.zsh` option forwarding, first-run `mise` acquisition, and the clean-home path.
+Tests `scripts/install-mise.zsh` help, mise acquisition, and the clean-home path.
 
 #### `test_mise_task_gh_auth_login.zsh`
 

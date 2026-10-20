@@ -13,17 +13,18 @@ Clone the repository and initialize a machine:
 ```bash
 git clone --single-branch --branch main git@github.com:minusfive/dot.git ~/dev/personal/dot
 cd ~/dev/personal/dot
-./scripts/init.zsh --mise
+./scripts/install-mise.zsh
+mise run system:bootstrap
 ```
 
-The [`initialization script`](./scripts/init.zsh) acquires mise when needed and invokes the canonical [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task with `mise run system:bootstrap`. The task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs maintenance. The final `mise` hook updates the historical inventory and removes broken repository-managed links from those paths.
+The [`mise installer`](./scripts/install-mise.zsh) installs `mise` when it is not available. It then prints the command for the next bootstrap step. Run `mise system:bootstrap --help` to read the bootstrap task help. The task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs maintenance. The final `mise` hook updates the historical inventory and removes broken repository-managed links from those paths.
 
 ### Profiles
 
 The `work` profile is the default and excludes personal-only tools and applications. To apply the `personal` profile, run:
 
 ```bash
-./scripts/init.zsh --mise --profile personal
+mise run system:bootstrap --profile personal
 ```
 
 The bootstrap task saves the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` after approval and exports it as the `zsh` environment variable `DOT_PROFILE`. A run without `--profile` reuses the persisted profile; when no profile has been saved, it uses `work`.
