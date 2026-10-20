@@ -101,6 +101,17 @@ export function resolveUpstreamContext(options: CliOptions = {}): ResolvedContex
   return { hostname: parsed.hostname, owner: parsed.owner, repo: parsed.repo, remote, remoteUrl };
 }
 
+export function ensureGitHubAuth(hostname: string): void {
+  const result = spawnSync("mise", ["run", "gh:auth:login", "--hostname", hostname], {
+    env: process.env,
+    stdio: "inherit",
+  });
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    throw new Error(`GitHub authentication failed for ${hostname}`);
+  }
+}
+
 function parseArgs(argv: string[]): CliOptions {
   const options: CliOptions = {};
   for (let i = 0; i < argv.length; i++) {

@@ -2,11 +2,10 @@
 //MISE description="Create a GitHub stack from pull requests."
 //MISE dir="{{cwd}}"
 //MISE quiet=true
-//MISE depends=["gh:auth:login"]
 //USAGE arg "<pull-requests>..." help="Pull request numbers from bottom to top"
 //USAGE flag "--dry-run" help="Show the request without creating the stack"
 
-import { resolveUpstreamContext } from "../../utils/git.js";
+import { ensureGitHubAuth, resolveUpstreamContext } from "../../utils/git.js";
 
 export {};
 
@@ -94,6 +93,7 @@ async function main(): Promise<void> {
   }
 
   const { hostname, owner, repo } = resolveUpstreamContext();
+  ensureGitHubAuth(hostname);
   const endpoint = `repos/${owner}/${repo}/stacks`;
   const payload = JSON.stringify({ pull_requests: pullRequests });
 

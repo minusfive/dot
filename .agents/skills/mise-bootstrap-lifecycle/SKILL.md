@@ -27,7 +27,7 @@ Preserve the installer branch behavior. A newly installed mise does not self-upd
 - Preserve fail-fast behavior and explicit errors.
 - Report missing mise, failed installation, and failed bootstrap as errors.
 - Document that bootstrap is not transactional. Earlier phases remain applied when a later phase fails.
-- Recover by fixing the reported phase and rerunning `./scripts/init.zsh --mise`.
+- Recover by fixing the reported phase and rerunning `./scripts/init.zsh --mise --profile <profile>`, preserving the profile selected for the failed run.
 
 ## Hooks and maintenance
 

@@ -86,8 +86,9 @@ for __zone_path in .zshrc .zshrc-zone-0.zsh .zshrc-zone-1.zsh .zshrc-zone-2.zsh 
 done
 grep -qF '"~/.zshenv" = { source = "~/dev/personal/dot/home/.config/zsh/.zshenv", mode = "symlink" }' "$__config" ||
     fail "zsh environment symlink declaration is missing"
-grep -qF 'source "$__dotfiles_dir/home/.config/zsh/.zshenv"' scripts/init.zsh ||
-    fail "early zsh environment source path is missing"
+if grep -qF 'source "$__dotfiles_dir/home/.config/zsh/.zshenv"' scripts/init.zsh; then
+    fail "init.zsh must not source the Zsh environment before mise bootstrap"
+fi
 [[ -L "$__fixture_root/.zshenv" ]] || fail "zsh environment target is not a symlink"
 case "$(readlink "$__fixture_root/.zshenv")" in
     /*) fail "zsh environment target link is absolute" ;;

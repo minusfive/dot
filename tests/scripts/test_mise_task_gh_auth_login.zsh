@@ -17,8 +17,11 @@ if grep -qF 'gh auth setup-git' "$__task"; then
     fail "GitHub auth task must not configure Git credentials"
 fi
 for __pr_task in sync stack stack-sync; do
-    grep -qF '//MISE depends=["gh:auth:login"]' "home/.config/mise/tasks/pr/$__pr_task.ts" ||
-        fail "pr:$__pr_task does not require GitHub authentication"
+    grep -qF 'ensureGitHubAuth(hostname)' "home/.config/mise/tasks/pr/$__pr_task.ts" ||
+        fail "pr:$__pr_task does not authenticate its resolved hostname"
+    if grep -qF '//MISE depends=["gh:auth:login"]' "home/.config/mise/tasks/pr/$__pr_task.ts"; then
+        fail "pr:$__pr_task still uses a static GitHub authentication dependency"
+    fi
 done
 if grep -qF 'gh:auth:login' home/.config/mise/tasks/pr/review-watch.ts \
     home/.config/mise/tasks/gh/download/file.sh; then

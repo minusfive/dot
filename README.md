@@ -18,13 +18,7 @@ cd ~/dev/personal/dot
 ./scripts/init.zsh --mise
 ```
 
-After `mise` is available, run the canonical bootstrap task:
-
-```bash
-mise run system:bootstrap
-```
-
-The task uses the `work` profile by default. It asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs maintenance. The final `mise` hook updates the historical inventory and removes broken repository-managed links from those paths.
+The initializer acquires mise when needed and forwards to the canonical `system:bootstrap` task. The task uses the `work` profile by default. It asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs maintenance. The final `mise` hook updates the historical inventory and removes broken repository-managed links from those paths.
 
 Public GitHub downloads do not require authentication. Run `mise run gh:auth:login` when a task requires an authenticated GitHub session. The authentication task does not change `Git` credentials.
 

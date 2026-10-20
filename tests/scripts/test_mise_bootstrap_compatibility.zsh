@@ -9,7 +9,7 @@ echo "Testing init.zsh compatibility forwarding..."
 local __init="scripts/init.zsh"
 [[ -x "$__init" ]] || fail "initializer is missing or not executable"
 zsh -n "$__init" || fail "initializer has syntax errors"
-if grep -qE '_v_|_v_profile|_v_confirm|_v_reload|mise\\.zsh|functions\\.zsh' "$__init"; then
+if grep -qE '_v_|mise\.zsh|functions\.zsh' "$__init"; then
     fail "initializer retains retired lifecycle or UI helpers"
 fi
 
@@ -59,5 +59,19 @@ grep -qF "args=run system:bootstrap" "$__log_file" ||
     fail "clean-home acquisition did not reach the canonical task"
 grep -qF "marker=true" "$__log_file" ||
     fail "clean-home acquisition did not preserve the installer marker"
+
+cat > "$__installer_dir/curl" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf 'help unexpectedly acquired mise\n' >> "$INIT_LOG"
+exit 17
+EOF
+chmod +x "$__installer_dir/curl"
+: > "$__log_file"
+env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__installer_dir:/usr/bin:/bin" \
+    INIT_LOG="$__log_file" zsh "$__init" --help > "$__fixture_dir/help.txt"
+grep -qF "Usage: scripts/init.zsh [options]" "$__fixture_dir/help.txt" ||
+    fail "help output is missing without mise"
+[[ ! -s "$__log_file" ]] || fail "help attempted to acquire mise"
 
 echo "init.zsh compatibility forwarding passed."

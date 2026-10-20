@@ -47,6 +47,19 @@ function {
         exit 0
     fi
 
+    if [[ "$__show_help" == true && "$__run_mise" != true ]]; then
+        if command -v mise >/dev/null 2>&1; then
+            exec mise run system:bootstrap --help
+        fi
+        print -r -- "Usage: $ZSH_ARGZERO [options]"
+        print -r -- "  -h, --help              Show this help"
+        print -r -- "  -m, --mise              Acquire mise and run system:bootstrap"
+        print -r -- "  -p, --profile PROFILE   Apply a work or personal profile"
+        print -r -- ""
+        print -r -- "mise is not installed; use --mise to acquire it and run bootstrap."
+        exit 0
+    fi
+
     if ! command -v mise >/dev/null 2>&1; then
         if ! curl -fsSL https://mise.run | sh; then
             print -u2 -- "error: mise installation failed"

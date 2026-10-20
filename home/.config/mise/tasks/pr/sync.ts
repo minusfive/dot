@@ -2,7 +2,6 @@
 //MISE description="Synchronize and verify an open pull request after a push."
 //MISE dir="{{cwd}}"
 //MISE quiet=true
-//MISE depends=["gh:auth:login"]
 //USAGE flag "--title <title>" help="Pull request title derived from the complete change set"
 //USAGE flag "--body-file <path>" help="File containing the pull request body derived from the complete change set"
 //USAGE flag "--change-set-file <path>" help="Optional newline-delimited complete changed-path manifest"
@@ -11,7 +10,7 @@
 
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { resolveUpstreamContext } from "../../utils/git.js";
+import { ensureGitHubAuth, resolveUpstreamContext } from "../../utils/git.js";
 
 export {};
 
@@ -152,6 +151,7 @@ async function main(): Promise<void> {
     throw new Error("a --body-file is required");
   }
   const { hostname, owner, repo, remote } = resolveUpstreamContext();
+  ensureGitHubAuth(hostname);
   const repository = `${hostname}/${owner}/${repo}`;
   const repositoryPath = `${owner}/${repo}`;
   const body = await readFile(BODY_FILE, "utf8");
