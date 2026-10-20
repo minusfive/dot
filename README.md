@@ -18,9 +18,9 @@ cd ~/dev/personal/dot
 ./scripts/init.zsh --mise
 ```
 
-The initializer acquires mise when needed and forwards to the canonical `system:bootstrap` task. The task uses the `work` profile by default. It asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs maintenance. The final `mise` hook updates the historical inventory and removes broken repository-managed links from those paths.
+The initializer acquires mise when needed and forwards to the canonical [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task by invoking `mise run system:bootstrap`. The task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs maintenance. The final `mise` hook updates the historical inventory and removes broken repository-managed links from those paths.
 
-Public GitHub downloads do not require authentication. Run `mise run gh:auth:login` when a task requires an authenticated GitHub session. The authentication task does not change `Git` credentials.
+Public GitHub downloads do not require authentication. Run [`gh:auth:login`](./home/.config/mise/tasks/gh/auth/login.zsh) with `mise run gh:auth:login` when a task requires an authenticated GitHub session. The authentication task does not change `Git` credentials.
 
 ### Profiles
 
@@ -30,7 +30,7 @@ The `work` profile is the default and excludes personal-only tools and applicati
 mise run system:bootstrap --profile personal
 ```
 
-The bootstrap task saves the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` after approval and exports it as `DOT_PROFILE`. A run without `--profile` uses `work`, even when a previous run selected `personal`.
+The bootstrap task saves the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` after approval and exports it as the `zsh` environment variable `DOT_PROFILE`. A run without `--profile` reuses the persisted profile; when no profile has been saved, it uses `work`.
 
 Each profile loads a different group of `mise` modules. These modules list the files and tools for that profile.
 

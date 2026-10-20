@@ -29,8 +29,6 @@ local __help
 __help="$(env -u MISE_ENV "$__mise_bin" -C "$__root_dir" run system:bootstrap --help)"
 print -r -- "$__help" | grep -qF '[possible values: work, personal]' ||
     fail "bootstrap help does not expose native profile choices"
-print -r -- "$__help" | grep -qF '(default: work)' ||
-    fail "bootstrap help does not expose the work default"
 
 local __fixture_dir="$__root_dir/.agents/projects.local/issue-61-mise-bootstrap/tmp/bootstrap-lifecycle-test.$$"
 local __bin_dir="$__fixture_dir/bin"
@@ -71,6 +69,12 @@ grep -qF -- "-C $__root_dir bootstrap --yes" "$__log_file" ||
 [[ "$(cat "$__fixture_dir/home/.local/state/minusfive/profile")" == personal ]] ||
     fail "confirmed profile was not persisted"
 grep -q '^false$' "$__env_file" || fail "bootstrap task did not suppress outer task auto-install"
+
+: > "$__log_file"
+: > "$__env_file"
+run_task run --yes system:bootstrap
+[[ "$(cat "$__fixture_dir/home/.local/state/minusfive/profile")" == personal ]] ||
+    fail "profile-free bootstrap did not reuse the persisted profile"
 
 : > "$__log_file"
 : > "$__env_file"

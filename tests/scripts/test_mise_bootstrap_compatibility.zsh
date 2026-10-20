@@ -45,6 +45,15 @@ if grep -qF -- '--profile' "$__log_file"; then
     fail "profile-free compatibility invocation supplied an unexpected profile"
 fi
 
+: > "$__log_file"
+(
+    cd "$__fixture_dir"
+    env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__bin_dir:/usr/bin:/bin" INIT_LOG="$__log_file" \
+        zsh "$__root_dir/$__init" --help > "$__fixture_dir/help-from-outside.txt"
+)
+grep -qF "args=-C $__root_dir run system:bootstrap --help" "$__log_file" ||
+    fail "help did not forward the repository root from outside the repository"
+
 cat > "$__installer_dir/curl" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail

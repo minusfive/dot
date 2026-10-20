@@ -1,8 +1,8 @@
 #!/usr/bin/env zsh
 #MISE description="Bootstrap this repository with the selected mise profile"
 #MISE env={MISE_TASK_RUN_AUTO_INSTALL="false"}
-#MISE confirm={message="Apply the {{ usage.profile }} mise bootstrap profile?", default="no"}
-#USAGE flag "-p --profile <profile>" help="Profile to apply" default="work" {
+#MISE confirm={message="Apply the selected mise bootstrap profile?", default="no"}
+#USAGE flag "-p --profile <profile>" help="Profile to apply" {
 #USAGE   choices "work" "personal"
 #USAGE }
 #USAGE flag "--dry-run" help="Show the selected profile without changing state"
@@ -16,15 +16,24 @@ __root_dir="$(realpath "${MISE_CONFIG_ROOT:-${MISE_PROJECT_ROOT:-$PWD}}")" ||
         exit 1
     }
 
-local __profile="${usage_profile?}"
 local __mise_config_dir="$__root_dir/home/.config/mise"
 local __profile_file="${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile"
+local __profile="${usage_profile:-}"
 
 [[ -d "$__root_dir" && -d "$__mise_config_dir" ]] ||
     {
         print -u2 -- "error: invalid dotfiles repository root: $__root_dir"
         exit 1
     }
+
+if [[ -z "$__profile" && -f "$__profile_file" ]]; then
+    __profile="$(<"$__profile_file")"
+fi
+__profile="${__profile:-work}"
+if [[ "$__profile" != work && "$__profile" != personal ]]; then
+    print -u2 -- "error: persisted profile must be 'work' or 'personal': $__profile"
+    exit 2
+fi
 
 if [[ "${usage_dry_run:-false}" == true ]]; then
     print -r -- "Would apply the $__profile mise bootstrap profile."

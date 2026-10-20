@@ -49,7 +49,7 @@ function {
 
     if [[ "$__show_help" == true && "$__run_mise" != true ]]; then
         if command -v mise >/dev/null 2>&1; then
-            exec mise run system:bootstrap --help
+            exec mise -C "$__root_dir" run system:bootstrap --help
         fi
         print -r -- "Usage: $ZSH_ARGZERO [options]"
         print -r -- "  -h, --help              Show this help"
