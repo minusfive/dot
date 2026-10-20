@@ -8,8 +8,6 @@ The configuration includes keyboard shortcuts for launching apps, managing windo
 
 ## Machine setup
 
-The `mise` bootstrap task changes system settings and installs software. The initialization script remains a first-run compatibility shim for `mise` acquisition.
-
 Clone the repository and initialize a machine:
 
 ```bash
@@ -18,16 +16,14 @@ cd ~/dev/personal/dot
 ./scripts/init.zsh --mise
 ```
 
-The initializer acquires mise when needed and forwards to the canonical [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task by invoking `mise run system:bootstrap`. The task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs maintenance. The final `mise` hook updates the historical inventory and removes broken repository-managed links from those paths.
-
-Public GitHub downloads do not require authentication. Run [`gh:auth:login`](./home/.config/mise/tasks/gh/auth/login.zsh) with `mise run gh:auth:login` when a task requires an authenticated GitHub session. The authentication task does not change `Git` credentials.
+The [`initialization script`](./scripts/init.zsh) acquires mise when needed and invokes the canonical [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task with `mise run system:bootstrap`. The task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs maintenance. The final `mise` hook updates the historical inventory and removes broken repository-managed links from those paths.
 
 ### Profiles
 
 The `work` profile is the default and excludes personal-only tools and applications. To apply the `personal` profile, run:
 
 ```bash
-mise run system:bootstrap --profile personal
+./scripts/init.zsh --mise --profile personal
 ```
 
 The bootstrap task saves the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` after approval and exports it as the `zsh` environment variable `DOT_PROFILE`. A run without `--profile` reuses the persisted profile; when no profile has been saved, it uses `work`.

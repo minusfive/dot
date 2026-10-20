@@ -31,7 +31,7 @@ if [[ -z "$__profile" && -f "$__profile_file" ]]; then
 fi
 __profile="${__profile:-work}"
 if [[ "$__profile" != work && "$__profile" != personal ]]; then
-    print -u2 -- "error: persisted profile must be 'work' or 'personal': $__profile"
+    print -u2 -- "error: profile must be 'work' or 'personal': $__profile"
     exit 2
 fi
 

@@ -30,12 +30,12 @@ __help="$(env -u MISE_ENV "$__mise_bin" -C "$__root_dir" run system:bootstrap --
 print -r -- "$__help" | grep -qF '[possible values: work, personal]' ||
     fail "bootstrap help does not expose native profile choices"
 
-local __fixture_dir="$__root_dir/.agents/projects.local/issue-61-mise-bootstrap/tmp/bootstrap-lifecycle-test.$$"
+local __fixture_dir="$(mktemp -d)"
+trap 'rm -rf -- "$__fixture_dir"' EXIT
 local __bin_dir="$__fixture_dir/bin"
 local __log_file="$__fixture_dir/mise.log"
 local __env_file="$__fixture_dir/mise.env"
 mkdir -p "$__bin_dir"
-trap 'rm -rf -- "$__fixture_dir"' EXIT
 
 cat > "$__bin_dir/mise" <<'EOF'
 #!/usr/bin/env bash
