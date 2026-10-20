@@ -76,7 +76,7 @@ env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__installer_dir:/usr/bin:/bin" \
     MISE_SOURCE="$__bin_dir/mise" INIT_LOG="$__log_file" zsh "$__installer" > "$__message_file"
 grep -qF $'\e[36mmise\e[0m installed' "$__message_file" ||
     fail "installed mise output is missing its teal code formatting"
-grep -qF $'\e[36mmise system:bootstrap --help\e[0m' "$__message_file" ||
+grep -qF $'\e[36m~/.local/bin/mise system:bootstrap --help\e[0m' "$__message_file" ||
     fail "clean-home acquisition did not print next-step instructions"
 [[ ! -s "$__log_file" ]] || fail "clean-home acquisition invoked mise instead of printing instructions"
 

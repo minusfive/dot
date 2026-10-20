@@ -5,6 +5,7 @@ set -euo pipefail
 function {
     local __show_help=false
     local __options
+    local __mise_command="mise"
     local __code_color=$'\e[36m'
     local __reset_color=$'\e[0m'
 
@@ -45,6 +46,7 @@ function {
             print -u2 -- "error: mise installation failed"
             exit 1
         else
+            __mise_command="~/.local/bin/mise"
             print -r -- ""
             print -r -- "${__code_color}mise${__reset_color} installed."
         fi
@@ -66,6 +68,6 @@ function {
     fi
 
     print -r -- ""
-    print -r -- "Run ${__code_color}mise system:bootstrap --help${__reset_color} for next steps."
+    print -r -- "Run ${__code_color}${__mise_command} system:bootstrap --help${__reset_color} for next steps."
     print -r -- ""
 } "$@"
