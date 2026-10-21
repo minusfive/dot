@@ -5,7 +5,9 @@ set -euo pipefail
 function {
     local __show_help=false
     local __options
-    local __mise_command="mise"
+    local __scripts_dir
+    local __root_dir
+    local __mise_path="$HOME/.local/bin/mise"
     local __code_color=$'\e[36m'
     local __reset_color=$'\e[0m'
 
@@ -36,38 +38,56 @@ function {
         print -r -- ""
         print -r -- "Installs ${__code_color}mise${__reset_color} if it is not available."
         print -r -- ""
-        print -r -- "After installation, run ${__code_color}mise system:bootstrap --help${__reset_color} for next steps."
+        print -r -- "After installation, source ${__code_color}scripts/mise-env.zsh${__reset_color}, then run ${__code_color}mise run system:bootstrap --help${__reset_color}."
         print -r -- ""
         exit 0
     fi
 
-    if ! command -v mise >/dev/null 2>&1; then
+    __scripts_dir="$(realpath "$(dirname "$ZSH_ARGZERO")")"
+    __root_dir="$(realpath "$__scripts_dir/..")" ||
+        {
+            print -u2 -- "error: could not resolve the dotfiles repository root"
+            exit 1
+        }
+
+    if [[ ! -x "$__mise_path" ]]; then
+        if command -v mise >/dev/null 2>&1; then
+            print -u2 -- "error: mise is installed outside $__mise_path"
+            print -u2 -- "error: install mise with this script so the bootstrap uses the supported installation"
+            exit 1
+        fi
+
         if ! curl -fsSL https://mise.run | sh; then
             print -u2 -- "error: mise installation failed"
             exit 1
         else
-            __mise_command="~/.local/bin/mise"
             print -r -- ""
             print -r -- "${__code_color}mise${__reset_color} installed."
         fi
     else
         print -r -- ""
         print -r -- "${__code_color}mise${__reset_color} is already installed."
-        mise version -q
+        "$__mise_path" version -q
     fi
 
-    if [[ -x "$HOME/.local/bin/mise" ]]; then
-        path=("$HOME/.local/bin" $path)
-        export PATH
-        rehash
+    if [[ ! -x "$__mise_path" ]]; then
+        print -u2 -- "error: mise was installed but $__mise_path is not executable"
+        exit 1
     fi
 
-    if ! command -v mise >/dev/null 2>&1; then
-        print -u2 -- "error: mise was installed but is not available in PATH"
+    path=("$HOME/.local/bin" $path)
+    export PATH
+    rehash
+
+    local __mise_check_output
+    if ! __mise_check_output="$("$__mise_path" -C "$__root_dir" run system:bootstrap --help 2>&1)"; then
+        print -u2 -- "$__mise_check_output"
+        print -u2 -- "error: the installed mise cannot run this repository's bootstrap task"
         exit 1
     fi
 
     print -r -- ""
-    print -r -- "Run ${__code_color}${__mise_command} system:bootstrap --help${__reset_color} for next steps."
+    print -r -- "Run ${__code_color}source scripts/mise-env.zsh${__reset_color} to populate required environment variables."
+    print -r -- "Then run ${__code_color}mise run system:bootstrap --help${__reset_color} for next steps."
     print -r -- ""
 } "$@"

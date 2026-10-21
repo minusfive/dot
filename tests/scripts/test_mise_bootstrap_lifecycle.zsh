@@ -24,11 +24,11 @@ grep -qF '#USAGE   help "Select the profile to apply"' "$__task" ||
 if grep -qE '^#USAGE.*\{\{ env\.DOT_PROFILE' "$__task"; then
     fail "profile flag help contains a Tera template"
 fi
-grep -qF '#USAGE   choices "work" "personal"' "$__task" ||
+grep -qF '#USAGE   choices {' "$__task" ||
     fail "native profile choices are missing"
-grep -qF '#USAGE   **`work`**: safest, default. Intended for work machines.' "$__task" ||
+grep -qF '#USAGE      choice "work" help="Safest profile, default"' "$__task" ||
     fail "work profile description is missing"
-grep -qF '#USAGE   **`personal`**: adds personal tools, applications, and configurations.' "$__task" ||
+grep -qF '#USAGE      choice "personal" help="adds personal resources and configurations"' "$__task" ||
     fail "personal profile description is missing"
 grep -qF '#USAGE flag "--dry-run" help="Preview the selected `profile` actions without applying them or changing state."' "$__task" ||
     fail "dry-run help does not describe its behavior"
@@ -58,7 +58,7 @@ print -r -- "$__help" | grep -qF '**Currently applied / persisted profile: `work
     fail "bootstrap help does not show the persisted profile override"
 print -r -- "$__help" | grep -qF '**`work`**: safest, default.' ||
     fail "bootstrap help does not explain the work profile"
-print -r -- "$__help" | grep -qF '**`personal`**: adds personal tools' ||
+print -r -- "$__help" | grep -qF '**`personal`**: adds personal resources' ||
     fail "bootstrap help does not explain the personal profile"
 print -r -- "$__help" | grep -qF '[env: DOT_PROFILE]' ||
     fail "bootstrap help does not expose the profile environment default"

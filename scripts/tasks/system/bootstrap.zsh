@@ -10,16 +10,20 @@
 #USAGE flag "-p --profile <profile>" env="DOT_PROFILE" default="work" {
 #USAGE   help "Select the profile to apply"
 #USAGE   warning """
-#USAGE   Use with caution. This flag will override the currently applied / persisted profile. Combine with `--dry-run` to safely preview changes without modifying state.
+#USAGE   **Overrides the currently applied / persisted profile.**
+#USAGE   Combine with `--dry-run` to preview changes without modifying state.
 #USAGE   """
 #USAGE   long_help """
-#USAGE   Machines are configured differently based on `profile`. Choose the profile you want to apply:
+#USAGE   Machines are configured differently based on `profile`:
 #USAGE
-#USAGE   **`work`**: safest, default. Intended for work machines.
-#USAGE   **`personal`**: adds personal tools, applications, and configurations. Intended for personal machines.
+#USAGE   **`work`**: safest, default.
+#USAGE   **`personal`**: adds personal resources and configurations.
 #USAGE
 #USAGE   """
-#USAGE   choices "work" "personal"
+#USAGE   choices {
+#USAGE      choice "work" help="Safest profile, default"
+#USAGE      choice "personal" help="adds personal resources and configurations"
+#USAGE   }
 #USAGE }
 #USAGE flag "--dry-run" help="Preview the selected `profile` actions without applying them or changing state."
 

@@ -31,7 +31,7 @@ zsh -n scripts/install-mise.zsh || fail "scripts/install-mise.zsh has syntax err
 grep -qF 'curl -fsSL https://mise.run | sh' scripts/install-mise.zsh || fail "mise installer bridge missing"
 grep -qF 'local __code_color=$' scripts/install-mise.zsh ||
     fail "mise installer does not define terminal code formatting"
-grep -qF 'mise system:bootstrap --help${__reset_color}' scripts/install-mise.zsh ||
+grep -qF 'mise run system:bootstrap --help${__reset_color}' scripts/install-mise.zsh ||
     fail "mise installer does not print canonical task instructions"
 if grep -qF 'DOT_MISE_INSTALLED_DURING_RUN' scripts/install-mise.zsh; then
     fail "mise installer retains obsolete installer state forwarding"
@@ -94,6 +94,7 @@ if grep -qF '"profiles"' home/.config/mise/miserc.toml; then
     fail "retired profiles environment remains selected"
 fi
 grep -qF "env_conf_d = true" home/.config/mise/miserc.toml || fail "env_conf_d is not enabled"
+grep -qF 'min_version = "2026.10.7"' home/.config/mise/config.toml || fail "mise minimum version is missing"
 grep -qF 'minimum_release_age = "7d"' home/.config/mise/config.toml || fail "minimum release age is missing"
 grep -qF 'trusted_config_paths = ["~/dev/personal", "~/dev/personal/dot", "~/dev/work"]' home/.config/mise/config.toml ||
     fail "workspace trust paths are missing"

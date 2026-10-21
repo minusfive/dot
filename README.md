@@ -14,10 +14,13 @@ Clone the repository and initialize a machine:
 git clone --single-branch --branch main git@github.com:minusfive/dot.git ~/dev/personal/dot
 cd ~/dev/personal/dot
 ./scripts/install-mise.zsh
+source scripts/mise-env.zsh
 mise run system:bootstrap
 ```
 
-The [`mise installer`](./scripts/install-mise.zsh) installs `mise` when it is not available. It then prints the command for the next bootstrap step. Run `mise system:bootstrap --help` to read the bootstrap task help. The task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs maintenance. The final `mise` hook updates the historical inventory and removes broken repository-managed links from those paths.
+- The [`./scripts/install-mise.zsh`](./scripts/install-mise.zsh) installs `mise` when it is not available and checks the supported installation. On success it prints the commands for next steps.
+- Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` so the command can be executed, and loads the persisted profile (if one exists) before the first bootstrap.
+- The `mise` [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs system maintenance.
 
 ### Profiles
 

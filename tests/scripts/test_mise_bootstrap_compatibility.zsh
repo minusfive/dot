@@ -34,15 +34,12 @@ EOF
 chmod +x "$__bin_dir/mise"
 
 local __message_file="$__fixture_dir/message.txt"
-env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__bin_dir:/usr/bin:/bin" INIT_LOG="$__log_file" \
-    zsh "$__installer" > "$__message_file"
-grep -qF $'\e[36mmise\e[0m is already installed' "$__message_file" ||
-    fail "existing mise output is missing its teal code formatting"
-grep -qF "test-version" "$__message_file" ||
-    fail "existing mise version was not displayed"
-grep -qF $'\e[36mmise system:bootstrap --help\e[0m' "$__message_file" ||
-    fail "existing mise did not print next-step instructions"
-[[ ! -s "$__log_file" ]] || fail "mise installer invoked mise instead of printing instructions"
+if env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__bin_dir:/usr/bin:/bin" INIT_LOG="$__log_file" \
+    zsh "$__installer" > "$__message_file" 2>&1; then
+    fail "package-managed mise was accepted"
+fi
+grep -qF "mise is installed outside" "$__message_file" ||
+    fail "package-managed mise error is missing"
 
 : > "$__log_file"
 env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__bin_dir:/usr/bin:/bin" INIT_LOG="$__log_file" \
@@ -55,6 +52,8 @@ grep -qF "Installs " "$__fixture_dir/help.txt" ||
     fail "help output does not describe the installer's purpose"
 grep -qF "if it is not available." "$__fixture_dir/help.txt" ||
     fail "help output does not describe the installer's purpose"
+grep -qF "scripts/mise-env.zsh" "$__fixture_dir/help.txt" ||
+    fail "help output does not describe the environment setup"
 [[ ! -s "$__log_file" ]] || fail "help unexpectedly invoked mise"
 
 : > "$__log_file"
@@ -64,6 +63,24 @@ if env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__bin_dir:/usr/bin:/bin" INIT_
 fi
 [[ ! -s "$__log_file" ]] || fail "retired profile option invoked mise"
 
+mkdir -p "$__home/.local/bin"
+cp "$__bin_dir/mise" "$__home/.local/bin/mise"
+chmod +x "$__home/.local/bin/mise"
+: > "$__log_file"
+env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__bin_dir:/usr/bin:/bin" INIT_LOG="$__log_file" \
+    zsh "$__installer" > "$__message_file"
+grep -qF $'\e[36mmise\e[0m is already installed' "$__message_file" ||
+    fail "existing official mise output is missing its teal code formatting"
+grep -qF "test-version" "$__message_file" ||
+    fail "existing official mise version was not displayed"
+grep -qF $'\e[36msource scripts/mise-env.zsh\e[0m' "$__message_file" ||
+    fail "existing official mise did not print next-step instructions"
+grep -qF $'\e[36mmise run system:bootstrap --help\e[0m' "$__message_file" ||
+    fail "existing official mise did not print the canonical task command"
+grep -qF -- "run system:bootstrap --help" "$__log_file" ||
+    fail "existing official mise was not checked against the repository task"
+
+rm -f "$__home/.local/bin/mise"
 cat > "$__installer_dir/curl" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -76,9 +93,12 @@ env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__installer_dir:/usr/bin:/bin" \
     MISE_SOURCE="$__bin_dir/mise" INIT_LOG="$__log_file" zsh "$__installer" > "$__message_file"
 grep -qF $'\e[36mmise\e[0m installed' "$__message_file" ||
     fail "installed mise output is missing its teal code formatting"
-grep -qF $'\e[36m~/.local/bin/mise system:bootstrap --help\e[0m' "$__message_file" ||
+grep -qF $'\e[36msource scripts/mise-env.zsh\e[0m' "$__message_file" ||
     fail "clean-home acquisition did not print next-step instructions"
-[[ ! -s "$__log_file" ]] || fail "clean-home acquisition invoked mise instead of printing instructions"
+grep -qF $'\e[36mmise run system:bootstrap --help\e[0m' "$__message_file" ||
+    fail "clean-home acquisition did not print the canonical task command"
+grep -qF -- "run system:bootstrap --help" "$__log_file" ||
+    fail "clean-home acquisition was not checked against the repository task"
 
 cat > "$__installer_dir/curl" <<'EOF'
 #!/usr/bin/env bash
@@ -93,5 +113,16 @@ env HOME="$__home" ZDOTDIR="$__zdotdir" PATH="$__installer_dir:/usr/bin:/bin" \
 grep -qF "Usage:" "$__fixture_dir/help-without-mise.txt" ||
     fail "help output is missing without mise"
 [[ ! -s "$__log_file" ]] || fail "help attempted to acquire mise"
+
+mkdir -p "$__home/.local/state/minusfive"
+print -r -- personal >| "$__home/.local/state/minusfive/profile"
+local __env_output="$(
+    env HOME="$__home" XDG_STATE_HOME="$__home/.local/state" PATH="/usr/bin:/bin" \
+        zsh -fc 'setopt no_unset; source scripts/mise-env.zsh; print -r -- "$DOT_PROFILE"; print -r -- "$PATH"'
+)"
+print -r -- "$__env_output" | grep -q '^personal$' ||
+    fail "mise environment source did not load the persisted profile"
+print -r -- "$__env_output" | grep -qF "$__home/.local/bin" ||
+    fail "mise environment source did not update PATH"
 
 echo "install-mise.zsh mise acquisition passed."

@@ -28,7 +28,7 @@ Tests the canonical `system:bootstrap` task, native profile choices, confirmatio
 
 #### `test_mise_bootstrap_compatibility.zsh`
 
-Tests `scripts/install-mise.zsh` help, mise acquisition, and the clean-home path.
+Tests `scripts/install-mise.zsh` help, official installation checks, clean-home acquisition, and source-safe environment setup.
 
 #### `test_mise_task_gh_auth_login.zsh`
 
