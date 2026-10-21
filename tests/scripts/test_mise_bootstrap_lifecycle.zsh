@@ -82,6 +82,7 @@ chmod +x "$__bin_dir/mise"
 run_task() {
     env -u MISE_ENV -u MISE_AUTO_ENV \
         HOME="$__fixture_dir/home" \
+        XDG_STATE_HOME="$__fixture_dir/home/.local/state" \
         PATH="$__bin_dir:$PATH" \
         BOOTSTRAP_LOG="$__log_file" \
         BOOTSTRAP_ENV="$__env_file" \
@@ -102,9 +103,23 @@ grep -q '^false$' "$__env_file" || fail "bootstrap task did not suppress outer t
 
 : > "$__log_file"
 : > "$__env_file"
-run_task run --yes system:bootstrap
+(unset DOT_PROFILE; run_task run --yes system:bootstrap)
+[[ "$(cat "$__fixture_dir/home/.local/state/minusfive/profile")" == personal ]] ||
+    fail "profile-free bootstrap did not reuse the persisted profile"
+
+rm -f "$__fixture_dir/home/.local/state/minusfive/profile"
+: > "$__log_file"
+: > "$__env_file"
+(unset DOT_PROFILE; run_task run --yes system:bootstrap)
 [[ "$(cat "$__fixture_dir/home/.local/state/minusfive/profile")" == work ]] ||
-    fail "profile-free bootstrap did not use the default profile"
+    fail "profile-free bootstrap did not use the work fallback"
+
+print -r -- invalid >| "$__fixture_dir/home/.local/state/minusfive/profile"
+if (unset DOT_PROFILE; run_task run --yes system:bootstrap --dry-run > "$__fixture_dir/invalid-profile.txt" 2>&1); then
+    fail "invalid persisted profile was accepted"
+fi
+grep -qF "expected one of work, personal" "$__fixture_dir/invalid-profile.txt" ||
+    fail "invalid persisted profile did not report the allowed choices"
 
 : > "$__log_file"
 : > "$__env_file"

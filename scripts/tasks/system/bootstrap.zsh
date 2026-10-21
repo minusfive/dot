@@ -2,6 +2,11 @@
 #MISE description="Install tools, applications, and configure this system according to the selected profile.{% if env.DOT_PROFILE is defined %}\n\n**Currently applied / persisted profile: `{{ env.DOT_PROFILE }}`**.{% endif %}"
 #MISE env={MISE_TASK_RUN_AUTO_INSTALL="false"}
 #MISE confirm={message="Apply the `{{ usage.profile }}` system profile?", default="no"}
+# The profile flag resolves values in this order: command line, DOT_PROFILE,
+# then default="work". The environment-backed argument and choices validation
+# are provided by mise:
+# https://mise.jdx.dev/tasks/task-arguments.html#environment-variable-backing
+# https://mise.jdx.dev/tasks/task-arguments.html#arguments
 #USAGE flag "-p --profile <profile>" env="DOT_PROFILE" default="work" {
 #USAGE   help "Select the profile to apply"
 #USAGE   warning """
