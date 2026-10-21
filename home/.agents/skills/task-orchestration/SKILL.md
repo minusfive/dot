@@ -21,10 +21,7 @@ Use this skill when shaping how a task executes: whether to fan out tool calls i
 
 ## Model Selection
 
-- Choose the lowest-cost model that can reliably meet the task quality bar.
-- Use faster/cheaper models for narrow, low-risk, repetitive, or format-constrained work.
-- Use higher-capability models for ambiguous requirements, cross-file reasoning, architecture decisions, safety-critical changes, or failure recovery.
-- When splitting work across subagents, match model capability to each sub-task instead of using one tier for everything.
+- Use the orchestrator's model for every subagent unless I tell you otherwise.
 
 ## Runtime isolation
 

@@ -46,14 +46,18 @@ Apply the runtime-isolation rules in `task-orchestration` before implementation 
 4. The task does not notify a background agent; the scheduler or poll invocation returns findings to the orchestrator.
 5. Treat a nonzero poll exit as a failed poll with no state advance.
 6. Inspect new review summaries, inline comments, review decisions, and failed or pending checks.
-7. Address actionable feedback in the matching worktree.
-8. After a zero-finding review, keep the PR watched for four additional checks at 15-minute intervals because later automated reviews can appear.
-9. Remove an open PR only after that grace period is clean. Remove merged or closed PRs from the watch state automatically.
-10. Run focused tests and an independent critique subagent before every review-fix commit and push.
-11. Use `commit-guidelines` and `pr-guidelines` for the review-fix commit and push.
-12. After fixing and pushing review findings, reply to each addressed actionable review thread with concise reasoning and the validating tests, then resolve that thread.
-13. Remove the matching worktree after a PR merges and the worktree is clean.
-14. Stop the external schedule when all watched PRs satisfy the grace period, and close the orchestration cycle when no actionable review work remains.
+7. On every review cycle, inspect all unresolved review comments and threads on the PR, not only comments from the latest poll.
+8. Validate each remaining comment against the current diff and tests. Address every actionable comment in the matching worktree.
+9. After a zero-finding review, keep the PR watched for four additional checks at 15-minute intervals because later automated reviews can appear.
+10. Remove an open PR only after that grace period is clean. Remove merged or closed PRs from the watch state automatically.
+11. Limit review-fix cycles to 10 per PR.
+12. If actionable findings remain after the tenth cycle, stop the cycle and report the remaining findings.
+13. Run focused tests and an independent critique subagent before every review-fix commit and push.
+14. Use `commit-guidelines` and `pr-guidelines` for the review-fix commit and push.
+15. After every review-fix cycle and successful push, reply to each addressed actionable review thread with concise reasoning and the validating tests.
+16. Resolve each addressed thread when the fix fully addresses it. Leave unrelated or partially addressed threads open.
+17. Remove the matching worktree after a PR merges and the worktree is clean.
+18. Stop the external schedule when all watched PRs satisfy the grace period, and close the orchestration cycle when no actionable review work remains.
 
 ## Merge authority
 
