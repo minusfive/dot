@@ -10,3 +10,6 @@ minimum_release_age = "7d"
 
 [settings.dotfiles]
 relative_symlinks = true
+
+[env]
+DOT_PROFILE = { default = "{% if (xdg_state_home ~ '/minusfive/profile') is file %}{{ read_file(path=xdg_state_home ~ '/minusfive/profile') | trim }}{% else %}work{% endif %}" }

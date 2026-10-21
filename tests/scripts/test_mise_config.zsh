@@ -207,7 +207,9 @@ mkdir -p "$__tmp_home/.config/mise/conf.d"
 cp home/.config/mise/config.toml "$__tmp_home/.config/mise/config.toml"
 cp home/.config/mise/miserc.toml "$__tmp_home/.config/mise/miserc.toml"
 cp home/.config/mise/conf.d/module.discord.toml "$__tmp_home/.config/mise/conf.d/module.discord.toml"
-printf '\n[env]\nMISE_PROFILE_SMOKE_BASE = "1"\n' >> "$__tmp_home/.config/mise/config.toml"
+mkdir -p "$__tmp_home/.local/state/minusfive"
+print -r -- personal >| "$__tmp_home/.local/state/minusfive/profile"
+printf '\nMISE_PROFILE_SMOKE_BASE = "1"\n' >> "$__tmp_home/.config/mise/config.toml"
 printf '\n[env]\nMISE_PROFILE_SMOKE_PERSONAL = "1"\n' >> "$__tmp_home/.config/mise/conf.d/module.discord.toml"
 
 local __work_env
@@ -216,6 +218,19 @@ print -r -- "$__work_env" | grep -q '"MISE_PROFILE_SMOKE_BASE": "1"' || fail "wo
 if print -r -- "$__work_env" | grep -q '"MISE_PROFILE_SMOKE_PERSONAL": "1"'; then
     fail "work profile should not load personal config"
 fi
+
+local __work_profile
+__work_profile="$(env -u MISE_ENV HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" DOT_PROFILE=work mise -C "$__tmp_home" exec -- sh -c 'printf "%s" "$DOT_PROFILE"')"
+[[ "$__work_profile" == work ]] || fail "explicit work profile should override persisted state"
+
+local __persisted_env
+__persisted_env="$(env -u MISE_ENV -u DOT_PROFILE HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" XDG_STATE_HOME="$__tmp_home/.local/state" mise -C "$__tmp_home" env --json)"
+print -r -- "$__persisted_env" | grep -q '"DOT_PROFILE": "personal"' ||
+    fail "mise should load the persisted profile when DOT_PROFILE is unset"
+
+local __persisted_profile
+__persisted_profile="$(env -u MISE_ENV -u DOT_PROFILE HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" XDG_STATE_HOME="$__tmp_home/.local/state" mise -C "$__tmp_home" exec -- sh -c 'printf "%s" "$DOT_PROFILE"')"
+[[ "$__persisted_profile" == personal ]] || fail "mise should export the persisted profile"
 
 local __personal_env
 __personal_env="$(env -u MISE_ENV HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" DOT_PROFILE=personal mise -C "$__tmp_home" env --json)"
