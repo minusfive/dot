@@ -63,9 +63,8 @@ print -r -- "$__help" | grep -qF '**`personal`**: adds personal tools' ||
 print -r -- "$__help" | grep -qF '[env: DOT_PROFILE]' ||
     fail "bootstrap help does not expose the profile environment default"
 __help="$(env -u MISE_ENV -u DOT_PROFILE "$__mise_bin" -C "$__root_dir" run system:bootstrap --help)"
-if print -r -- "$__help" | grep -qF 'Current persisted profile:'; then
-    fail "task description shows a profile when DOT_PROFILE is absent"
-fi
+print -r -- "$__help" | grep -qF '**Currently applied / persisted profile:' ||
+    fail "task description does not show the persisted profile when DOT_PROFILE is absent"
 unset DOT_PROFILE
 
 cat > "$__bin_dir/mise" <<'EOF'
