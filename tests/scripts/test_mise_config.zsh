@@ -25,14 +25,17 @@ fi
 [[ ! -e "home/.config/mise/mise.personal.toml" ]] || fail "obsolete personal config should be removed"
 [[ ! -e "home/.config/mise/files" ]] || fail "obsolete mise files directory should be removed"
 
-zsh -n scripts/init.zsh || fail "scripts/init.zsh has syntax errors"
+zsh -n scripts/install-mise.zsh || fail "scripts/install-mise.zsh has syntax errors"
 [[ ! -e scripts/mise.zsh ]] || fail "duplicate mise lifecycle script remains"
 [[ ! -e scripts/functions.zsh ]] || fail "duplicate bootstrap utility script remains"
-grep -qF 'curl -fsSL https://mise.run | sh' scripts/init.zsh || fail "mise installer bridge missing"
-grep -qF 'exec mise "${__task_args[@]}"' scripts/init.zsh ||
-    fail "initializer does not forward to the canonical task"
-grep -qF 'export DOT_MISE_INSTALLED_DURING_RUN=' scripts/init.zsh ||
-    fail "initializer does not preserve installer state"
+grep -qF 'curl -fsSL https://mise.run | sh' scripts/install-mise.zsh || fail "mise installer bridge missing"
+grep -qF 'local __code_color=$' scripts/install-mise.zsh ||
+    fail "mise installer does not define terminal code formatting"
+grep -qF 'mise run system:bootstrap --help${__reset_color}' scripts/install-mise.zsh ||
+    fail "mise installer does not print canonical task instructions"
+if grep -qF 'DOT_MISE_INSTALLED_DURING_RUN' scripts/install-mise.zsh; then
+    fail "mise installer retains obsolete installer state forwarding"
+fi
 grep -qF 'export MISE_CONFIG_DIR=' scripts/tasks/system/bootstrap.zsh ||
     fail "bootstrap task does not select repository-scoped mise config"
 grep -qF 'export MISE_ENV_CONF_D=true' scripts/tasks/system/bootstrap.zsh ||
@@ -91,6 +94,7 @@ if grep -qF '"profiles"' home/.config/mise/miserc.toml; then
     fail "retired profiles environment remains selected"
 fi
 grep -qF "env_conf_d = true" home/.config/mise/miserc.toml || fail "env_conf_d is not enabled"
+grep -qF 'min_version = "2026.10.7"' home/.config/mise/config.toml || fail "mise minimum version is missing"
 grep -qF 'minimum_release_age = "7d"' home/.config/mise/config.toml || fail "minimum release age is missing"
 grep -qF 'trusted_config_paths = ["~/dev/personal", "~/dev/personal/dot", "~/dev/work"]' home/.config/mise/config.toml ||
     fail "workspace trust paths are missing"
@@ -124,8 +128,8 @@ grep -qF 'source = "~/dev/personal/dot/home/AGENTS.md"' home/.config/mise/conf.d
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 grep -qF 'auto_env = true' home/.config/mise/miserc.toml ||
     fail "auto_env must load platform-specific conf.d modules"
-if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/init.zsh; then
-    fail "removed Homebrew and VM options remain in the initializer"
+if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/install-mise.zsh; then
+    fail "removed Homebrew and VM options remain in the mise installer"
 fi
 [[ ! -e scripts/os.zsh ]] || fail "OS operations must use mise macos tasks"
 
@@ -204,7 +208,9 @@ mkdir -p "$__tmp_home/.config/mise/conf.d"
 cp home/.config/mise/config.toml "$__tmp_home/.config/mise/config.toml"
 cp home/.config/mise/miserc.toml "$__tmp_home/.config/mise/miserc.toml"
 cp home/.config/mise/conf.d/module.discord.toml "$__tmp_home/.config/mise/conf.d/module.discord.toml"
-printf '\n[env]\nMISE_PROFILE_SMOKE_BASE = "1"\n' >> "$__tmp_home/.config/mise/config.toml"
+mkdir -p "$__tmp_home/.local/state/minusfive"
+print -r -- personal >| "$__tmp_home/.local/state/minusfive/profile"
+printf '\nMISE_PROFILE_SMOKE_BASE = "1"\n' >> "$__tmp_home/.config/mise/config.toml"
 printf '\n[env]\nMISE_PROFILE_SMOKE_PERSONAL = "1"\n' >> "$__tmp_home/.config/mise/conf.d/module.discord.toml"
 
 local __work_env
@@ -213,6 +219,19 @@ print -r -- "$__work_env" | grep -q '"MISE_PROFILE_SMOKE_BASE": "1"' || fail "wo
 if print -r -- "$__work_env" | grep -q '"MISE_PROFILE_SMOKE_PERSONAL": "1"'; then
     fail "work profile should not load personal config"
 fi
+
+local __work_profile
+__work_profile="$(env -u MISE_ENV HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" DOT_PROFILE=work mise -C "$__tmp_home" exec -- sh -c 'printf "%s" "$DOT_PROFILE"')"
+[[ "$__work_profile" == work ]] || fail "explicit work profile should override persisted state"
+
+local __persisted_env
+__persisted_env="$(env -u MISE_ENV -u DOT_PROFILE HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" XDG_STATE_HOME="$__tmp_home/.local/state" mise -C "$__tmp_home" env --json)"
+print -r -- "$__persisted_env" | grep -q '"DOT_PROFILE": "personal"' ||
+    fail "mise should load the persisted profile when DOT_PROFILE is unset"
+
+local __persisted_profile
+__persisted_profile="$(env -u MISE_ENV -u DOT_PROFILE HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" XDG_STATE_HOME="$__tmp_home/.local/state" mise -C "$__tmp_home" exec -- sh -c 'printf "%s" "$DOT_PROFILE"')"
+[[ "$__persisted_profile" == personal ]] || fail "mise should export the persisted profile"
 
 local __personal_env
 __personal_env="$(env -u MISE_ENV HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" DOT_PROFILE=personal mise -C "$__tmp_home" env --json)"

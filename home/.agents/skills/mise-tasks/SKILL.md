@@ -54,6 +54,7 @@ See [TOML tasks](https://mise.jdx.dev/tasks/toml-tasks.html).
 
 - Prefer mise's [usage](https://usage.jdx.dev/) feature for argument parsing, option configuration, defaults, validation, and help on file tasks. Let usage own the task's interface; keep in-script code focused on the task's behavior rather than reimplementing argument parsing.
 - Define the task interface with mise's usage directives appropriate to the task's language. Examples: `#USAGE` for shell file tasks, `//USAGE` for TypeScript file tasks, and the `usage` field on TOML tasks. See the [Arguments section](https://mise.jdx.dev/tasks/file-tasks.html#arguments) of the file-tasks docs.
+- Use basic Markdown in `#MISE description`, `help`, and `long_help` values when emphasis or inline code improves task help. Prefer `**bold**` and backticks.
 - Rely on mise's native help rendering; do not implement custom help printing inside task scripts.
 - Treat unknown or incomplete options as explicit errors.
 

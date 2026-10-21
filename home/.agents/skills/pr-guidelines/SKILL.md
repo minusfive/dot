@@ -37,6 +37,8 @@ description: Use before every authorized push when a branch has or may have an o
 - Do not batch pushes before synchronization.
 - If synchronization or verification fails, stop and report the blocker.
 
+After each push that addresses review feedback, read the addressed review threads. Reply to each addressed thread with the change rationale and validation result. After the push and PR metadata synchronization succeed, resolve each addressed thread. Leave unrelated or unresolved threads open.
+
 The synchronization task must:
 
 1. Read the open pull request and the local `HEAD`.

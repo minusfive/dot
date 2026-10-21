@@ -1,11 +1,31 @@
 #!/usr/bin/env zsh
-#MISE description="Bootstrap this repository with the selected mise profile"
+#MISE description="Install tools, applications, and configure this system according to the selected profile.{% if env.DOT_PROFILE is defined %}\n\n**Currently applied / persisted profile: `{{ env.DOT_PROFILE }}`**.{% endif %}"
 #MISE env={MISE_TASK_RUN_AUTO_INSTALL="false"}
-#MISE confirm={message="Apply the selected mise bootstrap profile?", default="no"}
-#USAGE flag "-p --profile <profile>" help="Profile to apply" {
-#USAGE   choices "work" "personal"
+#MISE confirm={message="Apply the `{{ usage.profile }}` system profile?", default="no"}
+# The profile flag resolves values in this order: command line, DOT_PROFILE,
+# then default="work". The environment-backed argument and choices validation
+# are provided by mise:
+# https://mise.jdx.dev/tasks/task-arguments.html#environment-variable-backing
+# https://mise.jdx.dev/tasks/task-arguments.html#arguments
+#USAGE flag "-p --profile <profile>" env="DOT_PROFILE" default="work" {
+#USAGE   help "Select the profile to apply"
+#USAGE   warning """
+#USAGE   **Overrides the currently applied / persisted profile.**
+#USAGE   Combine with `--dry-run` to preview changes without modifying state.
+#USAGE   """
+#USAGE   long_help """
+#USAGE   Machines are configured differently based on `profile`:
+#USAGE
+#USAGE   **`work`**: safest, default.
+#USAGE   **`personal`**: adds personal resources and configurations.
+#USAGE
+#USAGE   """
+#USAGE   choices {
+#USAGE      choice "work" help="Safest profile, default"
+#USAGE      choice "personal" help="adds personal resources and configurations"
+#USAGE   }
 #USAGE }
-#USAGE flag "--dry-run" help="Show the selected profile without changing state"
+#USAGE flag "--dry-run" help="Preview the selected `profile` actions without applying them or changing state."
 
 set -euo pipefail
 
@@ -18,22 +38,13 @@ __root_dir="$(realpath "${MISE_CONFIG_ROOT:-${MISE_PROJECT_ROOT:-$PWD}}")" ||
 
 local __mise_config_dir="$__root_dir/home/.config/mise"
 local __profile_file="${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile"
-local __profile="${usage_profile:-}"
+local __profile="${usage_profile}"
 
 [[ -d "$__root_dir" && -d "$__mise_config_dir" ]] ||
     {
         print -u2 -- "error: invalid dotfiles repository root: $__root_dir"
         exit 1
     }
-
-if [[ -z "$__profile" && -f "$__profile_file" ]]; then
-    __profile="$(<"$__profile_file")"
-fi
-__profile="${__profile:-work}"
-if [[ "$__profile" != work && "$__profile" != personal ]]; then
-    print -u2 -- "error: profile must be 'work' or 'personal': $__profile"
-    exit 2
-fi
 
 if [[ "${usage_dry_run:-false}" == true ]]; then
     print -r -- "Would apply the $__profile mise bootstrap profile."
@@ -42,7 +53,7 @@ fi
 
 command -v mise >/dev/null 2>&1 ||
     {
-        print -u2 -- "error: mise is not available; run scripts/init.zsh to install it"
+        print -u2 -- "error: mise is not available; run scripts/install-mise.zsh to install it"
         exit 1
     }
 
@@ -55,8 +66,6 @@ unset MISE_AUTO_ENV
 mkdir -p "${__profile_file:h}"
 print -r -- "$__profile" >| "$__profile_file"
 
-if [[ "${DOT_MISE_INSTALLED_DURING_RUN:-false}" != true ]]; then
-    mise -C "$__root_dir" self-update --yes
-fi
+mise -C "$__root_dir" self-update --yes
 
 mise -C "$__root_dir" bootstrap --yes

@@ -1,6 +1,10 @@
 # Load platform-specific conf.d fragments such as mise.macos.toml.
 auto_env = true
 
+# mise renders this file before it applies [env] values from config.toml.
+# Set DOT_PROFILE before mise starts so this module list matches the profile.
+# Interactive Zsh startup and the setup instructions load the persisted value.
+# https://mise.jdx.dev/templates.html#miserc-template-support
 {% set shared_modules = [
     '1password',
     'agents',
