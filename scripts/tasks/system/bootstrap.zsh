@@ -13,7 +13,6 @@
 #USAGE   Use with caution. This flag will override the currently applied / persisted profile. Combine with `--dry-run` to safely preview changes without modifying state.
 #USAGE   """
 #USAGE   long_help """
-#USAGE
 #USAGE   Machines are configured differently based on `profile`. Choose the profile you want to apply:
 #USAGE
 #USAGE   **`work`**: safest, default. Intended for work machines.
