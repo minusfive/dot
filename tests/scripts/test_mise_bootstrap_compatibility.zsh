@@ -117,12 +117,18 @@ grep -qF "Usage:" "$__fixture_dir/help-without-mise.txt" ||
 mkdir -p "$__home/.local/state/minusfive"
 print -r -- personal >| "$__home/.local/state/minusfive/profile"
 local __env_output="$(
-    env HOME="$__home" XDG_STATE_HOME="$__home/.local/state" PATH="/usr/bin:/bin" \
+    env -u DOT_PROFILE HOME="$__home" XDG_STATE_HOME="$__home/.local/state" PATH="/usr/bin:/bin" \
         zsh -fc 'setopt no_unset; source scripts/mise-env.zsh; print -r -- "$DOT_PROFILE"; print -r -- "$PATH"'
 )"
 print -r -- "$__env_output" | grep -q '^personal$' ||
     fail "mise environment source did not load the persisted profile"
 print -r -- "$__env_output" | grep -qF "$__home/.local/bin" ||
     fail "mise environment source did not update PATH"
+local __explicit_env_output="$(
+    env HOME="$__home" XDG_STATE_HOME="$__home/.local/state" DOT_PROFILE=work PATH="/usr/bin:/bin" \
+        zsh -fc 'source scripts/mise-env.zsh; print -r -- "$DOT_PROFILE"'
+)"
+[[ "$__explicit_env_output" == work ]] ||
+    fail "mise environment source overwrote the explicit profile"
 
 echo "install-mise.zsh mise acquisition passed."

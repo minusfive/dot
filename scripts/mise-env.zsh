@@ -19,6 +19,8 @@ function {
 
     path=("$HOME/.local/bin" $path)
     export PATH
-    export DOT_PROFILE="$__profile"
+    if [[ -z "${DOT_PROFILE:-}" ]]; then
+        export DOT_PROFILE="$__profile"
+    fi
     rehash
 } "$@"
