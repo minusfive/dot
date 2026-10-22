@@ -71,6 +71,7 @@ auto_env = true
     'tectonic',
     'tmux',
     'tree-sitter',
+    'tuicr',
     'vivid',
     'wallpaper',
     'wget',
