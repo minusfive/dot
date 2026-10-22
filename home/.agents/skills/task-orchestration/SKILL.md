@@ -18,6 +18,7 @@ Use this skill when shaping how a task executes: whether to fan out tool calls i
 - Once a subagent owns a scope, do not redo that same scope in the parent.
 - Keep each subagent prompt explicit about goals, constraints, inputs, and expected output format.
 - Aggregate and reconcile outputs from multiple subagents before applying changes.
+- For multi-step setup and planning, delegate bounded discovery, setup, or plan-critique work when it reduces context held by the main agent. Keep final decisions and integration with the main agent.
 
 ## Model Selection
 
