@@ -35,10 +35,20 @@ cat > "$__config" <<'EOF'
 [url "ssh://git@github.com/"]
     insteadOf = https://github.com/
     pushInsteadOf = git@github.com:
+[include]
+    path = "~/.config/delta/themes/catppuccin.gitconfig"
+[includeIf "gitdir:~/dev/work/"]
+    path = ~/dev/work/.gitconfig
+[includeIf "gitdir:~/Notes/Work/"]
+    path = ~/dev/work/.gitconfig
+[includeIf "gitdir:~/dev/personal/"]
+    path = ~/dev/personal/.gitconfig
+[includeIf "gitdir:~/Notes/Personal/"]
+    path = ~/dev/personal/.gitconfig
 EOF
 cat > "$__profile_config" <<'EOF'
 [credential "https://sub.github.com"]
-    useHttpPath = false
+    useHttpPath
 EOF
 printf 'this is not Git config and must not be parsed\n' > "$__ignored_config"
 git -C "$__repo" add home/dev/personal/.domains home/.config/git/config \
@@ -94,20 +104,43 @@ fi
 
 run_failure() {
     local __expected_category="$1"
-    local __expected_marker="${2:-}"
+    local -a __expected_markers=("${@:2}")
     local __output
     if __output="$(cd "$__repo" && zsh "$__checker" 2>&1)"; then
         fail "tracked Git config policy accepted an invalid $__expected_category entry"
     fi
     print -r -- "$__output" | grep -qF "$__expected_category" ||
         fail "Git config checker did not identify the failing category"
-    if [[ -n "$__expected_marker" && "$__output" == *"$__expected_marker"* ]]; then
-        fail "Git config checker printed a sensitive configuration value"
-    fi
+    for __expected_marker in "${__expected_markers[@]}"; do
+        if [[ -n "$__expected_marker" && "$__output" == *"$__expected_marker"* ]]; then
+            fail "Git config checker printed a sensitive configuration value"
+        fi
+    done
     if [[ "$__output" == *"unapproved.example"* || "$__output" == *"github.com.attacker.example"* ]]; then
         fail "Git config checker printed a hostname"
     fi
 }
+
+cat > "$__profile_config" <<'EOF'
+[include]
+    path = ~/dev/SECRET_INCLUDE_PATH/.gitconfig
+EOF
+git -C "$__repo" add home/dev/personal/profile.gitconfig
+run_failure "include" "SECRET_INCLUDE_PATH"
+
+cat > "$__profile_config" <<'EOF'
+[includeIf "gitdir:~/SECRET_INCLUDE_IF/"]
+    path = ~/dev/SECRET_INCLUDE_PATH/.gitconfig
+EOF
+git -C "$__repo" add home/dev/personal/profile.gitconfig
+run_failure "include" "SECRET_INCLUDE_IF" "SECRET_INCLUDE_PATH"
+
+cat > "$__profile_config" <<'EOF'
+[credential "https://github.com"
+    useHttpPath = true
+EOF
+git -C "$__repo" add home/dev/personal/profile.gitconfig
+run_failure "invalid Git config"
 
 cat > "$__profile_config" <<'EOF'
 [credential "https://unapproved.example"]

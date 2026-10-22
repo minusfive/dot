@@ -89,6 +89,10 @@ if [[ "$*" == *"gh auth setup-git"* ]]; then
     done
     git config --file "$GIT_CONFIG_GLOBAL" --add \
         "credential.https://$hostname.helper" "!$GIT_AUTH_GENERATED_GH auth git-credential"
+    if [[ "$hostname" == github.com ]]; then
+        git config --file "$GIT_CONFIG_GLOBAL" --add \
+            "credential.https://gist.$hostname.helper" "!$GIT_AUTH_GENERATED_GH auth git-credential"
+    fi
     exit 0
 fi
 
@@ -151,6 +155,11 @@ local __personal_helpers="$(
 if [[ "$__personal_helpers" == *"$__generated_gh"* ]]; then
     fail "machine-specific GitHub CLI path remained in the profile helper"
 fi
+local __personal_gist_helpers="$(
+    git config --file "$__personal_config" --get-all credential.https://gist.github.com.helper
+)"
+[[ "$__personal_gist_helpers" == $'\n!GH_CONFIG_DIR="$HOME/.config/gh/personal" gh auth git-credential' ]] ||
+    fail "personal gist helper list was not reset to the portable profile helper"
 if printf 'protocol=https\nhost=github.com\n\n' |
     env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__personal_config" \
         GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 git credential fill >/dev/null 2>&1; then
@@ -173,6 +182,9 @@ grep -qF "ARGS=exec -C $__home/dev/work gh@latest -- gh auth setup-git" "$__log"
 git config --file "$__work_config" --get-all credential.https://github.enterprise.example.helper |
     grep -qF 'GH_CONFIG_DIR="$HOME/.config/gh/work" gh auth git-credential' ||
     fail "work profile helper was not written to the work profile file"
+if git config --file "$__work_config" --get credential.https://gist.github.enterprise.example.helper >/dev/null 2>&1; then
+    fail "work profile gist helper was created for an enterprise host without one"
+fi
 if git config --file "$__personal_config" --get credential.https://github.enterprise.example.helper >/dev/null 2>&1; then
     fail "work profile helper leaked into the personal profile file"
 fi

@@ -63,6 +63,8 @@ Tracked `remote.*.url` and `remote.*.pushurl` entries also fail. Keep remote URL
 
 The checker reports a fixed config source label and setting category. It does not print hostnames or config values. It blocks the commit and does not move or rewrite config. Remove work-specific entries from tracked files. Then run the setup task for the correct profile.
 
+Tracked include directives are also restricted. The shared config may include the tracked Delta theme and the four profile-specific paths documented above. Other `include.path` and `includeIf.*` directives fail without printing their paths or values.
+
 ## Migration
 
 Keep personal identity and credential settings in `~/dev/personal/.gitconfig`. Keep work identity, domains, and credential settings in `~/dev/work/.gitconfig` and `~/dev/work/.domains`.

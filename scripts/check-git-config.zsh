@@ -35,6 +35,22 @@ report_domain_error() {
     (( __error_count += 1 ))
 }
 
+include_is_allowed() {
+    local __key="$1"
+    local __value="$2"
+
+    case "$__key:$__value" in
+        "include.path:~/.config/delta/themes/catppuccin.gitconfig" | \
+        "includeif.gitdir:~/dev/work/.path:~/dev/work/.gitconfig" | \
+        "includeif.gitdir:~/Notes/Work/.path:~/dev/work/.gitconfig" | \
+        "includeif.gitdir:~/dev/personal/.path:~/dev/personal/.gitconfig" | \
+        "includeif.gitdir:~/Notes/Personal/.path:~/dev/personal/.gitconfig")
+            return 0
+            ;;
+    esac
+    return 1
+}
+
 config_scope_url() {
     local __key="$1"
     local __section="$2"
@@ -64,6 +80,12 @@ inspect_entry() {
     local __prefix_host=""
 
     case "$__key" in
+        include.path|includeif.*.path)
+            if ! include_is_allowed "$__key" "$__value"; then
+                report_error "$__file" "include"
+            fi
+            return 0
+            ;;
         user.name|user.email|user.signingkey)
             report_error "$__file" "identity"
             return 0
@@ -181,12 +203,13 @@ while IFS= read -r -d '' __file; do
     local __key=""
     local __value=""
     while IFS= read -r -d '' __record; do
-        if [[ "$__record" != *$'\n'* ]]; then
-            report_error "$__file" "invalid Git config"
-            continue
+        if [[ "$__record" == *$'\n'* ]]; then
+            __key="${__record%%$'\n'*}"
+            __value="${__record#*$'\n'}"
+        else
+            __key="$__record"
+            __value="true"
         fi
-        __key="${__record%%$'\n'*}"
-        __value="${__record#*$'\n'}"
         inspect_entry "$__file" "$__key" "$__value"
     done < <(git config --null --list --file "$__file" 2>/dev/null)
 done < <(git ls-files -z)

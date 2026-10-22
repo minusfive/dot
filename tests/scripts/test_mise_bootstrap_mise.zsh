@@ -16,6 +16,10 @@ grep -qF '"~/.config/mise/tasks/mise/cleanup.zsh"' "$__config" ||
     fail "stale-link cleanup task is missing"
 grep -qF '"~/.config/mise/tasks/mise/cleanup/inventory.zsh"' "$__config" ||
     fail "cleanup inventory task is missing"
+grep -qF '"~/.config/mise/tasks/git/auth/setup.zsh"' "$__config" ||
+    fail "Git auth setup task is missing"
+grep -qF '"~/.config/mise/utils/git-domains.zsh"' "$__config" ||
+    fail "Git domain helper is missing"
 grep -qF '"mise upgrade --prune"' "$__config" ||
     fail "tool upgrade hook is missing"
 grep -qF '"mise reshim -f"' "$__config" ||

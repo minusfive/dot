@@ -13,7 +13,6 @@ local __source_ignore="home/.config/git/ignore"
 local __source_zsh="home/.config/git/zshrc.zsh"
 local __source_domains="home/dev/personal/.domains"
 local __target_domains='"~/dev/personal/.domains" = { source = "~/dev/personal/dot/home/dev/personal/.domains", mode = "symlink" }'
-local __control_plane="home/.config/mise/conf.d/module.mise.toml"
 [[ -f "$__config" && -f "$__source_config" && -f "$__source_ignore" && -f "$__source_domains" ]] ||
     fail "Git source or declaration is missing"
 [[ -f "$__source_zsh" ]] || fail "missing Git Zsh source"
@@ -24,10 +23,6 @@ grep -qF "$__target_domains" "$__config" ||
     fail "personal domain manifest symlink declaration is missing"
 grep -qF '"~/.config/zsh/.zshrc-zone-0.zsh/git"' "$__config" ||
     fail "Git Zsh edit is missing"
-grep -qF '"~/.config/mise/tasks/git/auth/setup.zsh"' "$__control_plane" ||
-    fail "Git auth setup task is not deployed"
-grep -qF '"~/.config/mise/utils/git-domains.zsh"' "$__control_plane" ||
-    fail "Git domain helper is not deployed"
 [[ ! -e home/dev/work/.domains && ! -e home/dev/work/.gitconfig ]] ||
     fail "work profile files must stay outside tracked sources"
 [[ "$(git config --file "$__source_config" --get gpg.format)" == "ssh" ]] ||
