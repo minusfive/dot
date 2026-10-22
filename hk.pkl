@@ -26,6 +26,9 @@ local checks = new Mapping<String, Step> {
     exclude = non_security_excludes
   }
   ["detect_private_key"] = Builtins.detect_private_key
+  ["git_config_policy"] = new Step {
+    check = "scripts/check-git-config.zsh"
+  }
   ["mixed_line_ending"] = (Builtins.mixed_line_ending) {
     exclude = non_security_excludes
   }

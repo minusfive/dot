@@ -2,14 +2,6 @@
   format = ssh
 [gpg "ssh"]
   program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
-[includeif "gitdir:~/dev/work/"]
-  path = ~/dev/work/.gitconfig
-[includeif "gitdir:~/Notes/Work/"]
-  path = ~/dev/work/.gitconfig
-[includeif "gitdir:~/dev/personal/"]
-  path = ~/dev/personal/.gitconfig
-[includeif "gitdir:~/Notes/Personal/"]
-  path = ~/dev/personal/.gitconfig
 [pull]
   rebase = true
 [push]
@@ -110,3 +102,11 @@
   commit-decoration-style = "#45475a" box ul
   file-decoration-style = "#45475a" bold ol
   hunk-header-decoration-style = "#45475a" ul ol
+[includeif "gitdir:~/dev/work/"]
+  path = ~/dev/work/.gitconfig
+[includeif "gitdir:~/Notes/Work/"]
+  path = ~/dev/work/.gitconfig
+[includeif "gitdir:~/dev/personal/"]
+  path = ~/dev/personal/.gitconfig
+[includeif "gitdir:~/Notes/Personal/"]
+  path = ~/dev/personal/.gitconfig

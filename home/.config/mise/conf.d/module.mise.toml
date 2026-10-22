@@ -68,7 +68,9 @@
 "~/.config/mise/tasks/brew/install.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/brew/install.zsh", mode = "symlink" }
 "~/.config/mise/tasks/gh/download/file.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/download/file.sh", mode = "symlink" }
 "~/.config/mise/tasks/gh/auth/login.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/auth/login.zsh", mode = "symlink" }
+"~/.config/mise/tasks/git/auth/setup.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/git/auth/setup.zsh", mode = "symlink" }
 "~/.config/mise/tasks/git/worktree.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/git/worktree.ts", mode = "symlink" }
+"~/.config/mise/utils/git-domains.zsh" = { source = "~/dev/personal/dot/home/.config/mise/utils/git-domains.zsh", mode = "symlink" }
 "~/.config/mise/tasks/global-install-packages-all.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-all.sh", mode = "symlink" }
 "~/.config/mise/tasks/lint-skill-index.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/lint-skill-index.zsh", mode = "symlink" }
 "~/.config/mise/tasks/ai/skills/evals/init.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/init.zsh", mode = "symlink" }

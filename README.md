@@ -36,6 +36,8 @@ Each profile loads a different group of `mise` modules. These modules list the f
 
 [`Hammerspoon`](./home/.config/hammerspoon/) reads the same state file through the [`ProfileState Spoon`](./home/.config/hammerspoon/Spoons/ProfileState.spoon/init.lua) so it can customize keyboard shortcuts and other automations for the selected profile. The `hs.settings` interface stores the profile in `macOS` defaults under a custom key, so other applications can read it.
 
+Each repository path selects a local identity and credential profile for [`Git`](https://git-scm.com/). The personal domain list has a tracked source. Work domains, identity data, and authentication settings stay outside this repository. The read-only `pre-commit` check blocks credential helpers and unapproved host settings in tracked files. See [`Git` credential profiles](./docs/git-credentials.md) for setup and migration.
+
 ### File ownership and application data
 
 The `home/` directory mirrors the target user's `$HOME` layout. `mise` places selected files where the corresponding tool or application expects to find them, including `mise` itself. A placed file can be a link, a copy, or an edit of an existing file.
