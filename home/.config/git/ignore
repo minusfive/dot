@@ -5,6 +5,7 @@
 *.repro
 tmp/
 .zsh_history.LOCK
+.qmd-embed.lock
 
 # Compiled source
 *.com

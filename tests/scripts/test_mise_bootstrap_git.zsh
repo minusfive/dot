@@ -127,6 +127,13 @@ env HOME="$__home" XDG_CONFIG_HOME="$__home/.config" GIT_CONFIG_GLOBAL="$__globa
 env HOME="$__home" XDG_CONFIG_HOME="$__home/.config" GIT_CONFIG_GLOBAL="$__global_config" \
     GIT_CONFIG_NOSYSTEM=1 git -C "$__personal_repo" check-ignore -q --no-index config.personal.local.toml ||
     fail "Git global ignore does not cover config.personal.local.toml"
+env HOME="$__home" XDG_CONFIG_HOME="$__home/.config" GIT_CONFIG_GLOBAL="$__global_config" \
+    GIT_CONFIG_NOSYSTEM=1 git -C "$__personal_repo" check-ignore -q --no-index .cache/qmd/.qmd-embed.lock ||
+    fail "Git global ignore does not cover the QMD embedding lock"
+if env HOME="$__home" XDG_CONFIG_HOME="$__home/.config" GIT_CONFIG_GLOBAL="$__global_config" \
+    GIT_CONFIG_NOSYSTEM=1 git -C "$__personal_repo" check-ignore -q --no-index .cache/qmd/.qmd-embed.lock.backup; then
+    fail "Git global ignore unexpectedly covers a non-lock filename"
+fi
 if printf 'protocol=https\nhost=github.com\n\n' |
     env HOME="$__home" XDG_CONFIG_HOME="$__home/.config" GIT_CONFIG_GLOBAL="$__global_config" \
         GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 PATH="$__bin:$PATH" \
