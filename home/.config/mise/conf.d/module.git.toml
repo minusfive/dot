@@ -3,4 +3,5 @@
 
 [dotfiles]
 "~/.config/git" = { source = "~/dev/personal/dot/home/.config/git", mode = "symlink-each", exclude = ["zshrc.zsh"] }
+"~/dev/personal/.domains" = { source = "~/dev/personal/dot/home/dev/personal/.domains", mode = "symlink" }
 "~/.config/zsh/.zshrc-zone-0.zsh/git" = { source = "~/dev/personal/dot/home/.config/git/zshrc.zsh", template = "tera" }

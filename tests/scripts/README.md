@@ -34,6 +34,14 @@ Tests `scripts/install-mise.zsh` help, official installation checks, clean-home 
 
 Tests hostname forwarding, idempotent authentication, failed login handling, control-plane ownership, and the authentication dependency boundary.
 
+#### `test_mise_task_git_auth_setup.zsh`
+
+Tests profile and hostname selection, separate authentication stores, helper reset behavior, explicit failure paths, and control-plane ownership.
+
+#### `test_git_config_check.zsh`
+
+Tests domain parsing, hostname matching, tracked Git config ownership, shared-host helper rejection, pre-commit integration, and value redaction.
+
 #### `test_mise_bootstrap_copilot.zsh`
 
 Tests the Copilot module ownership, exactly nine safe settings, isolated key-level merge behavior, shared-instructions and statusline links, and runtime preservation.
@@ -116,6 +124,7 @@ Tests hidden project creation and promotion to a checked-in workspace.
 # From project root
 zsh tests/scripts/test_mise_bootstrap_betterdisplay.zsh
 zsh tests/scripts/test_mise_task_betterdisplay_sync.zsh
+zsh tests/scripts/test_git_config_check.zsh
 ./tests/scripts/test_mise_config.zsh
 for test in tests/scripts/test_mise_bootstrap_*.zsh tests/scripts/test_mise_task_*.zsh; do
     zsh "$test"
