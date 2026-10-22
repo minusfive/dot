@@ -105,6 +105,7 @@
 "~/.config/mise/conf.d/module.rust.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.rust.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.stylua.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.stylua.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.tree-sitter.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.tree-sitter.toml", mode = "symlink" }
+"~/.config/mise/conf.d/module.tuicr.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.tuicr.toml", mode = "symlink" }
 
 [bootstrap.hooks]
 post-tools = [
