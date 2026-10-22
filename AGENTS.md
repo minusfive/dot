@@ -16,6 +16,7 @@
 - Run focused module tests before the aggregate checks.
 - Run `mise run fix` after changing instructions or skills; it applies configured autofixes and reports only unfixable failures, including root and `home/` skill-index validation.
 - Update `README.md` in the same change when setup, layout, ownership, tooling, migration status, or user-facing workflows change. Load `readme-maintenance` for README decisions and edits.
+- Use one canonical executable entrypoint for each script. Do not retain compatibility wrappers unless the request explicitly requires them.
 - Before every commit, review the complete diff with the user and complete a fresh critique pass.
 - Preserve unrelated worktree changes.
 

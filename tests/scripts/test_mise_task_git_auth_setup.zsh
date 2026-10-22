@@ -89,10 +89,6 @@ if [[ "$*" == *"gh auth setup-git"* ]]; then
     done
     git config --file "$GIT_CONFIG_GLOBAL" --add \
         "credential.https://$hostname.helper" "!$GIT_AUTH_GENERATED_GH auth git-credential"
-    if [[ "$hostname" == github.com ]]; then
-        git config --file "$GIT_CONFIG_GLOBAL" --add \
-            "credential.https://gist.$hostname.helper" "!$GIT_AUTH_GENERATED_GH auth git-credential"
-    fi
     exit 0
 fi
 
@@ -158,8 +154,8 @@ fi
 local __personal_gist_helpers="$(
     git config --file "$__personal_config" --get-all credential.https://gist.github.com.helper
 )"
-[[ "$__personal_gist_helpers" == $'\n!GH_CONFIG_DIR="$HOME/.config/gh/personal" gh auth git-credential' ]] ||
-    fail "personal gist helper list was not reset to the portable profile helper"
+[[ -z "$__personal_gist_helpers" ]] ||
+    fail "personal GitHub setup created a gist helper"
 if printf 'protocol=https\nhost=github.com\n\n' |
     env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__personal_config" \
         GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 git credential fill >/dev/null 2>&1; then
@@ -170,6 +166,16 @@ grep -qF "$__gh_config_personal|auth git-credential get" "$__helper_log" ||
 if grep -qF "inherited" "$__helper_log"; then
     fail "inherited generic credential helper was not reset"
 fi
+
+env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
+    usage_profile=personal usage_hostname=gist.github.com zsh "$__task"
+grep -qF "gh auth setup-git --hostname gist.github.com" "$__log" ||
+    fail "gist GitHub setup did not use the explicit gist hostname"
+local __explicit_gist_helpers="$(
+    git config --file "$__personal_config" --get-all credential.https://gist.github.com.helper
+)"
+[[ "$__explicit_gist_helpers" == $'\n!GH_CONFIG_DIR="$HOME/.config/gh/personal" gh auth git-credential' ]] ||
+    fail "explicit gist setup did not write the portable profile helper"
 
 env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
     usage_profile=work usage_hostname=github.enterprise.example zsh "$__task"

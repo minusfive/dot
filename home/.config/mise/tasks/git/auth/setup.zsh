@@ -64,7 +64,6 @@ if ! env GH_CONFIG_DIR="$__gh_config_dir" GIT_CONFIG_GLOBAL="$__profile_config" 
 fi
 
 local __credential_key="credential.https://$__hostname.helper"
-local __gist_credential_key="credential.https://gist.$__hostname.helper"
 local __profile_helper="!GH_CONFIG_DIR=\"\$HOME/.config/gh/$__profile\" gh auth git-credential"
 
 if ! git config --file "$__profile_config" --replace-all "$__credential_key" ""; then
@@ -74,15 +73,4 @@ fi
 if ! git config --file "$__profile_config" --add "$__credential_key" "$__profile_helper"; then
     print -u2 -- "error: could not write the profile-specific GitHub helper"
     exit 1
-fi
-
-if git config --file "$__profile_config" --get-all "$__gist_credential_key" >/dev/null 2>&1; then
-    if ! git config --file "$__profile_config" --replace-all "$__gist_credential_key" ""; then
-        print -u2 -- "error: could not reset the selected gist credential helpers"
-        exit 1
-    fi
-    if ! git config --file "$__profile_config" --add "$__gist_credential_key" "$__profile_helper"; then
-        print -u2 -- "error: could not write the profile-specific GitHub gist helper"
-        exit 1
-    fi
 fi

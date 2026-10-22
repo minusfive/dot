@@ -16,7 +16,8 @@ function {
         mkdir -p "$ZSH_CACHE_DIR"
 
         if [[ -f "$ZSH_CACHE_DIR/.zsh-update" ]]; then
-            sed -i '' '/LABEL_FULL_AUTOUPDATE/d' "$ZSH_CACHE_DIR/.zsh-update"
+            sed -i.bak '/LABEL_FULL_AUTOUPDATE/d' "$ZSH_CACHE_DIR/.zsh-update"
+            rm -f "$ZSH_CACHE_DIR/.zsh-update.bak"
         fi
 
         source "$ZSH_CUSTOM/plugins/ohmyzsh-full-autoupdate/ohmyzsh-full-autoupdate.plugin.zsh"

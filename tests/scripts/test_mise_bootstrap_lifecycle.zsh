@@ -9,6 +9,19 @@ echo "Testing mise bootstrap lifecycle..."
 local __task="scripts/tasks/system/bootstrap.zsh"
 [[ -x "$__task" ]] || fail "system bootstrap task is missing or not executable"
 zsh -n "$__task" || fail "system bootstrap task has syntax errors"
+local __follow_up_task="scripts/tasks/bootstrap.zsh"
+[[ -x "$__follow_up_task" ]] || fail "bootstrap follow-up task is missing or not executable"
+zsh -n "$__follow_up_task" || fail "bootstrap follow-up task has syntax errors"
+for __command in \
+    "mise run mise:cleanup:inventory" \
+    "mise run mise:cleanup" \
+    "mise fix"; do
+    grep -qF "$__command" "$__follow_up_task" ||
+        fail "bootstrap follow-up task is missing: $__command"
+done
+if grep -qF 'final = [' home/.config/mise/conf.d/module.mise.toml; then
+    fail "final bootstrap hook must not duplicate the bootstrap follow-up task"
+fi
 grep -qF '#MISE env={MISE_TASK_RUN_AUTO_INSTALL="false"}' "$__task" ||
     fail "bootstrap-only task auto-install suppression is missing"
 grep -qF '#MISE confirm={message="Apply the `{{ usage.profile }}` system profile?", default="no"}' "$__task" ||

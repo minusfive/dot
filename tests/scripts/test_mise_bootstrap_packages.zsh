@@ -15,7 +15,18 @@ grep -qF '"mise bootstrap packages upgrade --yes"' "$__config" ||
 grep -qF '"mise bootstrap packages prune --yes"' "$__config" ||
     fail "package prune hook is missing"
 
-local __profile_count="$(grep -o '"packages"' home/.config/mise/miserc.toml | wc -l | tr -d ' ')"
-[[ "$__profile_count" -eq 2 ]] || fail "packages must be selected by both profiles"
+local __shared_module_count="$(grep -o "'packages'" home/.config/mise/miserc.toml | wc -l | tr -d ' ')"
+[[ "$__shared_module_count" -eq 1 ]] ||
+    fail "packages must be selected as one shared module"
+local __packages_profile_config
+for __profile in work personal; do
+    __packages_profile_config="$(
+        env -u MISE_ENV DOT_PROFILE="$__profile" \
+            MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
+            mise -C "$__root_dir" config ls --no-truncate
+    )"
+    print -r -- "$__packages_profile_config" | grep -qF "module.packages.toml" ||
+        fail "packages must be selected by the $__profile profile"
+done
 
 echo "Shared package maintenance configuration passed."

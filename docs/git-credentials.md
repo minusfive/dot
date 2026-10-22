@@ -42,12 +42,13 @@ Configure the Git helper for the selected profile and hostname:
 
 ```bash
 mise run git:auth:setup --profile personal --hostname github.com
+mise run git:auth:setup --profile personal --hostname gist.github.com
 mise run git:auth:setup --profile work --hostname <hostname>
 ```
 
 The task requires both flags. It rejects a hostname that is not in the selected domain list. It also rejects a profile that is not authenticated for that hostname.
 
-The task runs `gh auth setup-git --hostname` with `GIT_CONFIG_GLOBAL` set to the selected local `.gitconfig`. It then replaces the generated helper with a portable command that uses the selected `GH_CONFIG_DIR`. An empty host-specific helper value resets inherited helpers before the profile helper is added.
+The task runs `gh auth setup-git --hostname` only for the selected hostname, with `GIT_CONFIG_GLOBAL` set to the selected local `.gitconfig`. It then replaces the generated helper with a portable command that uses the selected `GH_CONFIG_DIR`. An empty host-specific helper value resets inherited helpers before the profile helper is added.
 
 ## Pre-commit policy
 

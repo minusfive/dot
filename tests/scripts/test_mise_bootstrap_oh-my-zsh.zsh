@@ -68,6 +68,11 @@ grep -qF "'oh-my-zsh'," home/.config/mise/miserc.toml ||
     fail "missing Oh My Zsh update task"
 zsh -n home/.config/mise/tasks/omz/update.zsh ||
     fail "Oh My Zsh update task has syntax errors"
+grep -qF "sed -i.bak '/LABEL_FULL_AUTOUPDATE/d'" home/.config/mise/tasks/omz/update.zsh ||
+    fail "Oh My Zsh update task does not use portable in-place sed syntax"
+if grep -qF "sed -i ''" home/.config/mise/tasks/omz/update.zsh; then
+    fail "Oh My Zsh update task still uses macOS-only in-place sed syntax"
+fi
 local __task_info="$(
     env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
         mise -C "$__root_dir" tasks info omz:update
@@ -75,11 +80,44 @@ local __task_info="$(
 print -r -- "$__task_info" | grep -qF 'Task: omz:update' ||
     fail "Oh My Zsh update task is not discoverable"
 
+local __task_fixture
+__task_fixture="$(mktemp -d "${TMPDIR:-/tmp}/omz-update.XXXXXX")" ||
+    fail "could not create Oh My Zsh update task fixture"
+trap 'rm -rf -- "$__task_fixture"' EXIT
+mkdir -p \
+    "$__task_fixture/bin" \
+    "$__task_fixture/.config/oh-my-zsh/custom/plugins/ohmyzsh-full-autoupdate" \
+    "$__task_fixture/.config/oh-my-zsh/cache"
+cat > "$__task_fixture/bin/mise" <<'EOF'
+#!/bin/sh
+exit 0
+EOF
+cat > "$__task_fixture/.config/oh-my-zsh/custom/plugins/ohmyzsh-full-autoupdate/ohmyzsh-full-autoupdate.plugin.zsh" <<'EOF'
+print -r -- "autoupdate-plugin-loaded" >| "$OMZ_UPDATE_PLUGIN_LOG"
+EOF
+chmod +x "$__task_fixture/bin/mise"
+print -r -- 'LABEL_FULL_AUTOUPDATE' > "$__task_fixture/.config/oh-my-zsh/cache/.zsh-update"
+print -r -- 'keep-this-state' >> "$__task_fixture/.config/oh-my-zsh/cache/.zsh-update"
+env -u MISE_ENV \
+    HOME="$__task_fixture" \
+    XDG_CONFIG_HOME="$__task_fixture/.config" \
+    XDG_CACHE_HOME="$__task_fixture/.cache" \
+    OMZ_UPDATE_PLUGIN_LOG="$__task_fixture/plugin.log" \
+    PATH="$__task_fixture/bin:$PATH" \
+    zsh home/.config/mise/tasks/omz/update.zsh ||
+    fail "Oh My Zsh update task failed in its sed portability fixture"
+[[ "$(<"$__task_fixture/.config/oh-my-zsh/cache/.zsh-update")" == "keep-this-state" ]] ||
+    fail "Oh My Zsh update task did not remove the full-autoupdate cache marker"
+[[ ! -e "$__task_fixture/.config/oh-my-zsh/cache/.zsh-update.bak" ]] ||
+    fail "Oh My Zsh update task left its sed backup file"
+[[ "$(<"$__task_fixture/plugin.log")" == "autoupdate-plugin-loaded" ]] ||
+    fail "Oh My Zsh full-autoupdate plugin was not loaded"
+
 local __fixture_root
 __fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/oh-my-zsh.XXXXXX")" ||
     fail "could not create Oh My Zsh fixture"
 __fixture_root="$(realpath "$__fixture_root")"
-trap 'rm -rf -- "$__fixture_root"' EXIT
+trap 'rm -rf -- "$__task_fixture" "$__fixture_root"' EXIT
 mkdir -p \
     "$__fixture_root/.config/zsh" \
     "$__fixture_root/.config/oh-my-zsh/custom/plugins" \

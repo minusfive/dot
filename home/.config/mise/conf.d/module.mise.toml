@@ -111,8 +111,3 @@ post-tools = [
     "mise upgrade --prune",
     "mise reshim -f",
 ]
-final = [
-    "mise run mise:cleanup:inventory",
-    "mise run mise:cleanup",
-    "mise fix",
-]

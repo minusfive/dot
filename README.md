@@ -16,11 +16,14 @@ cd ~/dev/personal/dot
 ./scripts/install-mise.zsh
 source scripts/mise-env.zsh
 mise run system:bootstrap
+mise run bootstrap
 ```
 
 - The [`./scripts/install-mise.zsh`](./scripts/install-mise.zsh) installs `mise` when it is not available and checks the supported installation. On success it prints the commands for next steps.
 - Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` so the command can be executed, and loads the persisted profile (if one exists) before the first bootstrap.
-- The `mise` [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, clones repositories, and runs system maintenance.
+- The `mise` [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, and clones repositories.
+- The `mise` [`bootstrap`](./scripts/tasks/bootstrap.zsh) task updates the cleanup inventory, removes stale links, and applies repository fixes after the system bootstrap.
+- The bootstrap is not transactional. If a phase fails, earlier phases remain applied. Fix the reported phase, then rerun `mise run system:bootstrap --profile <profile>` with the same profile.
 
 ### Profiles
 

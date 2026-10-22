@@ -6,15 +6,15 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing tracked Git config policy..."
 
-local __checker="$__root_dir/scripts/check-git-config.zsh"
+local __checker="$__root_dir/scripts/check-git-config.ts"
 local __domains_helper="$__root_dir/home/.config/mise/utils/git-domains.zsh"
 [[ -x "$__checker" ]] || fail "Git config checker is missing or not executable"
 [[ -f "$__domains_helper" ]] || fail "Git domains helper is missing"
-zsh -n "$__checker" || fail "Git config checker has syntax errors"
+bun check "$__checker" || fail "Git config checker has syntax errors"
 zsh -n "$__domains_helper" || fail "Git domains helper has syntax errors"
 grep -qF '["git_config_policy"]' "$__root_dir/hk.pkl" ||
     fail "Git config policy is not registered with hk"
-grep -qF 'check = "scripts/check-git-config.zsh"' "$__root_dir/hk.pkl" ||
+grep -qF 'check = "bun scripts/check-git-config.ts"' "$__root_dir/hk.pkl" ||
     fail "hk does not run the Git config checker"
 source "$__domains_helper"
 
@@ -57,7 +57,7 @@ git -C "$__repo" add home/dev/personal/.domains home/.config/git/config \
 local __before_status="$(git -C "$__repo" status --porcelain)"
 (
     cd "$__repo"
-    zsh "$__checker"
+    bun "$__checker"
 )
 [[ "$(git -C "$__repo" status --porcelain)" == "$__before_status" ]] ||
     fail "Git config checker changed the index or worktree"
@@ -106,7 +106,7 @@ run_failure() {
     local __expected_category="$1"
     local -a __expected_markers=("${@:2}")
     local __output
-    if __output="$(cd "$__repo" && zsh "$__checker" 2>&1)"; then
+    if __output="$(cd "$__repo" && bun "$__checker" 2>&1)"; then
         fail "tracked Git config policy accepted an invalid $__expected_category entry"
     fi
     print -r -- "$__output" | grep -qF "$__expected_category" ||
@@ -279,7 +279,7 @@ run_failure "Git config source"
 
 git -C "$__repo" rm --cached -q home/dev/personal/.domains
 local __missing_manifest_output
-if __missing_manifest_output="$(cd "$__repo" && zsh "$__checker" 2>&1)"; then
+if __missing_manifest_output="$(cd "$__repo" && bun "$__checker" 2>&1)"; then
     fail "Git config checker accepted an untracked personal domain manifest"
 fi
 print -r -- "$__missing_manifest_output" | grep -qF "tracked personal domain manifest" ||
@@ -291,7 +291,7 @@ rm "$__domains"
 ln -s "$__outside_domains" "$__domains"
 git -C "$__repo" add home/dev/personal/.domains
 local __symlink_manifest_output
-if __symlink_manifest_output="$(cd "$__repo" && zsh "$__checker" 2>&1)"; then
+if __symlink_manifest_output="$(cd "$__repo" && bun "$__checker" 2>&1)"; then
     fail "Git config checker accepted a symlinked personal domain manifest"
 fi
 print -r -- "$__symlink_manifest_output" | grep -qF "symlink" ||

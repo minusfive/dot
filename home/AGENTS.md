@@ -16,6 +16,7 @@
 - Be concise and direct; focus output on the specific task and skip unnecessary preambles and postambles.
 - For shared prose and tone conventions across authored content, follow `writing-style`.
 - Ask for confirmation before destructive or irreversible operations.
+- Do not modify any file that already has uncommitted changes unless you know the source and intended disposition of those changes. If the source or intent is unknown, ask me before modifying the file. If I cannot respond, stop.
 - Commit or push changes only when I explicitly request that action in the current turn.
 - Treat earlier permission as expired after the turn unless I explicitly state that it persists.
 - Treat committing and pushing as separate actions. Permission for one does not authorize the other.
