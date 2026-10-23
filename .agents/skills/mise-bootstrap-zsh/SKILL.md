@@ -34,7 +34,7 @@ Use this skill when a `mise` module changes how Zsh starts or manages part of a 
 ## Validation
 
 - Run `zsh -n` on every changed Zsh source file.
-- Run the focused test for every changed module boundary.
+- Run the module contract test for changed declarations and the focused test for changed Zsh behavior.
 - Preview both work and personal bootstrap plans.
 - Run `mise run fix` after focused tests pass.
 - Run the aggregate checks before completion.

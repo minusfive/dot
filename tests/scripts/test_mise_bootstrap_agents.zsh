@@ -26,9 +26,6 @@ done
 grep -qF '"~/.config/mise/conf.d/module.agents.toml"' home/.config/mise/conf.d/module.mise.toml ||
     fail "mise control-plane module does not deploy module.agents.toml"
 
-mise run lint-skill-index >/dev/null || fail "root skill index validation failed"
-mise run lint-skill-index --base-path home >/dev/null || fail "home skill index validation failed"
-
 [[ -L "$HOME/AGENTS.md" ]] || fail "global AGENTS.md target is not a symlink"
 [[ -L "$HOME/CLAUDE.md" ]] || fail "global CLAUDE.md target is not a symlink"
 [[ "$(realpath "$HOME/AGENTS.md")" == "$(realpath home/AGENTS.md)" ]] ||

@@ -9,6 +9,15 @@ echo "Testing install-mise.zsh mise acquisition..."
 local __installer="scripts/install-mise.zsh"
 [[ -x "$__installer" ]] || fail "mise installer is missing or not executable"
 zsh -n "$__installer" || fail "mise installer has syntax errors"
+grep -qF 'curl -fsSL https://mise.run | sh' "$__installer" ||
+    fail "mise installer bridge missing"
+grep -qF 'local __code_color=$' "$__installer" ||
+    fail "mise installer does not define terminal code formatting"
+grep -qF 'mise run system:bootstrap --help${__reset_color}' "$__installer" ||
+    fail "mise installer does not print canonical task instructions"
+if grep -qF 'DOT_MISE_INSTALLED_DURING_RUN' "$__installer"; then
+    fail "mise installer retains obsolete installer state forwarding"
+fi
 if grep -qE '_v_|mise\.zsh|functions\.zsh' "$__installer"; then
     fail "mise installer retains retired lifecycle or UI helpers"
 fi

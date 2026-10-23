@@ -8,12 +8,12 @@
 - Group tightly coupled declarations in one `module.<name>.toml` file.
 - Use the profile lists in `home/.config/mise/miserc.toml` to select modules for each environment. Keep profile-specific modules out of profiles that should not load them.
 - Keep module names in each `home/.config/mise/miserc.toml` profile list alphabetized.
-- When you add or move package declarations between `home/.config/mise/conf.d/` modules, inspect `home/.config/mise/miserc.toml`. Update the `work` and `personal` module lists when selection changes, keep personal-only packages out of `work`, and cover the boundary in focused package tests.
+- When you add or move package declarations between `home/.config/mise/conf.d/` modules, inspect `home/.config/mise/miserc.toml`. Update the `work` and `personal` module lists when selection changes, keep personal-only packages out of `work`, and update `tests/scripts/test_mise_bootstrap_modules.zsh`.
 - Keep the full bootstrap lifecycle in `scripts/tasks/system/bootstrap.zsh`; keep `scripts/install-mise.zsh` limited to mise acquisition and printing the canonical task command.
 - Keep task metadata and usage specifications with their executable file tasks.
 - Keep tool-owned runtime files outside tracked sources and mise declarations.
-- Keep each `home/.config/mise/conf.d/module.<name>.toml` boundary in its own `tests/scripts/test_mise_bootstrap_<name>.zsh`. Do not aggregate assertions for multiple modules in one test.
-- Run focused module tests before the aggregate checks.
+- Keep declaration-only package, tool, and profile assertions in `tests/scripts/test_mise_bootstrap_modules.zsh`. Add a separate `tests/scripts/test_mise_bootstrap_<name>.zsh` file only for module-specific behavior.
+- Run the module contract test and any behavior-specific module tests before aggregate checks.
 - Run `mise run fix` after changing instructions or skills; it applies configured autofixes and reports only unfixable failures, including root and `home/` skill-index validation.
 - Update `README.md` in the same change when setup, layout, ownership, tooling, migration status, or user-facing workflows change. Load `readme-maintenance` for README decisions and edits.
 - Use one canonical executable entrypoint for each script. Do not retain compatibility wrappers unless the request explicitly requires them.
@@ -30,5 +30,5 @@ The skills below are available under `.agents/skills/`. **MUST NOT** preload any
 - `mise-bootstrap-modules` — Maintain mise module boundaries, declarations, control-plane links, and profile selection.
 - `mise-bootstrap-zsh` — Maintain Zsh startup zones, module-owned shell blocks, path precedence, and related bootstrap tests.
 - `mise-bootstrap-profiles` — Maintain work and personal profile state, rendering, and module cleanup.
-- `mise-bootstrap-testing` — Maintain focused tests for mise modules, profiles, lifecycle hooks, and ownership.
+- `mise-bootstrap-testing` — Maintain module contract tests and focused behavior tests for mise bootstrap profiles, hooks, and ownership.
 - `readme-maintenance` — Keep `README.md` current, educational, and accurate when repository behavior or structure changes.
