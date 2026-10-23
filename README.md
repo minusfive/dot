@@ -23,7 +23,7 @@ mise run bootstrap
 - Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` so the command can be executed, and loads the persisted profile (if one exists) before the first bootstrap.
 - The `mise` [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, and clones repositories.
 - The `bootstrap:pre-packages` task asks for a second confirmation before it persists the selected profile.
-- `mise run system:bootstrap --dry-run` forwards the selected profile to native `mise bootstrap --dry-run` without updating mise or profile state.
+- `mise run system:bootstrap --dry-run` forwards the selected profile to native `mise bootstrap --dry-run` without invoking an explicit self-update or changing profile state. The control-plane `self_update.auto` setting remains authoritative for eligible interactive mise invocations.
 - The `mise` [`bootstrap`](./scripts/tasks/bootstrap.zsh) task updates the cleanup inventory, removes stale links, and applies repository fixes after the system bootstrap.
 - The bootstrap is not transactional. If a phase fails, earlier phases remain applied. Fix the reported phase, then rerun `mise run system:bootstrap --profile <profile>` with the same profile.
 
