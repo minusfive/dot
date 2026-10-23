@@ -7,6 +7,9 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing mise module declarations..."
 
 local __control_plane="home/.config/mise/conf.d/module.mise.toml"
+local __control_plane_dotfiles="$(
+    mise config get --file "$__control_plane" dotfiles
+)" || fail "could not parse the mise control-plane dotfiles"
 local __work_profile_config="$(
     env -u MISE_ENV DOT_PROFILE=work \
         MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
@@ -23,28 +26,39 @@ assert_module_contract() {
     local __module="$2"
     local __declaration="$3"
     local __config="home/.config/mise/conf.d/module.$__module.toml"
+    local __declarations
 
     [[ -f "$__config" ]] || fail "missing $__config"
     case "$__kind" in
         package)
-            grep -q "\"$__declaration\" = \"latest\"" "$__config" ||
+            __declarations="$(
+                mise config get --file "$__config" bootstrap.packages
+            )" || fail "could not parse $__config package declarations"
+            print -r -- "$__declarations" |
+                grep -qF "\"$__declaration\" = \"latest\"" ||
                 fail "$__declaration is missing from $__config"
             ;;
         tool)
-            grep -qF "[tools]" "$__config" ||
-                fail "tools section is missing from $__config"
-            grep -qF "$__declaration" "$__config" ||
+            __declarations="$(
+                mise config get --file "$__config" tools
+            )" || fail "could not parse $__config tool declarations"
+            print -r -- "$__declarations" | grep -qF "$__declaration" ||
                 fail "$__declaration is missing from $__config"
             ;;
         personal)
-            grep -q "\"$__declaration\" = \"latest\"" "$__config" ||
+            __declarations="$(
+                mise config get --file "$__config" bootstrap.packages
+            )" || fail "could not parse $__config package declarations"
+            print -r -- "$__declarations" |
+                grep -qF "\"$__declaration\" = \"latest\"" ||
                 fail "$__declaration is missing from $__config"
             ;;
         *)
             fail "unknown module contract kind: $__kind"
             ;;
     esac
-    grep -qF "\"~/.config/mise/conf.d/module.$__module.toml\"" "$__control_plane" ||
+    print -r -- "$__control_plane_dotfiles" |
+        grep -qF "\"~/.config/mise/conf.d/module.$__module.toml\"" ||
         fail "control-plane module does not deploy module.$__module.toml"
     if [[ "$__kind" == personal ]]; then
         if print -r -- "$__work_profile_config" | grep -qF "module.$__module.toml"; then
