@@ -64,6 +64,9 @@ mkdir -p \
     "$__migration_fixture/state"
 ln -s "$__root_dir" "$__fixture_home/dev/personal/dot"
 {
+    print -r -- "[vars]"
+    print -r -- "resolved_profile = \"personal\""
+    print -r -- ""
     print -r -- "[settings.dotfiles]"
     print -r -- "relative_symlinks = true"
     print -r -- ""

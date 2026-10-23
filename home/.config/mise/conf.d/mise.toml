@@ -63,6 +63,7 @@
 "~/.config/mise/conf.d/opencode.personal.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/opencode.personal.toml", mode = "symlink" }
 "~/.config/mise/conf.d/packages.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/packages.toml", mode = "symlink" }
 "~/.config/mise/config.toml" = { source = "~/dev/personal/dot/home/.config/mise/config.toml", mode = "symlink" }
+"~/.local/state/minusfive/profile" = { source = "~/dev/personal/dot/home/.config/mise/profile.tmpl", mode = "template", template = "tera" }
 "~/.config/mise/mise.lock" = { source = "~/dev/personal/dot/home/.config/mise/mise.lock", mode = "symlink" }
 "~/.config/mise/miserc.toml" = { source = "~/dev/personal/dot/home/.config/mise/miserc.toml", mode = "symlink" }
 "~/.config/mise/miserc.local.toml" = { source = "~/dev/personal/dot/home/.config/mise/miserc.local.toml.tmpl", mode = "template", template = "tera" }

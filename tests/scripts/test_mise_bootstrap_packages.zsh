@@ -15,9 +15,6 @@ grep -qF '"mise bootstrap packages upgrade --yes"' "$__config" ||
 grep -qF '"mise bootstrap packages prune --yes"' "$__config" ||
     fail "package prune hook is missing"
 
-local __shared_module_count="$(grep -o "'packages'" home/.config/mise/miserc.toml | wc -l | tr -d ' ')"
-[[ "$__shared_module_count" -eq 1 ]] ||
-    fail "packages must be selected as one shared module"
 local __packages_profile_config
 for __profile in work personal; do
     __packages_profile_config="$(

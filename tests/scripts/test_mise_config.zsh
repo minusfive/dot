@@ -57,10 +57,16 @@ grep -qF '"~/.config/mise/tasks/gh/auth/login.zsh"' home/.config/mise/conf.d/mis
     fail "GitHub auth task is not owned by the mise control plane"
 [[ -f "home/.config/mise/miserc.local.toml.tmpl" ]] ||
     fail "persisted profile selector template is missing"
+[[ -f "home/.config/mise/profile.tmpl" ]] ||
+    fail "resolved profile template is missing"
 grep -qF '"~/.config/mise/miserc.local.toml"' home/.config/mise/conf.d/mise.toml ||
     fail "control plane does not deploy the persisted profile selector"
 grep -qF 'miserc.local.toml.tmpl", mode = "template", template = "tera"' home/.config/mise/conf.d/mise.toml ||
     fail "persisted profile selector is not rendered with Tera"
+grep -qF '"~/.local/state/minusfive/profile"' home/.config/mise/conf.d/mise.toml ||
+    fail "control plane does not deploy the resolved profile state"
+grep -qF 'profile.tmpl", mode = "template", template = "tera"' home/.config/mise/conf.d/mise.toml ||
+    fail "resolved profile state is not rendered with Tera"
 if grep -qE 'shared_modules|work_profile_modules|personal_profile_modules|^env = ' home/.config/mise/miserc.toml; then
     fail "profile module arrays or rendered environment remain in miserc.toml"
 fi
@@ -173,6 +179,24 @@ env \
     fail "personal profile selector render failed"
 grep -qxF 'env = ["personal"]' "$__mise_fixture_home/.config/mise/miserc.local.toml" ||
     fail "personal profile state did not render the personal selector"
+print -r -- work >| "$__mise_fixture_dir/state/minusfive/profile"
+env \
+    HOME="$__mise_fixture_home" \
+    XDG_CONFIG_HOME="$__mise_fixture_home/.config" \
+    XDG_STATE_HOME="$__mise_fixture_dir/state" \
+    MISE_GLOBAL_CONFIG_FILE="$__mise_fixture_config/config.toml" \
+    MISE_GLOBAL_CONFIG_ROOT="$__mise_fixture_config" \
+    MISE_CONFIG_DIR="$__mise_fixture_config" \
+    MISE_IGNORED_CONFIG_PATHS="$__mise_fixture_home/.config/mise" \
+    MISE_CEILING_PATHS="$__mise_fixture_home" \
+    MISE_DATA_DIR="$__mise_fixture_dir/data" \
+    MISE_CACHE_DIR="$__mise_fixture_dir/cache" \
+    MISE_STATE_DIR="$__mise_fixture_dir/state/mise" \
+    MISE_ENV_CONF_D=true \
+    mise -C "$__mise_fixture_home" -E personal dot apply --yes >/dev/null ||
+    fail "explicit profile selector render failed"
+grep -qxF 'env = ["personal"]' "$__mise_fixture_home/.config/mise/miserc.local.toml" ||
+    fail "explicit environment did not override the persisted profile selector"
 print -r -- invalid >| "$__mise_fixture_dir/state/minusfive/profile"
 env \
     HOME="$__mise_fixture_home" \
@@ -323,6 +347,9 @@ fi
 local __work_profile
 __work_profile="$(env MISE_ENV=work HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" mise -C "$__tmp_home" exec -- sh -c 'printf "%s" "$MISE_ENV"')"
 [[ "$__work_profile" == work ]] || fail "explicit work environment should override persisted state"
+local __cli_work_profile
+__cli_work_profile="$(env HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" mise -C "$__tmp_home" -E work exec -- sh -c 'printf "%s" "$MISE_ENV"')"
+[[ "$__cli_work_profile" == work ]] || fail "explicit -E work environment was not exported"
 
 local __personal_env
 __personal_env="$(env MISE_ENV=personal HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" mise -C "$__tmp_home" env --json)"

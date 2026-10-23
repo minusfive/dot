@@ -9,16 +9,15 @@ Use this skill when a change affects profile selection or profile-specific machi
 
 ## State ownership
 
-- Treat `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` as the canonical bootstrap source.
-- Let the generated `miserc.local.toml` select the environment from that file.
-- Let `home/.config/mise/tasks/bootstrap/pre-packages.zsh` read and write that state through its validated profile input.
-- Refresh the generated selector immediately after state persistence with targeted `mise --no-hooks dot apply`; do not run the full dotfile hook chain in the pre-packages phase.
+- Let `vars.resolved_profile` resolve explicit environment selection first, then the profile state file, then `work`.
+- Let the control-plane dotfiles render `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` and `miserc.local.toml` from that value.
+- Let `home/.config/mise/tasks/bootstrap/pre-packages.zsh` validate and confirm the selected profile before package bootstrap.
 - Export the selected value as `DOT_PROFILE` for existing consumers during the current initialization run.
 - Treat the macOS defaults value `hs.minusfive.profile` as a persistent mirror for Hammerspoon and other macOS consumers.
 - Treat `hs.minusfive.profile.is_work` and `hs.minusfive.profile.is_personal` as derived mirror values.
 - Let Hammerspoon's `ProfileState Spoon` read the state file and synchronize these values when Hammerspoon starts.
-- Keep the state file authoritative for shell and mise bootstrap operations.
-- Add an explicit, tested synchronization path before treating the macOS mirror as an independent source.
+- Treat the rendered profile state file as the shell and `mise` bootstrap input.
+- Keep the macOS profile value as a mirror of the rendered state file.
 - Keep the selector template in `home/.config/mise/miserc.local.toml.tmpl`.
 
 Read the [mise machine modules reference](https://mise.jdx.dev/bootstrap/modules.html) and [mise template reference](https://mise.jdx.dev/templates.html#miserc-template-support) before changing profile behavior.
@@ -31,7 +30,7 @@ Read the [mise machine modules reference](https://mise.jdx.dev/bootstrap/modules
 - Add a `.personal.toml` suffix only to personal-only fragments.
 - Preserve the existing repository context while mise renders the profile.
 - Keep environment selection in the generated `miserc.local.toml`.
-- Keep the validated state-derived `MISE_ENV` default in `home/.config/mise/config.toml` as the migration fallback when the generated selector is absent.
+- Keep the resolved profile fallback in `home/.config/mise/config.toml` when the generated selector is absent.
 - Do not introduce a second profile selector that can omit shared modules.
 
 ## Profile changes

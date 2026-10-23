@@ -1,9 +1,1 @@
-{% if (xdg_state_home ~ '/minusfive/profile') is file %}
-{% if read_file(path=xdg_state_home ~ '/minusfive/profile') | trim == 'personal' %}
-env = ["personal"]
-{% else %}
-env = ["work"]
-{% endif %}
-{% else %}
-env = ["work"]
-{% endif %}
+env = ["{{ vars.resolved_profile }}"]

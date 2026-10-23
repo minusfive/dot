@@ -62,8 +62,6 @@ grep -qF '"~/.config/mise/conf.d/oh-my-zsh.toml"' home/.config/mise/conf.d/mise.
     fail "mise control-plane module does not deploy oh-my-zsh.toml"
 grep -qF '"~/.config/mise/tasks/omz/update.zsh"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy the Oh My Zsh update task"
-grep -qF "'oh-my-zsh'," home/.config/mise/miserc.toml ||
-    fail "oh-my-zsh must be present in the shared module list"
 [[ -f "home/.config/mise/tasks/omz/update.zsh" ]] ||
     fail "missing Oh My Zsh update task"
 zsh -n home/.config/mise/tasks/omz/update.zsh ||

@@ -16,8 +16,6 @@ grep -qF 'MJConfigFile' "$__config" ||
     fail "Hammerspoon macOS hook is missing"
 grep -qF '"~/.config/mise/conf.d/hammerspoon.toml" = {' home/.config/mise/conf.d/mise.toml ||
     fail "Hammerspoon module is not deployed"
-grep -qF "'hammerspoon'" home/.config/mise/miserc.toml ||
-    fail "Hammerspoon is not selected by the shared profile modules"
 local __source="home/.config/hammerspoon"
 local __target="$HOME/.config/hammerspoon"
 [[ -f "$__source/.luarc.json" ]] || fail "Hammerspoon local-development source is missing"

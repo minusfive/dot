@@ -3,15 +3,15 @@
   "evals": [
     {
       "id": "preserve-shared-profile-modules",
-      "prompt": "Add a new package module that must load for both work and personal environments. Update the selector template and verify the generated selection. The shell stores the selected profile in an XDG state file, while the Hammerspoon ProfileState Spoon mirrors it in macOS defaults.",
-      "expected_output": "The response preserves the shared module set, adds the package module to the shared fragment, uses the generated selector, checks both environments, and preserves the state-file and macOS-mirror ownership split.",
+      "prompt": "Add a new package module that must load for both work and personal environments. Update the resolved-profile template and verify the generated selection. The dotfiles render the selected profile in an XDG state file, while the Hammerspoon ProfileState Spoon mirrors it in macOS defaults.",
+      "expected_output": "The response preserves the shared module set, adds the package module to the shared fragment, uses the resolved profile and generated selector, checks both environments, and preserves the rendered state-file and macOS-mirror ownership split.",
       "assertions": [
         "Adds a shared fragment that loads in both work and personal environments.",
-        "Uses the persisted profile and generated miserc.local.toml selection.",
+        "Uses the resolved profile and generated miserc.local.toml selection.",
         "Preserves the existing repository context during previews.",
         "Previews both work and personal profiles.",
         "Does not add a second profile selector that can omit shared modules.",
-        "Treats the XDG state file as the canonical bootstrap source.",
+        "Treats the XDG state file as a mise-managed rendered profile output.",
         "Treats the macOS defaults value as a persistent mirror.",
         "Keeps the mirror derived from the state file unless tested synchronization changes."
       ]
@@ -21,7 +21,7 @@
       "prompt": "Stop loading a personal-only module and remove its managed resources. The module declares a package and a dotfile.",
       "expected_output": "The response selects the remaining profile state, preserves the declaration during unapply planning, previews cleanup, applies it, and handles package pruning separately.",
       "assertions": [
-        "Changes the persisted profile or personal fragment before cleanup.",
+        "Changes the resolved profile or personal fragment before cleanup.",
         "Keeps the module declaration available for unapply planning.",
         "Previews module removal before applying it.",
         "Handles the package with separate package pruning.",

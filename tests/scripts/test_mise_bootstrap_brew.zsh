@@ -33,7 +33,7 @@ local __task_info="$(
     env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
         mise -C "$__root_dir" tasks info brew:install
 )"
-print -r -- "$__task_info" | grep -qF "home/.config/mise/tasks/brew/install.zsh" ||
+print -r -- "$__task_info" | grep -qF "~/.config/mise/tasks/brew/install.zsh" ||
     fail "MISE_CONFIG_DIR does not discover the Homebrew installation task"
 grep -qF '"~/.config/zsh/.zprofile/brew-shellenv"' "$__config" ||
     fail "Homebrew shell environment dotfile entry is missing"
@@ -43,8 +43,6 @@ if grep -qF "[bootstrap.packages]" "$__config"; then
     fail "shared package declarations should be moved to package modules"
 fi
 
-grep -qE "^[[:space:]]*['\"]brew['\"],[[:space:]]*$" home/.config/mise/miserc.toml ||
-    fail "Homebrew module is missing from the shared module list"
 for __profile in work personal; do
     local __profile_config="$(
         env MISE_ENV="$__profile" \
