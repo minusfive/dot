@@ -36,10 +36,11 @@ Read the [mise machine modules reference](https://mise.jdx.dev/bootstrap/modules
 
 1. Update the module declaration.
 2. Update both profile lists, or only the `personal` list for a personal-only resource.
-3. Update the matching focused test.
-4. Preview both profiles with `mise bootstrap --dry-run`.
-5. Verify that personal-only resources do not appear in the `work` profile.
-6. Run the focused test and `mise run fix`.
+3. Update the matching case in `tests/scripts/test_mise_bootstrap_modules.zsh`.
+4. Update a behavior-specific focused test when profile behavior affects ownership or cleanup.
+5. Preview both profiles with `mise bootstrap --dry-run`.
+6. Verify that personal-only resources do not appear in the `work` profile.
+7. Run the module contract test, any behavior-specific test, and `mise run fix`.
 
 Use the repository's established context for each preview.
 

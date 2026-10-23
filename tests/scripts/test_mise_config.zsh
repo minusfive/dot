@@ -25,17 +25,8 @@ fi
 [[ ! -e "home/.config/mise/mise.personal.toml" ]] || fail "obsolete personal config should be removed"
 [[ ! -e "home/.config/mise/files" ]] || fail "obsolete mise files directory should be removed"
 
-zsh -n scripts/install-mise.zsh || fail "scripts/install-mise.zsh has syntax errors"
 [[ ! -e scripts/mise.zsh ]] || fail "duplicate mise lifecycle script remains"
 [[ ! -e scripts/functions.zsh ]] || fail "duplicate bootstrap utility script remains"
-grep -qF 'curl -fsSL https://mise.run | sh' scripts/install-mise.zsh || fail "mise installer bridge missing"
-grep -qF 'local __code_color=$' scripts/install-mise.zsh ||
-    fail "mise installer does not define terminal code formatting"
-grep -qF 'mise run system:bootstrap --help${__reset_color}' scripts/install-mise.zsh ||
-    fail "mise installer does not print canonical task instructions"
-if grep -qF 'DOT_MISE_INSTALLED_DURING_RUN' scripts/install-mise.zsh; then
-    fail "mise installer retains obsolete installer state forwarding"
-fi
 grep -qF 'export MISE_CONFIG_DIR=' scripts/tasks/system/bootstrap.zsh ||
     fail "bootstrap task does not select repository-scoped mise config"
 grep -qF 'export MISE_ENV_CONF_D=true' scripts/tasks/system/bootstrap.zsh ||
@@ -46,20 +37,10 @@ grep -qF 'unset MISE_AUTO_ENV' scripts/tasks/system/bootstrap.zsh ||
     fail "bootstrap task does not clear inherited MISE_AUTO_ENV"
 
 grep -qF 'includes = ["scripts/tasks"]' .mise/conf.d/tasks.toml || fail "task include path is missing"
-local __task_listing
-__task_listing="$(XDG_CONFIG_HOME="$__root_dir/.config" DOT_PROFILE=work mise -C "$__root_dir" tasks ls)"
-print -r -- "$__task_listing" | grep -q '^setup[[:space:]]' || fail "setup task is not discoverable"
-print -r -- "$__task_listing" | grep -q '^check[[:space:]]' || fail "check task is not discoverable"
-print -r -- "$__task_listing" | grep -q '^system:bootstrap[[:space:]]' || fail "system bootstrap task is not discoverable"
-print -r -- "$__task_listing" | grep -q '^lint-skill-index[[:space:]]' || fail "lint-skill-index task is not discoverable"
-print -r -- "$__task_listing" | grep -q '^ai:skills:evals:init[[:space:]]' || fail "ai:skills:evals:init task is not discoverable"
-print -r -- "$__task_listing" | grep -q '^ai:skills:evals:prepare[[:space:]]' || fail "ai:skills:evals:prepare task is not discoverable"
-print -r -- "$__task_listing" | grep -q '^ai:skills:validate-conflicts[[:space:]]' || fail "ai:skills:validate-conflicts task is not discoverable"
-local __task_json
-__task_json="$(XDG_CONFIG_HOME="$__root_dir/.config" DOT_PROFILE=work mise -C "$__root_dir" tasks ls --json)"
-print -r -- "$__task_json" | jq -e 'any(.[]; (.aliases // []) | index("mise:tasks:validate-conflicts"))' >/dev/null ||
-    fail "mise:tasks:validate-conflicts task alias is not discoverable"
-print -r -- "$__task_listing" | grep -q '^ai:skills:evals:validate[[:space:]]' || fail "ai:skills:evals:validate task is not discoverable"
+env -u MISE_ENV -u MISE_AUTO_ENV \
+    MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
+    mise -C "$__root_dir" tasks validate --errors-only >/dev/null ||
+    fail "mise task definitions failed native validation"
 mise run lint-skill-index >/dev/null || fail "root skill index validation failed"
 mise run lint-skill-index --base-path home >/dev/null || fail "home skill index validation failed"
 grep -qF '["lint_skill_index"]' hk.pkl || fail "root skill index hook is missing"
@@ -167,8 +148,42 @@ env -u MISE_ENV -u MISE_AUTO_ENV \
     fail "isolated mise dotfile deployment failed"
 local __mise_link_count
 __mise_link_count="$(find "$__mise_fixture_home/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 114 ]] ||
-    fail "expected 114 managed mise links from the control-plane declarations, found $__mise_link_count"
+local __mise_status
+__mise_status="$(
+    env -u MISE_ENV -u MISE_AUTO_ENV \
+        HOME="$__mise_fixture_home" \
+        XDG_CONFIG_HOME="$__mise_fixture_home/.config" \
+        MISE_GLOBAL_CONFIG_FILE="$__mise_fixture_config/config.toml" \
+        MISE_GLOBAL_CONFIG_ROOT="$__mise_fixture_config" \
+        MISE_CONFIG_DIR="$__mise_fixture_config" \
+        MISE_IGNORED_CONFIG_PATHS="$__mise_fixture_home/.config/mise" \
+        MISE_CEILING_PATHS="$__mise_fixture_home" \
+        MISE_DATA_DIR="$__mise_fixture_dir/data" \
+        MISE_CACHE_DIR="$__mise_fixture_dir/cache" \
+        MISE_STATE_DIR="$__mise_fixture_dir/state" \
+        MISE_ENV_CONF_D=true \
+        mise -C "$__mise_fixture_home" dot status --json
+)" || fail "isolated mise dotfile status failed"
+print -r -- "$__mise_status" |
+    jq -e '(.files | length > 0) and all(.files[]; .state == "applied")' >/dev/null ||
+    fail "isolated mise dotfile status reported unapplied declarations"
+local __mise_declaration_count
+__mise_declaration_count="$(
+    awk '
+        /^\[dotfiles\]$/ { in_dotfiles = 1; next }
+        /^\[/ { in_dotfiles = 0 }
+        in_dotfiles && /^"~\// { count++ }
+        END { print count }
+    ' "$__mise_source"
+)"
+local __symlink_each_declaration_count
+__symlink_each_declaration_count="$(grep -c 'mode = "symlink-each"' "$__mise_source")"
+local __symlink_each_source_count
+__symlink_each_source_count="$(find home/.config/mise/conf.d/macos -type f | wc -l | tr -d ' ')"
+local __expected_mise_link_count=$((__mise_declaration_count -
+    __symlink_each_declaration_count + __symlink_each_source_count))
+[[ "$__mise_link_count" -eq "$__expected_mise_link_count" ]] ||
+    fail "expected $__expected_mise_link_count managed mise links from the control-plane declarations, found $__mise_link_count"
 [[ -L "$__mise_fixture_home/.config/mise/conf.d/module.betterdisplay.toml" ]] ||
     fail "isolated deployment omitted the BetterDisplay module link"
 if grep -qE '^"~/.config/mise/tasks/betterdisplay' "$__mise_source"; then

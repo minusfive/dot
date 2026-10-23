@@ -4,12 +4,12 @@
     {
       "id": "add-shared-package-module",
       "prompt": "Add a new shared Homebrew package to this repository's mise bootstrap configuration. Keep the declaration modular and update every required maintenance surface.",
-      "expected_output": "The response adds a dedicated module, wires it through the mise control plane, selects it in both profiles, adds a focused test, and runs the required validation.",
+      "expected_output": "The response adds a dedicated module, wires it through the mise control plane, selects it in both profiles, adds the package case to the shared module contract test, and runs the required validation.",
       "assertions": [
         "Creates one dedicated module file for the package.",
         "Adds the module to the control-plane dotfile declarations.",
         "Selects the module in both work and personal profile lists.",
-        "Adds or updates a focused test for the module boundary."
+        "Adds or updates the package case in test_mise_bootstrap_modules.zsh."
       ]
     },
     {

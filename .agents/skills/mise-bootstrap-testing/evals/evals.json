@@ -3,14 +3,13 @@
   "evals": [
     {
       "id": "add-module-regression-test",
-      "prompt": "Add a new mise module and its focused regression test. The test must catch a missing control-plane link, wrong profile selection, and an accidentally deployed runtime file.",
-      "expected_output": "The response adds a boundary-specific test that verifies the module declaration, control-plane link, profile lists, and runtime exclusion, then runs it before aggregate checks.",
+      "prompt": "Add a new declaration-only mise module for a shared package. Update the shared module contract test and run it before aggregate checks.",
+      "expected_output": "The response adds the module declaration, control-plane link, and shared profile selection, adds the package case to test_mise_bootstrap_modules.zsh, and runs the module contract test before aggregate checks.",
       "assertions": [
-        "Uses the test_mise_bootstrap_<name>.zsh naming pattern.",
+        "Uses the shared test_mise_bootstrap_modules.zsh contract for declaration-only coverage.",
         "Verifies the module declaration and control-plane link.",
-        "Verifies the expected profile selection.",
-        "Verifies the runtime file remains excluded.",
-        "Runs the focused test before aggregate checks."
+        "Verifies selection by both shared profiles.",
+        "Runs the module contract test before aggregate checks."
       ]
     },
     {

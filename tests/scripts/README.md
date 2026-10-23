@@ -70,11 +70,11 @@ Tests GitHub package and post-packages hook declarations, files, directories, so
 
 Tests the global EditorConfig link.
 
-The remaining migrated application boundaries use the same focused-test pattern: `test_mise_bootstrap_<module>.zsh`. Current module tests cover `1password`, `bat`, `btop`, `coreutils`, `curl`, `delta`, `editorconfig`, `fd`, `findutils`, `fzf`, `ghostty`, `git`, `gnu-sed`, `hammerspoon`, `harper`, `lazygit`, `nvim`, `p10k`, `ripgrep`, `tmux`, `wezterm`, `yarn`, `yazi`, and `zsh`.
+The remaining migrated application boundaries use focused tests when they have behavior beyond declaration checks. Current behavior tests cover `1password`, `bat`, `btop`, `coreutils`, `curl`, `delta`, `editorconfig`, `fd`, `findutils`, `fzf`, `ghostty`, `git`, `gnu-sed`, `hammerspoon`, `harper`, `lazygit`, `nvim`, `p10k`, `ripgrep`, `tmux`, `vivid`, `wezterm`, `yarn`, `yazi`, and `zsh`.
 
 The `Oh My Zsh` test covers its custom plugin repositories. The `Neovim` test covers the LazyVim repository.
 
-Each package module has a focused package assertion in its matching module test.
+`test_mise_bootstrap_modules.zsh` covers declaration-only package and tool modules. It checks the module declaration, control-plane link, and profile selection in one data-driven test. Personal-only package modules also check that the work profile excludes them.
 
 #### `test_mise_bootstrap_brew.zsh`
 
@@ -104,13 +104,11 @@ Tests transactional review-watch add, remove, and poll actions with isolated `gh
 
 Tests the shared package maintenance hook and profile selection for `module.packages.toml`.
 
-#### `test_mise_bootstrap_discord.zsh`, `test_mise_bootstrap_softraid.zsh`, `test_mise_bootstrap_whatsapp.zsh`
+#### `test_mise_bootstrap_modules.zsh`
 
-Tests personal-only package selection for each personal cask module.
+Tests declaration-only package and tool modules, including shared and personal profile selection.
 
-#### `test_mise_bootstrap_<module>.zsh`
-
-Tests one `home/.config/mise/conf.d/module.<module>.toml` boundary. The tool-module tests cover `bun`, `delta`, `go`, `github-copilot`, `mermaid-cli`, `mermaid-formatter`, `mise`, `node`, `pitchfork`, `prettier`, `python`, `qmd`, `ruby`, `rumdl`, `rust`, `stylua`, and `tree-sitter`.
+Use a separate `test_mise_bootstrap_<module>.zsh` file when a module needs behavior, ownership, runtime exclusion, syntax, or lifecycle assertions beyond the shared declaration contract.
 
 #### `test_mise_skill_evals.zsh`
 
@@ -178,10 +176,11 @@ Tests may behave differently based on current system configuration and installed
 When adding tests for new scripts:
 
 1. Follow the naming convention: `test_<scriptname>.zsh`
-2. Include both unit tests (file structure, syntax) and integration tests (execution)
-3. Handle missing dependencies gracefully
-4. Provide clear success/failure indicators
-5. Include usage examples in test output
+2. Add declaration-only package, tool, and profile cases to `test_mise_bootstrap_modules.zsh`
+3. Add a separate focused test for behavior that the shared declaration contract does not cover
+4. Handle missing dependencies gracefully
+5. Provide clear success/failure indicators
+6. Include usage examples in test output
 
 ### Test Template
 
