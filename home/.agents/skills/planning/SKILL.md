@@ -21,7 +21,10 @@ Use this skill to produce execution-ready plans before implementation.
 4. Continue until all implementation-critical decisions are resolved (decisions that materially change execution steps, ordering, or scope), no unresolved upstream dependencies remain, and no open questions remain for final plan output.
 5. Once all open questions are resolved and before presenting final plan output, apply the canonical critique gate defined in `AGENTS.md`.
 6. Before finalizing the plan, complete and persist a research matrix sized to the implementation scope. State the exact files, target paths, ownership mode, runtime exclusions, code coupling, validation commands, rollback, and final disposition. Do not create a full repository inventory when the scope is already fixed.
-7. Do not leave discovery tasks or implementation-critical decisions in story steps. Execution can run named validation commands and report drift. If a required fact is unknown, keep the work in planning and resolve it before handoff.
+7. Make each story a complete vertical slice. A story must implement one coherent behavior across every affected layer, include its focused and end-to-end validation, and update behavior-coupled documentation or instructions.
+8. Do not create horizontal stories that defer all tests, integration checks, or behavior-coupled documentation to a later story. Later stories must not be the first place that validates an earlier story's core design.
+9. Generate test fixtures at runtime in temporary directories and remove them on exit. Check in fixture files only when the plan explicitly requires a stable, reviewed fixture and names its path and purpose.
+10. Do not leave discovery tasks or implementation-critical decisions in story steps. Execution can run named validation commands and report drift. If a required fact is unknown, keep the work in planning and resolve it before handoff.
 
 ## Execution Readiness and Guardrails
 
@@ -29,6 +32,7 @@ Use this skill to produce execution-ready plans before implementation.
 - Do not leave implementation-critical steps as `TBD` or "decide later."
 - Ensure execution steps are ordered, concrete, and testable.
 - Ensure rollback/mitigation approach is clear before execution.
+- Ensure every story leaves an end-to-end demonstrable increment before the next dependent story starts.
 
 ## Plan Output Requirements
 
@@ -39,6 +43,8 @@ When producing or validating a plan, include only actionable execution instructi
    - Format implementation work as story blocks that execution agents can follow without reinterpretation.
    - Each story block must include: stable story key, dependencies, numbered implementation steps, acceptance checks, and rollback/mitigation notes.
    - Keep story keys machine-parseable and execution order topologically valid.
+   - Include the affected layers, the focused tests, and one end-to-end integration checkpoint in each story block.
+   - Keep behavior-coupled documentation and instruction updates in the story that changes the behavior.
 3. Execution handoff constraints:
    - Declare sequencing constraints and concurrency boundaries required by execution workflow.
    - Identify vertical integration checkpoints that execution must preserve as feedback anchors.
@@ -46,10 +52,8 @@ When producing or validating a plan, include only actionable execution instructi
    - When a plan names a file, write the full path relative to `~`.
 4. Verification/acceptance checks
 
-All open questions must be resolved during the planning conversation before presenting final plan output.
-Do not include meta-commentary, decision-making history, tradeoff history, or rationale narrative in final plan output.
+All open questions must be resolved during the planning conversation before presenting final plan output. Do not include meta-commentary, decision-making history, tradeoff history, or rationale narrative in final plan output.
 
 ## Execution Handoff
 
-Once the final plan artifact is accepted, load the `execution-workflow` skill to drive story delivery.
-Persist the accepted plan artifact using the canonical location and naming conventions defined by the `agentic-projects` skill before handoff, and include that exact plan path as an explicit handoff field for execution.
+Once the final plan artifact is accepted, load the `execution-workflow` skill to drive story delivery. Persist the accepted plan artifact using the canonical location and naming conventions defined by the `agentic-projects` skill before handoff, and include that exact plan path as an explicit handoff field for execution.
