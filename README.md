@@ -22,6 +22,8 @@ mise run bootstrap
 - The [`./scripts/install-mise.zsh`](./scripts/install-mise.zsh) installs `mise` when it is not available and checks the supported installation. On success it prints the commands for next steps.
 - Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` so the command can be executed, and loads the persisted profile (if one exists) before the first bootstrap.
 - The `mise` [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, and clones repositories.
+- The `bootstrap:pre-packages` task asks for a second confirmation before it persists the selected profile.
+- `mise run system:bootstrap --dry-run` forwards the selected profile to native `mise bootstrap --dry-run` without updating mise or profile state.
 - The `mise` [`bootstrap`](./scripts/tasks/bootstrap.zsh) task updates the cleanup inventory, removes stale links, and applies repository fixes after the system bootstrap.
 - The bootstrap is not transactional. If a phase fails, earlier phases remain applied. Fix the reported phase, then rerun `mise run system:bootstrap --profile <profile>` with the same profile.
 
@@ -33,7 +35,7 @@ The `work` profile is the default and excludes personal-only tools and applicati
 mise run system:bootstrap --profile personal
 ```
 
-The bootstrap task saves the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` after approval and exports it as the `zsh` environment variable `DOT_PROFILE`. A run without `--profile` reuses the persisted profile; when no profile has been saved, it uses `work`.
+The `bootstrap:pre-packages` task saves the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` after confirmation. The system bootstrap exports the selected value as the `zsh` environment variable `DOT_PROFILE`. A run without `--profile` reuses the persisted profile; when no profile has been saved, it uses `work`.
 
 Each profile loads a different group of `mise` modules. These modules list the files and tools for that profile.
 

@@ -13,6 +13,7 @@ Use this skill for the canonical `system:bootstrap` task and the `scripts/instal
 - Keep `scripts/install-mise.zsh` as the mise acquisition script. It must accept only `--help`, install mise when needed, and print the canonical task command.
 - Keep the `system:bootstrap` task metadata and usage spec in `scripts/tasks/system/bootstrap.zsh`.
 - Put the active profile indicator in the task description. Keep the profile flag help limited to its purpose.
+- Persist the selected profile in `home/.config/mise/tasks/bootstrap/pre-packages.zsh`.
 - Run the full repository-scoped bootstrap without script-maintained phase filters.
 - Let mise declarations and module hooks own package installation, repository application, dotfile application, tool installation, and repeatable maintenance.
 - Keep lifecycle hooks in the module that owns the related resource.
@@ -20,11 +21,11 @@ Use this skill for the canonical `system:bootstrap` task and the `scripts/instal
 
 Read the [mise bootstrap run order](https://mise.jdx.dev/bootstrap.html#run-order) and [mise hooks reference](https://mise.jdx.dev/bootstrap.html#hooks) before changing lifecycle behavior.
 
-The bootstrap task runs separately from the installer and self-updates mise before bootstrap.
+The bootstrap task runs separately from the installer. The mise control-plane module configures automatic mise updates before bootstrap.
 
 ## Confirmation and errors
 
-- Keep one confirmation boundary for existing-mise self-update and the full bootstrap.
+- Keep one confirmation boundary for the full bootstrap. Do not add an imperative mise self-update step.
 - A declined confirmation must perform no later mutation.
 - Preserve fail-fast behavior and explicit errors.
 - Report missing mise, failed installation, and failed bootstrap as errors.
@@ -34,6 +35,7 @@ The bootstrap task runs separately from the installer and self-updates mise befo
 ## Hooks and maintenance
 
 - Put package maintenance in the shared package module's `post-packages` hook.
+- Keep profile persistence in the control-plane module's `pre-packages` hook.
 - Put tool maintenance in the control-plane module's `post-tools` hook.
 - Put application cache rebuilds in the owning module's `post-dotfiles` hook.
 - Keep hooks repeatable and safe to run on every bootstrap.

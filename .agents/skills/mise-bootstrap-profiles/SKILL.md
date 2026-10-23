@@ -11,7 +11,7 @@ Use this skill when a change affects profile selection or profile-specific machi
 
 - Treat `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` as the canonical bootstrap source.
 - Let mise set `DOT_PROFILE` from that file when the caller does not provide `DOT_PROFILE`.
-- Let `scripts/tasks/system/bootstrap.zsh` read and write that state through the existing profile helpers.
+- Let `home/.config/mise/tasks/bootstrap/pre-packages.zsh` read and write that state through its validated profile input.
 - Export the selected value as `DOT_PROFILE` for the current initialization run.
 - Treat the macOS defaults value `hs.minusfive.profile` as a persistent mirror for Hammerspoon and other macOS consumers.
 - Treat `hs.minusfive.profile.is_work` and `hs.minusfive.profile.is_personal` as derived mirror values.
