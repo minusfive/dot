@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing Hammerspoon bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module-hammerspoon.toml"
+local __config="home/.config/mise/conf.d/hammerspoon.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 grep -qF '"brew-cask:hammerspoon" = "latest"' "$__config" ||
     fail "Hammerspoon package declaration is missing"
@@ -14,7 +14,7 @@ grep -qF '"~/.config/hammerspoon" = {' "$__config" ||
     fail "Hammerspoon symlink declaration is missing"
 grep -qF 'MJConfigFile' "$__config" ||
     fail "Hammerspoon macOS hook is missing"
-grep -qF '"~/.config/mise/conf.d/module-hammerspoon.toml" = {' home/.config/mise/conf.d/module-mise.toml ||
+grep -qF '"~/.config/mise/conf.d/hammerspoon.toml" = {' home/.config/mise/conf.d/mise.toml ||
     fail "Hammerspoon module is not deployed"
 grep -qF "'hammerspoon'" home/.config/mise/miserc.toml ||
     fail "Hammerspoon is not selected by the shared profile modules"

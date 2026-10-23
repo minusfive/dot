@@ -19,7 +19,7 @@ for __command in \
     grep -qF "$__command" "$__follow_up_task" ||
         fail "bootstrap follow-up task is missing: $__command"
 done
-if grep -qF 'final = [' home/.config/mise/conf.d/module-mise.toml; then
+if grep -qF 'final = [' home/.config/mise/conf.d/mise.toml; then
     fail "final bootstrap hook must not duplicate the bootstrap follow-up task"
 fi
 grep -qF '#MISE env={MISE_TASK_RUN_AUTO_INSTALL="false"}' "$__task" ||

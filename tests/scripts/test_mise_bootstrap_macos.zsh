@@ -7,7 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing macOS bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/macos/mise.macos.toml"
-local __control_plane="home/.config/mise/conf.d/module-mise.toml"
+local __control_plane="home/.config/mise/conf.d/mise.toml"
 
 [[ -f "$__config" ]] || fail "missing $__config"
 grep -qF '"~/.config/mise/conf.d/macos" = {' "$__control_plane" ||

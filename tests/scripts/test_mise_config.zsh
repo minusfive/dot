@@ -19,10 +19,10 @@ export MISE_NOT_FOUND_AUTO_INSTALL=false
 [[ -f "home/.config/mise/config.toml" ]] || fail "missing home/.config/mise/config.toml"
 [[ -f "home/.config/mise/miserc.toml" ]] || fail "missing home/.config/mise/miserc.toml"
 [[ -f "home/.config/mise/mise.lock" ]] || fail "missing home/.config/mise/mise.lock"
-[[ -f "home/.config/mise/conf.d/module-mise.toml" ]] || fail "missing mise module declaration"
+[[ -f "home/.config/mise/conf.d/mise.toml" ]] || fail "missing mise module declaration"
 [[ ! -e "home/.config/mise/conf.d/bootstrap-ai.toml" ]] ||
     fail "empty legacy AI declaration should be removed"
-if grep -qF '"~/.config/mise/conf.d/bootstrap-ai.toml"' home/.config/mise/conf.d/module-mise.toml; then
+if grep -qF '"~/.config/mise/conf.d/bootstrap-ai.toml"' home/.config/mise/conf.d/mise.toml; then
     fail "mise control-plane module still deploys the removed AI declaration"
 fi
 [[ ! -e ".config/mise" ]] || fail "legacy mise source should be removed"
@@ -53,13 +53,13 @@ grep -qF '["validate_skill_evals"]' hk.pkl || fail "skill evaluation validation 
 grep -qF '["validate_skill_name_conflicts"]' hk.pkl || fail "skill name conflict hook is missing"
 grep -qF '["validate_task_name_conflicts"]' hk.pkl || fail "task name conflict hook is missing"
 
-grep -qF '"~/.config/mise/tasks/gh/auth/login.zsh"' home/.config/mise/conf.d/module-mise.toml ||
+grep -qF '"~/.config/mise/tasks/gh/auth/login.zsh"' home/.config/mise/conf.d/mise.toml ||
     fail "GitHub auth task is not owned by the mise control plane"
 [[ -f "home/.config/mise/miserc.local.toml.tmpl" ]] ||
     fail "persisted profile selector template is missing"
-grep -qF '"~/.config/mise/miserc.local.toml"' home/.config/mise/conf.d/module-mise.toml ||
+grep -qF '"~/.config/mise/miserc.local.toml"' home/.config/mise/conf.d/mise.toml ||
     fail "control plane does not deploy the persisted profile selector"
-grep -qF 'miserc.local.toml.tmpl", mode = "template", template = "tera"' home/.config/mise/conf.d/module-mise.toml ||
+grep -qF 'miserc.local.toml.tmpl", mode = "template", template = "tera"' home/.config/mise/conf.d/mise.toml ||
     fail "persisted profile selector is not rendered with Tera"
 if grep -qE 'shared_modules|work_profile_modules|personal_profile_modules|^env = ' home/.config/mise/miserc.toml; then
     fail "profile module arrays or rendered environment remain in miserc.toml"
@@ -71,9 +71,9 @@ for __profile in work personal; do
             MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
             mise -C "$__root_dir" config ls --no-truncate
     )"
-    print -r -- "$__profile_config" | grep -qF "module-dockutil.toml" ||
+    print -r -- "$__profile_config" | grep -qF "dockutil.toml" ||
         fail "dockutil module is missing from the $__profile profile"
-    print -r -- "$__profile_config" | grep -qF "module-hammerspoon.toml" ||
+    print -r -- "$__profile_config" | grep -qF "hammerspoon.toml" ||
         fail "Hammerspoon module is missing from the $__profile profile"
 done
 if grep -qF '"profiles"' home/.config/mise/miserc.toml; then
@@ -103,13 +103,13 @@ print -r -- "$__dot_trust_status" | grep -qF "$__expected_dot_trust" ||
     fail "repository trust path is not active"
 grep -qF '[settings.dotfiles]' home/.config/mise/config.toml || fail "dotfiles settings are missing"
 grep -qF 'relative_symlinks = true' home/.config/mise/config.toml || fail "relative symlinks are not enabled"
-grep -qF '"~/.config/mise/conf.d/module-mise.toml"' home/.config/mise/conf.d/module-mise.toml || fail "mise module must manage itself"
+grep -qF '"~/.config/mise/conf.d/mise.toml"' home/.config/mise/conf.d/mise.toml || fail "mise module must manage itself"
 if grep -R -qF '../../../home' home/.config/mise; then
     fail "legacy relative mise source path remains"
 fi
-grep -qF 'source = "~/dev/personal/dot/home/AGENTS.md"' home/.config/mise/conf.d/module-copilot.toml ||
+grep -qF 'source = "~/dev/personal/dot/home/AGENTS.md"' home/.config/mise/conf.d/copilot.toml ||
     fail "Copilot source path is not canonical"
-[[ ! -e "home/.config/mise/conf.d/module-profiles.toml" ]] || fail "retired profile module remains"
+[[ ! -e "home/.config/mise/conf.d/profiles.toml" ]] || fail "retired profile module remains"
 
 [[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 grep -qF 'auto_env = true' home/.config/mise/miserc.toml ||
@@ -119,7 +119,7 @@ if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/install-mise.zsh; then
 fi
 [[ ! -e scripts/os.zsh ]] || fail "OS operations must use mise macos tasks"
 
-local __mise_source="home/.config/mise/conf.d/module-mise.toml"
+local __mise_source="home/.config/mise/conf.d/mise.toml"
 local __mise_fixture_dir="$(mktemp -d)"
 trap 'rm -rf -- "$__trust_data" "$__mise_fixture_dir"' EXIT
 local __mise_fixture_home="$__mise_fixture_dir/home"
@@ -230,8 +230,8 @@ local __symlink_each_source_count
 __symlink_each_source_count="$(find home/.config/mise/conf.d/macos -type f | wc -l | tr -d ' ')"
 local __nested_mise_declaration_count=0
 local __module
-for __module in home/.config/mise/conf.d/module-*.toml; do
-    [[ "$__module" == *module-mise.toml || "$__module" == *.personal.toml ]] && continue
+for __module in home/.config/mise/conf.d/*.toml; do
+    [[ "$__module" == *mise.toml || "$__module" == *.personal.toml ]] && continue
     (( __nested_mise_declaration_count += $(
         awk '/^"~\/.config\/mise/{ count++ } END { print count + 0 }' "$__module"
     ) )) || :
@@ -241,7 +241,7 @@ local __expected_mise_link_count=$((__mise_declaration_count -
     __symlink_each_source_count + __nested_mise_declaration_count))
 [[ "$__mise_link_count" -eq "$__expected_mise_link_count" ]] ||
     fail "expected $__expected_mise_link_count managed mise links from the control-plane declarations, found $__mise_link_count"
-[[ -L "$__mise_fixture_home/.config/mise/conf.d/module-betterdisplay.toml" ]] ||
+[[ -L "$__mise_fixture_home/.config/mise/conf.d/betterdisplay.toml" ]] ||
     fail "isolated deployment omitted the BetterDisplay module link"
 [[ -f "$__mise_fixture_home/.config/mise/miserc.local.toml" ]] ||
     fail "isolated deployment omitted the generated profile selector"
@@ -280,11 +280,11 @@ __fallback_home="$(mktemp -d)"
 mkdir -p "$__fallback_home/.config/mise/conf.d" "$__fallback_home/.local/state/minusfive"
 cp home/.config/mise/config.toml "$__fallback_home/.config/mise/config.toml"
 cp home/.config/mise/miserc.toml "$__fallback_home/.config/mise/miserc.toml"
-cp home/.config/mise/conf.d/module-discord.personal.toml \
-    "$__fallback_home/.config/mise/conf.d/module-discord.personal.toml"
+cp home/.config/mise/conf.d/discord.personal.toml \
+    "$__fallback_home/.config/mise/conf.d/discord.personal.toml"
 print -r -- personal >| "$__fallback_home/.local/state/minusfive/profile"
 printf '\n[env]\nMISE_PROFILE_SMOKE_PERSONAL = "1"\n' \
-    >> "$__fallback_home/.config/mise/conf.d/module-discord.personal.toml"
+    >> "$__fallback_home/.config/mise/conf.d/discord.personal.toml"
 
 local __fallback_env
 __fallback_env="$(
@@ -306,12 +306,12 @@ trap 'rm -rf -- "$__trust_data" "$__mise_fixture_dir" "$__fallback_home" "$__tmp
 mkdir -p "$__tmp_home/.config/mise/conf.d"
 cp home/.config/mise/config.toml "$__tmp_home/.config/mise/config.toml"
 cp home/.config/mise/miserc.toml "$__tmp_home/.config/mise/miserc.toml"
-cp home/.config/mise/conf.d/module-discord.personal.toml "$__tmp_home/.config/mise/conf.d/module-discord.personal.toml"
+cp home/.config/mise/conf.d/discord.personal.toml "$__tmp_home/.config/mise/conf.d/discord.personal.toml"
 print -r -- 'env = ["personal"]' >| "$__tmp_home/.config/mise/miserc.local.toml"
 mkdir -p "$__tmp_home/.local/state/minusfive"
 print -r -- personal >| "$__tmp_home/.local/state/minusfive/profile"
 printf '\nMISE_PROFILE_SMOKE_BASE = "1"\n' >> "$__tmp_home/.config/mise/config.toml"
-printf '\n[env]\nMISE_PROFILE_SMOKE_PERSONAL = "1"\n' >> "$__tmp_home/.config/mise/conf.d/module-discord.personal.toml"
+printf '\n[env]\nMISE_PROFILE_SMOKE_PERSONAL = "1"\n' >> "$__tmp_home/.config/mise/conf.d/discord.personal.toml"
 
 local __work_env
 __work_env="$(env MISE_ENV=work HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" mise -C "$__tmp_home" env --json)"

@@ -15,11 +15,11 @@ trap 'rm -rf "$__fixture_dir"' EXIT
 
 [[ -x "$__task" ]] || fail "cleanup inventory task is not executable"
 grep -qF '"~/.config/mise/tasks/mise/cleanup/inventory.zsh"' \
-    home/.config/mise/conf.d/module-mise.toml ||
+    home/.config/mise/conf.d/mise.toml ||
     fail "cleanup inventory task is not deployed by the mise control plane"
 
 mkdir -p "$__fixture_root/home/.config/mise/conf.d"
-cat > "$__fixture_root/home/.config/mise/conf.d/module-example.toml" <<'EOF'
+cat > "$__fixture_root/home/.config/mise/conf.d/example.toml" <<'EOF'
 [dotfiles]
 "~/.config/example" = { source = "~/dev/personal/dot/home/.config/example", mode = "symlink-each" }
 "~/.config/example/config.toml/old" = { block = '''

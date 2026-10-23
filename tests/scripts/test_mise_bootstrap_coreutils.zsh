@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing coreutils package bootstrap configuration..."
 assert_module_package coreutils brew:coreutils
-local __config="home/.config/mise/conf.d/module-coreutils.toml"
+local __config="home/.config/mise/conf.d/coreutils.toml"
 local __source="home/.config/coreutils/zshrc.zsh"
 [[ -f "$__source" ]] || fail "missing coreutils Zsh source"
 zsh -n "$__source" || fail "coreutils Zsh source has syntax errors"

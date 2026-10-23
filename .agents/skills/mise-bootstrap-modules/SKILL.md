@@ -9,12 +9,12 @@ Use this skill for changes under `home/.config/mise/conf.d/`, `home/.config/mise
 
 ## Module boundaries
 
-- Keep one `module-<name>.toml` file for each package, tool, or logical configuration boundary.
+- Keep one `<name>.toml` file for each package, tool, or logical configuration boundary.
 - Keep tightly coupled declarations in one module.
 - Give each target one owner.
 - Keep tool-owned runtime files outside tracked sources and module declarations.
 - Keep post-install behavior in the owning module's `[bootstrap.hooks]` table.
-- Use the existing `module-mise.toml` control plane to deploy every tracked module file.
+- Use the existing `mise.toml` control plane to deploy every tracked module file.
 
 Use these declaration types:
 
@@ -41,7 +41,7 @@ Read the [mise bootstrap reference](https://mise.jdx.dev/bootstrap.html), [machi
 ## Environment selection
 
 - Keep shared modules in files without an environment suffix.
-- Name personal-only modules `module-<name>.personal.toml`.
+- Name personal-only modules `<name>.personal.toml`.
 - Keep `env_conf_d = true` in `miserc.toml`.
 - Use `home/.config/mise/miserc.local.toml.tmpl` to select the persisted `work` or `personal` environment.
 - Use `mise-bootstrap-profiles` for profile state, rendering, and cleanup behavior.

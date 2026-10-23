@@ -5,7 +5,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing GitHub bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module-gh.toml"
+local __config="home/.config/mise/conf.d/gh.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 assert_module_package gh brew:gh
 grep -qF '[bootstrap.hooks]' "$__config" || fail "GitHub post-packages hook is missing"
@@ -26,8 +26,8 @@ grep -qF '"~/.config/gh/personal/hosts.yml" = { source = "~/dev/personal/dot/hom
 if grep -qF '[bootstrap.files."~/.config/gh/personal/hosts.yml"]' "$__config"; then
     fail "GitHub hosts resource must not remain a bootstrap file"
 fi
-grep -qF '"~/.config/mise/conf.d/module-gh.toml"' home/.config/mise/conf.d/module-mise.toml ||
-    fail "mise control-plane module does not deploy module-gh.toml"
+grep -qF '"~/.config/mise/conf.d/gh.toml"' home/.config/mise/conf.d/mise.toml ||
+    fail "mise control-plane module does not deploy gh.toml"
 grep -qF 'source = "~/dev/personal/dot/home/.config/gh/personal/hosts.yml"' "$__config" || fail "GitHub hosts source is missing"
 grep -qF '"~/dev/personal/mise.toml/gh-config" = { source = "~/dev/personal/dot/home/.config/gh/gh-personal.mise.toml", template = "tera", merge = true }' "$__config" ||
     fail "personal GH_CONFIG_DIR merge entry is missing"
@@ -37,10 +37,10 @@ grep -qF 'GH_CONFIG_DIR = "{{ env.HOME }}/.config/gh/personal"' home/.config/gh/
     fail "personal GH_CONFIG_DIR source is missing"
 grep -qF 'GH_CONFIG_DIR = "{{ env.HOME }}/.config/gh/work"' home/.config/gh/gh-work.mise.toml ||
     fail "work GH_CONFIG_DIR source is missing"
-if grep -qF 'bootstrap-gh.toml' home/.config/mise/conf.d/module-mise.toml; then
+if grep -qF 'bootstrap-gh.toml' home/.config/mise/conf.d/mise.toml; then
     fail "legacy GitHub declaration is still deployed"
 fi
-[[ ! -e "home/.config/mise/conf.d/module-profiles.toml" ]] ||
+[[ ! -e "home/.config/mise/conf.d/profiles.toml" ]] ||
     fail "retired profile module remains"
 local __merge_dry_run="$(
     env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \

@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing mise module declarations..."
 
-local __control_plane="home/.config/mise/conf.d/module-mise.toml"
+local __control_plane="home/.config/mise/conf.d/mise.toml"
 local __control_plane_dotfiles="$(
     mise config get --file "$__control_plane" dotfiles
 )" || fail "could not parse the mise control-plane dotfiles"

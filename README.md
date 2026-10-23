@@ -77,9 +77,9 @@ The files are grouped by purpose. Each module manages related resources. A `dotf
 │   │   ├── ...
 │   │   └── mise/
 │   │       ├── conf.d/              # per-tool module files
-│   │       │   ├── module-1password.toml
-│   │       │   ├── module-agents.toml
-│   │       │   ├── module-bat.toml
+│   │       │   ├── 1password.toml
+│   │       │   ├── agents.toml
+│   │       │   ├── bat.toml
 │   │       │   └── ...
 │   │       ├── config.toml
 │   │       ├── mise.lock

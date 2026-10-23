@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing Oh My Zsh bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module-oh-my-zsh.toml"
+local __config="home/.config/mise/conf.d/oh-my-zsh.toml"
 local __source="home/.config/oh-my-zsh/custom/plugins/zsh-vi-mode/config.zsh"
 local __old_source="home/.config/zsh/plugins/zsh-vi-mode/config.zsh"
 [[ -f "$__config" ]] || fail "missing $__config"
@@ -58,9 +58,9 @@ done
 grep -qF '[bootstrap.hooks]' "$__config" || fail "Oh My Zsh bootstrap hooks are missing"
 grep -qF 'post-dotfiles = "mise run omz:update"' "$__config" ||
     fail "Oh My Zsh update hook is missing"
-grep -qF '"~/.config/mise/conf.d/module-oh-my-zsh.toml"' home/.config/mise/conf.d/module-mise.toml ||
-    fail "mise control-plane module does not deploy module-oh-my-zsh.toml"
-grep -qF '"~/.config/mise/tasks/omz/update.zsh"' home/.config/mise/conf.d/module-mise.toml ||
+grep -qF '"~/.config/mise/conf.d/oh-my-zsh.toml"' home/.config/mise/conf.d/mise.toml ||
+    fail "mise control-plane module does not deploy oh-my-zsh.toml"
+grep -qF '"~/.config/mise/tasks/omz/update.zsh"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy the Oh My Zsh update task"
 grep -qF "'oh-my-zsh'," home/.config/mise/miserc.toml ||
     fail "oh-my-zsh must be present in the shared module list"
@@ -140,7 +140,7 @@ for __profile in work personal; do
             MISE_ENV="$__profile" MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
             mise -C "$__root_dir" config ls --no-truncate
     )"
-    print -r -- "$__profile_config" | grep -qF "module-oh-my-zsh.toml" ||
+    print -r -- "$__profile_config" | grep -qF "oh-my-zsh.toml" ||
         fail "Oh My Zsh must be selected by the $__profile profile"
 done
 cp home/.config/zsh/.zshenv "$__fixture_root/.zshenv"

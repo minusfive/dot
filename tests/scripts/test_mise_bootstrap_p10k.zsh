@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing Powerlevel10k bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module-p10k.toml"
+local __config="home/.config/mise/conf.d/p10k.toml"
 local __source="home/.config/zsh/.p10k.zsh"
 [[ -f "$__config" && -f "$__source" ]] || fail "Powerlevel10k source or declaration is missing"
 grep -qF '"~/.config/oh-my-zsh/custom/themes/powerlevel10k" = { url = "https://github.com/romkatv/powerlevel10k.git" }' "$__config" ||
@@ -25,9 +25,9 @@ for __source_path in home/.config/p10k/zshrc.zsh home/.config/p10k/zshrc-zone-2.
 done
 grep -qF 'ZSH_THEME="powerlevel10k/powerlevel10k"' home/.config/p10k/zshrc.zsh ||
     fail "Powerlevel10k module does not own ZSH_THEME"
-grep -qF '"~/.config/mise/conf.d/module-p10k.toml"' home/.config/mise/conf.d/module-mise.toml ||
-    fail "mise control-plane module does not deploy module-p10k.toml"
-for __other_config in home/.config/mise/conf.d/module-*.toml; do
+grep -qF '"~/.config/mise/conf.d/p10k.toml"' home/.config/mise/conf.d/mise.toml ||
+    fail "mise control-plane module does not deploy p10k.toml"
+for __other_config in home/.config/mise/conf.d/*.toml; do
     [[ "$__other_config" == "$__config" ]] && continue
     if grep -qF '"~/.config/oh-my-zsh/custom/themes/powerlevel10k"' "$__other_config" ||
         grep -qF '"~/.config/zsh/.p10k.zsh"' "$__other_config" ||
@@ -77,7 +77,7 @@ for __profile in work personal; do
             MISE_ENV="$__profile" MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
             mise -C "$__root_dir" config ls --no-truncate
     )"
-    print -r -- "$__profile_config" | grep -qF "module-p10k.toml" ||
+    print -r -- "$__profile_config" | grep -qF "p10k.toml" ||
         fail "Powerlevel10k module must be selected by the $__profile profile"
 done
 

@@ -5,7 +5,7 @@ set -euo pipefail
 source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing node tool module..."
-local __config="home/.config/mise/conf.d/module-node.toml"
+local __config="home/.config/mise/conf.d/node.toml"
 assert_tool_module node 'node = { version = "25", postinstall = "mise run global-install-packages-npm" }'
 grep -qF '"~/.config/mise/tasks/global-install-packages-npm.sh"' "$__config" ||
     fail "Node package task is not owned by the Node module"

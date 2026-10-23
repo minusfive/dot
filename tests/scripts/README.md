@@ -78,7 +78,7 @@ The `Oh My Zsh` test covers its custom plugin repositories. The `Neovim` test co
 
 #### `test_mise_bootstrap_brew.zsh`
 
-Tests Homebrew adoption and shared profile selection for `module-brew.toml`.
+Tests Homebrew adoption and shared profile selection for `brew.toml`.
 
 #### `test_mise_bootstrap_macos.zsh`
 
@@ -102,7 +102,7 @@ Tests transactional review-watch add, remove, and poll actions with isolated `gh
 
 #### `test_mise_bootstrap_packages.zsh`
 
-Tests the shared package maintenance hook and profile selection for `module-packages.toml`.
+Tests the shared package maintenance hook and profile selection for `packages.toml`.
 
 #### `test_mise_bootstrap_modules.zsh`
 

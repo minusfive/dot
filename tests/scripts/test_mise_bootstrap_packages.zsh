@@ -5,10 +5,10 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing shared package maintenance configuration..."
 
-local __config="home/.config/mise/conf.d/module-packages.toml"
+local __config="home/.config/mise/conf.d/packages.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
-grep -qF '"~/.config/mise/conf.d/module-packages.toml"' home/.config/mise/conf.d/module-mise.toml ||
-    fail "mise control-plane module does not deploy module-packages.toml"
+grep -qF '"~/.config/mise/conf.d/packages.toml"' home/.config/mise/conf.d/mise.toml ||
+    fail "mise control-plane module does not deploy packages.toml"
 grep -qF "[bootstrap.hooks]" "$__config" || fail "package bootstrap hooks are missing"
 grep -qF '"mise bootstrap packages upgrade --yes"' "$__config" ||
     fail "package upgrade hook is missing"
@@ -25,7 +25,7 @@ for __profile in work personal; do
             MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
             mise -C "$__root_dir" config ls --no-truncate
     )"
-    print -r -- "$__packages_profile_config" | grep -qF "module-packages.toml" ||
+    print -r -- "$__packages_profile_config" | grep -qF "packages.toml" ||
         fail "packages must be selected by the $__profile profile"
 done
 

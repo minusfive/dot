@@ -23,7 +23,7 @@ The shared module contract test must verify the facts that can drift:
 
 - the module file exists;
 - the declaration has the expected resource type;
-- `module-mise.toml` deploys the module;
+- `mise.toml` deploys the module;
 - native `mise` environment fragments select the module;
 - personal-only modules stay out of the work profile.
 
