@@ -11,6 +11,7 @@ Use this skill for tests under `tests/scripts/` that verify the repository's mis
 
 - Give each `home/.config/mise/conf.d/module.<name>.toml` boundary its own `tests/scripts/test_mise_bootstrap_<name>.zsh`.
 - Keep lifecycle checks in `test_mise_bootstrap_lifecycle.zsh`.
+- Keep shared lifecycle task checks in `test_mise_task_bootstrap.zsh`.
 - Keep global control-plane checks in `test_mise_bootstrap_mise.zsh`.
 - Keep profile checks with the profile or lifecycle test that owns the behavior.
 - Use `mise_test_helpers.zsh` for shared root setup and assertion helpers.

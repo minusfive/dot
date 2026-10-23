@@ -45,10 +45,13 @@ grep -qF '#USAGE      choice "personal" help="adds personal resources and config
     fail "personal profile description is missing"
 grep -qF '#USAGE flag "--dry-run" help="Preview the selected `profile` actions without applying them or changing state."' "$__task" ||
     fail "dry-run help does not describe its behavior"
-grep -qF 'mise -C "$__root_dir" self-update --yes' "$__task" ||
-    fail "existing-mise self-update is missing"
+if grep -qF 'self-update' "$__task"; then
+    fail "system bootstrap must use mise self-update settings"
+fi
 grep -qF 'mise -C "$__root_dir" bootstrap --yes' "$__task" ||
     fail "direct mise bootstrap is missing"
+grep -qF 'mise -C "$__root_dir" bootstrap --dry-run' "$__task" ||
+    fail "dry-run mise bootstrap is missing"
 if grep -qE -- '--skip|--only|mise exec gh|setup-git' "$__task"; then
     fail "bootstrap task contains an obsolete lifecycle or authentication step"
 fi
@@ -78,7 +81,6 @@ print -r -- "$__help" | grep -qF '[env: DOT_PROFILE]' ||
 __help="$(env -u MISE_ENV -u DOT_PROFILE "$__mise_bin" -C "$__root_dir" run system:bootstrap --help)"
 print -r -- "$__help" | grep -qF '**Currently applied / persisted profile:' ||
     fail "task description does not show the persisted profile when DOT_PROFILE is absent"
-unset DOT_PROFILE
 
 cat > "$__bin_dir/mise" <<'EOF'
 #!/usr/bin/env bash
@@ -86,6 +88,10 @@ set -euo pipefail
 
 printf '%s\n' "$*" >> "$BOOTSTRAP_LOG"
 printf '%s\n' "${MISE_TASK_RUN_AUTO_INSTALL:-}" >> "$BOOTSTRAP_ENV"
+if [[ "$*" == *"bootstrap --yes"* ]]; then
+    mkdir -p "$(dirname "$BOOTSTRAP_PROFILE")"
+    printf '%s\n' "${DOT_PROFILE:-work}" >| "$BOOTSTRAP_PROFILE"
+fi
 if [[ "$*" == *"bootstrap --yes"* && "${BOOTSTRAP_STATUS:-0}" != 0 ]]; then
     exit "$BOOTSTRAP_STATUS"
 fi
@@ -93,21 +99,27 @@ EOF
 chmod +x "$__bin_dir/mise"
 
 run_task() {
-    env -u MISE_ENV -u MISE_AUTO_ENV \
-        HOME="$__fixture_dir/home" \
-        XDG_STATE_HOME="$__fixture_dir/home/.local/state" \
-        PATH="$__bin_dir:$PATH" \
-        BOOTSTRAP_LOG="$__log_file" \
-        BOOTSTRAP_ENV="$__env_file" \
-        "$__mise_bin" -C "$__root_dir" "$@"
+    local -a __task_env=(
+        env
+        -u MISE_AUTO_ENV
+    )
+    __task_env+=(-u MISE_ENV)
+    __task_env+=(
+        HOME="$__fixture_dir/home"
+        XDG_STATE_HOME="$__fixture_dir/home/.local/state"
+        PATH="$__bin_dir:$PATH"
+        BOOTSTRAP_LOG="$__log_file"
+        BOOTSTRAP_ENV="$__env_file"
+        BOOTSTRAP_PROFILE="$__fixture_dir/home/.local/state/minusfive/profile"
+    )
+    __task_env+=("$__mise_bin" -C "$__root_dir")
+    "${__task_env[@]}" "$@"
 }
 
 mkdir -p "$__fixture_dir/home"
 : > "$__log_file"
 : > "$__env_file"
 run_task run --yes system:bootstrap --profile personal
-grep -qF -- "-C $__root_dir self-update --yes" "$__log_file" ||
-    fail "existing mise did not self-update"
 grep -qF -- "-C $__root_dir bootstrap --yes" "$__log_file" ||
     fail "bootstrap lifecycle did not run"
 [[ "$(cat "$__fixture_dir/home/.local/state/minusfive/profile")" == personal ]] ||
@@ -142,16 +154,18 @@ DOT_PROFILE=personal run_task run --yes system:bootstrap
 
 : > "$__log_file"
 : > "$__env_file"
-DOT_PROFILE=personal run_task run --yes system:bootstrap --dry-run > "$__fixture_dir/profile-env-dry-run.txt"
-grep -qF "Would apply the personal mise bootstrap profile." "$__fixture_dir/profile-env-dry-run.txt" ||
-    fail "profile environment default was not applied"
-[[ ! -s "$__log_file" ]] || fail "profile environment dry run invoked lifecycle commands"
+DOT_PROFILE=personal run_task run --yes system:bootstrap --dry-run >/dev/null
+grep -qF -- "-C $__root_dir bootstrap --dry-run" "$__log_file" ||
+    fail "profile environment dry run did not invoke mise bootstrap"
+if grep -qF -- "self-update --yes" "$__log_file"; then
+    fail "profile environment dry run invoked self-update"
+fi
+[[ "$(cat "$__fixture_dir/home/.local/state/minusfive/profile")" == personal ]] ||
+    fail "profile environment dry run changed profile state"
 
 : > "$__log_file"
 : > "$__env_file"
 run_task run --yes system:bootstrap --profile work
-grep -qF -- "-C $__root_dir self-update --yes" "$__log_file" ||
-    fail "existing-mise self-update did not run on a later invocation"
 [[ "$(cat "$__fixture_dir/home/.local/state/minusfive/profile")" == work ]] ||
     fail "work profile was not persisted"
 
@@ -172,7 +186,11 @@ print -r -- "n" | run_task run system:bootstrap --profile personal >/dev/null 2>
 
 : > "$__log_file"
 run_task run --yes system:bootstrap --profile personal --dry-run >/dev/null
-[[ ! -s "$__log_file" ]] || fail "dry run invoked lifecycle commands"
+grep -qF -- "-C $__root_dir bootstrap --dry-run" "$__log_file" ||
+    fail "dry run did not invoke mise bootstrap"
+if grep -qF -- "self-update --yes" "$__log_file"; then
+    fail "dry run invoked self-update"
+fi
 [[ "$(cat "$__fixture_dir/home/.local/state/minusfive/profile")" == work ]] ||
     fail "dry run changed profile state"
 
@@ -183,9 +201,7 @@ grep -qF -- "-C $__root_dir bootstrap --yes" "$__log_file" ||
 
 : > "$__log_file"
 run_task run --yes system:bootstrap --profile personal
-grep -qF -- "-C $__root_dir self-update --yes" "$__log_file" ||
-    fail "bootstrap did not self-update"
 grep -qF -- "-C $__root_dir bootstrap --yes" "$__log_file" ||
-    fail "bootstrap did not run after self-update"
+    fail "bootstrap did not run"
 
 echo "Mise bootstrap lifecycle passed."

@@ -167,8 +167,8 @@ env -u MISE_ENV -u MISE_AUTO_ENV \
     fail "isolated mise dotfile deployment failed"
 local __mise_link_count
 __mise_link_count="$(find "$__mise_fixture_home/.config/mise" -type l | wc -l | tr -d ' ')"
-[[ "$__mise_link_count" -eq 112 ]] ||
-    fail "expected 112 managed mise links from the control-plane declarations, found $__mise_link_count"
+[[ "$__mise_link_count" -eq 114 ]] ||
+    fail "expected 114 managed mise links from the control-plane declarations, found $__mise_link_count"
 [[ -L "$__mise_fixture_home/.config/mise/conf.d/module.betterdisplay.toml" ]] ||
     fail "isolated deployment omitted the BetterDisplay module link"
 if grep -qE '^"~/.config/mise/tasks/betterdisplay' "$__mise_source"; then

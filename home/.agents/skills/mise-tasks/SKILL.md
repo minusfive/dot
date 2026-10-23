@@ -39,6 +39,7 @@ See [file tasks](https://mise.jdx.dev/tasks/file-tasks.html).
 - Place file tasks in the project's configured tasks directory; refer to the docs for the supported defaults and how `task_config.includes` overrides them.
 - Make the file executable; mise auto-registers executable files in the tasks directory.
 - Use a file extension that matches the task language/interpreter (for example `.zsh`, `.sh`, `.js`, `.ts`).
+- Treat mise task files as task-runner entry points. Do not add direct-execution compatibility paths unless the request explicitly requires them.
 - Keep files named `_default` extensionless; mise default-task resolution breaks when `_default` has an extension.
 - Detect the most appropriate non-task location for reusable script code from project conventions and existing layout before extracting shared logic.
 - Shared script code belongs outside directories that mise scans for tasks. Anything mise discovers in those directories can become a task entry, so keep helpers/importable modules in the project's reusable-script location and import from there.

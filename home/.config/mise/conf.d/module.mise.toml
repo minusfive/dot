@@ -66,6 +66,8 @@
 "~/.config/mise/mise.lock" = { source = "~/dev/personal/dot/home/.config/mise/mise.lock", mode = "symlink" }
 "~/.config/mise/miserc.toml" = { source = "~/dev/personal/dot/home/.config/mise/miserc.toml", mode = "symlink" }
 "~/.config/mise/tasks/brew/install.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/brew/install.zsh", mode = "symlink" }
+"~/.config/mise/tasks/bootstrap/pre-packages.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/pre-packages.zsh", mode = "symlink" }
+"~/.config/mise/tasks/bootstrap/post-tools.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/post-tools.zsh", mode = "symlink" }
 "~/.config/mise/tasks/gh/download/file.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/download/file.sh", mode = "symlink" }
 "~/.config/mise/tasks/gh/auth/login.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/auth/login.zsh", mode = "symlink" }
 "~/.config/mise/tasks/git/auth/setup.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/git/auth/setup.zsh", mode = "symlink" }
@@ -107,8 +109,10 @@
 "~/.config/mise/conf.d/module.tree-sitter.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.tree-sitter.toml", mode = "symlink" }
 "~/.config/mise/conf.d/module.tuicr.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/module.tuicr.toml", mode = "symlink" }
 
+[settings.self_update]
+auto = true
+minimum_release_age = "2d"
+
 [bootstrap.hooks]
-post-tools = [
-    "mise upgrade --prune",
-    "mise reshim -f",
-]
+pre-packages = "mise run bootstrap:pre-packages"
+post-tools = "mise run bootstrap:post-tools"
