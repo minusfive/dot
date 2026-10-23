@@ -15,9 +15,10 @@ minimum_release_age = "7d"
 [settings.dotfiles]
 relative_symlinks = true
 
-# Use the canonical persisted profile as DOT_PROFILE's default only when the
-# caller does not provide DOT_PROFILE. This uses mise's Tera template support
-# to read the XDG state file:
+# Use the canonical persisted profile as the default for native profile task
+# selection and existing DOT_PROFILE consumers. This uses mise's Tera template
+# support to read the XDG state file:
 # https://mise.jdx.dev/templates.html#miserc-template-support
 [env]
-DOT_PROFILE = { default = "{% if (xdg_state_home ~ '/minusfive/profile') is file %}{{ read_file(path=xdg_state_home ~ '/minusfive/profile') | trim }}{% else %}work{% endif %}" }
+MISE_ENV = { default = "{% if (xdg_state_home ~ '/minusfive/profile') is file and (read_file(path=xdg_state_home ~ '/minusfive/profile') | trim) == 'personal' %}personal{% else %}work{% endif %}" }
+DOT_PROFILE = { default = "{% if (xdg_state_home ~ '/minusfive/profile') is file and (read_file(path=xdg_state_home ~ '/minusfive/profile') | trim) == 'personal' %}personal{% else %}work{% endif %}" }

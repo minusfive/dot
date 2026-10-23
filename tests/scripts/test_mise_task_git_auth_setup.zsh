@@ -26,10 +26,10 @@ if grep -qF 'gh auth setup-git "$__hostname"' "$__task"; then
     fail "Git auth setup must not configure all authenticated hosts"
 fi
 grep -qF '"~/.config/mise/tasks/git/auth/setup.zsh"' \
-    home/.config/mise/conf.d/module.mise.toml ||
+    home/.config/mise/conf.d/module-mise.toml ||
     fail "Git auth setup task is not deployed by the mise control plane"
 grep -qF '"~/.config/mise/utils/git-domains.zsh"' \
-    home/.config/mise/conf.d/module.mise.toml ||
+    home/.config/mise/conf.d/module-mise.toml ||
     fail "Git domains helper is not deployed by the mise control plane"
 local __task_info="$(
     env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \

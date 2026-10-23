@@ -87,7 +87,7 @@ function {
     fi
 
     print -r -- ""
-    print -r -- "Run ${__code_color}source scripts/mise-env.zsh${__reset_color} to populate required environment variables."
+    print -r -- "Run ${__code_color}source scripts/mise-env.zsh${__reset_color} to add mise to the current shell PATH."
     print -r -- "Then run ${__code_color}mise run system:bootstrap --help${__reset_color} for next steps."
     print -r -- ""
 } "$@"

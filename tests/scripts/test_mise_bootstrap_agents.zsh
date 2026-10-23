@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing agents bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.agents.toml"
+local __config="home/.config/mise/conf.d/module-agents.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "home/AGENTS.md" ]] || fail "missing shared global instructions"
 [[ -d "home/.agents/skills" ]] || fail "missing tracked agent skills"
@@ -23,8 +23,8 @@ for __target in '"~/AGENTS.md"' '"~/CLAUDE.md"' '"~/.agents"'; do
         fail "legacy AI declaration still owns $__target"
     fi
 done
-grep -qF '"~/.config/mise/conf.d/module.agents.toml"' home/.config/mise/conf.d/module.mise.toml ||
-    fail "mise control-plane module does not deploy module.agents.toml"
+grep -qF '"~/.config/mise/conf.d/module-agents.toml"' home/.config/mise/conf.d/module-mise.toml ||
+    fail "mise control-plane module does not deploy module-agents.toml"
 
 [[ -L "$HOME/AGENTS.md" ]] || fail "global AGENTS.md target is not a symlink"
 [[ -L "$HOME/CLAUDE.md" ]] || fail "global CLAUDE.md target is not a symlink"

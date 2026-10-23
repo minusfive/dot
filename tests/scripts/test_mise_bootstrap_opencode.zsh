@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing OpenCode bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.opencode.toml"
+local __config="home/.config/mise/conf.d/module-opencode.personal.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 assert_personal_module_package opencode brew:opencode
 git ls-files --error-unmatch \
@@ -26,8 +26,8 @@ fi
 if grep -qF '"~/.config/opencode"' home/.config/mise/conf.d/bootstrap-ai.toml; then
     fail "legacy AI declaration still owns ~/.config/opencode"
 fi
-grep -qF '"~/.config/mise/conf.d/module.opencode.toml"' home/.config/mise/conf.d/module.mise.toml ||
-    fail "mise control-plane module does not deploy module.opencode.toml"
+grep -qF '"~/.config/mise/conf.d/module-opencode.personal.toml"' home/.config/mise/conf.d/module-mise.toml ||
+    fail "mise control-plane module does not deploy module-opencode.personal.toml"
 if git grep -IlE 'BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|(^|[^[:alnum:]])(token|password|secret|api[-_]?key)[[:space:]]*[:=]' -- home/.config/opencode >/dev/null; then
     fail "credential-like content found in tracked OpenCode sources"
 fi

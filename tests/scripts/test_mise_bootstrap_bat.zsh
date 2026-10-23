@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing bat bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.bat.toml"
+local __config="home/.config/mise/conf.d/module-bat.toml"
 assert_module_package bat brew:bat
 local __source="home/.config/bat"
 local __target="$HOME/.config/bat"
@@ -22,7 +22,7 @@ grep -qF 'pre-dotfiles = '\''mise run gh:download:file -- --api-path "repos/catp
 if grep -qF 'gh api' "$__config"; then
     fail "bat theme API download must be owned by the task"
 fi
-[[ ! -e home/.config/mise/conf.d/module.bat.toml.bak ]] || fail "unexpected bat backup declaration"
+[[ ! -e home/.config/mise/conf.d/module-bat.toml.bak ]] || fail "unexpected bat backup declaration"
 
 [[ -d "$__target" && ! -L "$__target" ]] || fail "bat target must be a physical directory"
 for __path in "$__target/config" "$__target/themes/Catppuccin Mocha.tmTheme"; do

@@ -28,7 +28,7 @@ if grep -qF 'gh:auth:login' home/.config/mise/tasks/pr/review-watch.ts \
     fail "public or review-watch tasks force GitHub authentication"
 fi
 grep -qF '"~/.config/mise/tasks/gh/auth/login.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/auth/login.zsh", mode = "symlink" }' \
-    home/.config/mise/conf.d/module.mise.toml ||
+    home/.config/mise/conf.d/module-mise.toml ||
     fail "GitHub auth task is not deployed by the mise control plane"
 
 local __fixture_dir="$__root_dir/.agents/projects.local/issue-61-mise-bootstrap/tmp/gh-auth-test.$$"

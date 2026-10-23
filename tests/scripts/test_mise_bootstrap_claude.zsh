@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing Claude bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.claude.toml"
+local __config="home/.config/mise/conf.d/module-claude.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 assert_module_package claude brew-cask:claude-code
 [[ -f "home/.claude/settings.json" ]] || fail "missing Claude settings"
@@ -22,8 +22,8 @@ grep -qF '"~/.claude/statusline-command.sh" = { source = "~/dev/personal/dot/hom
 if grep -qF '"~/.claude"' home/.config/mise/conf.d/bootstrap-ai.toml; then
     fail "legacy AI declaration still owns ~/.claude"
 fi
-grep -qF '"~/.config/mise/conf.d/module.claude.toml"' home/.config/mise/conf.d/module.mise.toml ||
-    fail "mise control-plane module does not deploy module.claude.toml"
+grep -qF '"~/.config/mise/conf.d/module-claude.toml"' home/.config/mise/conf.d/module-mise.toml ||
+    fail "mise control-plane module does not deploy module-claude.toml"
 
 bash -n home/.claude/statusline-command.sh || fail "Claude statusline has syntax errors"
 test "$(readlink home/.claude/skills)" = "../.agents/skills" ||

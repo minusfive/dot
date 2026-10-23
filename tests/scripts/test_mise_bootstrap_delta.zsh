@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing delta bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.delta.toml"
+local __config="home/.config/mise/conf.d/module-delta.toml"
 local __source="home/.config/delta/themes/catppuccin.gitconfig"
 local __target="$HOME/.config/delta/themes/catppuccin.gitconfig"
 [[ -f "$__config" ]] || fail "missing $__config"

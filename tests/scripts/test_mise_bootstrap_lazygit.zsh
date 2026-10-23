@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing lazygit bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.lazygit.toml"
+local __config="home/.config/mise/conf.d/module-lazygit.toml"
 assert_module_package lazygit brew:lazygit
 local __source="home/.config/lazygit"
 local __target="$HOME/.config/lazygit"

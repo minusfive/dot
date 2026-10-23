@@ -7,7 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing macOS bootstrap configuration..."
 
 local __config="home/.config/mise/conf.d/macos/mise.macos.toml"
-local __control_plane="home/.config/mise/conf.d/module.mise.toml"
+local __control_plane="home/.config/mise/conf.d/module-mise.toml"
 
 [[ -f "$__config" ]] || fail "missing $__config"
 grep -qF '"~/.config/mise/conf.d/macos" = {' "$__control_plane" ||
@@ -57,7 +57,7 @@ done
 [[ ! -e scripts/os.zsh ]] || fail "scripts/os.zsh must be removed after task migration"
 
 local __dry_run
-__dry_run="$(env -u MISE_ENV DOT_PROFILE=work MISE_CONFIG_DIR="$__root_dir/home/.config/mise" \
+__dry_run="$(env MISE_ENV=work MISE_CONFIG_DIR="$__root_dir/home/.config/mise" \
     MISE_ENV_CONF_D=true mise -C "$__root_dir" bootstrap --dry-run 2>&1)"
 print -r -- "$__dry_run" | grep -qF 'mise bootstrap: system defaults' ||
     fail "full bootstrap is missing macOS defaults"

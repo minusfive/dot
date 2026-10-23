@@ -10,15 +10,16 @@ Use this skill when a change affects profile selection or profile-specific machi
 ## State ownership
 
 - Treat `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` as the canonical bootstrap source.
-- Let mise set `DOT_PROFILE` from that file when the caller does not provide `DOT_PROFILE`.
+- Let the generated `miserc.local.toml` select the environment from that file.
 - Let `home/.config/mise/tasks/bootstrap/pre-packages.zsh` read and write that state through its validated profile input.
-- Export the selected value as `DOT_PROFILE` for the current initialization run.
+- Refresh the generated selector immediately after state persistence with targeted `mise --no-hooks dot apply`; do not run the full dotfile hook chain in the pre-packages phase.
+- Export the selected value as `DOT_PROFILE` for existing consumers during the current initialization run.
 - Treat the macOS defaults value `hs.minusfive.profile` as a persistent mirror for Hammerspoon and other macOS consumers.
 - Treat `hs.minusfive.profile.is_work` and `hs.minusfive.profile.is_personal` as derived mirror values.
 - Let Hammerspoon's `ProfileState Spoon` read the state file and synchronize these values when Hammerspoon starts.
 - Keep the state file authoritative for shell and mise bootstrap operations.
 - Add an explicit, tested synchronization path before treating the macOS mirror as an independent source.
-- Keep the profile template in `home/.config/mise/miserc.toml`.
+- Keep the selector template in `home/.config/mise/miserc.local.toml.tmpl`.
 
 Read the [mise machine modules reference](https://mise.jdx.dev/bootstrap/modules.html) and [mise template reference](https://mise.jdx.dev/templates.html#miserc-template-support) before changing profile behavior.
 
@@ -26,16 +27,17 @@ Read the [mise machine modules reference](https://mise.jdx.dev/bootstrap/modules
 
 - Keep `work` as the safe default when no profile is stored.
 - Accept only `work` and `personal` in the bootstrap task.
-- Keep the shared module set in both profile branches.
-- Add a personal-only module only to the `personal` branch.
+- Keep shared fragments without an environment suffix.
+- Add a `.personal.toml` suffix only to personal-only fragments.
 - Preserve the existing repository context while mise renders the profile.
-- Keep profile selection in the rendered `miserc.toml`.
+- Keep environment selection in the generated `miserc.local.toml`.
+- Keep the validated state-derived `MISE_ENV` default in `home/.config/mise/config.toml` as the migration fallback when the generated selector is absent.
 - Do not introduce a second profile selector that can omit shared modules.
 
 ## Profile changes
 
 1. Update the module declaration.
-2. Update both profile lists, or only the `personal` list for a personal-only resource.
+2. Update the shared fragment, or the personal fragment for a personal-only resource.
 3. Update the matching case in `tests/scripts/test_mise_bootstrap_modules.zsh`.
 4. Update a behavior-specific focused test when profile behavior affects ownership or cleanup.
 5. Preview both profiles with `mise bootstrap --dry-run`.
@@ -57,8 +59,8 @@ Use the repository's established context for each preview.
 
 Profile tests must cover:
 
-- the persisted profile path and `DOT_PROFILE` handoff;
-- shared module selection in both branches;
-- personal-only module selection;
+- the persisted profile path and generated selector;
+- shared fragment selection in both environments;
+- personal-only fragment selection;
 - full-profile dry-run output; and
 - cleanup or ownership changes when a profile loses a module.

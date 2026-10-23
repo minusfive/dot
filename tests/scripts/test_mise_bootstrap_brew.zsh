@@ -5,13 +5,13 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing shared package bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.brew.toml"
+local __config="home/.config/mise/conf.d/module-brew.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 if [[ -e "home/.config/mise/conf.d/bootstrap-packages.toml" ]]; then
     fail "legacy shared package declaration must be retired"
 fi
-grep -qF '"~/.config/mise/conf.d/module.brew.toml"' home/.config/mise/conf.d/module.mise.toml ||
-    fail "mise control-plane module does not deploy module.brew.toml"
+grep -qF '"~/.config/mise/conf.d/module-brew.toml"' home/.config/mise/conf.d/module-mise.toml ||
+    fail "mise control-plane module does not deploy module-brew.toml"
 grep -qF "[bootstrap.brew]" "$__config" || fail "Homebrew bootstrap section is missing"
 grep -qF "adopt = true" "$__config" || fail "Homebrew adoption is missing"
 grep -qF 'pre-packages = "mise run brew:install"' "$__config" ||
@@ -27,7 +27,7 @@ grep -qF 'eval "$(/opt/homebrew/bin/brew shellenv)"' \
 if grep -qF "/usr/local/bin/brew" home/.config/mise/tasks/brew/install.zsh; then
     fail "Homebrew installation task must not include the Intel prefix"
 fi
-grep -qF '"~/.config/mise/tasks/brew/install.zsh"' home/.config/mise/conf.d/module.mise.toml ||
+grep -qF '"~/.config/mise/tasks/brew/install.zsh"' home/.config/mise/conf.d/module-mise.toml ||
     fail "mise control-plane module does not deploy the Homebrew installation task"
 local __task_info="$(
     env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
@@ -47,11 +47,11 @@ grep -qE "^[[:space:]]*['\"]brew['\"],[[:space:]]*$" home/.config/mise/miserc.to
     fail "Homebrew module is missing from the shared module list"
 for __profile in work personal; do
     local __profile_config="$(
-        env -u MISE_ENV DOT_PROFILE="$__profile" \
+        env MISE_ENV="$__profile" \
             MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
             mise -C "$__root_dir" config ls --no-truncate
     )"
-    print -r -- "$__profile_config" | grep -qF "module.brew.toml" ||
+    print -r -- "$__profile_config" | grep -qF "module-brew.toml" ||
         fail "Homebrew module must be selected by the $__profile profile"
 done
 

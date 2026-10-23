@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing Harper bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.harper.toml"
+local __config="home/.config/mise/conf.d/module-harper.toml"
 local __source="home/.config/harper/dictionaries/user.txt"
 local __target="$HOME/.config/harper/dictionaries/user.txt"
 [[ -f "$__config" && -f "$__source" ]] || fail "Harper source or declaration is missing"

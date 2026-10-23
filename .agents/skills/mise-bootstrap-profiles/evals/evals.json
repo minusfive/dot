@@ -3,11 +3,11 @@
   "evals": [
     {
       "id": "preserve-shared-profile-modules",
-      "prompt": "Add a new package module that must load for both work and personal profiles. Update the profile template and verify the rendered selection. The shell stores the selected profile in an XDG state file, while the Hammerspoon ProfileState Spoon mirrors it in macOS defaults.",
-      "expected_output": "The response preserves the shared module set, adds the package module to both branches, uses the rendered profile selection, checks both rendered profiles, and preserves the state-file and macOS-mirror ownership split.",
+      "prompt": "Add a new package module that must load for both work and personal environments. Update the selector template and verify the generated selection. The shell stores the selected profile in an XDG state file, while the Hammerspoon ProfileState Spoon mirrors it in macOS defaults.",
+      "expected_output": "The response preserves the shared module set, adds the package module to the shared fragment, uses the generated selector, checks both environments, and preserves the state-file and macOS-mirror ownership split.",
       "assertions": [
-        "Adds the module to both work and personal profile lists.",
-        "Uses the persisted profile and rendered miserc selection.",
+        "Adds a shared fragment that loads in both work and personal environments.",
+        "Uses the persisted profile and generated miserc.local.toml selection.",
         "Preserves the existing repository context during previews.",
         "Previews both work and personal profiles.",
         "Does not add a second profile selector that can omit shared modules.",
@@ -21,7 +21,7 @@
       "prompt": "Stop loading a personal-only module and remove its managed resources. The module declares a package and a dotfile.",
       "expected_output": "The response selects the remaining profile state, preserves the declaration during unapply planning, previews cleanup, applies it, and handles package pruning separately.",
       "assertions": [
-        "Changes the persisted profile or profile list before cleanup.",
+        "Changes the persisted profile or personal fragment before cleanup.",
         "Keeps the module declaration available for unapply planning.",
         "Previews module removal before applying it.",
         "Handles the package with separate package pruning.",

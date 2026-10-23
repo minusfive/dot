@@ -160,8 +160,8 @@ add_active_block() {
     local __id="${__relative##*/}"
     local __block_target="${__relative%/*}"
 
-    [[ "$__block_target" != "$__relative" ]] || return
-    [[ "$(basename "$__block_target")" == *.* ]] || return
+    [[ "$__block_target" != "$__relative" ]] || return 0
+    [[ "$(basename "$__block_target")" == *.* ]] || return 0
     __active_blocks+=("$__block_target|$__id")
 }
 

@@ -12,7 +12,7 @@ local __bin_dir="$__fixture_dir/bin"
 local __output="$__fixture_dir/theme.txt"
 local __invocation="$__fixture_dir/invocation.txt"
 grep -qF '"~/.config/mise/tasks/gh/download/file.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/download/file.sh", mode = "symlink" }' \
-    home/.config/mise/conf.d/module.mise.toml ||
+    home/.config/mise/conf.d/module-mise.toml ||
     fail "gh download task is not deployed by the mise control plane"
 mkdir -p "$__bin_dir"
 trap 'rm -rf "$__fixture_dir"' EXIT
