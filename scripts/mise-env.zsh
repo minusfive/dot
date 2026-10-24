@@ -18,9 +18,8 @@ function {
 
     path=("$HOME/.local/bin" $path)
     export PATH
-    unset MISE_GLOBAL_CONFIG_FILE MISE_CONFIG_FILE
+    unset MISE_GLOBAL_CONFIG_FILE MISE_CONFIG_FILE MISE_AUTO_ENV
     export MISE_CONFIG_DIR="$__mise_config_dir"
     export MISE_ENV_CONF_D=true
-    unset MISE_AUTO_ENV
     rehash
 } "${(%):-%N}" "$@"
