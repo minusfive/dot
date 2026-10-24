@@ -2,6 +2,7 @@
 
 - Treat `home/` as the source tree for global files managed under `$HOME`.
 - Keep repository-only guidance in this file or under `.agents/`.
+- Represent machine path relocations in tracked repository configuration and tests. When a managed path moves, update the owning mise declarations, cleanup manifests, consumers, and focused fixtures in the same repository change; do not rely on host-local state or manual migration.
 - This repository stores global skill sources under `home/.agents/skills`; pass `--skills-path home/.agents/skills` to the global `ai:skills:evals:*` tasks.
 - Keep repository-local instruction files and task names distinct from global entrypoints.
 - Group `home/.config/mise/conf.d/` files by logical boundary.
