@@ -35,7 +35,7 @@ grep -qF 'export MISE_CONFIG_DIR=' scripts/mise-env.zsh ||
     fail "mise environment script does not select repository-scoped mise config"
 grep -qF 'export MISE_ENV_CONF_D=true' scripts/mise-env.zsh ||
     fail "mise environment script does not enable mise conf.d modules"
-grep -qF 'unset MISE_AUTO_ENV' scripts/mise-env.zsh ||
+grep -qE 'unset .* MISE_AUTO_ENV([[:space:]]|$)' scripts/mise-env.zsh ||
     fail "mise environment script does not clear inherited MISE_AUTO_ENV"
 [[ ! -e scripts/tasks/system/bootstrap.zsh ]] || fail "retired bootstrap task remains"
 
@@ -158,6 +158,7 @@ env -u MISE_ENV -u MISE_AUTO_ENV \
     MISE_CACHE_DIR="$__mise_fixture_dir/cache" \
     MISE_STATE_DIR="$__mise_fixture_dir/state" \
     MISE_ENV_CONF_D=true \
+    MISE_YES=1 \
     mise -C "$__mise_fixture_home" dot apply --yes >/dev/null ||
     fail "isolated mise dotfile deployment failed"
 grep -qxF 'env = ["work"]' "$__mise_fixture_home/.config/mise/miserc.local.toml" ||
@@ -178,6 +179,7 @@ env \
     MISE_STATE_DIR="$__mise_fixture_dir/state/mise" \
     MISE_ENV=personal \
     MISE_ENV_CONF_D=true \
+    MISE_YES=1 \
     mise -C "$__mise_fixture_home" dot apply --yes >/dev/null ||
     fail "explicit personal profile selector render failed"
 grep -qxF 'env = ["personal"]' "$__mise_fixture_home/.config/mise/miserc.local.toml" ||
@@ -196,6 +198,7 @@ env \
     MISE_CACHE_DIR="$__mise_fixture_dir/cache" \
     MISE_STATE_DIR="$__mise_fixture_dir/state/mise" \
     MISE_ENV_CONF_D=true \
+    MISE_YES=1 \
     mise -C "$__mise_fixture_home" -E personal dot apply --yes >/dev/null ||
     fail "explicit profile selector render failed"
 grep -qxF 'env = ["personal"]' "$__mise_fixture_home/.config/mise/miserc.local.toml" ||
@@ -214,6 +217,7 @@ env \
     MISE_CACHE_DIR="$__mise_fixture_dir/cache" \
     MISE_STATE_DIR="$__mise_fixture_dir/state/mise" \
     MISE_ENV_CONF_D=true \
+    MISE_YES=1 \
     mise -C "$__mise_fixture_home" dot apply --yes >/dev/null ||
     fail "invalid profile selector render failed"
 grep -qxF 'env = ["work"]' "$__mise_fixture_home/.config/mise/miserc.local.toml" ||

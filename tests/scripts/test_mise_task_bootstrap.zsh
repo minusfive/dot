@@ -18,7 +18,7 @@ zsh -n "$__post_tools" || fail "post-tools task has syntax errors"
 grep -qF '#MISE description="Confirm the selected profile before package bootstrap"' \
     "$__pre_packages" ||
     fail "pre-packages task description is missing"
-grep -qF '#MISE confirm={message="Continue bootstrap with the `{{ usage.profile }}` profile?", default="no"}' \
+grep -qF '#MISE confirm={message="Install packages for the `{{ usage.profile }}` profile?", default="no"}' \
     "$__pre_packages" ||
     fail "pre-packages task confirmation is missing"
 grep -qF '#USAGE flag "-p --profile <profile>" env="MISE_ENV" default="work" {' \
@@ -34,7 +34,7 @@ grep -qF '#USAGE      choice "personal" help="adds personal resources and config
 grep -qF '#MISE description="Validate the selected profile before dotfile bootstrap"' \
     "$__pre_dotfiles" ||
     fail "pre-dotfiles profile validation description is missing"
-grep -qF '#MISE confirm={message="Continue bootstrap with the `{{ usage.profile }}` profile?", default="no"}' \
+grep -qF '#MISE confirm={message="Apply dotfiles for the `{{ usage.profile }}` profile?", default="no"}' \
     "$__pre_dotfiles" ||
     fail "pre-dotfiles task confirmation is missing"
 grep -qF '#USAGE flag "-p --profile <profile>" env="MISE_ENV" default="work" {' \

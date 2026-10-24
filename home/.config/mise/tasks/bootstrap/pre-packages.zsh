@@ -2,7 +2,7 @@
 #MISE description="Confirm the selected profile before package bootstrap"
 #MISE quiet=true
 #MISE env={MISE_TASK_RUN_AUTO_INSTALL="false"}
-#MISE confirm={message="Continue bootstrap with the `{{ usage.profile }}` profile?", default="no"}
+#MISE confirm={message="Install packages for the `{{ usage.profile }}` profile?", default="no"}
 #USAGE flag "-p --profile <profile>" env="MISE_ENV" default="work" {
 #USAGE   env_fallback "DOT_PROFILE"
 #USAGE   help "Select the profile to apply"
