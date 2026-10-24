@@ -3,11 +3,11 @@
   "evals": [
     {
       "id": "keep-bootstrap-declarative",
-      "prompt": "The repository's mise phase now runs a full bootstrap. Move a new repeatable package maintenance command into the correct declaration and keep scripts/mise.zsh thin.",
-      "expected_output": "The response places the command in the owning module hook, keeps scripts/mise.zsh as the lifecycle bridge, and avoids duplicating declarative work in the script.",
+      "prompt": "The repository's native mise bootstrap now runs the full lifecycle. Move a new repeatable package maintenance command into the correct declaration and keep the mise environment shim thin.",
+      "expected_output": "The response places the command in the owning module hook, keeps native mise bootstrap as the lifecycle owner, and avoids duplicating declarative work in the environment shim.",
       "assertions": [
         "Places package maintenance in the owning post-packages hook.",
-        "Keeps scripts/mise.zsh focused on installation, context, confirmation, and full bootstrap.",
+        "Keeps scripts/mise-env.zsh focused on repository environment setup.",
         "Preserves the full repository-scoped bootstrap without script-maintained phase filters.",
         "Does not add a script-maintained phase allowlist.",
         "Adds or updates focused lifecycle tests."
@@ -15,11 +15,12 @@
     },
     {
       "id": "preserve-failure-boundary",
-      "prompt": "Update the mise initialization lifecycle. Preserve the repository boundary and task resolution, keep the full-bootstrap and profile confirmations, and stop later work when bootstrap fails.",
-      "expected_output": "The response preserves the existing repository boundary and task resolution, both confirmation boundaries, fail-fast behavior, and rerun-after-failure recovery guidance.",
+      "prompt": "Update the mise initialization lifecycle. Preserve the repository boundary and task resolution, keep native mise bootstrap and the profile confirmation before packages, and stop later work when bootstrap fails.",
+      "expected_output": "The response preserves the existing repository-scoped context and task resolution, native bootstrap confirmation, profile validation before sensitive phases, fail-fast behavior, and rerun-after-failure recovery guidance.",
       "assertions": [
         "Preserves the existing repository-scoped context and task resolution.",
-        "Uses the full-bootstrap confirmation and the profile confirmation before package bootstrap.",
+        "Uses native mise bootstrap confirmation and the profile confirmation before package bootstrap.",
+        "Validates the selected profile before profile-sensitive bootstrap phases.",
         "Preserves fail-fast behavior after bootstrap failure.",
         "Verifies that mise runs before VM, OS, and BetterDisplay phases."
       ]

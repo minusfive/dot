@@ -13,7 +13,7 @@ grep -qF 'curl -fsSL https://mise.run | sh' "$__installer" ||
     fail "mise installer bridge missing"
 grep -qF 'local __code_color=$' "$__installer" ||
     fail "mise installer does not define terminal code formatting"
-grep -qF 'mise run system:bootstrap --help${__reset_color}' "$__installer" ||
+grep -qF 'mise bootstrap --help${__reset_color}' "$__installer" ||
     fail "mise installer does not print canonical task instructions"
 if grep -qF 'DOT_MISE_INSTALLED_DURING_RUN' "$__installer"; then
     fail "mise installer retains obsolete installer state forwarding"
@@ -84,9 +84,9 @@ grep -qF "test-version" "$__message_file" ||
     fail "existing official mise version was not displayed"
 grep -qF $'\e[36msource scripts/mise-env.zsh\e[0m' "$__message_file" ||
     fail "existing official mise did not print next-step instructions"
-grep -qF $'\e[36mmise run system:bootstrap --help\e[0m' "$__message_file" ||
+grep -qF $'\e[36mmise bootstrap --help\e[0m' "$__message_file" ||
     fail "existing official mise did not print the canonical task command"
-grep -qF -- "run system:bootstrap --help" "$__log_file" ||
+grep -qF -- "bootstrap --help" "$__log_file" ||
     fail "existing official mise was not checked against the repository task"
 
 rm -f "$__home/.local/bin/mise"
@@ -104,9 +104,9 @@ grep -qF $'\e[36mmise\e[0m installed' "$__message_file" ||
     fail "installed mise output is missing its teal code formatting"
 grep -qF $'\e[36msource scripts/mise-env.zsh\e[0m' "$__message_file" ||
     fail "clean-home acquisition did not print next-step instructions"
-grep -qF $'\e[36mmise run system:bootstrap --help\e[0m' "$__message_file" ||
+grep -qF $'\e[36mmise bootstrap --help\e[0m' "$__message_file" ||
     fail "clean-home acquisition did not print the canonical task command"
-grep -qF -- "run system:bootstrap --help" "$__log_file" ||
+grep -qF -- "bootstrap --help" "$__log_file" ||
     fail "clean-home acquisition was not checked against the repository task"
 
 cat > "$__installer_dir/curl" <<'EOF'
@@ -139,5 +139,17 @@ local __explicit_env_output="$(
 )"
 [[ "$__explicit_env_output" == work ]] ||
     fail "mise environment source changed an existing profile variable"
+
+local __mise_env_output="$(
+    env -u MISE_CONFIG_DIR -u MISE_ENV_CONF_D -u MISE_AUTO_ENV \
+        HOME="$__home" PATH="/usr/bin:/bin" \
+        zsh -fc 'source scripts/mise-env.zsh; print -r -- "$MISE_CONFIG_DIR"; print -r -- "$MISE_ENV_CONF_D"; print -r -- "${MISE_AUTO_ENV:-unset}"'
+)"
+print -r -- "$__mise_env_output" | grep -qF "$PWD/home/.config/mise" ||
+    fail "mise environment source did not select the repository config"
+print -r -- "$__mise_env_output" | grep -q '^true$' ||
+    fail "mise environment source did not enable conf.d modules"
+print -r -- "$__mise_env_output" | grep -q '^unset$' ||
+    fail "mise environment source did not clear auto environment selection"
 
 echo "install-mise.zsh mise acquisition passed."

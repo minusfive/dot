@@ -18,6 +18,8 @@ grep -qF '"~/.config/mise/tasks/mise/cleanup/inventory.zsh"' "$__config" ||
     fail "cleanup inventory task is missing"
 grep -qF '"~/.config/mise/tasks/bootstrap/pre-packages.zsh"' "$__config" ||
     fail "pre-packages profile task is missing"
+grep -qF '"~/.config/mise/tasks/bootstrap/pre-dotfiles.zsh"' "$__config" ||
+    fail "pre-dotfiles profile task is missing"
 grep -qF '"~/.config/mise/tasks/bootstrap/post-tools.zsh"' "$__config" ||
     fail "post-tools maintenance task is missing"
 grep -qF '[settings.self_update]' "$__config" ||
@@ -38,6 +40,8 @@ grep -qF 'post-tools = "mise run bootstrap:post-tools"' "$__config" ||
     fail "post-tools maintenance hook is missing"
 grep -qF 'pre-packages = "mise run bootstrap:pre-packages"' "$__config" ||
     fail "pre-packages profile hook is missing"
+grep -qF 'pre-dotfiles = "mise run bootstrap:pre-dotfiles"' "$__config" ||
+    fail "pre-dotfiles profile hook is missing"
 [[ ! -e "home/.config/mise/conf.d/tools.toml" ]] ||
     fail "combined tools module remains"
 [[ ! -e "home/.config/mise/conf.d/uv.toml" ]] ||
@@ -73,6 +77,7 @@ ln -s "$__root_dir" "$__fixture_home/dev/personal/dot"
     print -r -- "[dotfiles]"
     print -r -- "\"~/.config/mise/conf.d/mise.toml\" = { source = \"$__fixture_home/dev/personal/dot/home/.config/mise/conf.d/mise.toml\", mode = \"symlink\" }"
     print -r -- "\"~/.config/mise/conf.d/discord.personal.toml\" = { source = \"$__fixture_home/dev/personal/dot/home/.config/mise/conf.d/discord.personal.toml\", mode = \"symlink\" }"
+    print -r -- "\"~/.config/mise/tasks/bootstrap/pre-dotfiles.zsh\" = { source = \"$__fixture_home/dev/personal/dot/home/.config/mise/tasks/bootstrap/pre-dotfiles.zsh\", mode = \"symlink\" }"
 } >| "$__fixture_config/config.toml"
 ln -s "$__fixture_home/dev/personal/dot/home/.config/mise/conf.d/module.mise.toml" \
     "$__fixture_home/.config/mise/conf.d/module.mise.toml"

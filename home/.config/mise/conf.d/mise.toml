@@ -69,6 +69,7 @@
 "~/.config/mise/miserc.local.toml" = { source = "~/dev/personal/dot/home/.config/mise/miserc.local.toml.tmpl", mode = "template", template = "tera" }
 "~/.config/mise/tasks/brew/install.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/brew/install.zsh", mode = "symlink" }
 "~/.config/mise/tasks/bootstrap/pre-packages.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/pre-packages.zsh", mode = "symlink" }
+"~/.config/mise/tasks/bootstrap/pre-dotfiles.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/pre-dotfiles.zsh", mode = "symlink" }
 "~/.config/mise/tasks/bootstrap/post-tools.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/post-tools.zsh", mode = "symlink" }
 "~/.config/mise/tasks/gh/download/file.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/download/file.sh", mode = "symlink" }
 "~/.config/mise/tasks/gh/auth/login.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/auth/login.zsh", mode = "symlink" }
@@ -117,4 +118,5 @@ minimum_release_age = "2d"
 
 [bootstrap.hooks]
 pre-packages = "mise run bootstrap:pre-packages"
+pre-dotfiles = "mise run bootstrap:pre-dotfiles"
 post-tools = "mise run bootstrap:post-tools"
