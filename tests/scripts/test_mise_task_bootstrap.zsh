@@ -33,7 +33,7 @@ grep -qF 'mise upgrade --prune' "$__post_tools" ||
 grep -qF 'mise reshim -f' "$__post_tools" ||
     fail "post-tools task does not reshim mise tools"
 
-if grep -qE '__profile_file|miserc\\.local\\.toml|dot apply|previous_' "$__pre_packages"; then
+if grep -qE '__profile_file|miserc\.local\.toml|dot apply|previous_' "$__pre_packages"; then
     fail "pre-packages task still owns profile persistence or selector rendering"
 fi
 
