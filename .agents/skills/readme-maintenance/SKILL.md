@@ -34,29 +34,31 @@ Treat repository-internal module names, environment variable names, config keys,
 Update `README.md` when a change affects:
 
 - The repository purpose, supported environment, setup, bootstrap, or development workflow.
-- The source-tree layout, target path, or ownership between mise, scripts, and an application.
-- A primary tool, configuration surface, migration state, compatibility boundary, link, command, or user-facing statement.
+- The source-tree layout, target path, or which component manages a resource.
+- A primary tool, configuration method, migration state, compatibility, link, command, or other user-facing statement.
 
-Do not change `README.md` for internal refactors that do not affect what readers install, configure, run, or need to understand.
+Leave `README.md` unchanged for internal refactors that do not affect what readers install, configure, run, or need to understand.
 
 ## Authoring workflow
 
-1. Read the complete `README.md`, the change diff, and the files that define the changed behavior.
-2. Update the smallest section that explains the reader-facing change and its reason.
-3. Explain what a component does before explaining how to use it.
-4. Load `writing-style`, then `simple-english`, before drafting or reviewing README prose.
-5. Keep explanatory README sections, including profile, architecture, ownership, and workflow overviews, descriptive and neutral. State facts about choices and effects instead of telling readers what to choose or do. Reserve imperative wording for explicit setup steps and commands. Put operational directives for agents or contributors in instruction files, not in README explanations.
-6. Use plain language for readers who do not know the repository internals. Avoid jargon, buzzwords, unexplained abbreviations, and internal terms. Keep technical terms only when readers need them, and explain them at first use.
-7. Use short paragraphs, clear headings, lists for separate facts, and one source line per paragraph.
-8. Use repository-relative links for tracked files and canonical links for external tools.
-9. Put a tool link beside its first mention. Remove stale commands, paths, links, and claims.
-10. Keep profile descriptions general and omit personal package or cask examples unless setup requires them.
-11. Run a full critique cycle with `critique-workflow` before running checks. Resolve its findings and finalize the edit.
-12. Run checks against the final README edit before declaring the README update complete.
+1. Read the complete `README.md`, the complete diff for the requested change, and every file, command, or test that defines the changed behavior. Treat existing README claims as unverified.
+2. Decide whether the change affects readers. If it does not affect setup, layout, ownership, tools, workflow, or another user-facing fact, leave `README.md` unchanged and record the reason.
+3. Verify each changed claim against the final behavior. Check commands, paths, links, flags, ownership, and migration status. Remove or rewrite stale claims.
+4. Update the smallest section that explains the reader-facing change and its reason.
+5. Explain what a component does before explaining how to use it.
+6. Load `writing-style`, then `simple-english`, before drafting or reviewing README prose.
+7. Keep explanatory README sections, including profile, architecture, ownership, and workflow overviews, descriptive and neutral. State facts about choices and effects instead of telling readers what to choose or do. Reserve imperative wording for explicit setup steps and commands. Put operational directives for agents or contributors in instruction files, not in README explanations.
+8. Use plain, concrete language for readers who do not know the repository internals. Explain required technical terms at first use. Replace process jargon and negative framing with the reader-facing fact or action, except when a limitation or warning is necessary.
+9. Use short paragraphs, clear headings, and lists for separate facts. Keep each paragraph focused on one idea.
+10. Use repository-relative links for tracked files and canonical links for external tools. Put a tool link beside its first mention.
+11. Keep profile descriptions general and omit personal package or cask examples unless setup requires them.
+12. Review the complete final diff, not only the README hunk. Run a fresh `critique-workflow` pass, resolve its findings, and then run checks against the final files. If the critique finds an issue, fix it and repeat the critique before checks.
 
 ## Final checklist
 
 - The README matches the current setup commands, paths, links, ownership, and workflow.
+- Every changed user-facing claim matches the final behavior.
 - The layout and ownership model are clear to a new contributor.
 - Each approved primary tool has a concise purpose and a canonical link.
 - The README explains current behavior instead of copying operational procedures.
+- The complete final diff was reviewed, the critique findings were resolved, and the final checks passed.

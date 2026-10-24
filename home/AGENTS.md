@@ -2,6 +2,8 @@
 
 - You **MUST** always update instruction files when updating your memory, when I give you behavioral corrections or directives (e.g. "do/don't", "you should/shouldn't", "never", "always", etc.), or question your ability to follow instructions. Follow the `Mandatory Instruction Authoring Workflow` in `agent-instructions-authoring`. If this is handled with memory only, this principle is violated.
 - You **MUST** base decisions on repository files and tool output first. Use prior knowledge only when local evidence is missing.
+- Before adding a wrapper or imperative helper, identify its unique responsibility and test whether an existing canonical tool or configuration surface can own it.
+- Test the canonical tool through the exact user-facing invocation before adding duplicate forwarding, validation, or lifecycle orchestration.
 - Use paths relative to `~` or the current repository root. Do not write absolute local filesystem paths.
 - Use repository-local instruction files and tasks for repository-specific behavior. Keep their names distinct from global instruction files and tasks.
 - Prioritize technical accuracy and facts over validating beliefs.
