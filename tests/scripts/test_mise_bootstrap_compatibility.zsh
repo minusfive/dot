@@ -142,8 +142,11 @@ local __explicit_env_output="$(
 
 local __mise_env_output="$(
     env -u MISE_CONFIG_DIR -u MISE_ENV_CONF_D -u MISE_AUTO_ENV \
+        MISE_GLOBAL_CONFIG_FILE="$__home/global.toml" \
+        MISE_CONFIG_FILE="$__home/legacy.toml" \
+        MISE_GLOBAL_CONFIG_ROOT="$__home/global-root" \
         HOME="$__home" PATH="/usr/bin:/bin" \
-        zsh -fc 'source scripts/mise-env.zsh; print -r -- "$MISE_CONFIG_DIR"; print -r -- "$MISE_ENV_CONF_D"; print -r -- "${MISE_AUTO_ENV:-unset}"'
+        zsh -fc 'source scripts/mise-env.zsh; print -r -- "$MISE_CONFIG_DIR"; print -r -- "$MISE_ENV_CONF_D"; print -r -- "${MISE_AUTO_ENV:-unset}"; print -r -- "${MISE_GLOBAL_CONFIG_FILE:-unset}"; print -r -- "${MISE_CONFIG_FILE:-unset}"; print -r -- "$MISE_GLOBAL_CONFIG_ROOT"'
 )"
 print -r -- "$__mise_env_output" | grep -qF "$PWD/home/.config/mise" ||
     fail "mise environment source did not select the repository config"
@@ -151,5 +154,11 @@ print -r -- "$__mise_env_output" | grep -q '^true$' ||
     fail "mise environment source did not enable conf.d modules"
 print -r -- "$__mise_env_output" | grep -q '^unset$' ||
     fail "mise environment source did not clear auto environment selection"
+print -r -- "$__mise_env_output" | grep -qF "$__home/global-root" ||
+    fail "mise environment source changed the global config root"
+[[ "$(print -r -- "$__mise_env_output" | sed -n '4p')" == unset ]] ||
+    fail "mise environment source did not clear MISE_GLOBAL_CONFIG_FILE"
+[[ "$(print -r -- "$__mise_env_output" | sed -n '5p')" == unset ]] ||
+    fail "mise environment source did not clear MISE_CONFIG_FILE"
 
 echo "install-mise.zsh mise acquisition passed."
