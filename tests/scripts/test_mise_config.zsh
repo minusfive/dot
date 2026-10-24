@@ -31,14 +31,13 @@ fi
 
 [[ ! -e scripts/mise.zsh ]] || fail "duplicate mise lifecycle script remains"
 [[ ! -e scripts/functions.zsh ]] || fail "duplicate bootstrap utility script remains"
-grep -qF 'export MISE_CONFIG_DIR=' scripts/tasks/system/bootstrap.zsh ||
-    fail "bootstrap task does not select repository-scoped mise config"
-grep -qF 'export MISE_ENV_CONF_D=true' scripts/tasks/system/bootstrap.zsh ||
-    fail "bootstrap task does not enable mise conf.d modules"
-grep -qF 'export MISE_ENV=' scripts/tasks/system/bootstrap.zsh ||
-    fail "bootstrap task does not pass the selected MISE_ENV"
-grep -qF 'unset MISE_AUTO_ENV' scripts/tasks/system/bootstrap.zsh ||
-    fail "bootstrap task does not clear inherited MISE_AUTO_ENV"
+grep -qF 'export MISE_CONFIG_DIR=' scripts/mise-env.zsh ||
+    fail "mise environment script does not select repository-scoped mise config"
+grep -qF 'export MISE_ENV_CONF_D=true' scripts/mise-env.zsh ||
+    fail "mise environment script does not enable mise conf.d modules"
+grep -qF 'unset MISE_AUTO_ENV' scripts/mise-env.zsh ||
+    fail "mise environment script does not clear inherited MISE_AUTO_ENV"
+[[ ! -e scripts/tasks/system/bootstrap.zsh ]] || fail "retired bootstrap task remains"
 
 grep -qF 'includes = ["scripts/tasks"]' .mise/conf.d/tasks.toml || fail "task include path is missing"
 env -u MISE_ENV -u MISE_AUTO_ENV \
@@ -143,6 +142,9 @@ ln -s "$__root_dir" "$__mise_fixture_home/dev/personal/dot"
     print -r -- ""
     cat "$__mise_source"
 } >| "$__mise_fixture_config/config.toml"
+mkdir -p "$__mise_fixture_config/tasks/bootstrap"
+ln -s "$__root_dir/home/.config/mise/tasks/bootstrap/pre-dotfiles.zsh" \
+    "$__mise_fixture_config/tasks/bootstrap/pre-dotfiles.zsh"
 env -u MISE_ENV -u MISE_AUTO_ENV \
     HOME="$__mise_fixture_home" \
     XDG_CONFIG_HOME="$__mise_fixture_home/.config" \
@@ -174,9 +176,10 @@ env \
     MISE_DATA_DIR="$__mise_fixture_dir/data" \
     MISE_CACHE_DIR="$__mise_fixture_dir/cache" \
     MISE_STATE_DIR="$__mise_fixture_dir/state/mise" \
+    MISE_ENV=personal \
     MISE_ENV_CONF_D=true \
     mise -C "$__mise_fixture_home" dot apply --yes >/dev/null ||
-    fail "personal profile selector render failed"
+    fail "explicit personal profile selector render failed"
 grep -qxF 'env = ["personal"]' "$__mise_fixture_home/.config/mise/miserc.local.toml" ||
     fail "personal profile state did not render the personal selector"
 print -r -- work >| "$__mise_fixture_dir/state/minusfive/profile"

@@ -38,7 +38,7 @@ function {
         print -r -- ""
         print -r -- "Installs ${__code_color}mise${__reset_color} if it is not available."
         print -r -- ""
-        print -r -- "After installation, source ${__code_color}scripts/mise-env.zsh${__reset_color}, then run ${__code_color}mise run system:bootstrap --help${__reset_color}."
+        print -r -- "After installation, source ${__code_color}scripts/mise-env.zsh${__reset_color}, then run ${__code_color}mise bootstrap --help${__reset_color}."
         print -r -- ""
         exit 0
     fi
@@ -80,14 +80,14 @@ function {
     rehash
 
     local __mise_check_output
-    if ! __mise_check_output="$("$__mise_path" -C "$__root_dir" run system:bootstrap --help 2>&1)"; then
+    if ! __mise_check_output="$("$__mise_path" -C "$__root_dir" bootstrap --help 2>&1)"; then
         print -u2 -- "$__mise_check_output"
-        print -u2 -- "error: the installed mise cannot run this repository's bootstrap task"
+        print -u2 -- "error: the installed mise cannot run this repository's native bootstrap"
         exit 1
     fi
 
     print -r -- ""
     print -r -- "Run ${__code_color}source scripts/mise-env.zsh${__reset_color} to add mise to the current shell PATH."
-    print -r -- "Then run ${__code_color}mise run system:bootstrap --help${__reset_color} for next steps."
+    print -r -- "Then run ${__code_color}mise bootstrap --help${__reset_color} for next steps."
     print -r -- ""
 } "$@"

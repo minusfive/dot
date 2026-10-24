@@ -15,6 +15,8 @@
         "Fences named tools, packages, applications, operating systems, and other technical nouns in README.md, including linked text.",
         "Uses descriptive prose instead of imperative agent or contributor instructions for architecture guidance.",
         "Uses plain language and avoids unexplained jargon.",
+        "Inspects the complete requested diff and the files that define the changed behavior before editing.",
+        "Treats existing README claims as unverified and checks changed claims against final behavior.",
         "Runs a full critique cycle before final checks and checks the final README edit."
       ]
     },
@@ -26,7 +28,10 @@
         "Updates setup or development guidance.",
         "Describes the new primary tool and its role.",
         "Adds a canonical link for the primary tool.",
-        "Removes stale commands or tool claims."
+        "Removes stale commands or tool claims.",
+        "Uses concrete, neutral language instead of unnecessary negative or process-heavy prose.",
+        "Reviews the complete final diff before declaring the README update complete.",
+        "Runs a fresh critique pass after editing and before final checks."
       ]
     },
     {
@@ -35,7 +40,8 @@
       "expected_output": "The response leaves README.md unchanged because the change does not affect reader setup, understanding, or workflow.",
       "assertions": [
         "Leaves README.md unchanged.",
-        "Explains that the change has no reader-facing effect."
+        "Explains that the change has no reader-facing effect.",
+        "Inspects the complete requested diff before deciding that README.md needs no change."
       ]
     }
   ]

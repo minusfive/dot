@@ -15,29 +15,31 @@ git clone --single-branch --branch main git@github.com:minusfive/dot.git ~/dev/p
 cd ~/dev/personal/dot
 ./scripts/install-mise.zsh
 source scripts/mise-env.zsh
-mise run system:bootstrap
-mise run bootstrap
+mise bootstrap
 ```
 
 - The [`./scripts/install-mise.zsh`](./scripts/install-mise.zsh) installs `mise` when it is not available and checks the supported installation. On success it prints the commands for next steps.
-- Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` so the command can be executed. It does not select a profile.
-- The `mise` [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, and clones repositories.
-- The `bootstrap:pre-packages` task asks for a second confirmation before package bootstrap. The dotfiles phase writes the selected profile and the local `mise` selector.
-- `mise run system:bootstrap --dry-run` forwards the selected profile to native `mise bootstrap --dry-run` without invoking an explicit self-update or changing profile state. The control-plane `self_update.auto` setting remains authoritative for eligible interactive mise invocations.
-- The `mise` [`bootstrap`](./scripts/tasks/bootstrap.zsh) task updates the cleanup inventory, removes stale links, and applies repository fixes after the system bootstrap.
-- The bootstrap is not transactional. If a phase fails, earlier phases remain applied. Fix the reported phase, then rerun `mise run system:bootstrap --profile <profile>` with the same profile.
+- Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` and selects the repository-scoped `mise` configuration.
+- The `mise` `bootstrap` command asks for approval before it changes `macOS` preferences, places files, installs tools and applications, and clones repositories. The selected profile is validated before profile-sensitive phases.
+- Use `mise bootstrap --dry-run` to preview changes without applying them.
+- The `mise` [`bootstrap`](./scripts/tasks/bootstrap.zsh) task updates the cleanup inventory, removes stale links, and applies repository fixes after the bootstrap.
+- If a phase fails, fix the reported phase, then rerun `mise -E <profile> bootstrap` with the same profile.
 
 ### Profiles
 
 The `work` profile is the default and excludes personal-only tools and applications. To apply the `personal` profile, run:
 
 ```bash
-mise -E personal run system:bootstrap
+mise -E personal bootstrap
 ```
 
-The dotfiles phase renders the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` and the generated local `mise` selector from one resolved value. An explicit `MISE_ENV` or `-E` selection takes precedence. A missing or invalid state value selects `work`.
+You can also set the profile with `MISE_ENV`:
 
-The `MISE_ENV` environment variable and the `-E` flag select the `mise` environment. Shared fragments load for both profiles. Personal fragments load only for the `personal` profile. The system bootstrap also exports `DOT_PROFILE` for existing consumers.
+```bash
+MISE_ENV=personal mise bootstrap
+```
+
+The selected profile is saved at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile`.
 
 [`Hammerspoon`](./home/.config/hammerspoon/) reads the same state file through the [`ProfileState Spoon`](./home/.config/hammerspoon/Spoons/ProfileState.spoon/init.lua) so it can customize keyboard shortcuts and other automations for the selected profile. The `hs.settings` interface stores the profile in `macOS` defaults under a custom key, so other applications can read it.
 

@@ -11,8 +11,8 @@ Use this skill when a change affects profile selection or profile-specific machi
 
 - Let `vars.resolved_profile` resolve explicit environment selection first, then the profile state file, then `work`.
 - Let the control-plane dotfiles render `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` and `miserc.local.toml` from that value.
-- Let `home/.config/mise/tasks/bootstrap/pre-packages.zsh` validate and confirm the selected profile before package bootstrap.
-- Export the selected value as `DOT_PROFILE` for existing consumers during the current initialization run.
+- Let profile-sensitive bootstrap pre-hooks validate and confirm the selected profile before their phases.
+- Select the profile with `-E` or `MISE_ENV` before native `mise bootstrap`.
 - Treat the macOS defaults value `hs.minusfive.profile` as a persistent mirror for Hammerspoon and other macOS consumers.
 - Treat `hs.minusfive.profile.is_work` and `hs.minusfive.profile.is_personal` as derived mirror values.
 - Let Hammerspoon's `ProfileState Spoon` read the state file and synchronize these values when Hammerspoon starts.
@@ -25,12 +25,14 @@ Read the [mise machine modules reference](https://mise.jdx.dev/bootstrap/modules
 ## Selection rules
 
 - Keep `work` as the safe default when no profile is stored.
-- Accept only `work` and `personal` in the bootstrap task.
+- Accept only `work` and `personal` in the profile-sensitive bootstrap pre-hooks.
 - Keep shared fragments without an environment suffix.
 - Add a `.personal.toml` suffix only to personal-only fragments.
 - Preserve the existing repository context while mise renders the profile.
 - Keep environment selection in the generated `miserc.local.toml`.
 - Keep the resolved profile fallback in `home/.config/mise/config.toml` when the generated selector is absent.
+- Preserve native profile defaults in pre-hook usage declarations unless an exact invocation test shows drift.
+- Let native usage choices reject invalid `-E` and `MISE_ENV` values before adding imperative validation.
 - Do not introduce a second profile selector that can omit shared modules.
 
 ## Profile changes

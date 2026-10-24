@@ -495,7 +495,7 @@ url_api = "https://api.github.com/repos/rvben/rumdl/releases/assets/625384622"
 provenance = "github-attestations"
 
 [[tools.rust]]
-version = "nightly-2026-10-23"
+version = "nightly-2026-10-16"
 backend = "core:rust"
 
 [[tools.stylua]]

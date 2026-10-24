@@ -8,7 +8,7 @@
 - Group tightly coupled declarations in one `<name>.toml` file.
 - Use native `mise` environment fragments to select modules. Keep personal fragments out of the `work` environment.
 - When you add or move package declarations between `home/.config/mise/conf.d/` modules, inspect `home/.config/mise/conf.d/mise.toml`. Update the shared or personal fragment when selection changes, keep personal-only packages out of `work`, and update `tests/scripts/test_mise_bootstrap_modules.zsh`.
-- Keep the full bootstrap lifecycle in `scripts/tasks/system/bootstrap.zsh`; keep `scripts/install-mise.zsh` limited to mise acquisition and printing the canonical task command.
+- Keep native `mise bootstrap` as the canonical system bootstrap command. Let native bootstrap own its main confirmation and let profile pre-hooks own profile confirmations. Keep `scripts/mise-env.zsh` responsible for repository-scoped mise environment setup, and keep `scripts/install-mise.zsh` limited to mise acquisition and printing the bootstrap command.
 - Keep task metadata and usage specifications with their executable file tasks.
 - Keep tool-owned runtime files outside tracked sources and mise declarations.
 - Keep declaration-only package, tool, and profile assertions in `tests/scripts/test_mise_bootstrap_modules.zsh`. Add a separate `tests/scripts/test_mise_bootstrap_<name>.zsh` file only for module-specific behavior.

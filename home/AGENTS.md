@@ -2,6 +2,8 @@
 
 - You **MUST** always update instruction files when updating your memory, when I give you behavioral corrections or directives (e.g. "do/don't", "you should/shouldn't", "never", "always", etc.), or question your ability to follow instructions. Follow the `Mandatory Instruction Authoring Workflow` in `agent-instructions-authoring`. If this is handled with memory only, this principle is violated.
 - You **MUST** base decisions on repository files and tool output first. Use prior knowledge only when local evidence is missing.
+- Before adding a wrapper or imperative helper, identify its unique responsibility and test whether an existing canonical tool or configuration surface can own it.
+- Test the canonical tool through the exact user-facing invocation before adding duplicate forwarding, validation, or lifecycle orchestration.
 - Use paths relative to `~` or the current repository root. Do not write absolute local filesystem paths.
 - Use repository-local instruction files and tasks for repository-specific behavior. Keep their names distinct from global instruction files and tasks.
 - Prioritize technical accuracy and facts over validating beliefs.
@@ -67,6 +69,7 @@ This protocol applies to permission denials, policy refusals, and explicit user 
 - Never bypass repository hooks (`--no-verify` or equivalent).
 - Never edit tool-generated lock files manually. Use the owning tool to update them. If that operation fails, stop and ask me to review before you use another method.
 - Do not disable or skip linting through inline suppressions, blanket ignore directives, or linter-configuration changes made only to make checks pass. Fix the code instead. If you believe a lint rule is wrong for the project, stop execution, explain your reasoning to me, and ask me for input before changing the rule or linter configuration.
+- Run the project's configured formatting and autofix checks after focused tests pass. Keep changes produced by those checks.
 - Prefer dedicated tools (linters, language servers, formatters, refactoring tools, file-discovery and edit tools) over ad-hoc shell commands.
 - When configuring or extending a tool's behavior, check the tool's own documentation for a native directive, field, or option that already expresses the intent before writing scripts, wrappers, or runtime workarounds. Apply this during planning and during implementation. Prefer the native mechanism — declarative config surfaces in the tool's own introspection and survives upgrades better than equivalent custom logic.
 - Minimize command output using quiet/no-pager flags and targeted filtering supported by the active environment.
