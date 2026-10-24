@@ -22,6 +22,8 @@ Use this skill for native `mise bootstrap`, the `scripts/mise-env.zsh` environme
 
 Read the [mise bootstrap run order](https://mise.jdx.dev/bootstrap.html#run-order) and [mise hooks reference](https://mise.jdx.dev/bootstrap.html#hooks) before changing lifecycle behavior.
 
+Treat native `mise` behavior as the source of truth. Reproduce the exact `-E`, `MISE_ENV`, and task invocations before adding a wrapper, explicit argument forwarding, or imperative validation.
+
 ## Confirmation and errors
 
 - Let native `mise bootstrap` own the main confirmation. Let the package and dotfile pre-hooks confirm their selected profiles. Do not add an imperative mise self-update step.
@@ -39,6 +41,7 @@ Read the [mise bootstrap run order](https://mise.jdx.dev/bootstrap.html#run-orde
 - Put tool maintenance in the control-plane module's `post-tools` hook.
 - Put application cache rebuilds in the owning module's `post-dotfiles` hook.
 - Keep hooks repeatable and safe to run on every bootstrap.
+- Treat `mise bootstrap --dry-run` as a plan that prints hook commands. Test hook execution through direct task calls or an isolated apply run.
 - Set hook-invoked tasks to quiet unless their output is an intentional user-facing result.
 - Do not duplicate hook commands in `scripts/mise.zsh`.
 - Keep link cleanup scoped to an additive tracked historical path inventory, exclude mise runtime state, support dry runs, and resolve physical source containment before removal.

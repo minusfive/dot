@@ -21,6 +21,8 @@
         "Preserves the existing repository-scoped context and task resolution.",
         "Uses native mise bootstrap confirmation and the profile confirmation before package bootstrap.",
         "Validates the selected profile before profile-sensitive bootstrap phases.",
+        "Tests the exact -E and MISE_ENV paths before adding profile argument forwarding or imperative validation.",
+        "Distinguishes dry-run hook output from hook execution.",
         "Preserves fail-fast behavior after bootstrap failure.",
         "Verifies that mise runs before VM, OS, and BetterDisplay phases."
       ]

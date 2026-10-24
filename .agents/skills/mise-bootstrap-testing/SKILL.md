@@ -33,7 +33,9 @@ A behavior-specific module test must verify the additional facts that can drift:
 - tool-owned runtime files stay outside tracked sources; and
 - the deployed target has the expected ownership and link mode when the test runs on a configured machine.
 
-Use exact source and target paths when they define ownership. Use dry runs for non-mutating profile and lifecycle checks.
+Use exact source and target paths when they define ownership. Use dry runs for non-mutating profile and lifecycle plans, not as proof that hooks execute.
+
+Test environment-backed profile choices through both `MISE_ENV=<profile>` and `mise -E <profile>`. Add explicit `--profile` forwarding or imperative validation only when an exact native invocation test shows that usage choices do not enforce the contract.
 
 ## Lifecycle fixtures
 
@@ -47,6 +49,8 @@ Use command stubs when a test needs to verify script behavior:
 - verify that later hooks or maintenance do not run after failure.
 
 Do not print credentials, runtime databases, or other sensitive file contents.
+
+When a fixture invokes network-enabled hooks, set `MISE_NO_HOOKS=1` for declarative configuration assertions and test hook behavior separately.
 
 ## Run order
 

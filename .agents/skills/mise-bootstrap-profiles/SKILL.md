@@ -31,6 +31,8 @@ Read the [mise machine modules reference](https://mise.jdx.dev/bootstrap/modules
 - Preserve the existing repository context while mise renders the profile.
 - Keep environment selection in the generated `miserc.local.toml`.
 - Keep the resolved profile fallback in `home/.config/mise/config.toml` when the generated selector is absent.
+- Preserve native profile defaults in pre-hook usage declarations unless an exact invocation test shows drift.
+- Let native usage choices reject invalid `-E` and `MISE_ENV` values before adding imperative validation.
 - Do not introduce a second profile selector that can omit shared modules.
 
 ## Profile changes
