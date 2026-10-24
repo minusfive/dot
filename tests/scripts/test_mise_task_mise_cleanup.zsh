@@ -19,7 +19,7 @@ trap 'rm -rf "$__fixture_dir"' EXIT
 
 [[ -x "$__task" ]] || fail "cleanup task is not executable"
 grep -qF '"~/.config/mise/tasks/mise/cleanup.zsh"' \
-    home/.config/mise/conf.d/module.mise.toml ||
+    home/.config/mise/conf.d/mise.toml ||
     fail "cleanup task is not deployed by the mise control plane"
 
 mkdir -p \
@@ -32,7 +32,7 @@ mkdir -p \
     "$__target_dir/conf.d/old" \
     "$__fixture_home/.config/zsh" \
     "$__fixture_home/.local/state/mise/tracked-configs"
-cat > "$__source_dir/.config/mise/conf.d/module.fixture.toml" <<'EOF'
+cat > "$__source_dir/.config/mise/conf.d/fixture.toml" <<'EOF'
 [dotfiles]
 "~/.config/zsh/.zshrc/active" = { block = '''
 active

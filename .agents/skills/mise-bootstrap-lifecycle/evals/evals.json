@@ -15,11 +15,11 @@
     },
     {
       "id": "preserve-failure-boundary",
-      "prompt": "Update the mise initialization lifecycle. Preserve the repository boundary and task resolution, keep one confirmation, and stop later work when bootstrap fails.",
-      "expected_output": "The response preserves the existing repository boundary and task resolution, one confirmation boundary, fail-fast behavior, and rerun-after-failure recovery guidance.",
+      "prompt": "Update the mise initialization lifecycle. Preserve the repository boundary and task resolution, keep the full-bootstrap and profile confirmations, and stop later work when bootstrap fails.",
+      "expected_output": "The response preserves the existing repository boundary and task resolution, both confirmation boundaries, fail-fast behavior, and rerun-after-failure recovery guidance.",
       "assertions": [
         "Preserves the existing repository-scoped context and task resolution.",
-        "Uses one confirmation boundary before mutating lifecycle work.",
+        "Uses the full-bootstrap confirmation and the profile confirmation before package bootstrap.",
         "Preserves fail-fast behavior after bootstrap failure.",
         "Verifies that mise runs before VM, OS, and BetterDisplay phases."
       ]

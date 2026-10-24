@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing btop bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.btop.toml"
+local __config="home/.config/mise/conf.d/btop.toml"
 assert_module_package btop brew:btop
 local __source="home/.config/btop"
 local __target="$HOME/.config/btop"

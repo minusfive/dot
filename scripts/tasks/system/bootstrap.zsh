@@ -1,13 +1,13 @@
 #!/usr/bin/env zsh
-#MISE description="Install tools, applications, and configure this system according to the selected profile.{% if env.DOT_PROFILE is defined %}\n\n**Currently applied / persisted profile: `{{ env.DOT_PROFILE }}`**.{% endif %}"
+#MISE description="Install tools, applications, and configure this system according to the selected profile.\n\n**Currently selected profile: `{{ env.MISE_ENV | default(value='work') }}`**."
 #MISE env={MISE_TASK_RUN_AUTO_INSTALL="false"}
 #MISE confirm={message="Apply the `{{ usage.profile }}` system profile?", default="no"}
-# The profile flag resolves values in this order: command line, DOT_PROFILE,
+# The profile flag resolves values in this order: command line, MISE_ENV,
 # then default="work". The environment-backed argument and choices validation
 # are provided by mise:
 # https://mise.jdx.dev/tasks/task-arguments.html#environment-variable-backing
 # https://mise.jdx.dev/tasks/task-arguments.html#arguments
-#USAGE flag "-p --profile <profile>" env="DOT_PROFILE" default="work" {
+#USAGE flag "-p --profile <profile>" env="MISE_ENV" default="work" {
 #USAGE   help "Select the profile to apply"
 #USAGE   warning """
 #USAGE   **Overrides the currently applied / persisted profile.**
@@ -42,12 +42,12 @@ local __profile="${usage_profile}"
 export DOT_PROFILE="$__profile"
 export MISE_CONFIG_DIR="$__mise_config_dir"
 export MISE_ENV_CONF_D=true
-unset MISE_ENV
+export MISE_ENV="$__profile"
 unset MISE_AUTO_ENV
 
 if [[ "${usage_dry_run:-false}" == true ]]; then
-    mise -C "$__root_dir" bootstrap --dry-run
+    mise -C "$__root_dir" -E "$__profile" bootstrap --dry-run
     exit 0
 fi
 
-mise -C "$__root_dir" bootstrap --yes
+mise -C "$__root_dir" -E "$__profile" bootstrap --yes

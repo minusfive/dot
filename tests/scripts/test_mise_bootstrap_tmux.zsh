@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing tmux bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.tmux.toml"
+local __config="home/.config/mise/conf.d/tmux.toml"
 assert_module_package tmux brew:tmux
 local __source="home/.config/tmux/tmux.conf"
 local __target="$HOME/.config/tmux/tmux.conf"

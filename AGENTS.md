@@ -5,14 +5,14 @@
 - This repository stores global skill sources under `home/.agents/skills`; pass `--skills-path home/.agents/skills` to the global `ai:skills:evals:*` tasks.
 - Keep repository-local instruction files and task names distinct from global entrypoints.
 - Group `home/.config/mise/conf.d/` files by logical boundary.
-- Group tightly coupled declarations in one `module.<name>.toml` file.
-- Use the profile lists in `home/.config/mise/miserc.toml` to select modules for each environment. Keep profile-specific modules out of profiles that should not load them.
-- Keep module names in each `home/.config/mise/miserc.toml` profile list alphabetized.
-- When you add or move package declarations between `home/.config/mise/conf.d/` modules, inspect `home/.config/mise/miserc.toml`. Update the `work` and `personal` module lists when selection changes, keep personal-only packages out of `work`, and update `tests/scripts/test_mise_bootstrap_modules.zsh`.
+- Group tightly coupled declarations in one `<name>.toml` file.
+- Use native `mise` environment fragments to select modules. Keep personal fragments out of the `work` environment.
+- When you add or move package declarations between `home/.config/mise/conf.d/` modules, inspect `home/.config/mise/conf.d/mise.toml`. Update the shared or personal fragment when selection changes, keep personal-only packages out of `work`, and update `tests/scripts/test_mise_bootstrap_modules.zsh`.
 - Keep the full bootstrap lifecycle in `scripts/tasks/system/bootstrap.zsh`; keep `scripts/install-mise.zsh` limited to mise acquisition and printing the canonical task command.
 - Keep task metadata and usage specifications with their executable file tasks.
 - Keep tool-owned runtime files outside tracked sources and mise declarations.
 - Keep declaration-only package, tool, and profile assertions in `tests/scripts/test_mise_bootstrap_modules.zsh`. Add a separate `tests/scripts/test_mise_bootstrap_<name>.zsh` file only for module-specific behavior.
+- Create test fixtures with `mktemp` under `${TMPDIR:-/tmp}`. Keep temporary fixture data outside the repository tree.
 - Run the module contract test and any behavior-specific module tests before aggregate checks.
 - Run `mise run fix` after changing instructions or skills; it applies configured autofixes and reports only unfixable failures, including root and `home/` skill-index validation.
 - Update `README.md` in the same change when setup, layout, ownership, tooling, migration status, or user-facing workflows change. Load `readme-maintenance` for README decisions and edits.

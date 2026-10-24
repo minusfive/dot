@@ -7,9 +7,9 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing GNU sed package bootstrap configuration..."
 assert_module_package gnu-sed brew:gnu-sed
 
-local __config="home/.config/mise/conf.d/module.gnu-sed.toml"
+local __config="home/.config/mise/conf.d/gnu-sed.toml"
 local __source="home/.config/gnu-sed/zshrc.zsh"
-local __control_plane="home/.config/mise/conf.d/module.mise.toml"
+local __control_plane="home/.config/mise/conf.d/mise.toml"
 [[ -f "$__source" ]] || fail "missing GNU sed Zsh source"
 zsh -n "$__source" || fail "GNU sed Zsh source has syntax errors"
 grep -qF '[bootstrap.packages]' "$__config" ||
@@ -18,8 +18,8 @@ grep -qF '"brew:gnu-sed" = "latest"' "$__config" ||
     fail "GNU sed package declaration is incorrect"
 grep -qF '"~/.config/zsh/.zshrc-zone-0.zsh/gnu-sed" = { source = "~/dev/personal/dot/home/.config/gnu-sed/zshrc.zsh", template = "tera" }' "$__config" ||
     fail "GNU sed Zone 0 template declaration is missing"
-grep -qF '"~/.config/mise/conf.d/module.gnu-sed.toml"' "$__control_plane" ||
-    fail "mise control-plane module does not deploy module.gnu-sed.toml"
+grep -qF '"~/.config/mise/conf.d/gnu-sed.toml"' "$__control_plane" ||
+    fail "mise control-plane module does not deploy gnu-sed.toml"
 if grep -qF '"~/.config/gnu-sed"' "$__config"; then
     fail "GNU sed module must not manage a standalone runtime target"
 fi

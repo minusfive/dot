@@ -10,21 +10,34 @@ fail() {
     exit 1
 }
 
+module_filename() {
+    local __module="$1"
+    case "$__module" in
+        discord|opencode|softraid|whatsapp)
+            print -r -- "${__module}.personal.toml"
+            ;;
+        *)
+            print -r -- "${__module}.toml"
+            ;;
+    esac
+}
+
 assert_module_package() {
     local __module="$1"
     local __package="$2"
-    local __config="home/.config/mise/conf.d/module.$__module.toml"
+    local __module_file="$(module_filename "$__module")"
+    local __config="home/.config/mise/conf.d/$__module_file"
     [[ -f "$__config" ]] || fail "missing $__config"
     grep -q "\"$__package\" = \"latest\"" "$__config" ||
         fail "$__package is missing from $__config"
     local __profile_config
     for __profile in work personal; do
         __profile_config="$(
-            env -u MISE_ENV DOT_PROFILE="$__profile" \
+            env MISE_ENV="$__profile" \
                 MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
                 mise -C "$__root_dir" config ls --no-truncate
         )"
-        print -r -- "$__profile_config" | grep -qF "module.$__module.toml" ||
+        print -r -- "$__profile_config" | grep -qF "$__module_file" ||
             fail "$__module must be selected by the $__profile profile"
     done
 }
@@ -32,22 +45,23 @@ assert_module_package() {
 assert_tool_module() {
     local __module="$1"
     local __declaration="$2"
-    local __config="home/.config/mise/conf.d/module.$__module.toml"
-    local __control_plane="home/.config/mise/conf.d/module.mise.toml"
+    local __module_file="$(module_filename "$__module")"
+    local __config="home/.config/mise/conf.d/$__module_file"
+    local __control_plane="home/.config/mise/conf.d/mise.toml"
     [[ -f "$__config" ]] || fail "missing $__config"
     grep -qF "[tools]" "$__config" || fail "tools section is missing from $__config"
     grep -qF "$__declaration" "$__config" ||
         fail "$__declaration is missing from $__config"
-    grep -qF "\"~/.config/mise/conf.d/module.$__module.toml\"" "$__control_plane" ||
-        fail "control-plane module does not deploy module.$__module.toml"
+    grep -qF "\"~/.config/mise/conf.d/$__module_file\"" "$__control_plane" ||
+        fail "control-plane module does not deploy $__module_file"
     local __profile_config
     for __profile in work personal; do
         __profile_config="$(
-            env -u MISE_ENV DOT_PROFILE="$__profile" \
+            env MISE_ENV="$__profile" \
                 MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
                 mise -C "$__root_dir" config ls --no-truncate
         )"
-        print -r -- "$__profile_config" | grep -qF "module.$__module.toml" ||
+        print -r -- "$__profile_config" | grep -qF "$__module_file" ||
             fail "$__module must be selected by the $__profile profile"
     done
 }
@@ -57,20 +71,21 @@ assert_module_repo() {
     local __url="$2"
     local __target="$3"
     local __ref="${4:-}"
-    local __config="home/.config/mise/conf.d/module.$__module.toml"
-    local __control_plane="home/.config/mise/conf.d/module.mise.toml"
+    local __module_file="$(module_filename "$__module")"
+    local __config="home/.config/mise/conf.d/$__module_file"
+    local __control_plane="home/.config/mise/conf.d/mise.toml"
     [[ -f "$__config" ]] || fail "missing $__config"
     grep -qF "[bootstrap.repos]" "$__config" || fail "repository bootstrap section is missing from $__config"
     grep -qF "$__url" "$__config" || fail "$__url is missing from $__config"
-    grep -qF "\"~/.config/mise/conf.d/module.$__module.toml\"" "$__control_plane" ||
-        fail "control-plane module does not deploy module.$__module.toml"
+    grep -qF "\"~/.config/mise/conf.d/$__module_file\"" "$__control_plane" ||
+        fail "control-plane module does not deploy $__module_file"
     for __profile in work personal; do
         local __profile_config="$(
-            env -u MISE_ENV DOT_PROFILE="$__profile" \
+            env MISE_ENV="$__profile" \
                 MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
                 mise -C "$__root_dir" config ls --no-truncate
         )"
-        print -r -- "$__profile_config" | grep -qF "module.$__module.toml" ||
+        print -r -- "$__profile_config" | grep -qF "$__module_file" ||
             fail "$__module must be selected by the $__profile profile"
     done
     [[ -d "$__target" && ! -L "$__target" ]] || fail "repository target is not a physical directory: $__target"
@@ -86,25 +101,26 @@ assert_module_repo() {
 assert_personal_module_package() {
     local __module="$1"
     local __package="$2"
-    local __config="home/.config/mise/conf.d/module.$__module.toml"
+    local __module_file="$(module_filename "$__module")"
+    local __config="home/.config/mise/conf.d/$__module_file"
     [[ -f "$__config" ]] || fail "missing $__config"
     grep -q "\"$__package\" = \"latest\"" "$__config" ||
         fail "$__package is missing from $__config"
     local __personal_config
     local __work_config
     __personal_config="$(
-        env -u MISE_ENV DOT_PROFILE=personal \
+        env MISE_ENV=personal \
             MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
             mise -C "$__root_dir" config ls --no-truncate
     )"
-    print -r -- "$__personal_config" | grep -qF "module.$__module.toml" ||
+    print -r -- "$__personal_config" | grep -qF "$__module_file" ||
         fail "$__module must be selected by the personal profile"
     __work_config="$(
-        env -u MISE_ENV DOT_PROFILE=work \
+        env MISE_ENV=work \
             MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
             mise -C "$__root_dir" config ls --no-truncate
     )"
-    if print -r -- "$__work_config" | grep -qF "module.$__module.toml"; then
+    if print -r -- "$__work_config" | grep -qF "$__module_file"; then
         fail "$__module must not be selected by the work profile"
     fi
 }

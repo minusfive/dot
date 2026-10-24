@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing Copilot bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.copilot.toml"
+local __config="home/.config/mise/conf.d/copilot.toml"
 local __settings="home/.copilot/settings.json"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "home/AGENTS.md" ]] || fail "missing shared global instructions"
@@ -23,15 +23,15 @@ if [[ -e home/.config/mise/conf.d/bootstrap-ai.toml ]] &&
     grep -qF '"~/.copilot"' home/.config/mise/conf.d/bootstrap-ai.toml; then
     fail "legacy AI declaration still owns ~/.copilot"
 fi
-grep -qF '"~/.config/mise/conf.d/module.copilot.toml"' home/.config/mise/conf.d/module.mise.toml ||
-    fail "mise control-plane module does not deploy module.copilot.toml"
+grep -qF '"~/.config/mise/conf.d/copilot.toml"' home/.config/mise/conf.d/mise.toml ||
+    fail "mise control-plane module does not deploy copilot.toml"
 for __profile in work personal; do
     local __profile_config="$(
-        env -u MISE_ENV DOT_PROFILE="$__profile" \
+        env MISE_ENV="$__profile" \
             MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
             mise -C "$__root_dir" config ls --no-truncate
     )"
-    print -r -- "$__profile_config" | grep -qF "module.copilot.toml" ||
+    print -r -- "$__profile_config" | grep -qF "copilot.toml" ||
         fail "Copilot module must be selected by the $__profile profile"
 done
 
@@ -67,7 +67,7 @@ mkdir -p "$__fixture_home/.copilot" "$__fixture_repo/home/.copilot" "$__fixture_
 cp "$__settings" "$__fixture_repo/home/.copilot/settings.json"
 cp home/AGENTS.md "$__fixture_repo/home/AGENTS.md"
 cp home/.copilot/statusline-context.sh "$__fixture_repo/home/.copilot/statusline-context.sh"
-cp "$__config" "$__fixture_config/conf.d/module.copilot.toml"
+cp "$__config" "$__fixture_config/conf.d/copilot.toml"
 : >"$__fixture_config/config.toml"
 cat >"$__fixture_config/miserc.toml" <<'EOF'
 env_conf_d = true
@@ -99,11 +99,11 @@ local __excluded_before
 __excluded_before="$(jq -cS '{model, allowedUrls, includeCoAuthoredBy, statusLine}' "$__fixture_target")"
 local __dry_run
 __dry_run="$(
-    env -u MISE_ENV HOME="$__fixture_home" XDG_CONFIG_HOME="$__fixture_xdg" \
+    env MISE_ENV=work HOME="$__fixture_home" XDG_CONFIG_HOME="$__fixture_xdg" \
         MISE_DATA_DIR="$__fixture_data" MISE_STATE_DIR="$__fixture_state" \
         MISE_CONFIG_DIR="$__fixture_config" MISE_CONFIG_ROOT="$__fixture_config" \
         MISE_IGNORED_CONFIG_PATHS="$__live_mise_config" \
-        MISE_TRUSTED_CONFIG_PATHS="$__live_workspace_root" DOT_PROFILE=work \
+        MISE_TRUSTED_CONFIG_PATHS="$__live_workspace_root" \
         mise -C "$__fixture_repo" bootstrap --only dotfiles --dry-run 2>&1
 )"
 print -r -- "$__dry_run" | grep -qF "merge:safe-settings" ||
@@ -112,11 +112,11 @@ print -r -- "$__dry_run" | grep -qF "copilot-instructions.md" ||
     fail "Copilot dry run does not report the instruction symlink"
 print -r -- "$__dry_run" | grep -qF "statusline-context.sh" ||
     fail "Copilot dry run does not report the statusline symlink"
-env -u MISE_ENV HOME="$__fixture_home" XDG_CONFIG_HOME="$__fixture_xdg" \
+env MISE_ENV=work HOME="$__fixture_home" XDG_CONFIG_HOME="$__fixture_xdg" \
     MISE_DATA_DIR="$__fixture_data" MISE_STATE_DIR="$__fixture_state" \
     MISE_CONFIG_DIR="$__fixture_config" MISE_CONFIG_ROOT="$__fixture_config" \
     MISE_IGNORED_CONFIG_PATHS="$__live_mise_config" \
-    MISE_TRUSTED_CONFIG_PATHS="$__live_workspace_root" DOT_PROFILE=work \
+    MISE_TRUSTED_CONFIG_PATHS="$__live_workspace_root" \
     mise -C "$__fixture_repo" bootstrap --only dotfiles --yes >/dev/null
 
 [[ -f "$__fixture_target" && ! -L "$__fixture_target" ]] ||

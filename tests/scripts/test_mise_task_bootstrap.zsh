@@ -12,11 +12,17 @@ local __post_tools="home/.config/mise/tasks/bootstrap/post-tools.zsh"
 [[ -x "$__post_tools" ]] || fail "post-tools task is missing or not executable"
 zsh -n "$__pre_packages" || fail "pre-packages task has syntax errors"
 zsh -n "$__post_tools" || fail "post-tools task has syntax errors"
-grep -qF '#MISE confirm=' "$__pre_packages" ||
+grep -qF '#MISE description="Confirm the selected profile before package bootstrap"' \
+    "$__pre_packages" ||
+    fail "pre-packages task description is missing"
+grep -qF '#MISE confirm={message="Continue bootstrap with the `{{ usage.profile }}` profile?", default="no"}' \
+    "$__pre_packages" ||
     fail "pre-packages task confirmation is missing"
-grep -qF '#USAGE flag "-p --profile <profile>" env="DOT_PROFILE" default="work" {' \
+grep -qF '#USAGE flag "-p --profile <profile>" env="MISE_ENV" default="work" {' \
     "$__pre_packages" ||
     fail "pre-packages profile flag is missing"
+grep -qF '#USAGE   env_fallback "DOT_PROFILE"' "$__pre_packages" ||
+    fail "pre-packages profile fallback is missing"
 grep -qF '#USAGE      choice "work" help="Safest profile, default"' "$__pre_packages" ||
     fail "pre-packages work choice is missing"
 grep -qF '#USAGE      choice "personal" help="adds personal resources and configurations"' \
@@ -27,31 +33,8 @@ grep -qF 'mise upgrade --prune' "$__post_tools" ||
 grep -qF 'mise reshim -f' "$__post_tools" ||
     fail "post-tools task does not reshim mise tools"
 
-local __fixture_home="$(mktemp -d)"
-trap 'rm -rf -- "$__fixture_home"' EXIT
-mkdir -p "$__fixture_home/.config" "$__fixture_home/.local/state"
-
-env \
-    HOME="$__fixture_home" \
-    XDG_CONFIG_HOME="$__fixture_home/.config" \
-    XDG_STATE_HOME="$__fixture_home/.local/state" \
-    MISE_CONFIG_DIR="$__root_dir/home/.config/mise" \
-    MISE_ENV_CONF_D=true \
-    DOT_PROFILE=personal \
-    mise --yes -C "$__root_dir" run bootstrap:pre-packages >/dev/null ||
-    fail "pre-packages task did not persist the selected profile"
-[[ "$(cat "$__fixture_home/.local/state/minusfive/profile")" == personal ]] ||
-    fail "pre-packages task persisted the wrong profile"
-
-if env \
-    HOME="$__fixture_home" \
-    XDG_CONFIG_HOME="$__fixture_home/.config" \
-    XDG_STATE_HOME="$__fixture_home/.local/state" \
-    MISE_CONFIG_DIR="$__root_dir/home/.config/mise" \
-    MISE_ENV_CONF_D=true \
-    DOT_PROFILE=invalid \
-    mise --yes -C "$__root_dir" run bootstrap:pre-packages >/dev/null 2>&1; then
-    fail "pre-packages task accepted an invalid profile"
+if grep -qE '__profile_file|miserc\.local\.toml|dot apply|previous_' "$__pre_packages"; then
+    fail "pre-packages task still owns profile persistence or selector rendering"
 fi
 
 echo "Bootstrap lifecycle tasks passed."

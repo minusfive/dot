@@ -1,6 +1,6 @@
 ---
 name: mise-bootstrap-modules
-description: Use when adding, removing, splitting, or reviewing this repository's mise bootstrap modules, package and tool declarations, dotfiles, repositories, hooks, or profile module lists.
+description: Use when adding, removing, splitting, or reviewing this repository's mise bootstrap modules, package and tool declarations, dotfiles, repositories, hooks, or environment fragments.
 ---
 
 # Mise Bootstrap Modules
@@ -9,12 +9,12 @@ Use this skill for changes under `home/.config/mise/conf.d/`, `home/.config/mise
 
 ## Module boundaries
 
-- Keep one `module.<name>.toml` file for each package, tool, or logical configuration boundary.
+- Keep one `<name>.toml` file for each package, tool, or logical configuration boundary.
 - Keep tightly coupled declarations in one module.
 - Give each target one owner.
 - Keep tool-owned runtime files outside tracked sources and module declarations.
 - Keep post-install behavior in the owning module's `[bootstrap.hooks]` table.
-- Use the existing `module.mise.toml` control plane to deploy every tracked module file.
+- Use the existing `mise.toml` control plane to deploy every tracked module file.
 
 Use these declaration types:
 
@@ -38,12 +38,12 @@ Read the [mise bootstrap reference](https://mise.jdx.dev/bootstrap.html), [machi
 - If a file task installs a package manager with a shell-environment command, run that command after installation.
 - Use `/opt/homebrew` as the Homebrew prefix. Do not add Intel `/usr/local` fallback paths.
 
-## Profile selection
+## Environment selection
 
-- Keep shared modules in both profile lists.
-- Keep personal-only modules in the `personal` list.
-- Use Tera list spread in `miserc.toml` when both profiles share a common environment list.
-- Keep module selection in the rendered `miserc.toml`.
+- Keep shared modules in files without an environment suffix.
+- Name personal-only modules `<name>.personal.toml`.
+- Keep `env_conf_d = true` in `miserc.toml`.
+- Use `home/.config/mise/miserc.local.toml.tmpl` to select the persisted `work` or `personal` environment.
 - Use `mise-bootstrap-profiles` for profile state, rendering, and cleanup behavior.
 
 ## Removal

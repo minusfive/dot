@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing EditorConfig bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.editorconfig.toml"
+local __config="home/.config/mise/conf.d/editorconfig.toml"
 local __source="home/.editorconfig"
 local __target="$HOME/.editorconfig"
 [[ -f "$__config" && -f "$__source" ]] || fail "EditorConfig source or declaration is missing"

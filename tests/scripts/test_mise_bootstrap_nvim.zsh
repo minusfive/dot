@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing Neovim bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.nvim.toml"
+local __config="home/.config/mise/conf.d/nvim.toml"
 assert_module_package nvim brew:neovim
 assert_module_repo nvim \
     git@github.com:minusfive/LazyVim.git \

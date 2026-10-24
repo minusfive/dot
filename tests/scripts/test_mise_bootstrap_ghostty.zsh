@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing Ghostty bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.ghostty.toml"
+local __config="home/.config/mise/conf.d/ghostty.toml"
 assert_module_package ghostty brew-cask:ghostty
 local __source="home/.config/ghostty"
 local __target="$HOME/.config/ghostty"

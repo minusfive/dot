@@ -18,7 +18,7 @@ Tests the local `betterdisplay:sync` task with isolated command mocks. The cases
 
 #### `test_mise_config.zsh`
 
-Tests global mise configuration, rendered profile selection, repository-scoped lifecycle wiring, initialization phase ordering, and Git ignore bootstrap behavior.
+Tests global mise configuration, generated profile selection, repository-scoped lifecycle wiring, initialization phase ordering, and Git ignore bootstrap behavior.
 
 The source file `home/.config/git/ignore` is not a repository `.gitignore`. Mise links it to `$XDG_CONFIG_HOME/git/ignore`, where Git reads the global excludes file. The test uses a temporary home to verify that mise installs this source file and that its patterns affect Git.
 
@@ -28,7 +28,7 @@ Tests the canonical `system:bootstrap` task, native profile choices, confirmatio
 
 #### `test_mise_task_bootstrap.zsh`
 
-Tests the `bootstrap:pre-packages` and `bootstrap:post-tools` lifecycle tasks, including profile confirmation, profile persistence, validation, tool upgrades, and reshim behavior.
+Tests the `bootstrap:pre-packages` and `bootstrap:post-tools` lifecycle tasks, including profile confirmation, profile persistence, generated selector refresh, validation, tool upgrades, and reshim behavior.
 
 #### `test_mise_bootstrap_compatibility.zsh`
 
@@ -74,11 +74,11 @@ The remaining migrated application boundaries use focused tests when they have b
 
 The `Oh My Zsh` test covers its custom plugin repositories. The `Neovim` test covers the LazyVim repository.
 
-`test_mise_bootstrap_modules.zsh` covers declaration-only package and tool modules. It checks the module declaration, control-plane link, and profile selection in one data-driven test. Personal-only package modules also check that the work profile excludes them.
+`test_mise_bootstrap_modules.zsh` covers declaration-only package and tool modules. It checks the module declaration, control-plane link, and native environment selection in one data-driven test. Personal-only package modules also check that the work environment excludes them.
 
 #### `test_mise_bootstrap_brew.zsh`
 
-Tests Homebrew adoption and shared profile selection for `module.brew.toml`.
+Tests Homebrew adoption and shared profile selection for `brew.toml`.
 
 #### `test_mise_bootstrap_macos.zsh`
 
@@ -102,7 +102,7 @@ Tests transactional review-watch add, remove, and poll actions with isolated `gh
 
 #### `test_mise_bootstrap_packages.zsh`
 
-Tests the shared package maintenance hook and profile selection for `module.packages.toml`.
+Tests the shared package maintenance hook and profile selection for `packages.toml`.
 
 #### `test_mise_bootstrap_modules.zsh`
 

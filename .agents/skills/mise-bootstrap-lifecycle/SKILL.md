@@ -13,7 +13,8 @@ Use this skill for the canonical `system:bootstrap` task and the `scripts/instal
 - Keep `scripts/install-mise.zsh` as the mise acquisition script. It must accept only `--help`, install mise when needed, and print the canonical task command.
 - Keep the `system:bootstrap` task metadata and usage spec in `scripts/tasks/system/bootstrap.zsh`.
 - Put the active profile indicator in the task description. Keep the profile flag help limited to its purpose.
-- Persist the selected profile in `home/.config/mise/tasks/bootstrap/pre-packages.zsh`.
+- Keep profile validation and confirmation in `home/.config/mise/tasks/bootstrap/pre-packages.zsh`.
+- Let the control-plane dotfiles render the profile state and `~/.config/mise/miserc.local.toml` from the resolved profile during the dotfiles phase.
 - Run the full repository-scoped bootstrap without script-maintained phase filters.
 - Let mise declarations and module hooks own package installation, repository application, dotfile application, tool installation, and repeatable maintenance.
 - Keep lifecycle hooks in the module that owns the related resource.
@@ -25,17 +26,18 @@ The bootstrap task runs separately from the installer. The mise control-plane mo
 
 ## Confirmation and errors
 
-- Keep one confirmation boundary for the full bootstrap. Do not add an imperative mise self-update step.
+- Keep the full-bootstrap confirmation in `scripts/tasks/system/bootstrap.zsh` and the profile confirmation before package bootstrap. Do not add an imperative mise self-update step.
 - A declined confirmation must perform no later mutation.
 - Preserve fail-fast behavior and explicit errors.
 - Report missing mise, failed installation, and failed bootstrap as errors.
 - Document that bootstrap is not transactional. Earlier phases remain applied when a later phase fails.
-- Recover by fixing the reported phase and rerunning `mise run system:bootstrap --profile <profile>`, preserving the profile selected for the failed run.
+- Recover by fixing the reported phase and rerunning `mise -E <profile> run system:bootstrap`, preserving the profile selected for the failed run.
+- A pre-bootstrapped machine may lack `miserc.local.toml`; the resolved profile fallback in `home/.config/mise/config.toml` must preserve the profile state until the selector is rendered.
 
 ## Hooks and maintenance
 
 - Put package maintenance in the shared package module's `post-packages` hook.
-- Keep profile persistence in the control-plane module's `pre-packages` hook.
+- Keep profile validation and confirmation in the control-plane module's `pre-packages` hook.
 - Put tool maintenance in the control-plane module's `post-tools` hook.
 - Put application cache rebuilds in the owning module's `post-dotfiles` hook.
 - Keep hooks repeatable and safe to run on every bootstrap.

@@ -7,14 +7,14 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing BetterDisplay module ownership and local tasks..."
 assert_module_package betterdisplay brew-cask:betterdisplay
 
-local __module="home/.config/mise/conf.d/module.betterdisplay.toml"
-local __control_plane="home/.config/mise/conf.d/module.mise.toml"
+local __module="home/.config/mise/conf.d/betterdisplay.toml"
+local __control_plane="home/.config/mise/conf.d/mise.toml"
 local __config_home="$(mktemp -d)"
 trap 'rm -rf -- "$__config_home"' EXIT
 if grep -qF '~/.config/BetterDisplay' "$__module"; then
     fail "BetterDisplay plist is still declared as a deployed dotfile"
 fi
-grep -qF '"~/.config/mise/conf.d/module.betterdisplay.toml"' "$__control_plane" ||
+grep -qF '"~/.config/mise/conf.d/betterdisplay.toml"' "$__control_plane" ||
     fail "control-plane module does not deploy BetterDisplay ownership"
 plutil -lint home/.config/BetterDisplay/config.plist >/dev/null ||
     fail "tracked BetterDisplay plist is invalid"
@@ -29,7 +29,7 @@ if grep -qF '~/.config/mise/tasks/betterdisplay' "$__control_plane"; then
     fail "global BetterDisplay task links remain"
 fi
 if grep -Eiq 'launchagent|timer|start_interval|run_at_load' \
-    home/.config/mise/conf.d/module.betterdisplay.toml \
+    home/.config/mise/conf.d/betterdisplay.toml \
     "$__control_plane"; then
     fail "BetterDisplay launch-agent or timer declarations remain"
 fi

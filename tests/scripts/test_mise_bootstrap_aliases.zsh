@@ -6,12 +6,12 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing aliases bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.aliases.toml"
+local __config="home/.config/mise/conf.d/aliases.toml"
 local __source="home/.config/aliases/.aliases"
 local __alias_source="home/.config/aliases/zshrc.zsh"
 local __zone_source="home/.config/zsh/.zshrc-zone-2.zsh"
-local __control_plane="home/.config/mise/conf.d/module.mise.toml"
-local __zsh_config="home/.config/mise/conf.d/module.zsh.toml"
+local __control_plane="home/.config/mise/conf.d/mise.toml"
+local __zsh_config="home/.config/mise/conf.d/zsh.toml"
 
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "$__source" ]] || fail "missing $__source"
@@ -26,17 +26,15 @@ for __section in '[bootstrap.packages]' '[bootstrap.repos]' '[bootstrap.hooks]' 
         fail "aliases module must not declare $__section"
     fi
 done
-grep -qF '"~/.config/mise/conf.d/module.aliases.toml"' "$__control_plane" ||
-    fail "mise control-plane module does not deploy module.aliases.toml"
-grep -qF "'aliases'," home/.config/mise/miserc.toml ||
-    fail "aliases must be present in the shared module list"
+grep -qF '"~/.config/mise/conf.d/aliases.toml"' "$__control_plane" ||
+    fail "mise control-plane module does not deploy aliases.toml"
 for __profile in work personal; do
     local __profile_config="$(
-        env -u MISE_ENV DOT_PROFILE="$__profile" \
+        env MISE_ENV="$__profile" \
             MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
             mise -C "$__root_dir" config ls --no-truncate
     )"
-    print -r -- "$__profile_config" | grep -qF "module.aliases.toml" ||
+    print -r -- "$__profile_config" | grep -qF "aliases.toml" ||
         fail "aliases must be selected by the $__profile profile"
 done
 if grep -qF '.aliases' "$__zsh_config"; then

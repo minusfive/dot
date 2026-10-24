@@ -127,10 +127,10 @@ mkdir -p "$__home/.local/state/minusfive"
 print -r -- personal >| "$__home/.local/state/minusfive/profile"
 local __env_output="$(
     env -u DOT_PROFILE HOME="$__home" XDG_STATE_HOME="$__home/.local/state" PATH="/usr/bin:/bin" \
-        zsh -fc 'setopt no_unset; source scripts/mise-env.zsh; print -r -- "$DOT_PROFILE"; print -r -- "$PATH"'
+        zsh -fc 'setopt no_unset; source scripts/mise-env.zsh; print -r -- "${DOT_PROFILE:-unset}"; print -r -- "$PATH"'
 )"
-print -r -- "$__env_output" | grep -q '^personal$' ||
-    fail "mise environment source did not load the persisted profile"
+print -r -- "$__env_output" | grep -q '^unset$' ||
+    fail "mise environment source selected a profile"
 print -r -- "$__env_output" | grep -qF "$__home/.local/bin" ||
     fail "mise environment source did not update PATH"
 local __explicit_env_output="$(
@@ -138,6 +138,6 @@ local __explicit_env_output="$(
         zsh -fc 'source scripts/mise-env.zsh; print -r -- "$DOT_PROFILE"'
 )"
 [[ "$__explicit_env_output" == work ]] ||
-    fail "mise environment source overwrote the explicit profile"
+    fail "mise environment source changed an existing profile variable"
 
 echo "install-mise.zsh mise acquisition passed."

@@ -20,9 +20,9 @@ mise run bootstrap
 ```
 
 - The [`./scripts/install-mise.zsh`](./scripts/install-mise.zsh) installs `mise` when it is not available and checks the supported installation. On success it prints the commands for next steps.
-- Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` so the command can be executed, and loads the persisted profile (if one exists) before the first bootstrap.
+- Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` so the command can be executed. It does not select a profile.
 - The `mise` [`system:bootstrap`](./scripts/tasks/system/bootstrap.zsh) task asks for approval before it updates `mise`, changes `macOS` preferences, places files, installs tools and applications, and clones repositories.
-- The `bootstrap:pre-packages` task asks for a second confirmation before it persists the selected profile.
+- The `bootstrap:pre-packages` task asks for a second confirmation before package bootstrap. The dotfiles phase writes the selected profile and the local `mise` selector.
 - `mise run system:bootstrap --dry-run` forwards the selected profile to native `mise bootstrap --dry-run` without invoking an explicit self-update or changing profile state. The control-plane `self_update.auto` setting remains authoritative for eligible interactive mise invocations.
 - The `mise` [`bootstrap`](./scripts/tasks/bootstrap.zsh) task updates the cleanup inventory, removes stale links, and applies repository fixes after the system bootstrap.
 - The bootstrap is not transactional. If a phase fails, earlier phases remain applied. Fix the reported phase, then rerun `mise run system:bootstrap --profile <profile>` with the same profile.
@@ -32,12 +32,12 @@ mise run bootstrap
 The `work` profile is the default and excludes personal-only tools and applications. To apply the `personal` profile, run:
 
 ```bash
-mise run system:bootstrap --profile personal
+mise -E personal run system:bootstrap
 ```
 
-The `bootstrap:pre-packages` task saves the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` after confirmation. The system bootstrap exports the selected value as the `zsh` environment variable `DOT_PROFILE`. A run without `--profile` reuses the persisted profile; when no profile has been saved, it uses `work`.
+The dotfiles phase renders the selected profile at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile` and the generated local `mise` selector from one resolved value. An explicit `MISE_ENV` or `-E` selection takes precedence. A missing or invalid state value selects `work`.
 
-Each profile loads a different group of `mise` modules. These modules list the files and tools for that profile.
+The `MISE_ENV` environment variable and the `-E` flag select the `mise` environment. Shared fragments load for both profiles. Personal fragments load only for the `personal` profile. The system bootstrap also exports `DOT_PROFILE` for existing consumers.
 
 [`Hammerspoon`](./home/.config/hammerspoon/) reads the same state file through the [`ProfileState Spoon`](./home/.config/hammerspoon/Spoons/ProfileState.spoon/init.lua) so it can customize keyboard shortcuts and other automations for the selected profile. The `hs.settings` interface stores the profile in `macOS` defaults under a custom key, so other applications can read it.
 
@@ -77,9 +77,9 @@ The files are grouped by purpose. Each module manages related resources. A `dotf
 │   │   ├── ...
 │   │   └── mise/
 │   │       ├── conf.d/              # per-tool module files
-│   │       │   ├── module.1password.toml
-│   │       │   ├── module.agents.toml
-│   │       │   ├── module.bat.toml
+│   │       │   ├── 1password.toml
+│   │       │   ├── agents.toml
+│   │       │   ├── bat.toml
 │   │       │   └── ...
 │   │       ├── config.toml
 │   │       ├── mise.lock

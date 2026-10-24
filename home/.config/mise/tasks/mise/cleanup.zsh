@@ -141,14 +141,15 @@ for __scan_root in "${__scan_roots[@]}"; do
     fi
 
     __source_path="$(normalize_path "$__source_path")"
-    is_repo_source "$__source_path" || continue
-
     [[ -e "$__source_path" || -L "$__source_path" ]] && continue
 
     __physical_source_path="$(resolve_physical_source "$__source_path")" ||
         die "cannot resolve stale link source path: $__link"
 
-    remove_stale_link "$__link" "$__physical_source_path"
+    if is_repo_source "$__source_path" ||
+        is_repo_source "$__physical_source_path"; then
+        remove_stale_link "$__link" "$__physical_source_path"
+    fi
     done < <(find "$__scan_path" -xdev -type l -print)
 done
 
@@ -160,8 +161,8 @@ add_active_block() {
     local __id="${__relative##*/}"
     local __block_target="${__relative%/*}"
 
-    [[ "$__block_target" != "$__relative" ]] || return
-    [[ "$(basename "$__block_target")" == *.* ]] || return
+    [[ "$__block_target" != "$__relative" ]] || return 0
+    [[ "$(basename "$__block_target")" == *.* ]] || return 0
     __active_blocks+=("$__block_target|$__id")
 }
 

@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing 1Password bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.1password.toml"
+local __config="home/.config/mise/conf.d/1password.toml"
 assert_module_package 1password brew-cask:1password
 assert_module_package 1password brew-cask:1password-cli
 assert_module_package 1password mas:1569813296

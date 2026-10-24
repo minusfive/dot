@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing zsh bootstrap configuration..."
 
-local __config="home/.config/mise/conf.d/module.zsh.toml"
+local __config="home/.config/mise/conf.d/zsh.toml"
 assert_module_package zsh brew:zsh
 local __source="home/.config/zsh"
 local __fixture_root
@@ -41,7 +41,7 @@ zsh -n "$__migration_task" || fail "Zsh migration task has syntax errors"
 grep -qF '[bootstrap.hooks]' "$__config" || fail "Zsh bootstrap hooks are missing"
 grep -qF 'pre-dotfiles = "mise run zsh:migrate"' "$__config" ||
     fail "Zsh migration hook is missing"
-grep -qF '"~/.config/mise/tasks/zsh/migrate.zsh"' home/.config/mise/conf.d/module.mise.toml ||
+grep -qF '"~/.config/mise/tasks/zsh/migrate.zsh"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy the Zsh migration task"
 local __task_info="$(
     env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
@@ -120,7 +120,7 @@ done
 [[ "$(stat -c '%a' "$__target/.zsh_history")" == "600" ]] || fail "zsh history mode changed"
 [[ "$(stat -c '%a' "$__target/.zcompdump")" == "644" ]] || fail "zsh completion dump mode changed"
 [[ ! -e "$__source/.zprofile" ]] || fail "zsh module source still contains the brew-owned .zprofile"
-grep -qF '"~/.config/zsh/.zprofile/brew-shellenv"' home/.config/mise/conf.d/module.brew.toml ||
+grep -qF '"~/.config/zsh/.zprofile/brew-shellenv"' home/.config/mise/conf.d/brew.toml ||
     fail "brew module does not own the zprofile shell environment entry"
 grep -Fq 'ZDOTDIR="$XDG_CONFIG_HOME/zsh"' home/.config/zsh/.zshenv || fail "ZDOTDIR source is missing"
 if find "$__source" -name '.zsh_history' -o -name '.zcompdump' | grep -q .; then
