@@ -1,0 +1,11 @@
+{
+  "lspServers": {
+    "mise": {
+      "command": "mise",
+      "args": ["lsp"],
+      "fileExtensions": {
+        ".toml": "toml"
+      }
+    }
+  }
+}
