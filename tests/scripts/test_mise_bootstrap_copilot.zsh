@@ -187,8 +187,9 @@ if [[ -e "$__live_settings" ]]; then
 else
     [[ ! -e "$__live_settings" ]] || fail "live Copilot settings were created"
 fi
-if [[ -e "$__live_lsp_config" ]]; then
-    [[ "$(shasum "$__live_lsp_config")" == "$__live_lsp_before" ]] || fail "live Copilot LSP config changed"
+if [[ "$__live_lsp_before" != "absent" ]]; then
+    [[ -e "$__live_lsp_config" && "$(shasum "$__live_lsp_config")" == "$__live_lsp_before" ]] ||
+        fail "live Copilot LSP config changed"
 else
     [[ ! -e "$__live_lsp_config" ]] || fail "live Copilot LSP config was created"
 fi
