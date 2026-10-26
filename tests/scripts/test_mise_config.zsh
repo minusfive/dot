@@ -85,7 +85,7 @@ if grep -qF '"profiles"' home/.config/mise/miserc.toml; then
     fail "retired profiles environment remains selected"
 fi
 grep -qF "env_conf_d = true" home/.config/mise/miserc.toml || fail "env_conf_d is not enabled"
-grep -qF 'min_version = "2026.10.18"' home/.config/mise/config.toml || fail "mise minimum version is missing"
+grep -qF 'min_version = "2026.10.19"' home/.config/mise/config.toml || fail "mise minimum version is missing"
 grep -qF 'minimum_release_age = "7d"' home/.config/mise/config.toml || fail "minimum release age is missing"
 grep -qF 'trusted_config_paths = ["~/dev/personal", "~/dev/personal/dot", "~/dev/work"]' home/.config/mise/config.toml ||
     fail "workspace trust paths are missing"

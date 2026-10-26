@@ -1,6 +1,6 @@
 # Require the minimum mise release that this repository supports.
 # https://mise.jdx.dev/configuration.html#minimum-mise-version
-min_version = "2026.10.18"
+min_version = "2026.10.19"
 
 [settings]
 # paranoid = true
