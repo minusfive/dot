@@ -62,13 +62,8 @@ Last.fm
 # VSCode
 .vscode
 
-# mise
-mise.local.toml
-mise.*.local.toml
-miserc.local.toml
-miserc.*.local.toml
-config.local.toml
-config.*.local.toml
+# Local-only files
+*.local.*
 
 # zsh
 .zsh_history
@@ -80,9 +75,6 @@ node_modules/
 # Lefthook
 .lefthook-local.yml
 .lefthook-local/
-
-# Claude
-**/.claude/settings.local.json
 
 # OpenCode
 .config/opencode/package-lock.json
