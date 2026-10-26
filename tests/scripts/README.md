@@ -48,7 +48,7 @@ Tests domain parsing, hostname matching, tracked Git config ownership, shared-ho
 
 #### `test_mise_bootstrap_copilot.zsh`
 
-Tests the Copilot module ownership, exactly nine safe settings, isolated key-level merge behavior, shared-instructions and statusline links, and runtime preservation.
+Tests the Copilot module ownership, LSP and safe-settings key-level merges, shared-instructions and statusline links, and runtime preservation.
 
 #### `test_mise_bootstrap_agents.zsh`
 
