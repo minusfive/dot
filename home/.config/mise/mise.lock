@@ -280,7 +280,7 @@ checksum = "sha256:929552b8305effac843ba7b4270c437aefb702fc3fbd73fcd1bffd35d4ac2
 url = "https://nodejs.org/dist/v25.9.0/node-v25.9.0-win-x64.zip"
 
 [[tools."npm:@github/copilot"]]
-version = "1.0.98"
+version = "1.0.100"
 backend = "npm:@github/copilot"
 
 [[tools."npm:@mermaid-js/mermaid-cli"]]
@@ -296,37 +296,37 @@ version = "0.3.0"
 backend = "npm:mermaid-formatter"
 
 [[tools.pitchfork]]
-version = "2.31.0"
+version = "2.32.0"
 backend = "packslip:github.com/jdx/pitchfork"
 
 [tools.pitchfork."platforms.linux-arm64"]
-checksum = "sha256:03a9f3e636a95c4cc98bee05c1540b05f58359441a10f348f624ba613333520e"
-url = "https://github.com/jdx/pitchfork/releases/download/v2.31.0/pitchfork-aarch64-unknown-linux-gnu.tar.gz"
+checksum = "sha256:78a5c0fc15714d8f8df59a6da8fda11c9132bb36d5d58d260644882409e84a37"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.32.0/pitchfork-aarch64-unknown-linux-gnu.tar.gz"
 signer = "sigstore-oidc:https://github.com/jdx/pitchfork/.github/workflows/release.yml"
 
 [tools.pitchfork."platforms.linux-x64"]
-checksum = "sha256:8d7a0c361f6055086f886f19c1462a2feae2d5ad0689184c51b4eaf36209f169"
-url = "https://github.com/jdx/pitchfork/releases/download/v2.31.0/pitchfork-x86_64-unknown-linux-gnu.tar.gz"
+checksum = "sha256:683b18efcbd67a66ff8189f35fdbc4824af4ee3e7ace827c8f8a5be21dc816c1"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.32.0/pitchfork-x86_64-unknown-linux-gnu.tar.gz"
 signer = "sigstore-oidc:https://github.com/jdx/pitchfork/.github/workflows/release.yml"
 
 [tools.pitchfork."platforms.linux-x64-baseline"]
-checksum = "sha256:8d7a0c361f6055086f886f19c1462a2feae2d5ad0689184c51b4eaf36209f169"
-url = "https://github.com/jdx/pitchfork/releases/download/v2.31.0/pitchfork-x86_64-unknown-linux-gnu.tar.gz"
+checksum = "sha256:683b18efcbd67a66ff8189f35fdbc4824af4ee3e7ace827c8f8a5be21dc816c1"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.32.0/pitchfork-x86_64-unknown-linux-gnu.tar.gz"
 signer = "sigstore-oidc:https://github.com/jdx/pitchfork/.github/workflows/release.yml"
 
 [tools.pitchfork."platforms.macos-arm64"]
-checksum = "sha256:1be8f1b7df6e08542ecc7e1e1604c48ee4c5c6d90169eda2a31c112d59642baa"
-url = "https://github.com/jdx/pitchfork/releases/download/v2.31.0/pitchfork-aarch64-apple-darwin.tar.gz"
+checksum = "sha256:4c8426576c5ef4b7c8bcf19f2316ffd8e7a4c514a49007e213d7298109671166"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.32.0/pitchfork-aarch64-apple-darwin.tar.gz"
 signer = "sigstore-oidc:https://github.com/jdx/pitchfork/.github/workflows/release.yml"
 
 [tools.pitchfork."platforms.windows-x64"]
-checksum = "sha256:1cb1af89c31c289517cd037ed9509f804189912eb58d6afa61e23863ad91c371"
-url = "https://github.com/jdx/pitchfork/releases/download/v2.31.0/pitchfork-x86_64-pc-windows-msvc.zip"
+checksum = "sha256:5ba2f21573685845ce95a84859a8a6640640ba634c34f4fe466ad88b1ac9f9ba"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.32.0/pitchfork-x86_64-pc-windows-msvc.zip"
 signer = "sigstore-oidc:https://github.com/jdx/pitchfork/.github/workflows/release.yml"
 
 [tools.pitchfork."platforms.windows-x64-baseline"]
-checksum = "sha256:1cb1af89c31c289517cd037ed9509f804189912eb58d6afa61e23863ad91c371"
-url = "https://github.com/jdx/pitchfork/releases/download/v2.31.0/pitchfork-x86_64-pc-windows-msvc.zip"
+checksum = "sha256:5ba2f21573685845ce95a84859a8a6640640ba634c34f4fe466ad88b1ac9f9ba"
+url = "https://github.com/jdx/pitchfork/releases/download/v2.32.0/pitchfork-x86_64-pc-windows-msvc.zip"
 signer = "sigstore-oidc:https://github.com/jdx/pitchfork/.github/workflows/release.yml"
 
 [[tools.prettier]]
@@ -386,18 +386,6 @@ provenance = "github-attestations"
 version = "4.0.7"
 backend = "core:ruby"
 
-[tools.ruby."platforms.windows-x64"]
-checksum = "sha256:7a9be96d3448ecbd9a81eccae1f619131dfcc761f2c98dded03ece6c05d0474f"
-url = "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-4.0.7-1/rubyinstaller-4.0.7-1-x64.7z"
-
-[tools.ruby."platforms.windows-x64-baseline"]
-checksum = "sha256:7a9be96d3448ecbd9a81eccae1f619131dfcc761f2c98dded03ece6c05d0474f"
-url = "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-4.0.7-1/rubyinstaller-4.0.7-1-x64.7z"
-
-[[tools.ruby]]
-version = "4.0.7"
-backend = "core:ruby"
-
 [tools.ruby.options]
 compile = "false"
 precompiled_url = "jdx/ruby"
@@ -435,6 +423,18 @@ url = "https://cache.ruby-lang.org/pub/ruby/4.0/ruby-4.0.7.tar.gz"
 checksum = "sha256:6ad0acc5b0c437a2514679ff9a0f925e8b66ad4e96357e9ae2764b622f5d88d4"
 url = "https://github.com/jdx/ruby/releases/download/4.0.7-2/ruby-4.0.7.macos.tar.gz"
 provenance = "github-attestations"
+
+[[tools.ruby]]
+version = "4.0.7"
+backend = "core:ruby"
+
+[tools.ruby."platforms.windows-x64"]
+checksum = "sha256:7a9be96d3448ecbd9a81eccae1f619131dfcc761f2c98dded03ece6c05d0474f"
+url = "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-4.0.7-1/rubyinstaller-4.0.7-1-x64.7z"
+
+[tools.ruby."platforms.windows-x64-baseline"]
+checksum = "sha256:7a9be96d3448ecbd9a81eccae1f619131dfcc761f2c98dded03ece6c05d0474f"
+url = "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-4.0.7-1/rubyinstaller-4.0.7-1-x64.7z"
 
 [[tools.rumdl]]
 version = "0.3.0"
@@ -495,7 +495,7 @@ url_api = "https://api.github.com/repos/rvben/rumdl/releases/assets/649870485"
 provenance = "github-attestations"
 
 [[tools.rust]]
-version = "nightly-2026-10-16"
+version = "nightly-2026-10-18"
 backend = "core:rust"
 
 [[tools.stylua]]

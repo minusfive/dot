@@ -128,6 +128,20 @@ env HOME="$__home" XDG_CONFIG_HOME="$__home/.config" GIT_CONFIG_GLOBAL="$__globa
     GIT_CONFIG_NOSYSTEM=1 git -C "$__personal_repo" check-ignore -q --no-index config.personal.local.toml ||
     fail "Git global ignore does not cover config.personal.local.toml"
 env HOME="$__home" XDG_CONFIG_HOME="$__home/.config" GIT_CONFIG_GLOBAL="$__global_config" \
+    GIT_CONFIG_NOSYSTEM=1 git -C "$__personal_repo" check-ignore -q --no-index example.local.yaml ||
+    fail "Git global ignore does not cover a generic local-suffix file"
+local __explicit_local_path="explicit.local.yaml"
+print -r -- "fixture" > "$__personal_repo/$__explicit_local_path"
+if env HOME="$__home" XDG_CONFIG_HOME="$__home/.config" GIT_CONFIG_GLOBAL="$__global_config" \
+    GIT_CONFIG_NOSYSTEM=1 git -C "$__personal_repo" add -- "$__explicit_local_path" >/dev/null 2>&1; then
+    fail "Git added an ignored local file without force"
+fi
+env HOME="$__home" XDG_CONFIG_HOME="$__home/.config" GIT_CONFIG_GLOBAL="$__global_config" \
+    GIT_CONFIG_NOSYSTEM=1 git -C "$__personal_repo" add -f -- "$__explicit_local_path" ||
+    fail "Git did not force-add the explicitly selected local file"
+git -C "$__personal_repo" ls-files --error-unmatch "$__explicit_local_path" >/dev/null ||
+    fail "force-added local file is missing from the Git index"
+env HOME="$__home" XDG_CONFIG_HOME="$__home/.config" GIT_CONFIG_GLOBAL="$__global_config" \
     GIT_CONFIG_NOSYSTEM=1 git -C "$__personal_repo" check-ignore -q --no-index .cache/qmd/.qmd-embed.lock ||
     fail "Git global ignore does not cover the QMD embedding lock"
 if env HOME="$__home" XDG_CONFIG_HOME="$__home/.config" GIT_CONFIG_GLOBAL="$__global_config" \

@@ -281,15 +281,8 @@ if grep -qE '^"~/.config/mise/tasks/betterdisplay' "$__mise_source"; then
 fi
 [[ ! -e "$__mise_fixture_home/.config/mise/tasks/betterdisplay" ]] ||
     fail "isolated deployment created BetterDisplay task links"
-for __local_pattern in \
-    'mise.local.toml' \
-    'mise.*.local.toml' \
-    'miserc.local.toml' \
-    'miserc.*.local.toml' \
-    'config.local.toml' \
-    'config.*.local.toml'; do
-    grep -qF "$__local_pattern" home/.config/git/ignore || fail "missing global Git ignore pattern: $__local_pattern"
-done
+grep -qF '*.local.*' home/.config/git/ignore ||
+    fail "global Git ignore does not cover local-suffix paths"
 
 # Mise deploys this source file as Git's global excludes file.
 [[ -f "home/.config/git/ignore" ]] || fail "mise global Git ignore source is missing"
@@ -301,7 +294,11 @@ for __local_file in \
     'miserc.local.toml' \
     'miserc.personal.local.toml' \
     'config.local.toml' \
-    'config.personal.local.toml'; do
+    'config.personal.local.toml' \
+    'config.pip.local.conf' \
+    'example.local.yaml' \
+    '.env.local.sample' \
+    '.claude/settings.local.json'; do
     git check-ignore -q --no-index "$__local_file" ||
         fail "bootstrapped global Git ignore does not ignore local config: $__local_file"
 done
