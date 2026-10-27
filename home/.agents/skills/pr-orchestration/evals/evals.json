@@ -16,12 +16,18 @@
     {
       "id": "isolated-bootstrap-validation",
       "prompt": "Describe how to safely plan a move of a bootstrap-managed shell file into a new module without changing the live shell. Give the workflow only; do not inspect or edit files.",
-      "expected_output": "Use a separate worktree and isolated dummy HOME or temporary fixture, preserve runtime exclusions, and validate the focused behavior before commit."
+      "expected_output": "Use a separate worktree and isolated dummy HOME or temporary fixture, preserve runtime exclusions, and validate the focused behavior before commit.",
+      "assertions": [
+        "The response requires an isolated dummy tree or temporary fixture.",
+        "The response excludes the live HOME and runtime state from test mutations.",
+        "The response includes focused validation before the critique and commit gates."
+      ]
     },
     {
       "id": "review-watch-lifecycle",
       "prompt": "Describe the workflow for watching open PRs for review comments, addressing new comments, and stopping when PRs merge. Do not access GitHub or run a watcher.",
-      "expected_output": "Use the one-shot review-watch task on an external schedule, inspect new reviews and comments, fix each PR in its matching worktree with an independent critique subagent, synchronize metadata after pushes, and remove merged or closed PRs from the watch state."
+      "expected_output": "Use the one-shot review-watch task on an external schedule, inspect new reviews and comments, fix each PR in its matching worktree with an independent critique subagent, synchronize metadata after pushes, and remove merged or closed PRs from the watch state.",
+      "assertions": ["The response closes the watch only when no open watched PR remains."]
     }
   ]
 }

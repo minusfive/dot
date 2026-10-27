@@ -70,10 +70,10 @@ Use this lifecycle for every story and transition:
 ## Drift protocol
 
 1. If execution discovers missing, inconsistent, or non-actionable plan fields, move the affected story to blocked immediately.
-2. If a delegated worker is active, follow the drift recovery sequence in `task-orchestration` before changing plan or ownership.
+2. If a delegated worker is active, move the affected story to blocked before drift recovery. Preserve its failed critique-cycle count, then follow the drift recovery sequence in `task-orchestration` before changing plan or ownership.
 3. Treat a missing or ambiguous plan artifact path as drift and block execution until the explicit path is available.
 4. Use `planning` for targeted plan changes and `pr-orchestration` for critique before GitHub issue-plan updates.
-5. Resume from blocked only after the accepted plan patch lands. Assign the remaining work to a new worker.
+5. After the accepted plan patch lands, move the affected story to `research` and assign the remaining work to a new worker.
 
 ## Output shape
 
