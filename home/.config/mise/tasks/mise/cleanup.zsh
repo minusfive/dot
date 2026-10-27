@@ -97,6 +97,7 @@ __mise_dir="$(cd "$__mise_dir" 2>/dev/null && pwd -P)" ||
 __mise_state_dir="${MISE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/mise}"
 __mise_data_dir="${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}"
 __mise_cache_dir="${MISE_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/mise}"
+__home_path="$(normalize_path "$HOME")"
 __blocks_manifest="$__project_root/home/.config/mise/cleanup.blocks"
 __migrations_manifest="$__project_root/home/.config/mise/cleanup.migrations"
 
@@ -156,6 +157,7 @@ add_scan_path() {
 
     local __normalized_path
     __normalized_path="$(normalize_path "$__path")"
+    [[ "$__normalized_path" == "$__home_path" ]] && return 0
     __scan_paths[$__normalized_path]=1
 }
 
@@ -171,7 +173,7 @@ collect_target_scan_paths() {
         jq -e '.files | type == "array"' >/dev/null ||
         die "invalid dotfile status response for the $__profile profile"
 
-    local __target __mode
+    local __target __mode __parent
     while IFS=$'\t' read -r __target __mode; do
         [[ -n "$__target" && -n "$__mode" ]] || continue
         case "$__target" in
@@ -180,7 +182,12 @@ collect_target_scan_paths() {
             *) die "mise reported a non-absolute dotfile target: $__target" ;;
         esac
         add_active_target "$__target" "$__mode"
-        [[ "$__mode" == "symlink-each" ]] || __target="$(dirname "$__target")"
+        if [[ "$__mode" != "symlink-each" ]]; then
+            __parent="$(dirname "$__target")"
+            if [[ "$(normalize_path "$__parent")" != "$__home_path" ]]; then
+                __target="$__parent"
+            fi
+        fi
         add_scan_path "$__target"
     done < <(
         print -r -- "$__status" |

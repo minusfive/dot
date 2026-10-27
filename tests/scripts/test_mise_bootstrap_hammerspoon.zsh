@@ -34,6 +34,7 @@ if command -v luac >/dev/null 2>&1; then
 fi
 
 local __fixture_dir="$(test_fixture_dir hammerspoon-xdg)"
+trap 'rm -rf "$__fixture_dir"' EXIT
 local __fixture_home="$__fixture_dir/home"
 local __fixture_repository="$__fixture_home/dev/personal/dot"
 local __fixture_xdg_config="$__fixture_dir/xdg/config"

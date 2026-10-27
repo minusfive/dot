@@ -73,6 +73,11 @@ source = "~/dev/personal/dot/home/.config/example/owned.conf"
 mode = "symlink"
 variants = [{ default = true, target = "{{ xdg_config_home }}/example/owned.conf" }]
 
+[dotfiles."cleanup/root-target"]
+source = "~/dev/personal/dot/home/.config/example/owned.conf"
+mode = "symlink"
+variants = [{ default = true, target = "~/.cleanup-root-target" }]
+
 [dotfiles."cleanup/profile-target/owned.conf"]
 source = "~/dev/personal/dot/home/.config/example/owned.conf"
 mode = "symlink"
@@ -121,6 +126,7 @@ cat > "$__source_dir/.config/mise/cleanup.paths" <<'EOF'
 .config/mise
 .config/zsh
 .local/state/mise
+.stale-root-link
 EOF
 printf '# Relative target paths and block IDs that historically belonged to this repository.\n' \
     > "$__source_dir/.config/mise/cleanup.blocks"
@@ -184,6 +190,11 @@ ln -s "$__source_dir/.config/example/owned.conf" \
     "$__fixture_home/.config/personal-targets/owned.conf"
 ln -s "$__fixture_dir/missing-external" "$__fixture_home/external-broken"
 ln -s "$__fixture_dir/external" "$__target_dir/external"
+ln -s "$__source_dir/.config/example/missing-root.conf" \
+    "$__fixture_home/.stale-root-link"
+mkdir -p "$__fixture_home/unrelated"
+ln -s "$__source_dir/.config/example/missing-nested.conf" \
+    "$__fixture_home/unrelated/stale"
 
 env "${__fixture_env[@]}" usage_dry_run=true zsh "$__task" > "$__output"
 
@@ -211,6 +222,10 @@ grep -qF 'mise:removed' "$__fixture_home/.config/zsh/.zshrc" ||
 [[ -L "$__fixture_home/.local/state/mise/tracked-configs/config" ]] ||
     fail "dry run removed a tracked-config link"
 [[ -L "$__fixture_home/external-broken" ]] || fail "dry run removed an external link"
+[[ -L "$__fixture_home/.stale-root-link" ]] ||
+    fail "dry run removed a direct HOME child"
+[[ -L "$__fixture_home/unrelated/stale" ]] ||
+    fail "dry run removed a nested link outside an exact HOME target"
 
 env "${__fixture_env[@]}" zsh "$__task" > "$__output"
 
@@ -262,6 +277,10 @@ grep -qF 'mise:foreign' "$__fixture_home/.config/zsh/.zshrc" ||
 [[ -L "$__fixture_home/.local/state/mise/tracked-configs/config" ]] ||
     fail "tracked-config link was removed"
 [[ -L "$__fixture_home/external-broken" ]] || fail "external broken link was removed"
+[[ ! -L "$__fixture_home/.stale-root-link" ]] ||
+    fail "stale direct HOME child remains"
+[[ -L "$__fixture_home/unrelated/stale" ]] ||
+    fail "cleanup recursively scanned HOME"
 
 local __blocks_backup="$__fixture_dir/cleanup.blocks.backup"
 cp "$__source_dir/.config/mise/cleanup.blocks" "$__blocks_backup"
