@@ -1,0 +1,27 @@
+{
+  "skill_name": "agent-instructions-authoring",
+  "iteration": 1,
+  "run_summary": {
+    "with_skill": {
+      "passed": 4,
+      "failed": 0,
+      "total": 4,
+      "pass_rate": 1.0,
+      "total_tokens": 91753,
+      "duration_ms": 34181
+    },
+    "old_skill": {
+      "passed": 0,
+      "failed": 4,
+      "total": 4,
+      "pass_rate": 0.0,
+      "total_tokens": 91981,
+      "duration_ms": 39553
+    }
+  },
+  "delta": {
+    "pass_rate": 1.0,
+    "total_tokens": -228,
+    "duration_ms": -5372
+  }
+}

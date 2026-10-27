@@ -3,30 +3,23 @@
   "evals": [
     {
       "id": "migration-boundary-matrix",
-      "prompt": "Plan a multi-boundary dotfile migration with Stow, mise, shell, editor, runtime state, and secrets.",
-      "expected_output": "A plan with a complete boundary matrix and no discovery work left for execution.",
+      "prompt": "You coordinate a substantial dotfile migration across Stow, mise, shell, editor, runtime state, and secrets. Describe the bounded planning assignment you will give a planning worker and how you will reconcile its draft. Include the matrix dimensions the assignment must cover. Do not write the final plan or call tools.",
+      "expected_output": "Delegate substantial boundary research and plan drafting to a bounded worker. Keep user decisions and final plan acceptance with the orchestrator. Require a matrix covering files, targets, ownership, runtime exclusions, code coupling, validation, rollback, and final disposition.",
       "assertions": [
-        "The plan records exact files, target paths, ownership mode, runtime exclusions, code coupling, validation commands, rollback, and final disposition.",
-        "The execution stories contain no discovery task or unresolved implementation-critical decision."
+        "The orchestrator does not draft the substantial plan before the planning agent returns.",
+        "The orchestrator owns user decisions and the accepted plan."
       ]
     },
     {
       "id": "scope-proportional-matrix",
       "prompt": "Plan a one-file configuration-key rename with one focused test.",
       "expected_output": "A small matrix covers the fixed file and test scope without a repository-wide inventory.",
-      "assertions": [
-        "The plan uses a matrix sized to the fixed scope.",
-        "The plan does not invent a full repository inventory."
-      ]
+      "assertions": ["The plan uses a matrix sized to the fixed scope."]
     },
     {
       "id": "multi-service-cutover",
-      "prompt": "Plan an ambiguous multi-service cutover with shared credentials and generated runtime files.",
-      "expected_output": "The plan resolves credential ownership, generated-state exclusions, sequencing, validation, and rollback before handoff.",
-      "assertions": [
-        "Shared credentials and generated runtime files have explicit ownership and exclusion decisions.",
-        "The execution order, validation gates, and rollback actions are concrete."
-      ]
+      "prompt": "Plan an ambiguous multi-service cutover with shared credentials and generated runtime files. Ask only the first question needed to resolve a critical decision before drafting the plan.",
+      "expected_output": "Ask one critical question at a time, recommend an answer first, and do not present a final plan while an upstream decision remains unresolved."
     }
   ]
 }

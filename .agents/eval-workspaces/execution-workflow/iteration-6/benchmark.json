@@ -1,0 +1,27 @@
+{
+  "skill_name": "execution-workflow",
+  "iteration": 6,
+  "run_summary": {
+    "with_skill": {
+      "passed": 0,
+      "failed": 2,
+      "total": 2,
+      "pass_rate": 0.0,
+      "total_tokens": 52491,
+      "duration_ms": 30142
+    },
+    "old_skill": {
+      "passed": 2,
+      "failed": 0,
+      "total": 2,
+      "pass_rate": 1.0,
+      "total_tokens": 50382,
+      "duration_ms": 28972
+    }
+  },
+  "delta": {
+    "pass_rate": -1.0,
+    "total_tokens": 2109,
+    "duration_ms": 1170
+  }
+}

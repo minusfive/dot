@@ -7,7 +7,9 @@ description: Execute deterministic story plans through dependency-aware workflow
 
 Use this skill after planning is complete and you need to execute an existing plan through issues, board cards, PRs, and merges.
 
-Apply the runtime-isolation rules in `task-orchestration`. For multi-issue GitHub delivery with independent worktrees, separate PRs, review watching, or manual merge handoff, load `pr-orchestration` first. This skill supplies the story lifecycle and dependency gates; `pr-orchestration` supplies the lane, review, and merge-authority rules.
+Use the `orchestrator` agent as the primary coordinator. Follow `task-orchestration` for delegation and runtime isolation. Load `pr-orchestration` before multi-issue GitHub delivery.
+
+This skill owns story lifecycle and dependency gates.
 
 ## Canonical lifecycle
 
@@ -27,7 +29,7 @@ Use this lifecycle for every story and transition:
 3. Resolve and use the exact accepted plan artifact path provided by planning handoff (or an explicit path I provide) before starting execution; do not infer default paths.
 4. When I identify GitHub issues as the plan source, treat each issue description as that story's canonical plan.
 5. Refine each issue description before implementation when required plan fields are missing, inconsistent, or non-actionable.
-6. Have an independent critique subagent review each proposed issue-plan update before you submit it to GitHub.
+6. Follow `pr-orchestration` for independent critique before GitHub issue-plan updates.
 7. If no explicit plan artifact or issue-based plan source is available, stop and request one before execution.
 8. Do not rewrite accepted story specs during execution; if execution discovers drift, trigger the drift protocol and request a targeted planning update.
 9. Keep story execution in topological dependency order.
@@ -36,7 +38,7 @@ Use this lifecycle for every story and transition:
 
 1. Build execution lanes from plan-provided dependencies and concurrency boundaries:
    - Parallelize only stories marked as independent by the plan.
-   - Serialize shared mutable-state writes (for example, merge order or board-status updates).
+   - Follow `task-orchestration` for worktree isolation and shared-write serialization.
 2. Preserve the plan's vertical integration checkpoints:
    - Do not start downstream expansion before each checkpoint is end-to-end verifiable.
 3. Annotate each executing story as one of:
@@ -61,16 +63,17 @@ Use this lifecycle for every story and transition:
 
 ## PR and verification discipline
 
-1. Keep one PR per story spec, or one PR per approved merged-story spec.
-2. Include explicit issue-closing references in the PR body for all covered stories.
-3. Verify acceptance checks before merge and preserve evidence in the story artifact trail.
+1. Follow `pr-orchestration` for PR boundaries, review cycles, and merge handoff.
+2. Follow `pr-guidelines` for authorized pushes and PR metadata updates.
+3. Verify story acceptance checks and preserve evidence in the story artifact trail.
 
 ## Drift protocol
 
 1. If execution discovers missing, inconsistent, or non-actionable plan fields, move the affected story to blocked immediately.
-2. Record the exact drift details and the minimum plan patch needed to resume execution.
-3. Treat a missing or ambiguous plan artifact path as drift and block execution until the explicit path is provided.
-4. Do not silently improvise or rewrite the plan during execution; surface drift details to me or the orchestrator and load the `planning` skill to produce a targeted plan patch, then resume from blocked once the patch lands.
+2. If a delegated worker is active, follow the drift recovery sequence in `task-orchestration` before changing plan or ownership.
+3. Treat a missing or ambiguous plan artifact path as drift and block execution until the explicit path is available.
+4. Use `planning` for targeted plan changes and `pr-orchestration` for critique before GitHub issue-plan updates.
+5. Resume from blocked only after the accepted plan patch lands. Assign the remaining work to a new worker.
 
 ## Output shape
 

@@ -1,0 +1,11 @@
+{
+  "skill_name": "execution-workflow",
+  "iteration": 2,
+  "human_review": [
+    "Superseded by iteration 6. This run tested the unsupported fixed todo-status mapping and was generated before the user correction."
+  ],
+  "limitations": [
+    "Pilot iteration only; do not use its outputs for the final benchmark."
+  ],
+  "recommendation": "hold"
+}

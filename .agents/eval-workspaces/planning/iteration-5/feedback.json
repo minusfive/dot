@@ -1,0 +1,11 @@
+{
+  "skill_name": "planning",
+  "iteration": 5,
+  "human_review": [
+    "Superseded by iteration 6 after the case prompt and baseline assertions were refined. Use iteration 6 for the current comparison."
+  ],
+  "limitations": [
+    "Pilot iteration only; do not use its outputs for the final benchmark."
+  ],
+  "recommendation": "hold"
+}

@@ -1,0 +1,11 @@
+{
+  "skill_name": "agent-instructions-authoring",
+  "iteration": 1,
+  "human_review": [
+    "Both changed-instruction runs started agent bodies with the required role statement; baseline runs did not. The first-sentence authoring rule produced a clear behavioral improvement."
+  ],
+  "limitations": [
+    "Text-only prompts did not inspect real agent files; evaluation covers drafting/revision behavior only."
+  ],
+  "recommendation": "accept"
+}

@@ -7,6 +7,10 @@ description: Produce deterministic execution plans with story artifacts ready fo
 
 Use this skill to produce execution-ready plans before implementation.
 
+Use the `orchestrator` agent as the primary coordinator. Follow `task-orchestration` for delegated planning assignments and supervision.
+
+If you are a planning worker, return your plan draft, research matrix, evidence, and unresolved questions to the `orchestrator`. Do not ask me directly. The `orchestrator` asks me remaining questions and accepts the plan.
+
 ## Planning Loop
 
 1. Explore relevant codepaths, docs, and constraints first.

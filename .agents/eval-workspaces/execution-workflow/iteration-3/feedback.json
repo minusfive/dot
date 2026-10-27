@@ -1,0 +1,11 @@
+{
+  "skill_name": "execution-workflow",
+  "iteration": 3,
+  "human_review": [
+    "Superseded by iteration 6 after removing the fixed todo mapping and revising the case to cover flexible tracking and worker drift."
+  ],
+  "limitations": [
+    "Pilot iteration only; do not use its outputs for the final benchmark."
+  ],
+  "recommendation": "hold"
+}

@@ -1,0 +1,14 @@
+{
+  "skill_name": "execution-workflow",
+  "evals": [
+    {
+      "id": "mapping-story-states-to-todos",
+      "prompt": "An accepted plan is at `~/.agents/projects.local/repo/plan.md`. A story in `critique` has failed twice. A delegated worker changed an excluded file and missed an end-to-end checkpoint; a downstream story depends on it. Describe the required workflow. Do not call tools. Todo tracking may be used, but do not prescribe a global per-story todo or status mapping.",
+      "expected_output": "Block the affected story with the drift and unblock condition, preserve the two failed critique findings, and keep downstream work blocked. Follow task-orchestration: request a report, stop the worker, run independent critique before plan changes, accept a targeted plan patch, then assign remaining work to a new worker. Resume the affected story at `research` only after the accepted patch lands. Leave todo tracking choices to each agent and session.",
+      "assertions": [
+        "The response blocks the affected story immediately and carries forward the two failed critique findings and unblock condition.",
+        "The response resumes the affected story at `research` only after the accepted plan patch lands."
+      ]
+    }
+  ]
+}

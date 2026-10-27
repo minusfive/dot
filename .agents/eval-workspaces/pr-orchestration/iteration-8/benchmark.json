@@ -1,0 +1,27 @@
+{
+  "skill_name": "pr-orchestration",
+  "iteration": 8,
+  "run_summary": {
+    "with_skill": {
+      "passed": 1,
+      "failed": 4,
+      "total": 5,
+      "pass_rate": 0.2,
+      "total_tokens": 157322,
+      "duration_ms": 90235
+    },
+    "old_skill": {
+      "passed": 1,
+      "failed": 4,
+      "total": 5,
+      "pass_rate": 0.2,
+      "total_tokens": 178359,
+      "duration_ms": 110168
+    }
+  },
+  "delta": {
+    "pass_rate": 0.0,
+    "total_tokens": -21037,
+    "duration_ms": -19933
+  }
+}

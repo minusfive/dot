@@ -1,0 +1,48 @@
+{
+  "skill_name": "pr-orchestration",
+  "iteration": 8,
+  "cases": {
+    "parallel-issue-pr-delivery": {
+      "with_skill": {
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "pass_rate": 0.2
+      },
+      "old_skill": {
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "pass_rate": 0.2
+      }
+    },
+    "isolated-bootstrap-validation": {
+      "with_skill": {
+        "passed": 0,
+        "failed": 0,
+        "total": 0,
+        "pass_rate": 0
+      },
+      "old_skill": {
+        "passed": 0,
+        "failed": 0,
+        "total": 0,
+        "pass_rate": 0
+      }
+    },
+    "review-watch-lifecycle": {
+      "with_skill": {
+        "passed": 0,
+        "failed": 0,
+        "total": 0,
+        "pass_rate": 0
+      },
+      "old_skill": {
+        "passed": 0,
+        "failed": 0,
+        "total": 0,
+        "pass_rate": 0
+      }
+    }
+  }
+}

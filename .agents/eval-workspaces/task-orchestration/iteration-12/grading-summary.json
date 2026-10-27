@@ -1,0 +1,48 @@
+{
+  "skill_name": "task-orchestration",
+  "iteration": 12,
+  "cases": {
+    "balanced-end-to-end-delegation": {
+      "with_skill": {
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "pass_rate": 0.0
+      },
+      "old_skill": {
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "pass_rate": 0.0
+      }
+    },
+    "parallel-branch-supervision": {
+      "with_skill": {
+        "passed": 0,
+        "failed": 0,
+        "total": 0,
+        "pass_rate": 0
+      },
+      "old_skill": {
+        "passed": 0,
+        "failed": 0,
+        "total": 0,
+        "pass_rate": 0
+      }
+    },
+    "worker-cannot-deliver": {
+      "with_skill": {
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "pass_rate": 1.0
+      },
+      "old_skill": {
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "pass_rate": 0.5
+      }
+    }
+  }
+}

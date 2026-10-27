@@ -85,6 +85,7 @@ The repository's general post-validation critique gate (defined in the top-level
 ## Authoring Style
 
 - Write concise rules using imperative language optimized for accurate and efficient agentic execution.
+- Start each agent definition body with `You are a ...` or `You are an ...` and state its role in the first sentence.
 - Follow `writing-style` for shared prose and tone conventions before applying the instruction-specific rules in this section.
 - Write instructions so they work across agent tools. Describe required capabilities and repeatable steps, and avoid model-specific tricks.
 - Reference skill names with backticks only. Do not use Markdown links for skill-name references.

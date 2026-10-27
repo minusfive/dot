@@ -1,0 +1,11 @@
+{
+  "skill_name": "pr-orchestration",
+  "iteration": 8,
+  "human_review": [
+    "With-skill and baseline both scored 1/5 on discriminating assertions. The current runs differed: one did not identify the orchestrator and neither consistently assigned bounded planning or post-critique delivery agents. Separate PRs were preserved in both configurations."
+  ],
+  "limitations": [
+    "GitHub, worktree creation, commits, pushes, and PR updates were disabled; outputs are proposed workflows, not execution evidence."
+  ],
+  "recommendation": "hold"
+}

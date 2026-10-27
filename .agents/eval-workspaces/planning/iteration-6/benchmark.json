@@ -1,0 +1,27 @@
+{
+  "skill_name": "planning",
+  "iteration": 6,
+  "run_summary": {
+    "with_skill": {
+      "passed": 2,
+      "failed": 1,
+      "total": 3,
+      "pass_rate": 0.6667,
+      "total_tokens": 143396,
+      "duration_ms": 78755
+    },
+    "old_skill": {
+      "passed": 1,
+      "failed": 2,
+      "total": 3,
+      "pass_rate": 0.3333,
+      "total_tokens": 137879,
+      "duration_ms": 78221
+    }
+  },
+  "delta": {
+    "pass_rate": 0.3334,
+    "total_tokens": 5517,
+    "duration_ms": 534
+  }
+}

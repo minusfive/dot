@@ -1,0 +1,29 @@
+{
+  "skill_name": "task-orchestration",
+  "evals": [
+    {
+      "id": "balanced-end-to-end-delegation",
+      "prompt": "Propose an agent assignment and delivery plan for a migration that changes an API field, data format, CLI output, tests, and documentation. The accepted scope requires API and CLI backward compatibility, a reversible data migration, and end-to-end coverage. I authorize commits, pushes, and PR metadata updates this turn, but I will merge. Name balanced behavior units, assignment boundaries, dependencies, acceptance checks, evidence, and checkpoints. Describe the proposed assignments only; do not launch agents or use tools.",
+      "expected_output": "Use the orchestrator as overall owner. Delegate bounded planning before implementation, then split implementation into balanced, end-to-end behavior units. Include related code, tests, and docs in each unit. Give each assignment explicit scope, files, dependencies, acceptance checks, evidence, and a checkpoint. Keep critique independent from implementation. Delegate authorized delivery to workers after separate commit and push authorization.",
+      "assertions": [
+        "The response identifies the orchestrator as the primary owner of scope, integration, and completion.",
+        "The response delegates substantial planning before implementation while keeping final decisions with the orchestrator.",
+        "The response delegates authorized commits, pushes, and PR updates to delivery agents rather than performing them in the orchestrator."
+      ]
+    },
+    {
+      "id": "parallel-branch-supervision",
+      "prompt": "Unit A owns an API contract and provider implementation. Unit B consumes that API and can start against a stub, but must integrate against A's implementation. Their files do not overlap. Describe how to organize branches, worktrees, checkpoints, and integration. Give the workflow only; do not create branches or use tools.",
+      "expected_output": "Run the independent work in separate worktrees. Let B start against the agreed stub, then stack or rebase B on A's validated branch before integration. Serialize integration and supervise checkpoints against scope and estimates."
+    },
+    {
+      "id": "worker-cannot-deliver",
+      "prompt": "An implementation agent has drifted from its assigned migration and missed a checkpoint. Describe the sequence beginning with a progress-report request, including what you do if the worker responds and if it does not.",
+      "expected_output": "Request a report with completed work, changed files, validation evidence, blockers, and remaining scope. Stop the worker after the report, or stop it and use available evidence if it cannot report. Have a separate critique worker assess the progress before plan changes. Then delegate the plan update and assign remaining work to new workers.",
+      "assertions": [
+        "The response requests a report with work, files, evidence, blockers, and remaining scope when the worker can report.",
+        "The response assigns a separate critique worker before changing the plan."
+      ]
+    }
+  ]
+}

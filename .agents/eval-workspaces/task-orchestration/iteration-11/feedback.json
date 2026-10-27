@@ -1,0 +1,11 @@
+{
+  "skill_name": "task-orchestration",
+  "iteration": 11,
+  "human_review": [
+    "Superseded by iteration 12 after pruning baseline-equivalent assertions."
+  ],
+  "limitations": [
+    "Pilot iteration only; do not use its outputs for the final benchmark."
+  ],
+  "recommendation": "hold"
+}

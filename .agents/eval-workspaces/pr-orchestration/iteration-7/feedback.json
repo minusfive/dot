@@ -1,0 +1,11 @@
+{
+  "skill_name": "pr-orchestration",
+  "iteration": 7,
+  "human_review": [
+    "Superseded by iteration 8 after prompts were changed to workflow-only requests and baseline-equivalent assertions were removed."
+  ],
+  "limitations": [
+    "Pilot iteration only; do not use its outputs for the final benchmark."
+  ],
+  "recommendation": "hold"
+}
