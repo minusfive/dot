@@ -1,0 +1,23 @@
+{
+  "skill_name": "agent-instructions-authoring",
+  "evals": [
+    {
+      "id": "writing-a-new-agent",
+      "prompt": "Draft the body, without frontmatter, for an agent that audits observability configuration and returns evidence-backed findings.",
+      "expected_output": "The body starts with a first-person role statement: `You are an observability auditor...`.",
+      "assertions": [
+        "The first sentence begins with `You are an observability auditor`.",
+        "The first sentence identifies the agent's role."
+      ]
+    },
+    {
+      "id": "revising-an-agent-body",
+      "prompt": "Revise this agent body to make its role clear: `Inspect migration plans, find missing dependencies, and return a concise report.`",
+      "expected_output": "The first sentence starts with `You are a migration planning agent...` and states the role.",
+      "assertions": [
+        "The first sentence begins with `You are a migration planning agent`.",
+        "The first sentence identifies the agent's role."
+      ]
+    }
+  ]
+}

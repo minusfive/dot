@@ -1,0 +1,11 @@
+{
+  "skill_name": "task-orchestration",
+  "iteration": 8,
+  "human_review": [
+    "Superseded by iteration 12. The initial prompts asked for real delegation while tools were disabled and did not provide enough scope to assess assignment quality."
+  ],
+  "limitations": [
+    "Pilot iteration only; do not use its outputs for the final benchmark."
+  ],
+  "recommendation": "hold"
+}

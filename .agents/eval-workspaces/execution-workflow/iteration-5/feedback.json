@@ -1,0 +1,11 @@
+{
+  "skill_name": "execution-workflow",
+  "iteration": 5,
+  "human_review": [
+    "Superseded by iteration 6 after assertion pruning; use iteration 6 for the current comparison."
+  ],
+  "limitations": [
+    "Pilot iteration only; do not use its outputs for the final benchmark."
+  ],
+  "recommendation": "hold"
+}

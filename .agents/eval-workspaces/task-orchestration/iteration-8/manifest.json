@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skill_name": "task-orchestration",
+  "iteration": 8,
+  "case_ids": [
+    "balanced-end-to-end-delegation",
+    "parallel-branch-supervision",
+    "worker-cannot-deliver"
+  ],
+  "workspace": ".agents/eval-workspaces/task-orchestration"
+}

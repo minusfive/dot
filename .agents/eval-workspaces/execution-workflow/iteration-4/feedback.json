@@ -1,0 +1,11 @@
+{
+  "skill_name": "execution-workflow",
+  "iteration": 4,
+  "human_review": [
+    "Superseded by iteration 6 after the case prompt and expected drift-state behavior were clarified."
+  ],
+  "limitations": [
+    "Pilot iteration only; do not use its outputs for the final benchmark."
+  ],
+  "recommendation": "hold"
+}

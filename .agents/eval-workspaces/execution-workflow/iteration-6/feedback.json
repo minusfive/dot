@@ -1,0 +1,11 @@
+{
+  "skill_name": "execution-workflow",
+  "iteration": 6,
+  "human_review": [
+    "The todo cardinality, lifecycle-to-status mapping, and todo-description rules are absent from the skill and the repository search found no copies. The workflow simulation did not consistently state the affected story’s blocked state or return it to research after the accepted plan patch; the previous version did so consistently."
+  ],
+  "limitations": [
+    "The case ID is retained for historical manifest compatibility although the revised prompt tests drift recovery and flexible todo tracking. This was a tool-disabled workflow simulation, not an actual session-todo operation."
+  ],
+  "recommendation": "hold"
+}

@@ -7,7 +7,7 @@ description: Orchestrate multi-issue GitHub delivery with durable issue plans, i
 
 Use this skill for multi-issue work that needs separate branches, worktrees, pull requests, review cycles, or manual merge handoff.
 
-Apply the runtime-isolation rules in `task-orchestration` before implementation and testing.
+Use the `orchestrator` agent as the primary coordinator. Follow `task-orchestration` for assignment sizing, isolation, supervision, and recovery.
 
 ## Start with durable plans
 
@@ -15,28 +15,33 @@ Apply the runtime-isolation rules in `task-orchestration` before implementation 
 2. Defer plan research, decision resolution, story fields, research matrices, and planning critique to `planning`.
 3. Treat each issue description as the canonical plan when I identify issues as the plan source.
 4. Refine each issue description before implementation.
-5. Use one independent planning subagent per issue.
+5. Use `planning` for plan content. Follow `task-orchestration` for planning delegation and recovery.
 6. Use an independent critique subagent for every proposed plan update before submitting it to GitHub.
 7. Record plan updates and critique outcomes in the issue. Keep the issue description as the maintained plan.
 
 ## Build independent lanes
 
 1. Build a dependency graph from the issue plans.
-2. Create one branch and one worktree per issue.
-3. Keep each worktree independent. Do not share mutable source files between lanes.
-4. Start independent implementation agents in parallel.
-5. Keep shared-file rebases or merges serialized.
-6. Do not use one PR for multiple issue plans unless I explicitly approve a merged-story plan.
+2. Create one integration branch and worktree per issue.
+3. Keep issue lanes independent. Do not share mutable source files between lanes.
+4. Delegate balanced behavior units through `task-orchestration`.
+5. Follow its runtime-isolation rules for parallel worktrees and dependent branches.
+6. Integrate completed units into their issue lane. Serialize shared-file changes and merges.
+7. Do not use one PR for multiple issue plans unless I explicitly approve a merged-story plan.
 
 ## Gate commits and pushes
 
-1. Have the implementation agent stop with an uncommitted worktree after validation.
+This gate reviews the integrated PR diff before delivery. `execution-workflow` owns the story `critique -> done` transition.
+
+1. Have each implementation unit return a validated, uncommitted worktree.
 2. Run an independent critique subagent against the complete diff and test evidence.
 3. If the critique fails, use a separate fix subagent to address the findings.
 4. Run the independent critique again after the fix.
-5. Load `commit-guidelines` for diff review, security review, hooks, and commit messages.
-6. Load `pr-guidelines` before every authorized push. Let that skill own push, base/head, manifest, and PR metadata synchronization.
-7. Commit the issue implementation and its tests together when they form one atomic change.
+5. Follow `commit-guidelines` for commit review, grouping, hooks, and messages.
+6. Follow `pr-guidelines` before every authorized push and PR metadata update.
+7. Follow `AGENTS.md` for separate current-turn commit and push authorization.
+8. After authorization and critique, assign a delivery agent to perform the authorized commit, push, and PR actions.
+9. Verify the resulting commit and PR metadata in the `orchestrator`.
 
 ## Watch reviews
 
@@ -68,4 +73,4 @@ Apply the runtime-isolation rules in `task-orchestration` before implementation 
 
 ## State tracking
 
-Use the session todo store for lane state, dependencies, critique cycles, and PR handoff status. Use the `pr:review-watch` state file only for open PR review polling. Keep temporary reports in the session workspace or an ignored project `tmp/` directory.
+Use the session todo store for PR lane state, dependencies, and handoff. Follow `execution-workflow` for story status and critique-cycle records in those same todos. Use the `pr:review-watch` state file only for open PR polling. Keep temporary reports in the session workspace or an ignored project `tmp/` directory.

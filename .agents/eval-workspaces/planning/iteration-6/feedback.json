@@ -1,0 +1,11 @@
+{
+  "skill_name": "planning",
+  "iteration": 6,
+  "human_review": [
+    "The planning-worker assignment case improved: with_skill returned only a bounded assignment, while old_skill drafted the full plan before worker results. The fixed-scope matrix case failed in both configurations."
+  ],
+  "limitations": [
+    "Tool-disabled, workflow-only evaluation; the planning case tests response behavior, not actual agent dispatch. The small-scope matrix failure needs investigation before relying on this spec."
+  ],
+  "recommendation": "hold"
+}

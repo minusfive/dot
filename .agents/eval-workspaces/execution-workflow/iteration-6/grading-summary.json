@@ -1,0 +1,20 @@
+{
+  "skill_name": "execution-workflow",
+  "iteration": 6,
+  "cases": {
+    "mapping-story-states-to-todos": {
+      "with_skill": {
+        "passed": 0,
+        "failed": 2,
+        "total": 2,
+        "pass_rate": 0.0
+      },
+      "old_skill": {
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "pass_rate": 1.0
+      }
+    }
+  }
+}

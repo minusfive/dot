@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skill_name": "pr-orchestration",
+  "iteration": 1,
+  "case_ids": [
+    "parallel-issue-pr-delivery",
+    "isolated-bootstrap-validation",
+    "review-watch-lifecycle"
+  ],
+  "workspace": ".agents/eval-workspaces/pr-orchestration"
+}

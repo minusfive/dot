@@ -3,18 +3,19 @@
   "evals": [
     {
       "id": "parallel-issue-pr-delivery",
-      "prompt": "Implement issues #101, #102, and #103 in parallel. Each issue needs its own PR. Use separate worktrees, keep the live home directory safe, and wait for me to merge the PRs.",
-      "expected_output": "Refine each issue description first, create one branch and worktree per issue, run independent implementation and critique cycles, create separate PRs, and leave merging to the user.",
+      "prompt": "Propose the orchestration and delivery workflow for issues #101, #102, and #103. Each issue needs its own PR and worktree, and the live home directory must stay safe. One worker drifts outside its files. I authorize commits, pushes, and PR updates in this turn, but I will merge the PRs. Describe the workflow only; do not access GitHub, create worktrees, commit, push, or update PRs.",
+      "expected_output": "Delegate bounded plan research and drafting, refine each issue plan, and use the orchestrator as primary coordinator. Assign balanced implementation units with clear boundaries and checkpoints. For drift, request a report, stop the worker, run an independent critique, delegate the plan patch, then assign new workers. After critique and separate authorization, have delivery agents commit, push, and update PR metadata. The orchestrator verifies the results and leaves merging to the user.",
       "assertions": [
-        "The response treats each issue description as the durable plan before implementation.",
-        "The response assigns independent worktrees and separate PRs to the issues.",
-        "The response requires an independent critique subagent before each commit or push.",
-        "The response states that the agent must not merge PRs."
+        "The response names the orchestrator as the primary coordinator.",
+        "The response delegates bounded planning work and keeps final plan decisions with the orchestrator.",
+        "The response assigns bounded end-to-end units instead of one long-running implementation task per issue.",
+        "The response assigns delivery agents to commit, push, and update PR metadata only after critique and separate current-turn authorization.",
+        "The response assigns separate PRs to the issues."
       ]
     },
     {
       "id": "isolated-bootstrap-validation",
-      "prompt": "Move a bootstrap-managed shell file into a new module without changing the live shell.",
+      "prompt": "Describe how to safely plan a move of a bootstrap-managed shell file into a new module without changing the live shell. Give the workflow only; do not inspect or edit files.",
       "expected_output": "Use a separate worktree and isolated dummy HOME or temporary fixture, preserve runtime exclusions, and validate the focused behavior before commit.",
       "assertions": [
         "The response requires an isolated dummy tree or temporary fixture.",
@@ -24,7 +25,7 @@
     },
     {
       "id": "review-watch-lifecycle",
-      "prompt": "Watch open PRs for review comments. Address new comments as they arrive and stop watching merged PRs.",
+      "prompt": "Describe the workflow for watching open PRs for review comments, addressing new comments, and stopping when PRs merge. Do not access GitHub or run a watcher.",
       "expected_output": "Use the one-shot review-watch task on an external schedule, inspect new reviews and comments, fix each PR in its matching worktree with an independent critique subagent, synchronize metadata after pushes, and remove merged or closed PRs from the watch state.",
       "assertions": [
         "The response uses the review-watch task as a one-shot poll.",

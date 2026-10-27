@@ -1,0 +1,11 @@
+{
+  "skill_name": "planning",
+  "iteration": 4,
+  "human_review": [
+    "Superseded by iteration 6. The earlier prompt requested a completed migration plan while the harness disabled tools and planning agents, so it did not test the changed delegation rule."
+  ],
+  "limitations": [
+    "Pilot iteration only; do not use its outputs for the final benchmark."
+  ],
+  "recommendation": "hold"
+}

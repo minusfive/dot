@@ -1,0 +1,11 @@
+{
+  "skill_name": "task-orchestration",
+  "iteration": 12,
+  "human_review": [
+    "With-skill scored 2/5 versus 1/5 for the baseline. Drift handling consistently used a separate critique worker, but planning ownership and delivery-agent delegation were inconsistent across the two current runs."
+  ],
+  "limitations": [
+    "Tool-disabled workflow simulation cannot verify actual subagent dispatch, worktree isolation, or delivery."
+  ],
+  "recommendation": "hold"
+}

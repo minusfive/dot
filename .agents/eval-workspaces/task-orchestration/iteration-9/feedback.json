@@ -1,0 +1,11 @@
+{
+  "skill_name": "task-orchestration",
+  "iteration": 9,
+  "human_review": [
+    "Superseded by iteration 12 after clarifying the planning, drift, and dependency cases."
+  ],
+  "limitations": [
+    "Pilot iteration only; do not use its outputs for the final benchmark."
+  ],
+  "recommendation": "hold"
+}

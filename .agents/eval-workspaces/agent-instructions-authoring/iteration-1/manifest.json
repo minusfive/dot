@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "skill_name": "agent-instructions-authoring",
+  "iteration": 1,
+  "case_ids": ["writing-a-new-agent", "revising-an-agent-body"],
+  "workspace": ".agents/eval-workspaces/agent-instructions-authoring"
+}

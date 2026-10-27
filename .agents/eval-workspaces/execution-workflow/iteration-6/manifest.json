@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "skill_name": "execution-workflow",
+  "iteration": 6,
+  "case_ids": ["mapping-story-states-to-todos"],
+  "workspace": ".agents/eval-workspaces/execution-workflow"
+}

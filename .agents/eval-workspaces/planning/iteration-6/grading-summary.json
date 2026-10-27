@@ -1,0 +1,48 @@
+{
+  "skill_name": "planning",
+  "iteration": 6,
+  "cases": {
+    "migration-boundary-matrix": {
+      "with_skill": {
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "pass_rate": 1.0
+      },
+      "old_skill": {
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "pass_rate": 0.5
+      }
+    },
+    "scope-proportional-matrix": {
+      "with_skill": {
+        "passed": 0,
+        "failed": 1,
+        "total": 1,
+        "pass_rate": 0.0
+      },
+      "old_skill": {
+        "passed": 0,
+        "failed": 1,
+        "total": 1,
+        "pass_rate": 0.0
+      }
+    },
+    "multi-service-cutover": {
+      "with_skill": {
+        "passed": 0,
+        "failed": 0,
+        "total": 0,
+        "pass_rate": 0
+      },
+      "old_skill": {
+        "passed": 0,
+        "failed": 0,
+        "total": 0,
+        "pass_rate": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "skill_name": "pr-orchestration",
+  "iteration": 6,
+  "human_review": [
+    "Superseded by iteration 8. The earlier requests asked for GitHub actions while the evaluation harness prohibited tools, so the outputs measured access refusals rather than orchestration behavior."
+  ],
+  "limitations": [
+    "Pilot iteration only; do not use its outputs for the final benchmark."
+  ],
+  "recommendation": "hold"
+}

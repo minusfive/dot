@@ -9,14 +9,18 @@ echo "Testing Copilot bootstrap configuration..."
 local __config="home/.config/mise/conf.d/copilot.toml"
 local __lsp_config="home/.copilot/lsp-config.json"
 local __settings="home/.copilot/settings.json"
+local __agent_profile="home/.agents/agents/orchestrator.md"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "home/AGENTS.md" ]] || fail "missing shared global instructions"
+[[ -f "$__agent_profile" ]] || fail "missing shared orchestrator profile"
 [[ -f "$__lsp_config" && ! -L "$__lsp_config" ]] || fail "missing regular Copilot LSP config source"
 [[ -f "$__settings" && ! -L "$__settings" ]] || fail "missing regular Copilot settings source"
 [[ -x "home/.copilot/statusline-context.sh" ]] || fail "missing executable Copilot statusline"
 
 grep -qF '"~/.copilot/copilot-instructions.md" = { source = "~/dev/personal/dot/home/AGENTS.md", mode = "symlink" }' "$__config" ||
     fail "Copilot instructions ownership is missing"
+grep -qF '"~/.copilot/agents/orchestrator.agent.md" = { source = "~/dev/personal/dot/home/.agents/agents/orchestrator.md", mode = "symlink" }' "$__config" ||
+    fail "Copilot orchestrator source is missing"
 grep -qF '"~/.copilot/lsp-config.json/mise" = { source = "~/dev/personal/dot/home/.copilot/lsp-config.json", merge = true }' "$__config" ||
     fail "Copilot LSP config merge is missing"
 grep -qF '"~/.copilot/settings.json/safe-settings" = { source = "~/dev/personal/dot/home/.copilot/settings.json", merge = true }' "$__config" ||
@@ -59,6 +63,7 @@ local __fixture_state="$__fixture_root/mise-state"
 local __fixture_repo="$__fixture_home/dev/personal/dot"
 local __fixture_target="$__fixture_home/.copilot/settings.json"
 local __fixture_lsp_target="$__fixture_home/.copilot/lsp-config.json"
+local __fixture_agent_target="$__fixture_home/.copilot/agents/orchestrator.agent.md"
 local __live_settings="$HOME/.copilot/settings.json"
 local __live_lsp_config="$HOME/.copilot/lsp-config.json"
 local __live_mise_config="$HOME/.config/mise"
@@ -73,9 +78,10 @@ if [[ -e "$__live_lsp_config" ]]; then
 fi
 trap 'rm -rf -- "${__fixture_root:-}"' EXIT
 
-mkdir -p "$__fixture_home/.copilot" "$__fixture_repo/home/.copilot" "$__fixture_config/conf.d" "$__fixture_data" "$__fixture_xdg" "$__fixture_state"
+mkdir -p "$__fixture_home/.copilot" "$__fixture_repo/home/.copilot" "$__fixture_repo/home/.agents/agents" "$__fixture_config/conf.d" "$__fixture_data" "$__fixture_xdg" "$__fixture_state"
 cp "$__lsp_config" "$__fixture_repo/home/.copilot/lsp-config.json"
 cp "$__settings" "$__fixture_repo/home/.copilot/settings.json"
+cp "$__agent_profile" "$__fixture_repo/home/.agents/agents/orchestrator.md"
 cp home/AGENTS.md "$__fixture_repo/home/AGENTS.md"
 cp home/.copilot/statusline-context.sh "$__fixture_repo/home/.copilot/statusline-context.sh"
 cp "$__config" "$__fixture_config/conf.d/copilot.toml"
@@ -143,6 +149,8 @@ print -r -- "$__dry_run" | grep -qF "merge:mise" ||
     fail "Copilot dry run does not report merge:mise"
 print -r -- "$__dry_run" | grep -qF "copilot-instructions.md" ||
     fail "Copilot dry run does not report the instruction symlink"
+print -r -- "$__dry_run" | grep -qF "orchestrator.agent.md" ||
+    fail "Copilot dry run does not report the orchestrator symlink"
 print -r -- "$__dry_run" | grep -qF "statusline-context.sh" ||
     fail "Copilot dry run does not report the statusline symlink"
 env MISE_ENV=work HOME="$__fixture_home" XDG_CONFIG_HOME="$__fixture_xdg" \
@@ -179,6 +187,10 @@ jq -e --slurpfile source "$__settings" --slurpfile target "$__fixture_target" \
     fail "unmanaged Copilot LSP settings were not preserved"
 [[ -L "$__fixture_home/.copilot/copilot-instructions.md" ]] ||
     fail "fixture Copilot instructions target is not a symlink"
+[[ -L "$__fixture_agent_target" ]] ||
+    fail "fixture Copilot orchestrator target is not a symlink"
+[[ "$(realpath "$__fixture_agent_target")" == "$(realpath "$__fixture_repo/home/.agents/agents/orchestrator.md")" ]] ||
+    fail "fixture Copilot orchestrator target resolves to the wrong source"
 [[ -L "$__fixture_home/.copilot/statusline-context.sh" && -x "$__fixture_home/.copilot/statusline-context.sh" ]] ||
     fail "fixture Copilot statusline target is not an executable symlink"
 

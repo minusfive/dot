@@ -10,6 +10,9 @@ local __config="home/.config/mise/conf.d/agents.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "home/AGENTS.md" ]] || fail "missing shared global instructions"
 [[ -d "home/.agents/skills" ]] || fail "missing tracked agent skills"
+[[ -f "home/.agents/agents/orchestrator.md" ]] || fail "missing shared orchestrator profile"
+grep -qF "You are an orchestrator for multi-step work" home/.agents/agents/orchestrator.md ||
+    fail "orchestrator profile does not state its role"
 [[ -d ".agents/eval-workspaces" ]] || fail "missing repository-local evaluation workspace"
 
 grep -qF '"~/AGENTS.md" = { source = "~/dev/personal/dot/home/AGENTS.md", mode = "symlink" }' "$__config" ||
