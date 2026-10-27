@@ -49,8 +49,6 @@ Each repository path selects a local identity and credential profile for [`Git`]
 
 The `home/` directory mirrors the target user's `$HOME` layout. `mise` places selected files where the corresponding tool or application expects to find them, including `mise` itself. A placed file can be a link, a copy, or an edit of an existing file.
 
-`mise` uses configured `XDG` directories for `whole-file targets` under application configuration, data, state, and cache. Other `whole-file targets` and `edit entries` keep their current paths.
-
 The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`bootstrap.directories`][mise-bootstrap] entries describe how and when `mise` manages files and directories.
 
 `mise` supports several ways to define how files are managed. This repository primarily uses the following types:
@@ -62,7 +60,7 @@ The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`boot
 - A `block` manages text between marker comments. A `line` manages one exact line. Both leave the rest of the target unchanged.
 - A `merge` can update specific entries or values in a target file without managing the whole file. Combined with `template` those values can be dynamically rendered from other inputs.
 
-The file management model leaves generated histories, caches, databases, credentials, and other application data in their original locations, outside this repository. This keeps sensitive data out of the repository and preserves application-managed permissions and cleanup.
+This file management model leaves generated histories, caches, databases, credentials, and other sensitive files in their original location, untracked, outside this repository.
 
 The files are grouped by purpose. Each module manages related resources. A `dotfiles` entry can manage a whole file or selected configuration values. This keeps each setup area small and easier to understand. Repository-only guidance or maintenance files can stay co-located with managed files without polluting target locations.
 
