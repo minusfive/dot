@@ -13,7 +13,7 @@ local __target="$HOME/.config/bat"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "$__source/config" ]] || fail "missing bat config source"
 [[ -f "$__source/themes/Catppuccin Mocha.tmTheme" ]] || fail "missing bat theme source"
-grep -qF '"~/.config/bat" = { source = "~/dev/personal/dot/home/.config/bat", mode = "symlink-each" }' "$__config" ||
+grep -qF '"bat/config/bat" = { source = "~/dev/personal/dot/home/.config/bat", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/bat" }] }' "$__config" ||
     fail "bat symlink-each declaration is missing"
 grep -qF 'post-dotfiles = "bat cache --build"' "$__config" ||
     fail "bat cache post-dotfiles hook is missing"

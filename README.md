@@ -60,7 +60,7 @@ The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`boot
 - A `block` manages text between marker comments. A `line` manages one exact line. Both leave the rest of the target unchanged.
 - A `merge` can update specific entries or values in a target file without managing the whole file. Combined with `template` those values can be dynamically rendered from other inputs.
 
-This granular file management approach means other generated files or values such as histories, caches, databases, credentials, etc., stay in their original location, outside this repository. This prevents accidental check-ins of sensitive data, and preserves application-managed permissions and cleanup.
+This file management model leaves generated histories, caches, databases, credentials, and other sensitive files in their original location, untracked, outside this repository.
 
 The files are grouped by purpose. Each module manages related resources. A `dotfiles` entry can manage a whole file or selected configuration values. This keeps each setup area small and easier to understand. Repository-only guidance or maintenance files can stay co-located with managed files without polluting target locations.
 

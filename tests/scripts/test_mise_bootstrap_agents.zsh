@@ -22,11 +22,12 @@ grep -qF '"~/CLAUDE.md" = { source = "~/dev/personal/dot/home/AGENTS.md", mode =
 grep -qF 'exclude = ["skills/**/evals/**", "eval-workspaces/**"]' "$__config" ||
     fail "evaluation artifact exclusions are missing"
 for __target in '"~/AGENTS.md"' '"~/CLAUDE.md"' '"~/.agents"'; do
-    if grep -qF "$__target" home/.config/mise/conf.d/bootstrap-ai.toml; then
+    if [[ -f home/.config/mise/conf.d/bootstrap-ai.toml ]] &&
+        grep -qF "$__target" home/.config/mise/conf.d/bootstrap-ai.toml; then
         fail "legacy AI declaration still owns $__target"
     fi
 done
-grep -qF '"~/.config/mise/conf.d/agents.toml"' home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/conf.d/agents.toml"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy agents.toml"
 
 [[ -L "$HOME/AGENTS.md" ]] || fail "global AGENTS.md target is not a symlink"

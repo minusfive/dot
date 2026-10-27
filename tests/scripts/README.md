@@ -22,6 +22,10 @@ Tests global mise configuration, generated profile selection, repository-scoped 
 
 The source file `home/.config/git/ignore` is not a repository `.gitignore`. Mise links it to `$XDG_CONFIG_HOME/git/ignore`, where Git reads the global excludes file. The test uses a temporary home to verify that mise installs this source file and that its patterns affect Git.
 
+The target fixture links repository sources at `dev/personal/dot/home`. It isolates `HOME`, `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, and all `MISE_*_DIR` values. It trusts both fixture configuration files. It runs `mise -C <fixture-repository> -E <profile> bootstrap --only dotfiles --yes` for both profiles. Status queries set `MISE_SAFE=1` and `MISE_NO_HOOKS=1`. The fixture does not install packages or change host paths.
+
+The `test_fixture_dir` helper creates unique hidden directories under the repository root. Each test removes its fixture on exit.
+
 #### `test_mise_bootstrap_lifecycle.zsh`
 
 Tests the native bootstrap command, profile previews, environment setup, failure boundaries, and retired task removal.
@@ -66,11 +70,17 @@ Tests the personal-only OpenCode Homebrew package, tracked configuration, plugin
 
 Tests GitHub package and post-packages hook declarations, files, directories, source paths, permissions, token-free configuration, and `GH_CONFIG_DIR` merge entries.
 
+#### `test_mise_bootstrap_hammerspoon.zsh`
+
+The test covers `Hammerspoon` source links. It runs the `post-dotfiles` hook with a `defaults` stub. The stub records the configured target without changing macOS defaults.
+
 #### `test_mise_bootstrap_editorconfig.zsh`
 
-Tests the global EditorConfig link.
+The test covers the global EditorConfig link in an isolated home fixture.
 
 The remaining migrated application boundaries use focused tests when they have behavior beyond declaration checks. Current behavior tests cover `1password`, `bat`, `btop`, `coreutils`, `curl`, `delta`, `editorconfig`, `fd`, `findutils`, `fzf`, `ghostty`, `git`, `gnu-sed`, `hammerspoon`, `harper`, `lazygit`, `nvim`, `p10k`, `ripgrep`, `tmux`, `vivid`, `wezterm`, `yarn`, `yazi`, and `zsh`.
+
+The `1password` test applies the `XDG` target in an isolated home fixture. It inspects the `SSH` configuration without requiring the live agent socket.
 
 The `Oh My Zsh` test covers its custom plugin repositories. The `Neovim` test covers the LazyVim repository.
 
@@ -82,19 +92,21 @@ Tests Homebrew adoption and shared profile selection for `brew.toml`.
 
 #### `test_mise_bootstrap_macos.zsh`
 
-Tests native macOS preferences, the post-defaults hook, platform loading, and the remaining imperative OS operations.
+The test covers native macOS preferences, the `post-defaults` hook, platform loading, and remaining imperative OS operations in a fixture preview.
 
 Manual macOS operations are exposed as global mise tasks under the `macos:` prefix.
 
 #### `test_mise_task_mise_cleanup.zsh`
 
-Tests that the final cleanup task removes stale repository-managed links and blocks while preserving active and external entries.
+The cleanup task scans the union of resolved work and personal targets and historical roots. It removes broken repository links and valid old links only when their target and source exactly match `cleanup.migrations`. The fixture covers active `symlink-each` children, profile-specific active links, mismatched and external sources, unrelated valid links, runtime files, and active edit blocks.
 
-The cleanup task uses `cleanup.paths` and `cleanup.blocks`, which the inventory task updates from current and historical module declarations.
+The cleanup task uses `cleanup.paths`, `cleanup.migrations`, and `cleanup.blocks`. The inventory task updates only the historical paths and block declarations; the literal migration manifest remains unchanged.
 
 #### `test_mise_task_mise_cleanup_inventory.zsh`
 
-Tests that the cleanup inventory includes current and historical paths without widening the scan to the whole development directory.
+The inventory test covers the union of resolved work and personal targets, paths relative to `HOME`, historical paths, and preservation of `cleanup.migrations`. It asserts that the task does not store custom `XDG` paths or rewrite `cleanup.blocks`.
+
+The fixture unsets `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, and `MISE_CONFIG_DIR` during status queries. It stores only paths relative to `HOME` in `cleanup.paths`.
 
 #### `test_mise_task_pr_review_watch.zsh`
 

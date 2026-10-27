@@ -5,5 +5,5 @@
 "~/dev/personal/nvim-plugins/LazyVim" = { url = "git@github.com:minusfive/LazyVim.git", ref = "minusfive" }
 
 [dotfiles]
-"~/.config/nvim" = { source = "~/dev/personal/dot/home/.config/nvim", mode = "symlink-each", exclude = ["zshrc.zsh"] }
+"nvim/config/nvim" = { source = "~/dev/personal/dot/home/.config/nvim", mode = "symlink-each", exclude = ["zshrc.zsh"], variants = [{ default = true, target = "{{ xdg_config_home }}/nvim" }] }
 "~/.config/zsh/.zshrc-zone-2.zsh/nvim" = { source = "~/dev/personal/dot/home/.config/nvim/zshrc.zsh", template = "tera" }

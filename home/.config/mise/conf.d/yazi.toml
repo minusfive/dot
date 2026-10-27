@@ -2,5 +2,5 @@
 "brew:yazi" = "latest"
 
 [dotfiles]
-"~/.config/yazi" = { source = "~/dev/personal/dot/home/.config/yazi", mode = "symlink-each", exclude = ["zshrc.zsh"] }
+"yazi/config/yazi" = { source = "~/dev/personal/dot/home/.config/yazi", mode = "symlink-each", exclude = ["zshrc.zsh"], variants = [{ default = true, target = "{{ xdg_config_home }}/yazi" }] }
 "~/.config/zsh/.zshrc-zone-3.zsh/yazi" = { source = "~/dev/personal/dot/home/.config/yazi/zshrc.zsh", template = "tera" }

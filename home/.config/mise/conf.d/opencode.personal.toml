@@ -2,4 +2,4 @@
 "brew:opencode" = "latest"
 
 [dotfiles]
-"~/.config/opencode" = { source = "~/dev/personal/dot/home/.config/opencode", mode = "symlink-each" }
+"opencode/config/opencode" = { source = "~/dev/personal/dot/home/.config/opencode", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/opencode" }] }

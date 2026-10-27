@@ -11,6 +11,6 @@ grep -qF '"brew:dockutil" = "latest"' "$__config" ||
     fail "dockutil package declaration is missing"
 grep -qF 'post-user = "mise run macos:dock:folders"' "$__config" ||
     fail "dockutil macOS hook is missing"
-grep -qF '"~/.config/mise/conf.d/dockutil.toml" = {' home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/conf.d/dockutil.toml" = {' home/.config/mise/conf.d/mise.toml ||
     fail "dockutil module is not deployed"
 echo "dockutil package bootstrap configuration passed."

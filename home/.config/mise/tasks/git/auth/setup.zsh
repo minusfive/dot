@@ -27,7 +27,7 @@ fi
 local __profile_dir="$HOME/dev/$__profile"
 local __profile_config="$__profile_dir/.gitconfig"
 local __domains_file="$__profile_dir/.domains"
-local __gh_config_dir="$HOME/.config/gh/$__profile"
+local __gh_config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/gh/$__profile"
 
 if [[ -L "$__profile_dir" || ! -d "$__profile_dir" ]]; then
     print -u2 -- "error: selected Git profile directory is missing or is a symlink"
@@ -38,7 +38,7 @@ if [[ -L "$__profile_config" || ( -e "$__profile_config" && ! -f "$__profile_con
     exit 1
 fi
 if [[ ! -d "$__gh_config_dir" ]]; then
-    print -u2 -- "error: selected GitHub profile config directory is missing"
+    print -u2 -- "error: selected GitHub profile config directory is missing: $__gh_config_dir"
     exit 1
 fi
 
@@ -64,7 +64,7 @@ if ! env GH_CONFIG_DIR="$__gh_config_dir" GIT_CONFIG_GLOBAL="$__profile_config" 
 fi
 
 local __credential_key="credential.https://$__hostname.helper"
-local __profile_helper="!GH_CONFIG_DIR=\"\$HOME/.config/gh/$__profile\" gh auth git-credential"
+local __profile_helper="!GH_CONFIG_DIR=\"\${XDG_CONFIG_HOME:-\$HOME/.config}/gh/$__profile\" gh auth git-credential"
 
 if ! git config --file "$__profile_config" --replace-all "$__credential_key" ""; then
     print -u2 -- "error: could not reset the selected host credential helpers"

@@ -17,7 +17,7 @@ for __path in config.yml theme.yml; do
     case "$(readlink "$__target/$__path")" in
         /*) fail "lazygit target link is absolute: $__path" ;;
     esac
-    grep -qF "\"~/.config/lazygit/$__path\" = { source = \"~/dev/personal/dot/home/.config/lazygit/$__path\", mode = \"symlink\" }" "$__config" ||
+    grep -qF "\"lazygit/config/lazygit/$__path\" = { source = \"~/dev/personal/dot/home/.config/lazygit/$__path\", mode = \"symlink\", variants = [{ default = true, target = \"{{ xdg_config_home }}/lazygit/$__path\" }] }" "$__config" ||
         fail "lazygit symlink declaration is missing: $__path"
 done
 grep -qF '"~/.config/zsh/.zshrc-zone-3.zsh/lazygit"' "$__config" ||

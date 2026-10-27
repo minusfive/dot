@@ -2,7 +2,7 @@
 "brew:btop" = "latest"
 
 [dotfiles]
-"~/.config/btop" = { source = "~/dev/personal/dot/home/.config/btop", mode = "symlink-each" }
+"btop/config/btop" = { source = "~/dev/personal/dot/home/.config/btop", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/btop" }] }
 
 [bootstrap.hooks]
 pre-dotfiles = 'mise run gh:download:file -- --api-path "repos/catppuccin/btop/contents/themes/catppuccin_mocha.theme?ref=main" --output "$HOME/dev/personal/dot/home/.config/btop/themes/catppuccin_mocha.theme"'

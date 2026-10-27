@@ -8,4 +8,4 @@ python.uv_venv_auto = true
 python.uv_venv_create_args = ["--seed"]
 
 [dotfiles]
-"~/.config/mise/tasks/global-install-packages-python.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-python.sh", mode = "symlink" }
+"python/config/mise/tasks/global-install-packages-python.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-python.sh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/global-install-packages-python.sh" }] }

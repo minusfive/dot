@@ -12,7 +12,7 @@ local __source="home/.config/tmux/tmux.conf"
 local __target="$HOME/.config/tmux/tmux.conf"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "$__source" ]] || fail "missing tmux source"
-grep -qF '"~/.config/tmux" = { source = "~/dev/personal/dot/home/.config/tmux", mode = "symlink-each" }' "$__config" ||
+grep -qF '"tmux/config/tmux" = { source = "~/dev/personal/dot/home/.config/tmux", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/tmux" }] }' "$__config" ||
     fail "tmux symlink-each declaration is missing"
 [[ -d "$HOME/.config/tmux" && ! -L "$HOME/.config/tmux" ]] || fail "tmux target must be a physical directory"
 [[ -L "$__target" ]] || fail "tmux target must be a symlink"

@@ -12,7 +12,7 @@ local __source="home/.config/fd/ignore"
 local __target="$HOME/.config/fd/ignore"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "$__source" ]] || fail "missing fd source"
-grep -qF '"~/.config/fd" = { source = "~/dev/personal/dot/home/.config/fd", mode = "symlink-each" }' "$__config" ||
+grep -qF '"fd/config/fd" = { source = "~/dev/personal/dot/home/.config/fd", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/fd" }] }' "$__config" ||
     fail "fd symlink-each declaration is missing"
 [[ -d "$HOME/.config/fd" && ! -L "$HOME/.config/fd" ]] || fail "fd target must be a physical directory"
 [[ -L "$__target" ]] || fail "fd target must be a symlink"

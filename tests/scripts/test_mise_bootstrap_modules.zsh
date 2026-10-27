@@ -12,13 +12,13 @@ local __control_plane_dotfiles="$(
 )" || fail "could not parse the mise control-plane dotfiles"
 local __work_profile_config="$(
     env MISE_ENV=work \
-        MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-        mise -C "$__root_dir" config ls --no-truncate
+        MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+        mise -C "$__test_mise_repository" config ls --no-truncate
 )"
 local __personal_profile_config="$(
     env MISE_ENV=personal \
-        MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-        mise -C "$__root_dir" config ls --no-truncate
+        MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+        mise -C "$__test_mise_repository" config ls --no-truncate
 )"
 
 assert_module_contract() {
@@ -27,6 +27,7 @@ assert_module_contract() {
     local __declaration="$3"
     local __module_file="$(module_filename "$__module")"
     local __config="home/.config/mise/conf.d/$__module_file"
+    local __logical_target="mise/config/mise/conf.d/$__module_file"
     local __declarations
 
     [[ -f "$__config" ]] || fail "missing $__config"
@@ -59,8 +60,11 @@ assert_module_contract() {
             ;;
     esac
     print -r -- "$__control_plane_dotfiles" |
-        grep -qF "\"~/.config/mise/conf.d/$__module_file\"" ||
+        grep -qF "\"$__logical_target\"" ||
         fail "control-plane module does not deploy $__module_file"
+    print -r -- "$__control_plane_dotfiles" |
+        grep -qF "target = \"{{ mise_config_dir }}/conf.d/$__module_file\"" ||
+        fail "control-plane module target does not follow MISE_CONFIG_DIR for $__module_file"
     if [[ "$__kind" == personal ]]; then
         if print -r -- "$__work_profile_config" | grep -qF "$__module_file"; then
             fail "$__module must not be selected by the work profile"

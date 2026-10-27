@@ -2,4 +2,4 @@
 ruby = { version = "latest", postinstall = "mise run global-install-packages-ruby" }
 
 [dotfiles]
-"~/.config/mise/tasks/global-install-packages-ruby.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-ruby.sh", mode = "symlink" }
+"ruby/config/mise/tasks/global-install-packages-ruby.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-ruby.sh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/global-install-packages-ruby.sh" }] }

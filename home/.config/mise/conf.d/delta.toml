@@ -2,7 +2,7 @@
 delta = "latest"
 
 [dotfiles]
-"~/.config/delta" = { source = "~/dev/personal/dot/home/.config/delta", mode = "symlink-each" }
+"delta/config/delta" = { source = "~/dev/personal/dot/home/.config/delta", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/delta" }] }
 
 [bootstrap.hooks]
 pre-dotfiles = 'mise run gh:download:file -- --api-path "repos/catppuccin/delta/contents/catppuccin.gitconfig?ref=main" --output "$HOME/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig"'

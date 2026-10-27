@@ -10,7 +10,7 @@ local __config="home/.config/mise/conf.d/brew.toml"
 if [[ -e "home/.config/mise/conf.d/bootstrap-packages.toml" ]]; then
     fail "legacy shared package declaration must be retired"
 fi
-grep -qF '"~/.config/mise/conf.d/brew.toml"' home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/conf.d/brew.toml"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy brew.toml"
 grep -qF "[bootstrap.brew]" "$__config" || fail "Homebrew bootstrap section is missing"
 grep -qF "adopt = true" "$__config" || fail "Homebrew adoption is missing"
@@ -27,11 +27,11 @@ grep -qF 'eval "$(/opt/homebrew/bin/brew shellenv)"' \
 if grep -qF "/usr/local/bin/brew" home/.config/mise/tasks/brew/install.zsh; then
     fail "Homebrew installation task must not include the Intel prefix"
 fi
-grep -qF '"~/.config/mise/tasks/brew/install.zsh"' home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/tasks/brew/install.zsh"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy the Homebrew installation task"
 local __task_info="$(
-    env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-        mise -C "$__root_dir" tasks info brew:install
+    env -u MISE_ENV MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+        mise -C "$__test_mise_repository" tasks info brew:install
 )"
 print -r -- "$__task_info" | grep -qF "~/.config/mise/tasks/brew/install.zsh" ||
     fail "MISE_CONFIG_DIR does not discover the Homebrew installation task"
@@ -46,8 +46,8 @@ fi
 for __profile in work personal; do
     local __profile_config="$(
         env MISE_ENV="$__profile" \
-            MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-            mise -C "$__root_dir" config ls --no-truncate
+            MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+            mise -C "$__test_mise_repository" config ls --no-truncate
     )"
     print -r -- "$__profile_config" | grep -qF "brew.toml" ||
         fail "Homebrew module must be selected by the $__profile profile"

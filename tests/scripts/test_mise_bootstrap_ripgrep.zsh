@@ -12,7 +12,7 @@ local __source="home/.config/ripgrep/.ripgreprc"
 local __target="$HOME/.config/ripgrep/.ripgreprc"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "$__source" ]] || fail "missing ripgrep source"
-grep -qF '"~/.config/ripgrep/.ripgreprc" = { source = "~/dev/personal/dot/home/.config/ripgrep/.ripgreprc", mode = "symlink" }' "$__config" ||
+grep -qF '"ripgrep/config/ripgrep/.ripgreprc" = { source = "~/dev/personal/dot/home/.config/ripgrep/.ripgreprc", mode = "symlink", variants = [{ default = true, target = "{{ xdg_config_home }}/ripgrep/.ripgreprc" }] }' "$__config" ||
     fail "ripgrep symlink declaration is missing"
 grep -qF '"~/.config/zsh/.zshrc-zone-3.zsh/ripgrep"' "$__config" ||
     fail "RIPGREP zshrc edit is missing"

@@ -35,6 +35,51 @@ add_path() {
     __paths[${__path#\~/}]=1
 }
 
+add_resolved_target() {
+    local __target="$1"
+    local __mode="$2"
+    local __root="$__target"
+
+    [[ "$__mode" == "symlink-each" ]] || __root="$(dirname "$__target")"
+    case "$__root" in
+        "$HOME"/*) add_path "${__root#"$HOME"/}" ;;
+        "$HOME") ;;
+    esac
+}
+
+collect_resolved_targets() {
+    local __profile="$1"
+    local __status
+    __status="$(
+        env -u XDG_CONFIG_HOME \
+            -u XDG_DATA_HOME \
+            -u XDG_STATE_HOME \
+            -u XDG_CACHE_HOME \
+            -u MISE_CONFIG_DIR \
+            MISE_SAFE=1 \
+            MISE_NO_HOOKS=1 \
+            mise -C "$__project_root" -E "$__profile" dot status --json
+    )" || die "cannot read resolved dotfile targets for the $__profile profile"
+
+    print -r -- "$__status" |
+        jq -e '.files | type == "array"' >/dev/null ||
+        die "invalid dotfile status response for the $__profile profile"
+
+    local __target __mode
+    while IFS=$'\t' read -r __target __mode; do
+        [[ -n "$__target" && -n "$__mode" ]] || continue
+        case "$__target" in
+            "~/"*) __target="$HOME/${__target#\~/}" ;;
+            /*) ;;
+            *) die "mise reported a non-absolute dotfile target: $__target" ;;
+        esac
+        add_resolved_target "$__target" "$__mode"
+    done < <(
+        print -r -- "$__status" |
+            jq -r '.files[] | select((.target | type) == "string" and (.mode | type) == "string") | [.target, .mode] | @tsv'
+    )
+}
+
 if [[ -f "$__manifest" ]]; then
     while IFS= read -r __path; do
         if [[ "$__path" == "# History scanned at commit: "* ]]; then
@@ -144,6 +189,9 @@ while IFS= read -r -d '' __module; do
     collect_module_blocks < "$__module"
 done < <(find "$__module_dir" -type f -name '*.toml' -print0)
 
+collect_resolved_targets work
+collect_resolved_targets personal
+
 if [[ "$__history_head" != "$__head" ]]; then
     git -C "$__project_root" log --all --format= --patch -- home/.config/mise/conf.d |
         collect_module_targets
@@ -151,10 +199,13 @@ if [[ "$__history_head" != "$__head" ]]; then
         collect_module_blocks
 fi
 
-__temporary_manifest="$(mktemp "${__manifest}.tmp.XXXXXX")"
 __blocks_manifest="$__project_root/home/.config/mise/cleanup.blocks"
-__temporary_blocks_manifest="$(mktemp "${__blocks_manifest}.tmp.XXXXXX")"
-trap 'rm -f "$__temporary_manifest" "$__temporary_blocks_manifest"' EXIT
+__temporary_dir="$__manifest.tmp.$$"
+(umask 077; mkdir "$__temporary_dir") ||
+    die "cannot create cleanup inventory scratch directory: $__temporary_dir"
+__temporary_manifest="$__temporary_dir/cleanup.paths"
+__temporary_blocks_manifest="$__temporary_dir/cleanup.blocks"
+trap 'rm -rf -- "$__temporary_dir"' EXIT
 __sorted_paths=("${(@f)$(printf '%s\n' ${(k)__paths} | LC_ALL=C sort)}")
 {
     print -r -- "# Relative paths under \$HOME that historically contained repository-managed targets."
@@ -173,15 +224,30 @@ __sorted_paths=("${(@f)$(printf '%s\n' ${(k)__paths} | LC_ALL=C sort)}")
     done | LC_ALL=C sort
 } > "$__temporary_blocks_manifest"
 
-if cmp -s "$__temporary_manifest" "$__manifest" 2>/dev/null &&
-    cmp -s "$__temporary_blocks_manifest" "$__blocks_manifest" 2>/dev/null; then
+__paths_changed=true
+cmp -s "$__temporary_manifest" "$__manifest" 2>/dev/null && __paths_changed=false
+__blocks_changed=true
+if [[ -f "$__blocks_manifest" ]] &&
+    diff -q \
+        <(sed '/^# History scanned at commit:/d' "$__blocks_manifest") \
+        <(sed '/^# History scanned at commit:/d' "$__temporary_blocks_manifest") \
+        >/dev/null; then
+    __blocks_changed=false
+fi
+
+if [[ "$__paths_changed" == false && "$__blocks_changed" == false ]]; then
     print -r -- "mise cleanup inventory is current."
 elif [[ "$__dry_run" == "true" ]]; then
-    diff -u "$__manifest" "$__temporary_manifest" || true
-    diff -u "$__blocks_manifest" "$__temporary_blocks_manifest" || true
+    [[ "$__paths_changed" == false ]] ||
+        diff -u "$__manifest" "$__temporary_manifest" || true
+    [[ "$__blocks_changed" == false ]] ||
+        diff -u "$__blocks_manifest" "$__temporary_blocks_manifest" || true
 else
-    mv "$__temporary_manifest" "$__manifest"
-    mv "$__temporary_blocks_manifest" "$__blocks_manifest"
-    trap - EXIT
-    print -r -- "mise cleanup inventory updated: $__manifest and $__blocks_manifest"
+    if [[ "$__paths_changed" == true ]]; then
+        mv "$__temporary_manifest" "$__manifest"
+    fi
+    if [[ "$__blocks_changed" == true ]]; then
+        mv "$__temporary_blocks_manifest" "$__blocks_manifest"
+    fi
+    print -r -- "mise cleanup inventory updated."
 fi

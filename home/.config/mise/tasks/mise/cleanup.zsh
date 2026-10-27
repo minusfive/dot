@@ -90,18 +90,118 @@ __project_root="$(cd "$__project_root" 2>/dev/null && pwd -L)" ||
 __project_root_physical="$(cd "$__project_root" 2>/dev/null && pwd -P)" ||
     die "dotfiles repository does not exist: $__project_root"
 
-__mise_dir="$HOME/.config/mise"
+__mise_dir="${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/mise}"
 [[ -d "$__mise_dir" ]] || die "mise configuration directory does not exist: $__mise_dir"
+__mise_dir="$(cd "$__mise_dir" 2>/dev/null && pwd -P)" ||
+    die "mise configuration directory does not exist: $__mise_dir"
 __mise_state_dir="${MISE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/mise}"
 __mise_data_dir="${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}"
 __mise_cache_dir="${MISE_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/mise}"
+__home_path="$(normalize_path "$HOME")"
 __blocks_manifest="$__project_root/home/.config/mise/cleanup.blocks"
+__migrations_manifest="$__project_root/home/.config/mise/cleanup.migrations"
 
 typeset -A __scan_paths=()
+typeset -A __migration_sources=()
+typeset -A __active_targets=()
+typeset -A __active_symlink_each=()
+
+if [[ -f "$__migrations_manifest" ]]; then
+    while IFS=$'\t' read -r __target __source; do
+        [[ -n "$__target" && "$__target" != \#* && -n "$__source" ]] || continue
+        [[ "$__target" != /* && "$__target" != "~/"* ]] ||
+            die "migration target must be HOME-relative: $__target"
+        [[ "/$__target/" != */../* ]] ||
+            die "migration target must stay under HOME: $__target"
+        [[ "$__source" == home/* && "/$__source/" != */../* ]] ||
+            die "migration source must be repository-relative under home/: $__source"
+        __migration_sources[$__target]="$__source"
+    done < "$__migrations_manifest"
+fi
+
+add_active_target() {
+    local __target="$1"
+    local __mode="$2"
+    local __normalized_path
+    __normalized_path="$(normalize_path "$__target")"
+    if [[ "$__mode" == "symlink-each" ]]; then
+        __active_symlink_each[$__normalized_path]=1
+    else
+        __active_targets[$__normalized_path]=1
+    fi
+}
+
+is_active_target() {
+    local __target="$1"
+    local __normalized_path
+    __normalized_path="$(normalize_path "$__target")"
+    [[ -n "${__active_targets[$__normalized_path]-}" ]] && return 0
+
+    local __root
+    for __root in ${(k)__active_symlink_each}; do
+        [[ "$__normalized_path" == "$__root" || "$__normalized_path" == "$__root"/* ]] &&
+            return 0
+    done
+    return 1
+}
+
+add_scan_path() {
+    local __path="$1"
+    [[ -n "$__path" ]] || return 0
+
+    case "$__path" in
+        "~/"*) __path="$HOME/${__path#\~/}" ;;
+        /*) ;;
+        *) die "mise reported a non-absolute dotfile target: $__path" ;;
+    esac
+
+    local __normalized_path
+    __normalized_path="$(normalize_path "$__path")"
+    [[ "$__normalized_path" == "$__home_path" ]] && return 0
+    __scan_paths[$__normalized_path]=1
+}
+
+collect_target_scan_paths() {
+    local __profile="$1"
+    local __status
+    __status="$(
+        env MISE_SAFE=1 MISE_NO_HOOKS=1 \
+            mise -C "$__project_root" -E "$__profile" dot status --json
+    )" || die "cannot read resolved dotfile targets for the $__profile profile"
+
+    print -r -- "$__status" |
+        jq -e '.files | type == "array"' >/dev/null ||
+        die "invalid dotfile status response for the $__profile profile"
+
+    local __target __mode __parent
+    while IFS=$'\t' read -r __target __mode; do
+        [[ -n "$__target" && -n "$__mode" ]] || continue
+        case "$__target" in
+            "~/"*) __target="$HOME/${__target#\~/}" ;;
+            /*) ;;
+            *) die "mise reported a non-absolute dotfile target: $__target" ;;
+        esac
+        add_active_target "$__target" "$__mode"
+        if [[ "$__mode" != "symlink-each" ]]; then
+            __parent="$(dirname "$__target")"
+            if [[ "$(normalize_path "$__parent")" != "$__home_path" ]]; then
+                __target="$__parent"
+            fi
+        fi
+        add_scan_path "$__target"
+    done < <(
+        print -r -- "$__status" |
+            jq -r '.files[] | select((.target | type) == "string" and (.mode | type) == "string") | [.target, .mode] | @tsv'
+    )
+}
+
 while IFS= read -r __scan_root; do
     [[ -n "$__scan_root" && "$__scan_root" != \#* ]] || continue
-    __scan_paths[$__scan_root]=1
+    add_scan_path "$HOME/$__scan_root"
 done < "$__project_root/home/.config/mise/cleanup.paths"
+
+collect_target_scan_paths work
+collect_target_scan_paths personal
 
 __sorted_scan_paths=("${(@f)$(printf '%s\n' ${(k)__scan_paths} | LC_ALL=C sort)}")
 __scan_roots=()
@@ -117,7 +217,7 @@ for __scan_root in "${__sorted_scan_paths[@]}"; do
 done
 
 for __scan_root in "${__scan_roots[@]}"; do
-    __scan_path="$HOME/$__scan_root"
+    __scan_path="$__scan_root"
     [[ -e "$__scan_path" || -L "$__scan_path" ]] || continue
 
     while IFS= read -r __link; do
@@ -141,7 +241,23 @@ for __scan_root in "${__scan_roots[@]}"; do
     fi
 
     __source_path="$(normalize_path "$__source_path")"
-    [[ -e "$__source_path" || -L "$__source_path" ]] && continue
+    if [[ -e "$__source_path" || -L "$__source_path" ]]; then
+        __target_relative="${__link#$HOME/}"
+        __migration_source="${__migration_sources[$__target_relative]-}"
+        if [[ -n "$__migration_source" ]]; then
+            __expected_source="$(normalize_path "$__project_root/$__migration_source")"
+            if [[ "$__source_path" == "$__expected_source" ]] &&
+                ! is_active_target "$__link"; then
+                if [[ "$__dry_run" == "true" ]]; then
+                    print -r -- "would remove migrated mise link $__link"
+                else
+                    rm -f "$__link"
+                    print -r -- "info: removed migrated mise link $__link"
+                fi
+            fi
+        fi
+        continue
+    fi
 
     __physical_source_path="$(resolve_physical_source "$__source_path")" ||
         die "cannot resolve stale link source path: $__link"
