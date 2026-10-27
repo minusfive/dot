@@ -3,6 +3,7 @@
 set -euo pipefail
 
 source "$(dirname "$0")/mise_test_helpers.zsh"
+unset ZDOTDIR
 
 echo "Testing git:auth:setup task..."
 
@@ -25,26 +26,26 @@ grep -qF 'gh auth setup-git --hostname' "$__task" ||
 if grep -qF 'gh auth setup-git "$__hostname"' "$__task"; then
     fail "Git auth setup must not configure all authenticated hosts"
 fi
-grep -qF '"~/.config/mise/tasks/git/auth/setup.zsh"' \
+grep -qF '"mise/config/mise/tasks/git/auth/setup.zsh"' \
     home/.config/mise/conf.d/mise.toml ||
     fail "Git auth setup task is not deployed by the mise control plane"
-grep -qF '"~/.config/mise/utils/git-domains.zsh"' \
+grep -qF '"mise/config/mise/utils/git-domains.zsh"' \
     home/.config/mise/conf.d/mise.toml ||
     fail "Git domains helper is not deployed by the mise control plane"
 local __task_info="$(
-    env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-        mise -C "$__root_dir" tasks info git:auth:setup
+    env -u MISE_ENV MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+        mise -C "$__test_mise_repository" tasks info git:auth:setup
 )"
 print -r -- "$__task_info" | grep -qF "Task: git:auth:setup" ||
     fail "Git auth setup task is not discoverable"
 local __task_help="$(
-    env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-        mise -C "$__root_dir" run git:auth:setup --help
+    env -u MISE_ENV MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+        mise -C "$__test_mise_repository" run git:auth:setup --help
 )"
 print -r -- "$__task_help" | grep -qF 'possible values: work, personal' ||
     fail "Git auth profile choices are not discoverable"
 
-local __fixture_dir="$(mktemp -d "${TMPDIR:-/tmp}/git-auth-setup.XXXXXX")"
+local __fixture_dir="$(test_fixture_dir git-auth-setup)"
 local __home="$__fixture_dir/home"
 local __bin="$__fixture_dir/bin"
 local __log="$__fixture_dir/mise.log"
@@ -54,11 +55,16 @@ local __personal_config="$__home/dev/personal/.gitconfig"
 local __work_config="$__home/dev/work/.gitconfig"
 local __personal_domains="$__home/dev/personal/.domains"
 local __work_domains="$__home/dev/work/.domains"
-local __gh_config_personal="$__home/.config/gh/personal"
-local __gh_config_work="$__home/.config/gh/work"
+local __xdg_config="$__fixture_dir/custom-xdg/config"
+local __gh_config_personal="$__xdg_config/gh/personal"
+local __gh_config_work="$__xdg_config/gh/work"
 mkdir -p "$__bin" "$__home/dev/personal" "$__home/dev/work" \
+    "$__xdg_config" \
     "$__gh_config_personal" "$__gh_config_work"
 trap 'rm -rf -- "$__fixture_dir"' EXIT
+local __zshenv_relative_source
+__zshenv_relative_source="$(python3 -c 'import os, sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$__root_dir/home/.config/zsh/.zshenv" "$__home")"
+ln -s "$__zshenv_relative_source" "$__home/.zshenv"
 print -r -- "github.com" > "$__personal_domains"
 print -r -- "github.enterprise.example" > "$__work_domains"
 printf '[user]\n name = sentinel\n' > "$__global_config"
@@ -114,16 +120,16 @@ export GIT_AUTH_LOG="$__log" GIT_AUTH_HELPER_LOG="$__helper_log"
 export GIT_AUTH_GENERATED_GH="$__generated_gh"
 git config --file "$__personal_config" --add credential.helper "$__generic_helper"
 
-if env HOME="$__home" PATH="$__bin:$PATH" zsh "$__task" > /dev/null 2>&1; then
+if env HOME="$__home" XDG_CONFIG_HOME="$__xdg_config" PATH="$__bin:$PATH" zsh "$__task" > /dev/null 2>&1; then
     fail "setup task accepted missing profile and hostname flags"
 fi
-if env HOME="$__home" PATH="$__bin:$PATH" usage_profile=personal zsh "$__task" > /dev/null 2>&1; then
+if env HOME="$__home" XDG_CONFIG_HOME="$__xdg_config" PATH="$__bin:$PATH" usage_profile=personal zsh "$__task" > /dev/null 2>&1; then
     fail "setup task accepted a missing hostname"
 fi
 local __profile_backup="$__fixture_dir/personal.gitconfig"
 mv "$__personal_config" "$__profile_backup"
 ln -s "$__global_config" "$__personal_config"
-if env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
+if env HOME="$__home" XDG_CONFIG_HOME="$__xdg_config" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
     usage_profile=personal usage_hostname=github.com zsh "$__task" > /dev/null 2>&1; then
     fail "setup task accepted a symlinked profile config"
 fi
@@ -132,7 +138,7 @@ fi
 rm "$__personal_config"
 mv "$__profile_backup" "$__personal_config"
 
-env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
+env HOME="$__home" XDG_CONFIG_HOME="$__xdg_config" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
     usage_profile=personal usage_hostname=GitHub.com zsh "$__task"
 
 grep -qF "GH_CONFIG_DIR=$__gh_config_personal" "$__log" ||
@@ -146,7 +152,7 @@ grep -qF "gh auth setup-git --hostname github.com" "$__log" ||
 local __personal_helpers="$(
     git config --file "$__personal_config" --get-all credential.https://github.com.helper
 )"
-[[ "$__personal_helpers" == $'\n!GH_CONFIG_DIR="$HOME/.config/gh/personal" gh auth git-credential' ]] ||
+[[ "$__personal_helpers" == $'\n!GH_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/gh/personal" gh auth git-credential' ]] ||
     fail "personal helper list was not reset to the portable profile helper"
 if [[ "$__personal_helpers" == *"$__generated_gh"* ]]; then
     fail "machine-specific GitHub CLI path remained in the profile helper"
@@ -157,7 +163,7 @@ local __personal_gist_helpers="$(
 [[ -z "$__personal_gist_helpers" ]] ||
     fail "personal GitHub setup created a gist helper"
 if printf 'protocol=https\nhost=github.com\n\n' |
-    env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__personal_config" \
+    env HOME="$__home" XDG_CONFIG_HOME="$__xdg_config" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__personal_config" \
         GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 git credential fill >/dev/null 2>&1; then
     fail "fixture GitHub helper unexpectedly returned credentials"
 fi
@@ -167,17 +173,17 @@ if grep -qF "inherited" "$__helper_log"; then
     fail "inherited generic credential helper was not reset"
 fi
 
-env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
+env HOME="$__home" XDG_CONFIG_HOME="$__xdg_config" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
     usage_profile=personal usage_hostname=gist.github.com zsh "$__task"
 grep -qF "gh auth setup-git --hostname gist.github.com" "$__log" ||
     fail "gist GitHub setup did not use the explicit gist hostname"
 local __explicit_gist_helpers="$(
     git config --file "$__personal_config" --get-all credential.https://gist.github.com.helper
 )"
-[[ "$__explicit_gist_helpers" == $'\n!GH_CONFIG_DIR="$HOME/.config/gh/personal" gh auth git-credential' ]] ||
+[[ "$__explicit_gist_helpers" == $'\n!GH_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/gh/personal" gh auth git-credential' ]] ||
     fail "explicit gist setup did not write the portable profile helper"
 
-env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
+env HOME="$__home" XDG_CONFIG_HOME="$__xdg_config" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
     usage_profile=work usage_hostname=github.enterprise.example zsh "$__task"
 grep -qF "GH_CONFIG_DIR=$__gh_config_work" "$__log" ||
     fail "work GH_CONFIG_DIR was not selected"
@@ -186,7 +192,7 @@ grep -qF "GIT_CONFIG_GLOBAL=$__work_config" "$__log" ||
 grep -qF "ARGS=exec -C $__home/dev/work gh@latest -- gh auth setup-git" "$__log" ||
     fail "work GitHub setup did not run from the work profile directory"
 git config --file "$__work_config" --get-all credential.https://github.enterprise.example.helper |
-    grep -qF 'GH_CONFIG_DIR="$HOME/.config/gh/work" gh auth git-credential' ||
+    grep -qF 'GH_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/gh/work" gh auth git-credential' ||
     fail "work profile helper was not written to the work profile file"
 if git config --file "$__work_config" --get credential.https://gist.github.enterprise.example.helper >/dev/null 2>&1; then
     fail "work profile gist helper was created for an enterprise host without one"
@@ -198,14 +204,14 @@ grep -qF '[user]' "$__global_config" ||
     fail "Git auth setup modified the caller's global config"
 
 local __before_unauthorized="$(wc -l < "$__log" | tr -d ' ')"
-if env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
+if env HOME="$__home" XDG_CONFIG_HOME="$__xdg_config" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
     usage_profile=personal usage_hostname=attacker.example zsh "$__task"; then
     fail "unlisted hostname was accepted"
 fi
 [[ "$(wc -l < "$__log" | tr -d ' ')" == "$__before_unauthorized" ]] ||
     fail "unlisted hostname reached the GitHub CLI"
 
-if env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
+if env HOME="$__home" XDG_CONFIG_HOME="$__xdg_config" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
     GIT_AUTH_FAIL=true usage_profile=personal usage_hostname=github.com zsh "$__task"; then
     fail "missing profile authentication was reported as successful"
 fi
@@ -215,7 +221,7 @@ fi
 local __helpers_before_setup_failure="$(
     git config --file "$__personal_config" --get-all credential.https://github.com.helper
 )"
-if env HOME="$__home" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
+if env HOME="$__home" XDG_CONFIG_HOME="$__xdg_config" PATH="$__bin:$PATH" GIT_CONFIG_GLOBAL="$__global_config" \
     GIT_AUTH_SETUP_FAIL=true usage_profile=personal usage_hostname=github.com zsh "$__task"; then
     fail "failed native helper setup was reported as successful"
 fi

@@ -12,7 +12,7 @@ local __source="home/.config/fzf/fzf.conf"
 local __target="$HOME/.config/fzf/fzf.conf"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "$__source" ]] || fail "missing fzf source"
-grep -qF '"~/.config/fzf/fzf.conf" = { source = "~/dev/personal/dot/home/.config/fzf/fzf.conf", mode = "symlink" }' "$__config" ||
+grep -qF '"fzf/config/fzf/fzf.conf" = { source = "~/dev/personal/dot/home/.config/fzf/fzf.conf", mode = "symlink", variants = [{ default = true, target = "{{ xdg_config_home }}/fzf/fzf.conf" }] }' "$__config" ||
     fail "fzf symlink declaration is missing"
 grep -qF '"~/.config/zsh/.zshrc-zone-3.zsh/fzf"' "$__config" ||
     fail "FZF zshrc edit is missing"

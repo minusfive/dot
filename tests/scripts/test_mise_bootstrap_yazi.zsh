@@ -11,7 +11,7 @@ assert_module_package yazi brew:yazi
 local __source="home/.config/yazi"
 local __target="$HOME/.config/yazi"
 [[ -f "$__config" ]] || fail "missing $__config"
-grep -qF '"~/.config/yazi" = { source = "~/dev/personal/dot/home/.config/yazi", mode = "symlink-each", exclude = ["zshrc.zsh"] }' "$__config" ||
+grep -qF '"yazi/config/yazi" = { source = "~/dev/personal/dot/home/.config/yazi", mode = "symlink-each", exclude = ["zshrc.zsh"], variants = [{ default = true, target = "{{ xdg_config_home }}/yazi" }] }' "$__config" ||
     fail "Yazi symlink-each declaration is missing"
 grep -qF '"~/.config/zsh/.zshrc-zone-3.zsh/yazi"' "$__config" ||
     fail "Yazi zshrc edit is missing"

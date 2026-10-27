@@ -2,7 +2,7 @@
 "brew-cask:wezterm@nightly" = "latest"
 
 [dotfiles]
-"~/.config/wezterm/wezterm.lua" = { source = "~/dev/personal/dot/home/.config/wezterm/wezterm.lua", mode = "symlink" }
-"~/.config/wezterm/shell-completion.zsh" = { source = "~/dev/personal/dot/home/.config/wezterm/shell-completion.zsh", mode = "symlink" }
-"~/.config/wezterm/shell-integration.zsh" = { source = "~/dev/personal/dot/home/.config/wezterm/shell-integration.zsh", mode = "symlink" }
+"wezterm/config/wezterm/wezterm.lua" = { source = "~/dev/personal/dot/home/.config/wezterm/wezterm.lua", mode = "symlink", variants = [{ default = true, target = "{{ xdg_config_home }}/wezterm/wezterm.lua" }] }
+"wezterm/config/wezterm/shell-completion.zsh" = { source = "~/dev/personal/dot/home/.config/wezterm/shell-completion.zsh", mode = "symlink", variants = [{ default = true, target = "{{ xdg_config_home }}/wezterm/shell-completion.zsh" }] }
+"wezterm/config/wezterm/shell-integration.zsh" = { source = "~/dev/personal/dot/home/.config/wezterm/shell-integration.zsh", mode = "symlink", variants = [{ default = true, target = "{{ xdg_config_home }}/wezterm/shell-integration.zsh" }] }
 "~/.config/zsh/.zshrc-zone-3.zsh/wezterm" = { source = "~/dev/personal/dot/home/.config/wezterm/zshrc.zsh", template = "tera" }

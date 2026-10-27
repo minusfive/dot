@@ -58,9 +58,9 @@ done
 grep -qF '[bootstrap.hooks]' "$__config" || fail "Oh My Zsh bootstrap hooks are missing"
 grep -qF 'post-dotfiles = "mise run omz:update"' "$__config" ||
     fail "Oh My Zsh update hook is missing"
-grep -qF '"~/.config/mise/conf.d/oh-my-zsh.toml"' home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/conf.d/oh-my-zsh.toml"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy oh-my-zsh.toml"
-grep -qF '"~/.config/mise/tasks/omz/update.zsh"' home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/tasks/omz/update.zsh"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy the Oh My Zsh update task"
 [[ -f "home/.config/mise/tasks/omz/update.zsh" ]] ||
     fail "missing Oh My Zsh update task"
@@ -72,14 +72,14 @@ if grep -qF "sed -i ''" home/.config/mise/tasks/omz/update.zsh; then
     fail "Oh My Zsh update task still uses macOS-only in-place sed syntax"
 fi
 local __task_info="$(
-    env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-        mise -C "$__root_dir" tasks info omz:update
+    env -u MISE_ENV MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+        mise -C "$__test_mise_repository" tasks info omz:update
 )"
 print -r -- "$__task_info" | grep -qF 'Task: omz:update' ||
     fail "Oh My Zsh update task is not discoverable"
 
 local __task_fixture
-__task_fixture="$(mktemp -d "${TMPDIR:-/tmp}/omz-update.XXXXXX")" ||
+__task_fixture="$(test_fixture_dir omz-update)" ||
     fail "could not create Oh My Zsh update task fixture"
 trap 'rm -rf -- "$__task_fixture"' EXIT
 mkdir -p \
@@ -112,7 +112,7 @@ env -u MISE_ENV \
     fail "Oh My Zsh full-autoupdate plugin was not loaded"
 
 local __fixture_root
-__fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/oh-my-zsh.XXXXXX")" ||
+__fixture_root="$(test_fixture_dir oh-my-zsh)" ||
     fail "could not create Oh My Zsh fixture"
 __fixture_root="$(realpath "$__fixture_root")"
 trap 'rm -rf -- "$__task_fixture" "$__fixture_root"' EXIT
@@ -135,8 +135,8 @@ for __profile in work personal; do
     local __profile_config="$(
         env MISE_ENV=work HOME="$__fixture_root" XDG_CONFIG_HOME="$__fixture_root/.config" \
             MISE_DATA_DIR="$__fixture_root/mise-data" MISE_CACHE_DIR="$__fixture_root/mise-cache" \
-            MISE_ENV="$__profile" MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-            mise -C "$__root_dir" config ls --no-truncate
+        MISE_ENV="$__profile" MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+        mise -C "$__test_mise_repository" config ls --no-truncate
     )"
     print -r -- "$__profile_config" | grep -qF "oh-my-zsh.toml" ||
         fail "Oh My Zsh must be selected by the $__profile profile"

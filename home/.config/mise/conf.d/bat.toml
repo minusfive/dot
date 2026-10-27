@@ -2,7 +2,7 @@
 "brew:bat" = "latest"
 
 [dotfiles]
-"~/.config/bat" = { source = "~/dev/personal/dot/home/.config/bat", mode = "symlink-each" }
+"bat/config/bat" = { source = "~/dev/personal/dot/home/.config/bat", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/bat" }] }
 
 [bootstrap.hooks]
 pre-dotfiles = 'mise run gh:download:file -- --api-path "repos/catppuccin/bat/contents/themes/Catppuccin%20Mocha.tmTheme?ref=main" --output "$HOME/dev/personal/dot/home/.config/bat/themes/Catppuccin Mocha.tmTheme"'

@@ -31,13 +31,13 @@ if [[ -e home/.config/mise/conf.d/bootstrap-ai.toml ]] &&
     grep -qF '"~/.copilot"' home/.config/mise/conf.d/bootstrap-ai.toml; then
     fail "legacy AI declaration still owns ~/.copilot"
 fi
-grep -qF '"~/.config/mise/conf.d/copilot.toml"' home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/conf.d/copilot.toml"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy copilot.toml"
 for __profile in work personal; do
     local __profile_config="$(
         env MISE_ENV="$__profile" \
-            MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-            mise -C "$__root_dir" config ls --no-truncate
+            MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+            mise -C "$__test_mise_repository" config ls --no-truncate
     )"
     print -r -- "$__profile_config" | grep -qF "copilot.toml" ||
         fail "Copilot module must be selected by the $__profile profile"

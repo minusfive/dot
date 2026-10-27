@@ -12,7 +12,7 @@ local __target="$HOME/.config/delta/themes/catppuccin.gitconfig"
 [[ -f "$__config" ]] || fail "missing $__config"
 assert_tool_module delta 'delta = "latest"'
 [[ -f "$__source" ]] || fail "missing delta theme source"
-grep -qF '"~/.config/delta" = { source = "~/dev/personal/dot/home/.config/delta", mode = "symlink-each" }' "$__config" ||
+grep -qF '"delta/config/delta" = { source = "~/dev/personal/dot/home/.config/delta", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/delta" }] }' "$__config" ||
     fail "delta symlink-each declaration is missing"
 grep -qF 'pre-dotfiles = '\''mise run gh:download:file -- --api-path "repos/catppuccin/delta/contents/catppuccin.gitconfig?ref=main" --output "$HOME/dev/personal/dot/home/.config/delta/themes/catppuccin.gitconfig"'\''' "$__config" ||
     fail "delta theme pre-dotfiles hook is missing"

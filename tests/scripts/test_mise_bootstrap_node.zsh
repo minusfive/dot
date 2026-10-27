@@ -7,7 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing node tool module..."
 local __config="home/.config/mise/conf.d/node.toml"
 assert_tool_module node 'node = { version = "25", postinstall = "mise run global-install-packages-npm" }'
-grep -qF '"~/.config/mise/tasks/global-install-packages-npm.sh"' "$__config" ||
+grep -qF '"node/config/mise/tasks/global-install-packages-npm.sh"' "$__config" ||
     fail "Node package task is not owned by the Node module"
 grep -qF 'npm.bun = true' "$__config" || fail "npm setting is missing"
 grep -qF 'node.compile = false' "$__config" || fail "Node compile setting is missing"

@@ -17,7 +17,7 @@ local __zsh_config="home/.config/mise/conf.d/zsh.toml"
 [[ -f "$__source" ]] || fail "missing $__source"
 [[ -f "$__alias_source" ]] || fail "missing $__alias_source"
 grep -qF '[dotfiles]' "$__config" || fail "aliases dotfiles section is missing"
-grep -qF '"~/.config/zsh/.aliases" = { source = "~/dev/personal/dot/home/.config/aliases/.aliases", mode = "symlink" }' "$__config" ||
+grep -qF '"aliases/config/zsh/.aliases" = { source = "~/dev/personal/dot/home/.config/aliases/.aliases", mode = "symlink", variants = [{ default = true, target = "{{ xdg_config_home }}/zsh/.aliases" }] }' "$__config" ||
     fail "aliases symlink declaration is missing"
 grep -qF '"~/.config/zsh/.zshrc-zone-2.zsh/aliases" = { source = "~/dev/personal/dot/home/.config/aliases/zshrc.zsh", template = "tera" }' "$__config" ||
     fail "aliases Zone 2 declaration is missing"
@@ -26,13 +26,13 @@ for __section in '[bootstrap.packages]' '[bootstrap.repos]' '[bootstrap.hooks]' 
         fail "aliases module must not declare $__section"
     fi
 done
-grep -qF '"~/.config/mise/conf.d/aliases.toml"' "$__control_plane" ||
+grep -qF '"mise/config/mise/conf.d/aliases.toml"' "$__control_plane" ||
     fail "mise control-plane module does not deploy aliases.toml"
 for __profile in work personal; do
     local __profile_config="$(
         env MISE_ENV="$__profile" \
-            MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-            mise -C "$__root_dir" config ls --no-truncate
+            MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+            mise -C "$__test_mise_repository" config ls --no-truncate
     )"
     print -r -- "$__profile_config" | grep -qF "aliases.toml" ||
         fail "aliases must be selected by the $__profile profile"
@@ -64,7 +64,7 @@ fi
 [[ ! -e "home/.config/zsh/.zsh_history" && ! -e "home/.config/zsh/.zcompdump" ]] ||
     fail "Zsh runtime files must remain outside the tracked source"
 
-local __fixture_dir="$(mktemp -d "${TMPDIR:-/tmp}/aliases-module.XXXXXX")"
+local __fixture_dir="$(test_fixture_dir aliases-module)"
 local __fixture_home="$__fixture_dir/home"
 local __fixture_config="$__fixture_home/.config/mise"
 local __fixture_zone="$__fixture_home/.config/zsh/.zshrc-zone-2.zsh"

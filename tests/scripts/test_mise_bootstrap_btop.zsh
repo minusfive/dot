@@ -13,7 +13,7 @@ local __target="$HOME/.config/btop"
 [[ -f "$__config" ]] || fail "missing $__config"
 [[ -f "$__source/btop.conf" ]] || fail "missing btop config source"
 [[ -f "$__source/themes/catppuccin_mocha.theme" ]] || fail "missing btop theme source"
-grep -qF '"~/.config/btop" = { source = "~/dev/personal/dot/home/.config/btop", mode = "symlink-each" }' "$__config" ||
+grep -qF '"btop/config/btop" = { source = "~/dev/personal/dot/home/.config/btop", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/btop" }] }' "$__config" ||
     fail "btop symlink-each declaration is missing"
 grep -qF 'pre-dotfiles = '\''mise run gh:download:file -- --api-path "repos/catppuccin/btop/contents/themes/catppuccin_mocha.theme?ref=main" --output "$HOME/dev/personal/dot/home/.config/btop/themes/catppuccin_mocha.theme"'\''' "$__config" ||
     fail "btop theme pre-dotfiles hook is missing"

@@ -2,4 +2,4 @@
 "brew:tmux" = "latest"
 
 [dotfiles]
-"~/.config/tmux" = { source = "~/dev/personal/dot/home/.config/tmux", mode = "symlink-each" }
+"tmux/config/tmux" = { source = "~/dev/personal/dot/home/.config/tmux", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/tmux" }] }

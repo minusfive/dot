@@ -1,116 +1,116 @@
 [dotfiles]
-"~/.config/mise/conf.d/aliases.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/aliases.toml", mode = "symlink" }
-"~/.config/mise/conf.d/gh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/gh.toml", mode = "symlink" }
-"~/.config/mise/conf.d/discord.personal.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/discord.personal.toml", mode = "symlink" }
-"~/.config/mise/conf.d/softraid.personal.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/softraid.personal.toml", mode = "symlink" }
-"~/.config/mise/conf.d/whatsapp.personal.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/whatsapp.personal.toml", mode = "symlink" }
-"~/.config/mise/conf.d/brew.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/brew.toml", mode = "symlink" }
-"~/.config/mise/conf.d/sqlite.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/sqlite.toml", mode = "symlink" }
-"~/.config/mise/conf.d/coreutils.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/coreutils.toml", mode = "symlink" }
-"~/.config/mise/conf.d/curl.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/curl.toml", mode = "symlink" }
-"~/.config/mise/conf.d/dockutil.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/dockutil.toml", mode = "symlink" }
-"~/.config/mise/conf.d/macos" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/macos", mode = "symlink-each" }
-"~/.config/mise/conf.d/eza.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/eza.toml", mode = "symlink" }
-"~/.config/mise/conf.d/findutils.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/findutils.toml", mode = "symlink" }
-"~/.config/mise/conf.d/ghostscript.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/ghostscript.toml", mode = "symlink" }
-"~/.config/mise/conf.d/htop.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/htop.toml", mode = "symlink" }
-"~/.config/mise/conf.d/imagemagick.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/imagemagick.toml", mode = "symlink" }
-"~/.config/mise/conf.d/jq.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/jq.toml", mode = "symlink" }
-"~/.config/mise/conf.d/just.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/just.toml", mode = "symlink" }
-"~/.config/mise/conf.d/libtiff.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/libtiff.toml", mode = "symlink" }
-"~/.config/mise/conf.d/libyaml.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/libyaml.toml", mode = "symlink" }
-"~/.config/mise/conf.d/luarocks.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/luarocks.toml", mode = "symlink" }
-"~/.config/mise/conf.d/mas.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/mas.toml", mode = "symlink" }
-"~/.config/mise/conf.d/pkl-lsp.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/pkl-lsp.toml", mode = "symlink" }
-"~/.config/mise/conf.d/stow.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/stow.toml", mode = "symlink" }
-"~/.config/mise/conf.d/tectonic.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/tectonic.toml", mode = "symlink" }
-"~/.config/mise/conf.d/vivid.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/vivid.toml", mode = "symlink" }
-"~/.config/mise/conf.d/wallpaper.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/wallpaper.toml", mode = "symlink" }
-"~/.config/mise/conf.d/wget.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/wget.toml", mode = "symlink" }
-"~/.config/mise/conf.d/yq.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/yq.toml", mode = "symlink" }
-"~/.config/mise/conf.d/zoxide.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/zoxide.toml", mode = "symlink" }
-"~/.config/mise/conf.d/docker-desktop.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/docker-desktop.toml", mode = "symlink" }
-"~/.config/mise/conf.d/google-chrome.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/google-chrome.toml", mode = "symlink" }
-"~/.config/mise/conf.d/gpg-suite.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/gpg-suite.toml", mode = "symlink" }
-"~/.config/mise/conf.d/imageoptim.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/imageoptim.toml", mode = "symlink" }
-"~/.config/mise/conf.d/obsidian.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/obsidian.toml", mode = "symlink" }
-"~/.config/mise/conf.d/yubico-authenticator.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/yubico-authenticator.toml", mode = "symlink" }
-"~/.config/mise/conf.d/agents.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/agents.toml", mode = "symlink" }
-"~/.config/mise/conf.d/bat.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/bat.toml", mode = "symlink" }
-"~/.config/mise/conf.d/btop.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/btop.toml", mode = "symlink" }
-"~/.config/mise/conf.d/delta.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/delta.toml", mode = "symlink" }
-"~/.config/mise/conf.d/fd.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/fd.toml", mode = "symlink" }
-"~/.config/mise/conf.d/fzf.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/fzf.toml", mode = "symlink" }
-"~/.config/mise/conf.d/ghostty.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/ghostty.toml", mode = "symlink" }
-"~/.config/mise/conf.d/git.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/git.toml", mode = "symlink" }
-"~/.config/mise/conf.d/1password.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/1password.toml", mode = "symlink" }
-"~/.config/mise/conf.d/betterdisplay.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/betterdisplay.toml", mode = "symlink" }
-"~/.config/mise/conf.d/hammerspoon.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/hammerspoon.toml", mode = "symlink" }
-"~/.config/mise/conf.d/harper.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/harper.toml", mode = "symlink" }
-"~/.config/mise/conf.d/nvim.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/nvim.toml", mode = "symlink" }
-"~/.config/mise/conf.d/p10k.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/p10k.toml", mode = "symlink" }
-"~/.config/mise/conf.d/lazygit.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/lazygit.toml", mode = "symlink" }
-"~/.config/mise/conf.d/ripgrep.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/ripgrep.toml", mode = "symlink" }
-"~/.config/mise/conf.d/tmux.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/tmux.toml", mode = "symlink" }
-"~/.config/mise/conf.d/wezterm.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/wezterm.toml", mode = "symlink" }
-"~/.config/mise/conf.d/yazi.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/yazi.toml", mode = "symlink" }
-"~/.config/mise/conf.d/yarn.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/yarn.toml", mode = "symlink" }
-"~/.config/mise/conf.d/zsh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/zsh.toml", mode = "symlink" }
-"~/.config/mise/conf.d/oh-my-zsh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/oh-my-zsh.toml", mode = "symlink" }
-"~/.config/mise/conf.d/claude.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/claude.toml", mode = "symlink" }
-"~/.config/mise/conf.d/copilot.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/copilot.toml", mode = "symlink" }
-"~/.config/mise/conf.d/editorconfig.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/editorconfig.toml", mode = "symlink" }
-"~/.config/mise/conf.d/opencode.personal.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/opencode.personal.toml", mode = "symlink" }
-"~/.config/mise/conf.d/packages.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/packages.toml", mode = "symlink" }
-"~/.config/mise/config.toml" = { source = "~/dev/personal/dot/home/.config/mise/config.toml", mode = "symlink" }
-"~/.local/state/minusfive/profile" = { source = "~/dev/personal/dot/home/.config/mise/profile.tmpl", mode = "template", template = "tera" }
-"~/.config/mise/mise.lock" = { source = "~/dev/personal/dot/home/.config/mise/mise.lock", mode = "symlink" }
-"~/.config/mise/miserc.toml" = { source = "~/dev/personal/dot/home/.config/mise/miserc.toml", mode = "symlink" }
-"~/.config/mise/miserc.local.toml" = { source = "~/dev/personal/dot/home/.config/mise/miserc.local.toml.tmpl", mode = "template", template = "tera" }
-"~/.config/mise/tasks/brew/install.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/brew/install.zsh", mode = "symlink" }
-"~/.config/mise/tasks/bootstrap/pre-packages.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/pre-packages.zsh", mode = "symlink" }
-"~/.config/mise/tasks/bootstrap/pre-dotfiles.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/pre-dotfiles.zsh", mode = "symlink" }
-"~/.config/mise/tasks/bootstrap/post-tools.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/post-tools.zsh", mode = "symlink" }
-"~/.config/mise/tasks/gh/download/file.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/download/file.sh", mode = "symlink" }
-"~/.config/mise/tasks/gh/auth/login.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/auth/login.zsh", mode = "symlink" }
-"~/.config/mise/tasks/git/auth/setup.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/git/auth/setup.zsh", mode = "symlink" }
-"~/.config/mise/tasks/git/worktree.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/git/worktree.ts", mode = "symlink" }
-"~/.config/mise/utils/git-domains.zsh" = { source = "~/dev/personal/dot/home/.config/mise/utils/git-domains.zsh", mode = "symlink" }
-"~/.config/mise/tasks/global-install-packages-all.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-all.sh", mode = "symlink" }
-"~/.config/mise/tasks/lint-skill-index.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/lint-skill-index.zsh", mode = "symlink" }
-"~/.config/mise/tasks/ai/skills/evals/init.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/init.zsh", mode = "symlink" }
-"~/.config/mise/tasks/ai/skills/evals/prepare.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/prepare.zsh", mode = "symlink" }
-"~/.config/mise/tasks/ai/skills/validate-conflicts.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/validate-conflicts.zsh", mode = "symlink" }
-"~/.config/mise/tasks/mise/tasks/validate-conflicts.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/tasks/validate-conflicts.zsh", mode = "symlink" }
-"~/.config/mise/tasks/mise/cleanup/inventory.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/cleanup/inventory.zsh", mode = "symlink" }
-"~/.config/mise/tasks/ai/skills/evals/validate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/validate.zsh", mode = "symlink" }
-"~/.config/mise/tasks/omz/update.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/omz/update.zsh", mode = "symlink" }
-"~/.config/mise/tasks/zsh/migrate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/zsh/migrate.zsh", mode = "symlink" }
-"~/.config/mise/tasks/md/preview.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/md/preview.ts", mode = "symlink" }
-"~/.config/mise/tasks/pr/review-watch.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/review-watch.ts", mode = "symlink" }
-"~/.config/mise/tasks/pr/stack.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack.ts", mode = "symlink" }
-"~/.config/mise/tasks/pr/stack-sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack-sync.ts", mode = "symlink" }
-"~/.config/mise/tasks/pr/sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/sync.ts", mode = "symlink" }
-"~/.config/mise/tasks/mise/cleanup.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/cleanup.zsh", mode = "symlink" }
-"~/.config/mise/utils/git.ts" = { source = "~/dev/personal/dot/home/.config/mise/utils/git.ts", mode = "symlink" }
-"~/.config/mise/conf.d/mise.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/mise.toml", mode = "symlink" }
-"~/.config/mise/conf.d/bun.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/bun.toml", mode = "symlink" }
-"~/.config/mise/conf.d/go.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/go.toml", mode = "symlink" }
-"~/.config/mise/conf.d/github-copilot.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/github-copilot.toml", mode = "symlink" }
-"~/.config/mise/conf.d/gnu-sed.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/gnu-sed.toml", mode = "symlink" }
-"~/.config/mise/conf.d/mermaid-cli.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/mermaid-cli.toml", mode = "symlink" }
-"~/.config/mise/conf.d/mermaid-formatter.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/mermaid-formatter.toml", mode = "symlink" }
-"~/.config/mise/conf.d/node.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/node.toml", mode = "symlink" }
-"~/.config/mise/conf.d/pitchfork.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/pitchfork.toml", mode = "symlink" }
-"~/.config/mise/conf.d/prettier.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/prettier.toml", mode = "symlink" }
-"~/.config/mise/conf.d/python.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/python.toml", mode = "symlink" }
-"~/.config/mise/conf.d/qmd.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/qmd.toml", mode = "symlink" }
-"~/.config/mise/conf.d/ruby.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/ruby.toml", mode = "symlink" }
-"~/.config/mise/conf.d/rumdl.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/rumdl.toml", mode = "symlink" }
-"~/.config/mise/conf.d/rust.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/rust.toml", mode = "symlink" }
-"~/.config/mise/conf.d/stylua.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/stylua.toml", mode = "symlink" }
-"~/.config/mise/conf.d/tree-sitter.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/tree-sitter.toml", mode = "symlink" }
-"~/.config/mise/conf.d/tuicr.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/tuicr.toml", mode = "symlink" }
+"mise/config/mise/conf.d/aliases.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/aliases.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/aliases.toml" }] }
+"mise/config/mise/conf.d/gh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/gh.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/gh.toml" }] }
+"mise/config/mise/conf.d/discord.personal.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/discord.personal.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/discord.personal.toml" }] }
+"mise/config/mise/conf.d/softraid.personal.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/softraid.personal.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/softraid.personal.toml" }] }
+"mise/config/mise/conf.d/whatsapp.personal.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/whatsapp.personal.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/whatsapp.personal.toml" }] }
+"mise/config/mise/conf.d/brew.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/brew.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/brew.toml" }] }
+"mise/config/mise/conf.d/sqlite.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/sqlite.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/sqlite.toml" }] }
+"mise/config/mise/conf.d/coreutils.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/coreutils.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/coreutils.toml" }] }
+"mise/config/mise/conf.d/curl.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/curl.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/curl.toml" }] }
+"mise/config/mise/conf.d/dockutil.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/dockutil.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/dockutil.toml" }] }
+"mise/config/mise/conf.d/macos" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/macos", mode = "symlink-each", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/macos" }] }
+"mise/config/mise/conf.d/eza.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/eza.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/eza.toml" }] }
+"mise/config/mise/conf.d/findutils.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/findutils.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/findutils.toml" }] }
+"mise/config/mise/conf.d/ghostscript.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/ghostscript.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/ghostscript.toml" }] }
+"mise/config/mise/conf.d/htop.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/htop.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/htop.toml" }] }
+"mise/config/mise/conf.d/imagemagick.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/imagemagick.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/imagemagick.toml" }] }
+"mise/config/mise/conf.d/jq.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/jq.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/jq.toml" }] }
+"mise/config/mise/conf.d/just.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/just.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/just.toml" }] }
+"mise/config/mise/conf.d/libtiff.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/libtiff.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/libtiff.toml" }] }
+"mise/config/mise/conf.d/libyaml.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/libyaml.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/libyaml.toml" }] }
+"mise/config/mise/conf.d/luarocks.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/luarocks.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/luarocks.toml" }] }
+"mise/config/mise/conf.d/mas.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/mas.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/mas.toml" }] }
+"mise/config/mise/conf.d/pkl-lsp.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/pkl-lsp.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/pkl-lsp.toml" }] }
+"mise/config/mise/conf.d/stow.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/stow.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/stow.toml" }] }
+"mise/config/mise/conf.d/tectonic.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/tectonic.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/tectonic.toml" }] }
+"mise/config/mise/conf.d/vivid.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/vivid.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/vivid.toml" }] }
+"mise/config/mise/conf.d/wallpaper.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/wallpaper.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/wallpaper.toml" }] }
+"mise/config/mise/conf.d/wget.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/wget.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/wget.toml" }] }
+"mise/config/mise/conf.d/yq.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/yq.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/yq.toml" }] }
+"mise/config/mise/conf.d/zoxide.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/zoxide.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/zoxide.toml" }] }
+"mise/config/mise/conf.d/docker-desktop.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/docker-desktop.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/docker-desktop.toml" }] }
+"mise/config/mise/conf.d/google-chrome.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/google-chrome.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/google-chrome.toml" }] }
+"mise/config/mise/conf.d/gpg-suite.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/gpg-suite.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/gpg-suite.toml" }] }
+"mise/config/mise/conf.d/imageoptim.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/imageoptim.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/imageoptim.toml" }] }
+"mise/config/mise/conf.d/obsidian.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/obsidian.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/obsidian.toml" }] }
+"mise/config/mise/conf.d/yubico-authenticator.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/yubico-authenticator.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/yubico-authenticator.toml" }] }
+"mise/config/mise/conf.d/agents.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/agents.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/agents.toml" }] }
+"mise/config/mise/conf.d/bat.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/bat.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/bat.toml" }] }
+"mise/config/mise/conf.d/btop.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/btop.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/btop.toml" }] }
+"mise/config/mise/conf.d/delta.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/delta.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/delta.toml" }] }
+"mise/config/mise/conf.d/fd.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/fd.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/fd.toml" }] }
+"mise/config/mise/conf.d/fzf.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/fzf.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/fzf.toml" }] }
+"mise/config/mise/conf.d/ghostty.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/ghostty.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/ghostty.toml" }] }
+"mise/config/mise/conf.d/git.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/git.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/git.toml" }] }
+"mise/config/mise/conf.d/1password.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/1password.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/1password.toml" }] }
+"mise/config/mise/conf.d/betterdisplay.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/betterdisplay.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/betterdisplay.toml" }] }
+"mise/config/mise/conf.d/hammerspoon.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/hammerspoon.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/hammerspoon.toml" }] }
+"mise/config/mise/conf.d/harper.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/harper.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/harper.toml" }] }
+"mise/config/mise/conf.d/nvim.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/nvim.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/nvim.toml" }] }
+"mise/config/mise/conf.d/p10k.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/p10k.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/p10k.toml" }] }
+"mise/config/mise/conf.d/lazygit.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/lazygit.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/lazygit.toml" }] }
+"mise/config/mise/conf.d/ripgrep.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/ripgrep.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/ripgrep.toml" }] }
+"mise/config/mise/conf.d/tmux.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/tmux.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/tmux.toml" }] }
+"mise/config/mise/conf.d/wezterm.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/wezterm.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/wezterm.toml" }] }
+"mise/config/mise/conf.d/yazi.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/yazi.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/yazi.toml" }] }
+"mise/config/mise/conf.d/yarn.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/yarn.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/yarn.toml" }] }
+"mise/config/mise/conf.d/zsh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/zsh.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/zsh.toml" }] }
+"mise/config/mise/conf.d/oh-my-zsh.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/oh-my-zsh.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/oh-my-zsh.toml" }] }
+"mise/config/mise/conf.d/claude.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/claude.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/claude.toml" }] }
+"mise/config/mise/conf.d/copilot.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/copilot.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/copilot.toml" }] }
+"mise/config/mise/conf.d/editorconfig.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/editorconfig.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/editorconfig.toml" }] }
+"mise/config/mise/conf.d/opencode.personal.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/opencode.personal.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/opencode.personal.toml" }] }
+"mise/config/mise/conf.d/packages.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/packages.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/packages.toml" }] }
+"mise/config/mise/config.toml" = { source = "~/dev/personal/dot/home/.config/mise/config.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/config.toml" }] }
+"mise/state/minusfive/profile" = { source = "~/dev/personal/dot/home/.config/mise/profile.tmpl", mode = "template", template = "tera", variants = [{ default = true, target = "{{ xdg_state_home }}/minusfive/profile" }] }
+"mise/config/mise/mise.lock" = { source = "~/dev/personal/dot/home/.config/mise/mise.lock", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/mise.lock" }] }
+"mise/config/mise/miserc.toml" = { source = "~/dev/personal/dot/home/.config/mise/miserc.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/miserc.toml" }] }
+"mise/config/mise/miserc.local.toml" = { source = "~/dev/personal/dot/home/.config/mise/miserc.local.toml.tmpl", mode = "template", template = "tera", variants = [{ default = true, target = "{{ mise_config_dir }}/miserc.local.toml" }] }
+"mise/config/mise/tasks/brew/install.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/brew/install.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/brew/install.zsh" }] }
+"mise/config/mise/tasks/bootstrap/pre-packages.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/pre-packages.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/bootstrap/pre-packages.zsh" }] }
+"mise/config/mise/tasks/bootstrap/pre-dotfiles.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/pre-dotfiles.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/bootstrap/pre-dotfiles.zsh" }] }
+"mise/config/mise/tasks/bootstrap/post-tools.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/post-tools.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/bootstrap/post-tools.zsh" }] }
+"mise/config/mise/tasks/gh/download/file.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/download/file.sh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/gh/download/file.sh" }] }
+"mise/config/mise/tasks/gh/auth/login.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/auth/login.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/gh/auth/login.zsh" }] }
+"mise/config/mise/tasks/git/auth/setup.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/git/auth/setup.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/git/auth/setup.zsh" }] }
+"mise/config/mise/tasks/git/worktree.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/git/worktree.ts", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/git/worktree.ts" }] }
+"mise/config/mise/utils/git-domains.zsh" = { source = "~/dev/personal/dot/home/.config/mise/utils/git-domains.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/utils/git-domains.zsh" }] }
+"mise/config/mise/tasks/global-install-packages-all.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-all.sh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/global-install-packages-all.sh" }] }
+"mise/config/mise/tasks/lint-skill-index.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/lint-skill-index.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/lint-skill-index.zsh" }] }
+"mise/config/mise/tasks/ai/skills/evals/init.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/init.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/ai/skills/evals/init.zsh" }] }
+"mise/config/mise/tasks/ai/skills/evals/prepare.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/prepare.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/ai/skills/evals/prepare.zsh" }] }
+"mise/config/mise/tasks/ai/skills/validate-conflicts.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/validate-conflicts.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/ai/skills/validate-conflicts.zsh" }] }
+"mise/config/mise/tasks/mise/tasks/validate-conflicts.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/tasks/validate-conflicts.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/mise/tasks/validate-conflicts.zsh" }] }
+"mise/config/mise/tasks/mise/cleanup/inventory.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/cleanup/inventory.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/mise/cleanup/inventory.zsh" }] }
+"mise/config/mise/tasks/ai/skills/evals/validate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/ai/skills/evals/validate.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/ai/skills/evals/validate.zsh" }] }
+"mise/config/mise/tasks/omz/update.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/omz/update.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/omz/update.zsh" }] }
+"mise/config/mise/tasks/zsh/migrate.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/zsh/migrate.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/zsh/migrate.zsh" }] }
+"mise/config/mise/tasks/md/preview.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/md/preview.ts", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/md/preview.ts" }] }
+"mise/config/mise/tasks/pr/review-watch.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/review-watch.ts", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/pr/review-watch.ts" }] }
+"mise/config/mise/tasks/pr/stack.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack.ts", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/pr/stack.ts" }] }
+"mise/config/mise/tasks/pr/stack-sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/stack-sync.ts", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/pr/stack-sync.ts" }] }
+"mise/config/mise/tasks/pr/sync.ts" = { source = "~/dev/personal/dot/home/.config/mise/tasks/pr/sync.ts", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/pr/sync.ts" }] }
+"mise/config/mise/tasks/mise/cleanup.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/mise/cleanup.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/mise/cleanup.zsh" }] }
+"mise/config/mise/utils/git.ts" = { source = "~/dev/personal/dot/home/.config/mise/utils/git.ts", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/utils/git.ts" }] }
+"mise/config/mise/conf.d/mise.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/mise.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/mise.toml" }] }
+"mise/config/mise/conf.d/bun.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/bun.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/bun.toml" }] }
+"mise/config/mise/conf.d/go.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/go.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/go.toml" }] }
+"mise/config/mise/conf.d/github-copilot.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/github-copilot.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/github-copilot.toml" }] }
+"mise/config/mise/conf.d/gnu-sed.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/gnu-sed.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/gnu-sed.toml" }] }
+"mise/config/mise/conf.d/mermaid-cli.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/mermaid-cli.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/mermaid-cli.toml" }] }
+"mise/config/mise/conf.d/mermaid-formatter.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/mermaid-formatter.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/mermaid-formatter.toml" }] }
+"mise/config/mise/conf.d/node.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/node.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/node.toml" }] }
+"mise/config/mise/conf.d/pitchfork.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/pitchfork.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/pitchfork.toml" }] }
+"mise/config/mise/conf.d/prettier.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/prettier.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/prettier.toml" }] }
+"mise/config/mise/conf.d/python.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/python.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/python.toml" }] }
+"mise/config/mise/conf.d/qmd.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/qmd.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/qmd.toml" }] }
+"mise/config/mise/conf.d/ruby.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/ruby.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/ruby.toml" }] }
+"mise/config/mise/conf.d/rumdl.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/rumdl.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/rumdl.toml" }] }
+"mise/config/mise/conf.d/rust.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/rust.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/rust.toml" }] }
+"mise/config/mise/conf.d/stylua.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/stylua.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/stylua.toml" }] }
+"mise/config/mise/conf.d/tree-sitter.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/tree-sitter.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/tree-sitter.toml" }] }
+"mise/config/mise/conf.d/tuicr.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/tuicr.toml", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/conf.d/tuicr.toml" }] }
 
 [settings.self_update]
 auto = true

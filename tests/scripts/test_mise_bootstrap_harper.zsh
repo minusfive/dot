@@ -10,7 +10,7 @@ local __config="home/.config/mise/conf.d/harper.toml"
 local __source="home/.config/harper/dictionaries/user.txt"
 local __target="$HOME/.config/harper/dictionaries/user.txt"
 [[ -f "$__config" && -f "$__source" ]] || fail "Harper source or declaration is missing"
-grep -qF '"~/.config/harper" = { source = "~/dev/personal/dot/home/.config/harper", mode = "symlink-each" }' "$__config" ||
+grep -qF '"harper/config/harper" = { source = "~/dev/personal/dot/home/.config/harper", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/harper" }] }' "$__config" ||
     fail "Harper symlink-each declaration is missing"
 [[ -d "$HOME/.config/harper" && ! -L "$HOME/.config/harper" ]] || fail "Harper target must be a physical directory"
 [[ -L "$__target" ]] || fail "Harper dictionary target must be a symlink"

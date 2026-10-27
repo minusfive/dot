@@ -15,7 +15,7 @@ git ls-files --error-unmatch \
     home/.config/opencode/plugin/env-protection.ts >/dev/null ||
     fail "tracked OpenCode source files are missing"
 
-grep -qF '"~/.config/opencode" = { source = "~/dev/personal/dot/home/.config/opencode", mode = "symlink-each" }' "$__config" ||
+grep -qF '"opencode/config/opencode" = { source = "~/dev/personal/dot/home/.config/opencode", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/opencode" }] }' "$__config" ||
     fail "OpenCode module declaration is incorrect"
 if grep -qF '[tools]' "$__config"; then
     fail "OpenCode must use the Homebrew package manager"
@@ -23,10 +23,11 @@ fi
 if grep -qF 'package.json' "$__config" || grep -qF 'bun.lock' "$__config" || grep -qF 'node_modules' "$__config"; then
     fail "OpenCode runtime dependencies must remain unmanaged"
 fi
-if grep -qF '"~/.config/opencode"' home/.config/mise/conf.d/bootstrap-ai.toml; then
-    fail "legacy AI declaration still owns ~/.config/opencode"
+if [[ -f home/.config/mise/conf.d/bootstrap-ai.toml ]] &&
+    grep -qF '"opencode/config/opencode"' home/.config/mise/conf.d/bootstrap-ai.toml; then
+    fail "legacy AI declaration still owns the OpenCode target"
 fi
-grep -qF '"~/.config/mise/conf.d/opencode.personal.toml"' home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/conf.d/opencode.personal.toml"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy opencode.personal.toml"
 if git grep -IlE 'BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|(^|[^[:alnum:]])(token|password|secret|api[-_]?key)[[:space:]]*[:=]' -- home/.config/opencode >/dev/null; then
     fail "credential-like content found in tracked OpenCode sources"

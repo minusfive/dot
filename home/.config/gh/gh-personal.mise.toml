@@ -1,2 +1,2 @@
 [env]
-GH_CONFIG_DIR = "{{ env.HOME }}/.config/gh/personal"
+GH_CONFIG_DIR = "{{ xdg_config_home }}/gh/personal"

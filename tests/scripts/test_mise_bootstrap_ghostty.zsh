@@ -11,7 +11,7 @@ assert_module_package ghostty brew-cask:ghostty
 local __source="home/.config/ghostty"
 local __target="$HOME/.config/ghostty"
 [[ -f "$__config" ]] || fail "missing $__config"
-grep -qF '"~/.config/ghostty" = { source = "~/dev/personal/dot/home/.config/ghostty", mode = "symlink-each" }' "$__config" ||
+grep -qF '"ghostty/config/ghostty" = { source = "~/dev/personal/dot/home/.config/ghostty", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/ghostty" }] }' "$__config" ||
     fail "Ghostty symlink-each declaration is missing"
 for __path in \
     config \

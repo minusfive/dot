@@ -18,7 +18,7 @@ grep -qF 'check = "bun scripts/check-git-config.ts"' "$__root_dir/hk.pkl" ||
     fail "hk does not run the Git config checker"
 source "$__domains_helper"
 
-local __fixture_dir="$(mktemp -d "${TMPDIR:-/tmp}/git-config-check.XXXXXX")"
+local __fixture_dir="$(test_fixture_dir git-config-check)"
 local __repo="$__fixture_dir/repo"
 local __domains="$__repo/home/dev/personal/.domains"
 local __config="$__repo/home/.config/git/config"
@@ -165,15 +165,15 @@ run_failure "credential" "work-repo"
 : > "$__profile_config"
 git config --file "$__profile_config" --add credential.https://github.com.helper ""
 git config --file "$__profile_config" --add credential.https://github.com.helper \
-    '!GH_CONFIG_DIR="$HOME/.config/gh/personal" gh auth git-credential'
+    '!GH_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/gh/personal" gh auth git-credential'
 git -C "$__repo" add home/dev/personal/profile.gitconfig
-run_failure "credential" 'GH_CONFIG_DIR="$HOME/.config/gh/personal"'
+run_failure "credential" 'GH_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/gh/personal"'
 
 : > "$__profile_config"
 git config --file "$__profile_config" --add credential.https://github.com.helper \
-    '!GH_CONFIG_DIR="$HOME/.config/gh/work" gh auth git-credential'
+    '!GH_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/gh/work" gh auth git-credential'
 git -C "$__repo" add home/dev/personal/profile.gitconfig
-run_failure "credential" 'GH_CONFIG_DIR="$HOME/.config/gh/work"'
+run_failure "credential" 'GH_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/gh/work"'
 
 : > "$__profile_config"
 git config --file "$__profile_config" --add credential.https://github.com.helper \

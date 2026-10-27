@@ -23,10 +23,11 @@ grep -qF '"~/.claude/skills" = { source = "~/dev/personal/dot/home/.agents/skill
     fail "Claude skills source or exclusion is incorrect"
 grep -qF '"~/.claude/statusline-command.sh" = { source = "~/dev/personal/dot/home/.claude/statusline-command.sh", mode = "symlink" }' "$__config" ||
     fail "Claude statusline source is missing"
-if grep -qF '"~/.claude"' home/.config/mise/conf.d/bootstrap-ai.toml; then
+if [[ -f home/.config/mise/conf.d/bootstrap-ai.toml ]] &&
+    grep -qF '"~/.claude"' home/.config/mise/conf.d/bootstrap-ai.toml; then
     fail "legacy AI declaration still owns ~/.claude"
 fi
-grep -qF '"~/.config/mise/conf.d/claude.toml"' home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/conf.d/claude.toml"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy claude.toml"
 
 bash -n home/.claude/statusline-command.sh || fail "Claude statusline has syntax errors"

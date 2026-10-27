@@ -21,35 +21,86 @@ if grep -qF "oauth_token:" "home/.config/gh/personal/hosts.yml"; then
 fi
 
 grep -qF '[bootstrap.directories."~/.config/gh/personal"]' "$__config" || fail "GitHub directory resource is missing"
-grep -qF '"~/.config/gh/personal/hosts.yml" = { source = "~/dev/personal/dot/home/.config/gh/personal/hosts.yml", mode = "symlink" }' "$__config" ||
+grep -qF '"gh/config/gh/personal/hosts.yml" = { source = "~/dev/personal/dot/home/.config/gh/personal/hosts.yml", mode = "symlink", variants = [{ default = true, target = "{{ xdg_config_home }}/gh/personal/hosts.yml" }] }' "$__config" ||
     fail "GitHub hosts dotfile resource is missing"
 if grep -qF '[bootstrap.files."~/.config/gh/personal/hosts.yml"]' "$__config"; then
     fail "GitHub hosts resource must not remain a bootstrap file"
 fi
-grep -qF '"~/.config/mise/conf.d/gh.toml"' home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/conf.d/gh.toml"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy gh.toml"
 grep -qF 'source = "~/dev/personal/dot/home/.config/gh/personal/hosts.yml"' "$__config" || fail "GitHub hosts source is missing"
 grep -qF '"~/dev/personal/mise.toml/gh-config" = { source = "~/dev/personal/dot/home/.config/gh/gh-personal.mise.toml", template = "tera", merge = true }' "$__config" ||
     fail "personal GH_CONFIG_DIR merge entry is missing"
 grep -qF '"~/dev/work/mise.toml/gh-config" = { source = "~/dev/personal/dot/home/.config/gh/gh-work.mise.toml", template = "tera", merge = true }' "$__config" ||
     fail "work GH_CONFIG_DIR merge entry is missing"
-grep -qF 'GH_CONFIG_DIR = "{{ env.HOME }}/.config/gh/personal"' home/.config/gh/gh-personal.mise.toml ||
+grep -qF 'GH_CONFIG_DIR = "{{ xdg_config_home }}/gh/personal"' home/.config/gh/gh-personal.mise.toml ||
     fail "personal GH_CONFIG_DIR source is missing"
-grep -qF 'GH_CONFIG_DIR = "{{ env.HOME }}/.config/gh/work"' home/.config/gh/gh-work.mise.toml ||
+grep -qF 'GH_CONFIG_DIR = "{{ xdg_config_home }}/gh/work"' home/.config/gh/gh-work.mise.toml ||
     fail "work GH_CONFIG_DIR source is missing"
 if grep -qF 'bootstrap-gh.toml' home/.config/mise/conf.d/mise.toml; then
     fail "legacy GitHub declaration is still deployed"
 fi
 [[ ! -e "home/.config/mise/conf.d/profiles.toml" ]] ||
     fail "retired profile module remains"
-local __merge_dry_run="$(
-    env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-        mise -C "$__root_dir" bootstrap dotfiles apply --dry-run 2>&1
+
+local __fixture_dir="$(test_fixture_dir gh-xdg-config)"
+local __fixture_home="$__fixture_dir/home"
+local __fixture_repository="$__fixture_home/dev/personal/dot"
+local __fixture_xdg_config="$__fixture_dir/custom-xdg/config"
+local __host_mise_config="$HOME/.config/mise"
+mkdir -p "$__fixture_repository" "$__fixture_home/.config/mise" "$__fixture_xdg_config" \
+    "$__fixture_dir/data" "$__fixture_dir/state" "$__fixture_dir/cache" \
+    "$__fixture_dir/tmp" "$__fixture_dir/system-config" \
+    "$__fixture_dir/xdg/data" "$__fixture_dir/xdg/state" "$__fixture_dir/xdg/cache"
+trap 'rm -rf -- "$__fixture_dir"' EXIT
+git -C "$__fixture_repository" init -q
+cp home/.config/gh/gh-work.mise.toml "$__fixture_repository/mise.toml"
+cp home/.config/gh/gh-personal.mise.toml "$__fixture_repository/mise.personal.toml"
+local -a __fixture_env=(
+    "HOME=$__fixture_home"
+    "XDG_CONFIG_HOME=$__fixture_xdg_config"
+    "XDG_DATA_HOME=$__fixture_dir/xdg/data"
+    "XDG_STATE_HOME=$__fixture_dir/xdg/state"
+    "XDG_CACHE_HOME=$__fixture_dir/xdg/cache"
+    "MISE_CONFIG_DIR=$__fixture_home/.config/mise"
+    "MISE_DATA_DIR=$__fixture_dir/data"
+    "MISE_STATE_DIR=$__fixture_dir/state"
+    "MISE_CACHE_DIR=$__fixture_dir/cache"
+    "MISE_TMP_DIR=$__fixture_dir/tmp"
+    "MISE_SYSTEM_CONFIG_DIR=$__fixture_dir/system-config"
+    "MISE_INSTALLS_DIR=$__fixture_dir/mise-installs"
+    "MISE_INSTALL_STORE_DIR=$__fixture_dir/mise-install-store"
+    "MISE_PLUGINS_DIR=$__fixture_dir/mise-plugins"
+    "MISE_DOWNLOADS_DIR=$__fixture_dir/mise-downloads"
+    "MISE_SHIMS_DIR=$__fixture_dir/mise-shims"
+    "MISE_SYSTEM_DATA_DIR=$__fixture_dir/system-data"
+    "MISE_SYSTEM_INSTALLS_DIR=$__fixture_dir/system-installs"
+    "MISE_SYSTEM_SHIMS_DIR=$__fixture_dir/system-shims"
+    "MISE_IGNORED_CONFIG_PATHS=$__host_mise_config"
+    "MISE_CEILING_PATHS=$__fixture_home"
+    "MISE_NO_HOOKS=1"
+)
+for __config in "$__fixture_repository/mise.toml" "$__fixture_repository/mise.personal.toml"; do
+    env -u MISE_ENV "${__fixture_env[@]}" \
+        mise -C "$__fixture_repository" trust "$__config" >/dev/null ||
+        fail "could not trust GH fixture config: $__config"
+done
+local __work_env="$(
+    env -u MISE_ENV "${__fixture_env[@]}" \
+        mise -C "$__fixture_repository" -E work env --json
 )"
-print -r -- "$__merge_dry_run" | grep -qF 'edit ~/dev/personal/mise.toml (merge:gh-config)' ||
-    fail "personal GH_CONFIG_DIR merge is not active"
-print -r -- "$__merge_dry_run" | grep -qF 'edit ~/dev/work/mise.toml (merge:gh-config)' ||
-    fail "work GH_CONFIG_DIR merge is not active"
+local __personal_env="$(
+    env -u MISE_ENV "${__fixture_env[@]}" \
+        mise -C "$__fixture_repository" -E personal env --json
+)"
+print -r -- "$__work_env" |
+    jq -e --arg expected "$__fixture_xdg_config/gh/work" '.GH_CONFIG_DIR == $expected' >/dev/null ||
+    fail "work GH_CONFIG_DIR did not follow XDG_CONFIG_HOME"
+print -r -- "$__personal_env" |
+    jq -e --arg expected "$__fixture_xdg_config/gh/personal" '.GH_CONFIG_DIR == $expected' >/dev/null ||
+    fail "personal GH_CONFIG_DIR did not follow XDG_CONFIG_HOME"
+rm -rf -- "$__fixture_dir"
+
 for __target in "$HOME/dev/personal/mise.toml" "$HOME/dev/work/mise.toml"; do
     [[ -f "$__target" && ! -L "$__target" ]] || fail "workspace mise target is not a regular file: $__target"
 done

@@ -2,4 +2,4 @@
 "brew-cask:ghostty" = "latest"
 
 [dotfiles]
-"~/.config/ghostty" = { source = "~/dev/personal/dot/home/.config/ghostty", mode = "symlink-each" }
+"ghostty/config/ghostty" = { source = "~/dev/personal/dot/home/.config/ghostty", mode = "symlink-each", variants = [{ default = true, target = "{{ xdg_config_home }}/ghostty" }] }

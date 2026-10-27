@@ -9,12 +9,12 @@ assert_module_package betterdisplay brew-cask:betterdisplay
 
 local __module="home/.config/mise/conf.d/betterdisplay.toml"
 local __control_plane="home/.config/mise/conf.d/mise.toml"
-local __config_home="$(mktemp -d)"
+local __config_home="$(test_fixture_dir betterdisplay-config)"
 trap 'rm -rf -- "$__config_home"' EXIT
 if grep -qF '~/.config/BetterDisplay' "$__module"; then
     fail "BetterDisplay plist is still declared as a deployed dotfile"
 fi
-grep -qF '"~/.config/mise/conf.d/betterdisplay.toml"' "$__control_plane" ||
+grep -qF '"mise/config/mise/conf.d/betterdisplay.toml"' "$__control_plane" ||
     fail "control-plane module does not deploy BetterDisplay ownership"
 plutil -lint home/.config/BetterDisplay/config.plist >/dev/null ||
     fail "tracked BetterDisplay plist is invalid"
@@ -35,9 +35,9 @@ if grep -Eiq 'launchagent|timer|start_interval|run_at_load' \
 fi
 
 local __task_listing
-__task_listing="$(env -u MISE_ENV MISE_PROJECT_ROOT="$__root_dir" \
-    MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-    XDG_CONFIG_HOME="$__config_home" mise -C "$__root_dir" tasks ls)"
+__task_listing="$(env -u MISE_ENV MISE_PROJECT_ROOT="$__test_mise_repository" \
+    MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+    XDG_CONFIG_HOME="$__config_home" mise -C "$__test_mise_repository" tasks ls)"
 print -r -- "$__task_listing" | grep -q '^betterdisplay:sync[[:space:]]' ||
     fail "BetterDisplay sync task is not discoverable"
 if print -r -- "$__task_listing" |

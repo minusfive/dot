@@ -12,7 +12,7 @@ local __source="home/.config/wezterm"
 local __target="$HOME/.config/wezterm"
 [[ -f "$__config" ]] || fail "missing $__config"
 for __path in wezterm.lua shell-completion.zsh shell-integration.zsh; do
-    grep -qF "\"~/.config/wezterm/$__path\" = { source = \"~/dev/personal/dot/home/.config/wezterm/$__path\", mode = \"symlink\" }" "$__config" ||
+    grep -qF "\"wezterm/config/wezterm/$__path\" = { source = \"~/dev/personal/dot/home/.config/wezterm/$__path\", mode = \"symlink\", variants = [{ default = true, target = \"{{ xdg_config_home }}/wezterm/$__path\" }] }" "$__config" ||
         fail "WezTerm symlink declaration is missing: $__path"
 done
 grep -qF '"~/.config/zsh/.zshrc-zone-3.zsh/wezterm"' "$__config" ||

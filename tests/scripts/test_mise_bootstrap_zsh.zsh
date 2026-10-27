@@ -10,7 +10,7 @@ local __config="home/.config/mise/conf.d/zsh.toml"
 assert_module_package zsh brew:zsh
 local __source="home/.config/zsh"
 local __fixture_root
-__fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/zsh-bootstrap.XXXXXX")" ||
+__fixture_root="$(test_fixture_dir zsh-bootstrap)" ||
     fail "could not create Zsh fixture"
 __fixture_root="$(realpath "$__fixture_root")"
 trap 'rm -rf -- "$__fixture_root"' EXIT
@@ -41,15 +41,15 @@ zsh -n "$__migration_task" || fail "Zsh migration task has syntax errors"
 grep -qF '[bootstrap.hooks]' "$__config" || fail "Zsh bootstrap hooks are missing"
 grep -qF 'pre-dotfiles = "mise run zsh:migrate"' "$__config" ||
     fail "Zsh migration hook is missing"
-grep -qF '"~/.config/mise/tasks/zsh/migrate.zsh"' home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/tasks/zsh/migrate.zsh"' home/.config/mise/conf.d/mise.toml ||
     fail "mise control-plane module does not deploy the Zsh migration task"
 local __task_info="$(
-    env -u MISE_ENV MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
-        mise -C "$__root_dir" tasks info zsh:migrate
+    env -u MISE_ENV MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+        mise -C "$__test_mise_repository" tasks info zsh:migrate
 )"
 print -r -- "$__task_info" | grep -qF "Task: zsh:migrate" ||
     fail "Zsh migration task is not discoverable"
-grep -qF '"~/.config/zsh" = { source = "~/dev/personal/dot/home/.config/zsh", mode = "symlink-each", exclude = [".p10k.zsh", ".zshrc", ".zshrc-zone-0.zsh", ".zshrc-zone-2.zsh", ".zshrc-zones.zsh"] }' "$__config" ||
+grep -qF '"zsh/config/zsh" = { source = "~/dev/personal/dot/home/.config/zsh", mode = "symlink-each", exclude = [".p10k.zsh", ".zshrc", ".zshrc-zone-0.zsh", ".zshrc-zone-2.zsh", ".zshrc-zones.zsh"], variants = [{ default = true, target = "{{ xdg_config_home }}/zsh" }] }' "$__config" ||
     fail "zsh symlink-each declaration is missing"
 for __entry in \
     '~/.config/zsh/.zshrc/zshrc' \
@@ -123,6 +123,43 @@ done
 grep -qF '"~/.config/zsh/.zprofile/brew-shellenv"' home/.config/mise/conf.d/brew.toml ||
     fail "brew module does not own the zprofile shell environment entry"
 grep -Fq 'ZDOTDIR="$XDG_CONFIG_HOME/zsh"' home/.config/zsh/.zshenv || fail "ZDOTDIR source is missing"
+
+local __zshenv_home="$__fixture_root/zshenv-home"
+local __zshenv_config="$__fixture_root/inherited-config"
+local __zshenv_data="$__fixture_root/inherited-data"
+local __zshenv_state="$__fixture_root/inherited-state"
+local __zshenv_cache="$__fixture_root/inherited-cache"
+mkdir -p "$__zshenv_home" "$__zshenv_config/zsh" "$__zshenv_data" "$__zshenv_state" "$__zshenv_cache"
+local __zshenv_relative_source
+__zshenv_relative_source="$(python3 -c 'import os, sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$__root_dir/home/.config/zsh/.zshenv" "$__zshenv_home")"
+ln -s "$__zshenv_relative_source" "$__zshenv_home/.zshenv"
+__zshenv_relative_source="$(python3 -c 'import os, sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$__root_dir/home/.config/zsh/.zshenv" "$__zshenv_config/zsh")"
+ln -s "$__zshenv_relative_source" "$__zshenv_config/zsh/.zshenv"
+
+local __fresh_xdg="$(
+    env -i HOME="$__zshenv_home" PATH="$PATH" \
+        zsh -c 'print -r -- "$XDG_CONFIG_HOME|$XDG_DATA_HOME|$XDG_STATE_HOME|$XDG_CACHE_HOME|$ZDOTDIR"'
+)"
+[[ "$__fresh_xdg" == "$__zshenv_home/.config|$__zshenv_home/.local/share|$__zshenv_home/.local/state|$__zshenv_home/.cache|$__zshenv_home/.config/zsh" ]] ||
+    fail "fresh Zsh did not apply XDG defaults"
+
+local __empty_xdg="$(
+    env -i HOME="$__zshenv_home" \
+        XDG_CONFIG_HOME= XDG_DATA_HOME= XDG_STATE_HOME= XDG_CACHE_HOME= PATH="$PATH" \
+        zsh -c 'print -r -- "$XDG_CONFIG_HOME|$XDG_DATA_HOME|$XDG_STATE_HOME|$XDG_CACHE_HOME|$ZDOTDIR"'
+)"
+[[ "$__empty_xdg" == "$__zshenv_home/.config|$__zshenv_home/.local/share|$__zshenv_home/.local/state|$__zshenv_home/.cache|$__zshenv_home/.config/zsh" ]] ||
+    fail "empty XDG values did not receive defaults"
+
+local __nested_xdg="$(
+    env -i HOME="$__zshenv_home" \
+        XDG_CONFIG_HOME="$__zshenv_config" XDG_DATA_HOME="$__zshenv_data" \
+        XDG_STATE_HOME="$__zshenv_state" XDG_CACHE_HOME="$__zshenv_cache" PATH="$PATH" \
+        zsh -c 'zsh -c '\''print -r -- "$XDG_CONFIG_HOME|$XDG_DATA_HOME|$XDG_STATE_HOME|$XDG_CACHE_HOME|$ZDOTDIR"'\'''
+)"
+[[ "$__nested_xdg" == "$__zshenv_config|$__zshenv_data|$__zshenv_state|$__zshenv_cache|$__zshenv_config/zsh" ]] ||
+    fail "nested Zsh did not preserve inherited XDG values"
+
 if find "$__source" -name '.zsh_history' -o -name '.zcompdump' | grep -q .; then
     fail "zsh runtime files remain in the source tree"
 fi

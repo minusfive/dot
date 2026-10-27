@@ -8,6 +8,6 @@ post-packages = 'gh extension install --force "yusukebe/gh-markdown-preview"'
 mode = "0755"
 
 [dotfiles]
-"~/.config/gh/personal/hosts.yml" = { source = "~/dev/personal/dot/home/.config/gh/personal/hosts.yml", mode = "symlink" }
+"gh/config/gh/personal/hosts.yml" = { source = "~/dev/personal/dot/home/.config/gh/personal/hosts.yml", mode = "symlink", variants = [{ default = true, target = "{{ xdg_config_home }}/gh/personal/hosts.yml" }] }
 "~/dev/personal/mise.toml/gh-config" = { source = "~/dev/personal/dot/home/.config/gh/gh-personal.mise.toml", template = "tera", merge = true }
 "~/dev/work/mise.toml/gh-config" = { source = "~/dev/personal/dot/home/.config/gh/gh-work.mise.toml", template = "tera", merge = true }
