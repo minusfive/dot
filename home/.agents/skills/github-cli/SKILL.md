@@ -21,6 +21,13 @@ description: Use the `gh` CLI for pull requests, issues, workflow runs, releases
 - Checks, runs, and releases: use `gh run`, `gh release`, and `gh api`.
 - Authentication and context checks: use `gh auth status` and related `gh` commands.
 
+## GitHub Project authentication
+
+1. Before any GitHub Project operation, run `gh auth status --json hosts` and inspect the active account's `scopes`.
+2. If the active token lacks the `project` scope, stop and ask me to run `gh auth refresh -s project`.
+3. If the GitHub CLI reports that `read:project` is also required, include that scope in the refresh command: `gh auth refresh -s project,read:project`.
+4. After I refresh the token, run the scope check again before continuing.
+
 ## Stacked Pull Requests
 
 - Create a stack from existing pull requests with `mise run pr:stack -- <bottom-pr> <child-pr> ...`.

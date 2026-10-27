@@ -53,6 +53,15 @@ Use this lifecycle for every story and transition:
 3. Keep issue/card status synchronized at each transition.
 4. Apply the critique gate at the `critique` state before any transition to `done`.
 
+## GitHub project tracking
+
+1. Before using a GitHub Project, follow the `github-cli` Project authentication preflight.
+2. If GitHub Projects are available for the repository, use a project as the Kanban board for story execution.
+3. Add each story to the project and map its status field to the canonical lifecycle.
+4. If GitHub sub-issues are available, use a parent issue for each story and sub-issues for independently tracked implementation units.
+5. Keep parent issues, sub-issues, and project cards synchronized at every lifecycle transition.
+6. Keep the accepted plan as the source of truth. Use GitHub issues, sub-issues, and project cards to reflect story state, dependencies, blockers, and acceptance evidence.
+
 ## Critique Gate
 
 1. Follow the canonical critique gate defined in `AGENTS.md`.
