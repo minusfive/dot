@@ -7,6 +7,8 @@ description: Run critique, review, and audit workflows for agent instructions an
 
 Use this skill for critique, review, and audit tasks.
 
+When you identify a review finding, search the full applicable repository scope for matching occurrences. Apply the same correction to every match unless you document a verified reason to exclude it.
+
 ## Mode Selection
 
 Choose exactly one mode and follow that mode file end-to-end:

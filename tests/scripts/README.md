@@ -24,7 +24,7 @@ The source file `home/.config/git/ignore` is not a repository `.gitignore`. Mise
 
 The target fixture links repository sources at `dev/personal/dot/home`. It isolates `HOME`, `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, and all `MISE_*_DIR` values. It trusts both fixture configuration files. It runs `mise -C <fixture-repository> -E <profile> bootstrap --only dotfiles --yes` for both profiles. Status queries set `MISE_SAFE=1` and `MISE_NO_HOOKS=1`. The fixture does not install packages or change host paths.
 
-The `test_fixture_dir` helper creates unique hidden directories under the repository root. Each test removes its fixture on exit.
+The `test_fixture_dir` helper creates unique physical directories under `${TMPDIR:-/tmp}`. Each test removes its fixture on exit.
 
 #### `test_mise_bootstrap_lifecycle.zsh`
 
@@ -96,13 +96,13 @@ The test covers native macOS preferences, the `post-defaults` hook, platform loa
 
 Manual macOS operations are exposed as global mise tasks under the `macos:` prefix.
 
-#### `test_mise_task_mise_cleanup.zsh`
+#### `test_mise_task_bootstrap_post_dotfiles_cleanup.zsh`
 
 The cleanup task scans the union of resolved work and personal targets and historical roots. It removes broken repository links and valid old links only when their target and source exactly match `cleanup.migrations`. The fixture covers active `symlink-each` children, profile-specific active links, mismatched and external sources, unrelated valid links, runtime files, and active edit blocks.
 
 The cleanup task uses `cleanup.paths`, `cleanup.migrations`, and `cleanup.blocks`. The inventory task updates only the historical paths and block declarations; the literal migration manifest remains unchanged.
 
-#### `test_mise_task_mise_cleanup_inventory.zsh`
+#### `test_mise_task_bootstrap_post_dotfiles_cleanup_inventory.zsh`
 
 The inventory test covers the union of resolved work and personal targets, paths relative to `HOME`, historical paths, and preservation of `cleanup.migrations`. It asserts that the task does not store custom `XDG` paths or rewrite `cleanup.blocks`.
 
@@ -111,6 +111,10 @@ The fixture unsets `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CA
 #### `test_mise_task_pr_review_watch.zsh`
 
 Tests transactional review-watch add, remove, and poll actions with isolated `gh` stubs, including paginated comment collection, timestamp cutoffs, normalized check statuses, malformed data warnings, state preservation, atomic writes, lock handling, merged/closed cleanup, and stable JSON output.
+
+#### `test_mise_task_git_worktree.zsh`
+
+Tests closed-PR worktree cleanup with a large GitHub API response. The task must project the response before parsing it so `spawnSync` does not truncate the JSON.
 
 #### `test_mise_bootstrap_packages.zsh`
 

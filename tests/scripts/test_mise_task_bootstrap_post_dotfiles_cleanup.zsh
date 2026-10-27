@@ -4,10 +4,11 @@ set -euo pipefail
 
 source "$(dirname "$0")/mise_test_helpers.zsh"
 
-echo "Testing mise:cleanup task..."
+echo "Testing bootstrap:post-dotfiles:cleanup task..."
 
-local __task="home/.config/mise/tasks/mise/cleanup.zsh"
-local __fixture_dir="$(test_fixture_dir cleanup)"
+local __task="home/.config/mise/tasks/bootstrap/post-dotfiles/cleanup.zsh"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir cleanup)" || exit 1
 local __fixture_home="$__fixture_dir/home"
 local __fixture_root="$__fixture_dir/repository"
 local __source_dir="$__fixture_root/home"
@@ -21,7 +22,7 @@ local __block_failure_output="$__fixture_dir/block-failure-output"
 trap 'rm -rf "$__fixture_dir"' EXIT
 
 [[ -x "$__task" ]] || fail "cleanup task is not executable"
-grep -qF '"mise/config/mise/tasks/mise/cleanup.zsh"' \
+grep -qF '"mise/config/mise/tasks/bootstrap/post-dotfiles/cleanup.zsh"' \
     home/.config/mise/conf.d/mise.toml ||
     fail "cleanup task is not deployed by the mise control plane"
 
@@ -306,4 +307,4 @@ grep -qF "outside this repository" "$__failure_output" ||
 [[ -L "$__fixture_home/.config/zsh/physical-bypass" ]] ||
     fail "cleanup removed the physically external link"
 
-echo "mise:cleanup task passed."
+echo "bootstrap:post-dotfiles:cleanup task passed."

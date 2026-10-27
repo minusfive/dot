@@ -14,8 +14,11 @@ fail() {
 
 test_fixture_dir() {
     local __name="$1"
-    local __path="$__root_dir/.test-${__name}-${PPID}-$$-${RANDOM}${RANDOM}"
-    mkdir "$__path" || fail "could not create fixture directory: $__path"
+    local __path
+    __path="$(mktemp -d "${TMPDIR:-/tmp}/mise-${__name}.XXXXXX")" ||
+        fail "could not create fixture directory"
+    __path="$(realpath "$__path")" ||
+        fail "could not resolve fixture directory: $__path"
     print -r -- "$__path"
 }
 
@@ -63,8 +66,8 @@ assert_tool_module() {
         fail "$__declaration is missing from $__config"
     grep -qF "\"mise/config/mise/conf.d/$__module_file\"" "$__control_plane" ||
         fail "control-plane module does not deploy $__module_file"
-    grep -qF "target = \"{{ mise_config_dir }}/conf.d/$__module_file\"" "$__control_plane" ||
-        fail "control-plane module target does not follow MISE_CONFIG_DIR for $__module_file"
+    grep -qF "target = \"{{ xdg_config_home }}/mise/conf.d/$__module_file\"" "$__control_plane" ||
+        fail "control-plane module target does not follow XDG_CONFIG_HOME for $__module_file"
     local __profile_config
     for __profile in work personal; do
         __profile_config="$(
@@ -90,8 +93,8 @@ assert_module_repo() {
     grep -qF "$__url" "$__config" || fail "$__url is missing from $__config"
     grep -qF "\"mise/config/mise/conf.d/$__module_file\"" "$__control_plane" ||
         fail "control-plane module does not deploy $__module_file"
-    grep -qF "target = \"{{ mise_config_dir }}/conf.d/$__module_file\"" "$__control_plane" ||
-        fail "control-plane module target does not follow MISE_CONFIG_DIR for $__module_file"
+    grep -qF "target = \"{{ xdg_config_home }}/mise/conf.d/$__module_file\"" "$__control_plane" ||
+        fail "control-plane module target does not follow XDG_CONFIG_HOME for $__module_file"
     for __profile in work personal; do
         local __profile_config="$(
             env MISE_ENV="$__profile" \

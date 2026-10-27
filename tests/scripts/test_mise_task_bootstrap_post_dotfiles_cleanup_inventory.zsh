@@ -4,10 +4,11 @@ set -euo pipefail
 
 source "$(dirname "$0")/mise_test_helpers.zsh"
 
-echo "Testing mise:cleanup:inventory task..."
+echo "Testing bootstrap:post-dotfiles:cleanup:inventory task..."
 
-local __task="home/.config/mise/tasks/mise/cleanup/inventory.zsh"
-local __fixture_dir="$(test_fixture_dir cleanup-inventory)"
+local __task="home/.config/mise/tasks/bootstrap/post-dotfiles/cleanup/inventory.zsh"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir cleanup-inventory)" || exit 1
 local __fixture_root="$__fixture_dir/repository"
 local __fixture_home="$__fixture_dir/home"
 local __manifest="$__fixture_root/home/.config/mise/cleanup.paths"
@@ -18,7 +19,7 @@ local __host_mise_config="$HOME/.config/mise"
 trap 'rm -rf "$__fixture_dir"' EXIT
 
 [[ -x "$__task" ]] || fail "cleanup inventory task is not executable"
-grep -qF '"mise/config/mise/tasks/mise/cleanup/inventory.zsh"' \
+grep -qF '"mise/config/mise/tasks/bootstrap/post-dotfiles/cleanup/inventory.zsh"' \
     home/.config/mise/conf.d/mise.toml ||
     fail "cleanup inventory task is not deployed by the mise control plane"
 
@@ -124,4 +125,4 @@ grep -qF '.config/example-two' "$__manifest" ||
 cmp -s "$__blocks_backup" "$__blocks_manifest" ||
     fail "inventory changed cleanup.blocks when only cleanup.paths changed"
 
-echo "mise:cleanup:inventory task passed."
+echo "bootstrap:post-dotfiles:cleanup:inventory task passed."

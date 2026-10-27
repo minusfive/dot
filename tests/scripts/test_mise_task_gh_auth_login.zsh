@@ -27,8 +27,9 @@ if grep -qF 'gh:auth:login' home/.config/mise/tasks/pr/review-watch.ts \
     home/.config/mise/tasks/gh/download/file.sh; then
     fail "public or review-watch tasks force GitHub authentication"
 fi
-grep -qF '"mise/config/mise/tasks/gh/auth/login.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/auth/login.zsh", mode = "symlink", variants = [{ default = true, target = "{{ mise_config_dir }}/tasks/gh/auth/login.zsh" }] }' \
-    home/.config/mise/conf.d/mise.toml ||
+grep -qF '"mise/config/mise/tasks/gh/auth/login.zsh" = {' home/.config/mise/conf.d/mise.toml &&
+    grep -qF 'target = "{{ xdg_config_home }}/mise/tasks/gh/auth/login.zsh"' \
+        home/.config/mise/conf.d/mise.toml ||
     fail "GitHub auth task is not deployed by the mise control plane"
 
 local __fixture_dir="$__root_dir/.agents/projects.local/issue-61-mise-bootstrap/tmp/gh-auth-test.$$"

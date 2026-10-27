@@ -43,7 +43,8 @@ fi
 [[ ! -e "home/.config/mise/conf.d/profiles.toml" ]] ||
     fail "retired profile module remains"
 
-local __fixture_dir="$(test_fixture_dir gh-xdg-config)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir gh-xdg-config)" || exit 1
 local __fixture_home="$__fixture_dir/home"
 local __fixture_repository="$__fixture_home/dev/personal/dot"
 local __fixture_xdg_config="$__fixture_dir/custom-xdg/config"

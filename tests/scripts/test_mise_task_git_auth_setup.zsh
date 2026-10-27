@@ -45,7 +45,8 @@ local __task_help="$(
 print -r -- "$__task_help" | grep -qF 'possible values: work, personal' ||
     fail "Git auth profile choices are not discoverable"
 
-local __fixture_dir="$(test_fixture_dir git-auth-setup)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir git-auth-setup)" || exit 1
 local __home="$__fixture_dir/home"
 local __bin="$__fixture_dir/bin"
 local __log="$__fixture_dir/mise.log"

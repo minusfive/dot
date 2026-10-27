@@ -36,7 +36,8 @@ if rg -n -i '(api[_-]?key|token|secret|credential|private[[:space:]_-]?key|auth[
     fail "credential-like content found in Git sources"
 fi
 
-local __fixture_dir="$(test_fixture_dir git-bootstrap-test)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir git-bootstrap-test)" || exit 1
 local __home="$__fixture_dir/home"
 local __xdg_config="$__fixture_dir/xdg/config"
 local __bin="$__fixture_dir/bin"

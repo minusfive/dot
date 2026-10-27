@@ -63,8 +63,8 @@ assert_module_contract() {
         grep -qF "\"$__logical_target\"" ||
         fail "control-plane module does not deploy $__module_file"
     print -r -- "$__control_plane_dotfiles" |
-        grep -qF "target = \"{{ mise_config_dir }}/conf.d/$__module_file\"" ||
-        fail "control-plane module target does not follow MISE_CONFIG_DIR for $__module_file"
+        grep -qF "target = \"{{ xdg_config_home }}/mise/conf.d/$__module_file\"" ||
+        fail "control-plane module target does not follow XDG_CONFIG_HOME for $__module_file"
     if [[ "$__kind" == personal ]]; then
         if print -r -- "$__work_profile_config" | grep -qF "$__module_file"; then
             fail "$__module must not be selected by the work profile"

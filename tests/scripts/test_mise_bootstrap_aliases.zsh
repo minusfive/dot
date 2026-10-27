@@ -64,7 +64,8 @@ fi
 [[ ! -e "home/.config/zsh/.zsh_history" && ! -e "home/.config/zsh/.zcompdump" ]] ||
     fail "Zsh runtime files must remain outside the tracked source"
 
-local __fixture_dir="$(test_fixture_dir aliases-module)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir aliases-module)" || exit 1
 local __fixture_home="$__fixture_dir/home"
 local __fixture_config="$__fixture_home/.config/mise"
 local __fixture_zone="$__fixture_home/.config/zsh/.zshrc-zone-2.zsh"
