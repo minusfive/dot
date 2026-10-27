@@ -12,9 +12,9 @@ grep -qF '"mise/config/mise/conf.d/mise.toml"' "$__config" ||
     fail "mise control-plane module does not manage itself"
 grep -qF '"mise/config/mise/tasks/global-install-packages-all.sh"' "$__config" ||
     fail "aggregate package task is missing"
-grep -qF '"mise/config/mise/tasks/mise/cleanup.zsh"' "$__config" ||
+grep -qF '"mise/config/mise/tasks/bootstrap/post-dotfiles/cleanup.zsh"' "$__config" ||
     fail "stale-link cleanup task is missing"
-grep -qF '"mise/config/mise/tasks/mise/cleanup/inventory.zsh"' "$__config" ||
+grep -qF '"mise/config/mise/tasks/bootstrap/post-dotfiles/cleanup/inventory.zsh"' "$__config" ||
     fail "cleanup inventory task is missing"
 grep -qF '"mise/config/mise/tasks/bootstrap/pre-packages.zsh"' "$__config" ||
     fail "pre-packages profile task is missing"
@@ -174,7 +174,7 @@ env -u MISE_SAFE -u MISE_ENV -u MISE_AUTO_ENV \
     MISE_ENV_CONF_D=true \
     MISE_NO_HOOKS=1 \
     MISE_PROJECT_ROOT="$__fixture_repository" \
-    zsh "$__root_dir/home/.config/mise/tasks/mise/cleanup.zsh" >| "$__migration_fixture/cleanup.log" 2>&1 ||
+    zsh "$__root_dir/home/.config/mise/tasks/bootstrap/post-dotfiles/cleanup.zsh" >| "$__migration_fixture/cleanup.log" 2>&1 ||
     {
         cat "$__migration_fixture/cleanup.log"
         fail "migration fixture cleanup failed"

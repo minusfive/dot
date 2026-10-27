@@ -13,7 +13,7 @@
 - Keep task metadata and usage specifications with their executable file tasks.
 - Keep tool-owned runtime files outside tracked sources and mise declarations.
 - Keep declaration-only package, tool, and profile assertions in `tests/scripts/test_mise_bootstrap_modules.zsh`. Add a separate `tests/scripts/test_mise_bootstrap_<name>.zsh` file only for module-specific behavior.
-- Create test fixtures with `mktemp` under `${TMPDIR:-/tmp}`. Keep temporary fixture data outside the repository tree.
+- Make `test_fixture_dir` create test fixtures with `mktemp -d` under `${TMPDIR:-/tmp}`. Keep temporary fixture data outside the repository tree.
 - Run the module contract test and any behavior-specific module tests before aggregate checks.
 - Run `mise run fix` after changing instructions or skills; it applies configured autofixes and reports only unfixable failures, including root and `home/` skill-index validation.
 - Update `README.md` in the same change when setup, layout, ownership, tooling, migration status, or user-facing workflows change. Load `readme-maintenance` for README decisions and edits.

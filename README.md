@@ -22,7 +22,7 @@ mise bootstrap
 - Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` and selects the repository-scoped `mise` configuration.
 - The `mise` `bootstrap` command asks for approval before it changes `macOS` preferences, places files, installs tools and applications, and clones repositories. The selected profile is validated before profile-sensitive phases.
 - Use `mise bootstrap --dry-run` to preview changes without applying them.
-- The `mise` [`bootstrap`](./scripts/tasks/bootstrap.zsh) task updates the cleanup inventory, removes stale links, and applies repository fixes after the bootstrap.
+- The `mise` [`bootstrap:post-dotfiles`](./scripts/tasks/bootstrap/post-dotfiles.zsh) task updates the cleanup inventory, removes stale links, and applies repository fixes after the dotfiles phase.
 - If a phase fails, fix the reported phase, then rerun `mise -E <profile> bootstrap` with the same profile.
 
 ### Profiles

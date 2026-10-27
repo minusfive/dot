@@ -96,13 +96,13 @@ The test covers native macOS preferences, the `post-defaults` hook, platform loa
 
 Manual macOS operations are exposed as global mise tasks under the `macos:` prefix.
 
-#### `test_mise_task_mise_cleanup.zsh`
+#### `test_mise_task_bootstrap_post_dotfiles_cleanup.zsh`
 
 The cleanup task scans the union of resolved work and personal targets and historical roots. It removes broken repository links and valid old links only when their target and source exactly match `cleanup.migrations`. The fixture covers active `symlink-each` children, profile-specific active links, mismatched and external sources, unrelated valid links, runtime files, and active edit blocks.
 
 The cleanup task uses `cleanup.paths`, `cleanup.migrations`, and `cleanup.blocks`. The inventory task updates only the historical paths and block declarations; the literal migration manifest remains unchanged.
 
-#### `test_mise_task_mise_cleanup_inventory.zsh`
+#### `test_mise_task_bootstrap_post_dotfiles_cleanup_inventory.zsh`
 
 The inventory test covers the union of resolved work and personal targets, paths relative to `HOME`, historical paths, and preservation of `cleanup.migrations`. It asserts that the task does not store custom `XDG` paths or rewrite `cleanup.blocks`.
 

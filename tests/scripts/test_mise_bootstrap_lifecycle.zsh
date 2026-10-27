@@ -9,12 +9,12 @@ echo "Testing mise bootstrap lifecycle..."
 [[ ! -e "scripts/tasks/system/bootstrap.zsh" ]] ||
     fail "retired system bootstrap task remains"
 zsh -n scripts/mise-env.zsh || fail "mise environment script has syntax errors"
-local __follow_up_task="scripts/tasks/bootstrap.zsh"
+local __follow_up_task="scripts/tasks/bootstrap/post-dotfiles.zsh"
 [[ -x "$__follow_up_task" ]] || fail "bootstrap follow-up task is missing or not executable"
 zsh -n "$__follow_up_task" || fail "bootstrap follow-up task has syntax errors"
 for __command in \
-    "mise run mise:cleanup:inventory" \
-    "mise run mise:cleanup" \
+    "mise run bootstrap:post-dotfiles:cleanup:inventory" \
+    "mise run bootstrap:post-dotfiles:cleanup" \
     "mise fix"; do
     grep -qF "$__command" "$__follow_up_task" ||
         fail "bootstrap follow-up task is missing: $__command"
@@ -23,8 +23,7 @@ if grep -qF 'final = [' home/.config/mise/conf.d/mise.toml; then
     fail "final bootstrap hook must not duplicate the bootstrap follow-up task"
 fi
 
-local __fixture_dir="$__root_dir/.test-mise-lifecycle-${PPID}-$$"
-[[ ! -e "$__fixture_dir" ]] || fail "mise lifecycle fixture path already exists: $__fixture_dir"
+local __fixture_dir="$(test_fixture_dir mise-lifecycle)"
 local __mise_bin="$(command -v mise)"
 local __fixture_home="$__fixture_dir/home"
 local __fixture_repository="$__fixture_home/dev/personal/dot"
