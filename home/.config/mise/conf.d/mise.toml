@@ -7,6 +7,7 @@ pre-packages = "mise run bootstrap:pre-packages"
 pre-dotfiles = "mise run bootstrap:pre-dotfiles"
 post-dotfiles = "mise run bootstrap:post-dotfiles"
 post-tools = "mise run bootstrap:post-tools"
+final = "mise run bootstrap:final"
 
 [dotfiles]
 "mise/config/mise/conf.d/aliases.toml" = { source = "~/dev/personal/dot/home/.config/mise/conf.d/aliases.toml", mode = "symlink", variants = [
@@ -224,6 +225,9 @@ post-tools = "mise run bootstrap:post-tools"
 ] }
 "mise/config/mise/tasks/bootstrap/post-tools.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/post-tools.zsh", mode = "symlink", variants = [
   { default = true, target = "{{ xdg_config_home }}/mise/tasks/bootstrap/post-tools.zsh" },
+] }
+"mise/config/mise/tasks/bootstrap/final.zsh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/bootstrap/final.zsh", mode = "symlink", variants = [
+  { default = true, target = "{{ xdg_config_home }}/mise/tasks/bootstrap/final.zsh" },
 ] }
 "mise/config/mise/tasks/gh/download/file.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/gh/download/file.sh", mode = "symlink", variants = [
   { default = true, target = "{{ xdg_config_home }}/mise/tasks/gh/download/file.sh" },

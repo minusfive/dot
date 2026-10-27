@@ -18,7 +18,8 @@ grep -qF 'check = "bun scripts/check-git-config.ts"' "$__root_dir/hk.pkl" ||
     fail "hk does not run the Git config checker"
 source "$__domains_helper"
 
-local __fixture_dir="$(test_fixture_dir git-config-check)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir git-config-check)" || exit 1
 local __repo="$__fixture_dir/repo"
 local __domains="$__repo/home/dev/personal/.domains"
 local __config="$__repo/home/.config/git/config"

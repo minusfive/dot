@@ -22,6 +22,8 @@ grep -qF '"mise/config/mise/tasks/bootstrap/pre-dotfiles.zsh"' "$__config" ||
     fail "pre-dotfiles profile task is missing"
 grep -qF '"mise/config/mise/tasks/bootstrap/post-tools.zsh"' "$__config" ||
     fail "post-tools maintenance task is missing"
+grep -qF '"mise/config/mise/tasks/bootstrap/final.zsh"' "$__config" ||
+    fail "final maintenance task is missing"
 grep -qF '[settings.self_update]' "$__config" ||
     fail "self-update settings are missing"
 grep -qF 'auto = true' "$__config" ||
@@ -38,6 +40,8 @@ if grep -qF '"mise upgrade --prune"' "$__config" ||
 fi
 grep -qF 'post-tools = "mise run bootstrap:post-tools"' "$__config" ||
     fail "post-tools maintenance hook is missing"
+grep -qF 'final = "mise run bootstrap:final"' "$__config" ||
+    fail "final bootstrap hook is missing"
 grep -qF 'pre-packages = "mise run bootstrap:pre-packages"' "$__config" ||
     fail "pre-packages profile hook is missing"
 grep -qF 'pre-dotfiles = "mise run bootstrap:pre-dotfiles"' "$__config" ||

@@ -33,7 +33,8 @@ if command -v luac >/dev/null 2>&1; then
     find "$__source" -type f -name '*.lua' -exec luac -p {} +
 fi
 
-local __fixture_dir="$(test_fixture_dir hammerspoon-xdg)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir hammerspoon-xdg)" || exit 1
 trap 'rm -rf "$__fixture_dir"' EXIT
 local __fixture_home="$__fixture_dir/home"
 local __fixture_repository="$__fixture_home/dev/personal/dot"

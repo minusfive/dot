@@ -12,7 +12,8 @@ local __source="home/.editorconfig"
 grep -qF '"~/.editorconfig" = { source = "~/dev/personal/dot/home/.editorconfig", mode = "symlink" }' "$__config" ||
     fail "EditorConfig symlink declaration is missing"
 
-local __fixture_dir="$(test_fixture_dir editorconfig)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir editorconfig)" || exit 1
 local __fixture_home="$__fixture_dir/home"
 local __fixture_repository="$__fixture_home/dev/personal/dot"
 local __fixture_xdg_config="$__fixture_home/.config"

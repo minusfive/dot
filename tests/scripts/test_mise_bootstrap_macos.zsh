@@ -56,7 +56,8 @@ done
 
 [[ ! -e scripts/os.zsh ]] || fail "scripts/os.zsh must be removed after task migration"
 
-local __fixture_dir="$(test_fixture_dir macos)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir macos)" || exit 1
 local __fixture_home="$__fixture_dir/home"
 local __fixture_repository="$__fixture_home/dev/personal/dot"
 local __fixture_config="$__fixture_dir/mise-config"

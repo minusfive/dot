@@ -28,7 +28,8 @@ if grep -Eq 'BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY' "$__source"; then
     fail "private key material found in 1Password source"
 fi
 
-local __fixture_dir="$(test_fixture_dir 1password)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir 1password)" || exit 1
 local __fixture_home="$__fixture_dir/home"
 local __fixture_repository="$__fixture_home/dev/personal/dot"
 local __fixture_xdg_config="$__fixture_dir/xdg/config"

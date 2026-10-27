@@ -6,7 +6,8 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing git:worktree closed PR cleanup..."
 
-local __fixture_dir="$(test_fixture_dir git-worktree)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir git-worktree)" || exit 1
 local __bin_dir="$__fixture_dir/bin"
 local __repository="$__fixture_dir/repository"
 local __task="$__root_dir/home/.config/mise/tasks/git/worktree.ts"

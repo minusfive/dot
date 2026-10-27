@@ -7,7 +7,8 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing bootstrap:post-dotfiles:cleanup task..."
 
 local __task="home/.config/mise/tasks/bootstrap/post-dotfiles/cleanup.zsh"
-local __fixture_dir="$(test_fixture_dir cleanup)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir cleanup)" || exit 1
 local __fixture_home="$__fixture_dir/home"
 local __fixture_root="$__fixture_dir/repository"
 local __source_dir="$__fixture_root/home"
