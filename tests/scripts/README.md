@@ -24,7 +24,7 @@ The source file `home/.config/git/ignore` is not a repository `.gitignore`. Mise
 
 The target fixture links repository sources at `dev/personal/dot/home`. It isolates `HOME`, `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, and all `MISE_*_DIR` values. It trusts both fixture configuration files. It runs `mise -C <fixture-repository> -E <profile> bootstrap --only dotfiles --yes` for both profiles. Status queries set `MISE_SAFE=1` and `MISE_NO_HOOKS=1`. The fixture does not install packages or change host paths.
 
-The `test_fixture_dir` helper creates unique hidden directories under the repository root. Each test removes its fixture on exit.
+The `test_fixture_dir` helper creates unique physical directories under `${TMPDIR:-/tmp}`. Each test removes its fixture on exit.
 
 #### `test_mise_bootstrap_lifecycle.zsh`
 
@@ -111,6 +111,10 @@ The fixture unsets `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CA
 #### `test_mise_task_pr_review_watch.zsh`
 
 Tests transactional review-watch add, remove, and poll actions with isolated `gh` stubs, including paginated comment collection, timestamp cutoffs, normalized check statuses, malformed data warnings, state preservation, atomic writes, lock handling, merged/closed cleanup, and stable JSON output.
+
+#### `test_mise_task_git_worktree.zsh`
+
+Tests closed-PR worktree cleanup with a large GitHub API response. The task must project the response before parsing it so `spawnSync` does not truncate the JSON.
 
 #### `test_mise_bootstrap_packages.zsh`
 

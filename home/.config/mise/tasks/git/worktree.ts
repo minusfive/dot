@@ -198,6 +198,8 @@ function getOpenPullRequests(hostname: string, owner: string, repo: string): Pul
     "api",
     "--hostname",
     hostname,
+    "--jq",
+    "[.[] | {number: .number, title: .title, head: {ref: .head.ref}}]",
     `/repos/${owner}/${repo}/pulls?state=open&per_page=100`,
   ]);
   const parsed = JSON.parse(output) as Array<Record<string, unknown>>;
@@ -224,6 +226,8 @@ function getClosedPullRequests(hostname: string, owner: string, repo: string): P
     "api",
     "--hostname",
     hostname,
+    "--jq",
+    "[.[] | {number: .number, title: .title, head: {ref: .head.ref}}]",
     `/repos/${owner}/${repo}/pulls?state=closed&per_page=100`,
   ]);
   const parsed = JSON.parse(output) as Array<Record<string, unknown>>;
