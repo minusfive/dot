@@ -27,7 +27,12 @@
       "id": "review-watch-lifecycle",
       "prompt": "Describe the workflow for watching open PRs for review comments, addressing new comments, and stopping when PRs merge. Do not access GitHub or run a watcher.",
       "expected_output": "Use the one-shot review-watch task on an external schedule, inspect new reviews and comments, fix each PR in its matching worktree with an independent critique subagent, synchronize metadata after pushes, and remove merged or closed PRs from the watch state.",
-      "assertions": ["The response closes the watch only when no open watched PR remains."]
+      "assertions": [
+        "The response uses the review-watch task as a one-shot poll.",
+        "The response removes merged or closed PRs from the watch state.",
+        "The response requires an independent critique subagent before review-fix commits and pushes.",
+        "The response closes the watch only when no open watched PR remains."
+      ]
     }
   ]
 }
