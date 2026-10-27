@@ -72,6 +72,7 @@ The files are grouped by purpose. Each module manages related resources. A `dotf
 ├── assets/                          # images
 ├── home/                            # files mirrored under ~/
 │   ├── .agents/
+│   │   ├── agents/                  # reusable global agent profiles
 │   │   └── skills/                  # global agent skills
 │   ├── .config/
 │   │   ├── 1Password/
@@ -96,9 +97,9 @@ The files are grouped by purpose. Each module manages related resources. A `dotf
 └── ...
 ```
 
-#### Global agent instructions and skills
+#### Global agent instructions, profiles, and skills
 
-The repository keeps global agent instructions and skills in `home/`. `home/AGENTS.md` and `home/.agents/skills/` are source files. The `mise` agents module manages these sources like any other module. Harness-specific modules symlink the same files to each harness's global instruction and skill locations. This keeps one source of truth while allowing each harness to use its own paths.
+The repository keeps global agent instructions, profiles, and skills in `home/`. The `mise` agents module deploys the shared source tree. Harness-specific modules link profiles to the global locations that each tool scans. This keeps one source file for each profile while supporting each tool's file naming and directory rules.
 
 The root `AGENTS.md` and `.agents/` directory are repository-only. They guide work in this repository and are not deployed as global files.
 

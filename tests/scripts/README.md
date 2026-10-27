@@ -48,7 +48,7 @@ Tests domain parsing, hostname matching, tracked Git config ownership, shared-ho
 
 #### `test_mise_bootstrap_copilot.zsh`
 
-Tests the Copilot module ownership, LSP and safe-settings key-level merges, shared-instructions and statusline links, and runtime preservation.
+Tests the Copilot module ownership, LSP and safe-settings merges, shared-instruction, statusline, and orchestrator links, and runtime preservation.
 
 #### `test_mise_bootstrap_agents.zsh`
 
@@ -56,7 +56,7 @@ Tests the shared agent files, durable evaluation metadata, relative links, and g
 
 #### `test_mise_bootstrap_claude.zsh`
 
-Tests the Claude settings, canonical shared skills source, statusline link, generated-output exclusion, and runtime preservation.
+Tests the Claude settings, shared skills source, statusline and orchestrator links, generated-output exclusion, and runtime preservation.
 
 #### `test_mise_bootstrap_opencode.zsh`
 

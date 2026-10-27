@@ -1,5 +1,6 @@
 [dotfiles]
 "~/.copilot/copilot-instructions.md" = { source = "~/dev/personal/dot/home/AGENTS.md", mode = "symlink" }
+"~/.copilot/agents/orchestrator.agent.md" = { source = "~/dev/personal/dot/home/.agents/agents/orchestrator.md", mode = "symlink" }
 "~/.copilot/lsp-config.json/mise" = { source = "~/dev/personal/dot/home/.copilot/lsp-config.json", merge = true }
 "~/.copilot/settings.json/safe-settings" = { source = "~/dev/personal/dot/home/.copilot/settings.json", merge = true }
 "~/.copilot/statusline-context.sh" = { source = "~/dev/personal/dot/home/.copilot/statusline-context.sh", mode = "symlink" }
