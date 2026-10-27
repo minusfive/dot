@@ -18,7 +18,7 @@ zsh -n "$__final_task" || fail "final task has syntax errors"
 for __command in \
     "mise run bootstrap:post-dotfiles:cleanup:inventory" \
     "mise run bootstrap:post-dotfiles:cleanup"; do
-    grep -qF "$__command" "$__post_dotfiles_task" ||
+    grep -Fxq "$__command" "$__post_dotfiles_task" ||
         fail "post-dotfiles task is missing: $__command"
 done
 grep -qF 'mise fix' "$__final_task" || fail "final task is missing mise fix"
