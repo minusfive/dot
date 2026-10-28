@@ -6,7 +6,11 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 echo "Testing mise bootstrap config-dir contract..."
 
-local __fixture_dir="$(test_fixture_dir config-dir)"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir config-dir)"
+[[ -n "$__fixture_dir" && -d "$__fixture_dir" ]] ||
+    fail "could not create fixture directory"
+
 local __fixture_home="$__fixture_dir/home"
 local __fixture_source="$__fixture_dir/dotfiles-source"
 local __fixture_checkout="$__fixture_home/.dotfiles"
@@ -17,7 +21,8 @@ local __fixture_origin="https://github.com/minusfive/dot.git"
 local __fixture_log="$__fixture_dir/command.log"
 local __fixture_work="$__fixture_dir/work"
 local __signal_probe="${CONFIG_DIR_SIGNAL_PROBE:-0}"
-local __script_path="$(realpath "$0")"
+local __script_path
+__script_path="$(realpath "$0")"
 
 cleanup_fixture() {
     local __status
