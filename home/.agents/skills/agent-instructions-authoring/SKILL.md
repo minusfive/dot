@@ -37,6 +37,7 @@ Use this workflow when I ask you to encode, correct, or enhance instruction guid
 10. Apply the confirmed wording in versioned instruction files on the selected scope, then complete required mechanical follow-ups (index entries, cross-references). Do not treat a harness-memory update as completion.
 11. If no instruction-file change is made, provide an explicit no-change rationale with citation and get my confirmation before closing.
 12. When memory is also warranted, store or update memory in the same task. Memory augments persistence and never substitutes for versioned instruction changes.
+13. When I explicitly request a skill or instruction update directly on `main`, commit and push that update to `main` before rebasing active worktrees.
 
 ## Validation
 
