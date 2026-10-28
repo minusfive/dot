@@ -47,7 +47,9 @@ Each repository path selects a local identity and credential profile for [`Git`]
 
 ### File ownership and application data
 
-The `home/` directory mirrors the target user's `$HOME` layout. `mise` places selected files where the corresponding tool or application expects to find them, including `mise` itself. A placed file can be a link, a copy, or an edit of an existing file.
+The `home/` directory contains source files for resources that `mise` places outside the repository. Most entries mirror the target user's `$HOME` layout. The `home/.config/mise/` tree is the repository-scoped `mise` source configuration and task directory. `mise` reads it through `MISE_CONFIG_DIR` and does not deploy it to `$HOME/.config/mise`.
+
+The selected profile state is persisted outside the repository at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile`. Other `mise`-managed files can be links, copies, or edits of existing files.
 
 The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`bootstrap.directories`][mise-bootstrap] entries describe how and when `mise` manages files and directories.
 
@@ -79,7 +81,7 @@ The files are grouped by purpose. Each module manages related resources. A `dotf
 │   │   ├── BetterDisplay/
 │   │   ├── ...
 │   │   └── mise/
-│   │       ├── conf.d/              # per-tool module files
+│   │       ├── conf.d/              # repository-scoped mise modules
 │   │       │   ├── 1password.toml
 │   │       │   ├── agents.toml
 │   │       │   ├── bat.toml

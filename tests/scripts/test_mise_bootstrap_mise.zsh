@@ -8,32 +8,19 @@ echo "Testing mise control-plane module..."
 
 local __config="home/.config/mise/conf.d/mise.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
-grep -qF '"mise/config/mise/conf.d/mise.toml"' "$__config" ||
-    fail "mise control-plane module does not manage itself"
-grep -qF '"mise/config/mise/tasks/global-install-packages-all.sh"' "$__config" ||
-    fail "aggregate package task is missing"
-grep -qF '"mise/config/mise/tasks/bootstrap/post-dotfiles/cleanup.zsh"' "$__config" ||
-    fail "stale-link cleanup task is missing"
-grep -qF '"mise/config/mise/tasks/bootstrap/post-dotfiles/cleanup/inventory.zsh"' "$__config" ||
-    fail "cleanup inventory task is missing"
-grep -qF '"mise/config/mise/tasks/bootstrap/pre-packages.zsh"' "$__config" ||
-    fail "pre-packages profile task is missing"
-grep -qF '"mise/config/mise/tasks/bootstrap/pre-dotfiles.zsh"' "$__config" ||
-    fail "pre-dotfiles profile task is missing"
-grep -qF '"mise/config/mise/tasks/bootstrap/post-tools.zsh"' "$__config" ||
-    fail "post-tools maintenance task is missing"
-grep -qF '"mise/config/mise/tasks/bootstrap/final.zsh"' "$__config" ||
-    fail "final maintenance task is missing"
+if grep -qF '"mise/config/mise/' "$__config"; then
+    fail "mise control-plane module still declares per-file mise config ownership"
+fi
+grep -qF '"mise/state/minusfive/profile"' "$__config" ||
+    fail "resolved profile state is missing"
+grep -qF 'profile.tmpl", mode = "template", template = "tera"' "$__config" ||
+    fail "resolved profile state is not rendered with Tera"
 grep -qF '[settings.self_update]' "$__config" ||
     fail "self-update settings are missing"
 grep -qF 'auto = true' "$__config" ||
     fail "automatic self-update is disabled"
 grep -qF 'minimum_release_age = "2d"' "$__config" ||
     fail "self-update release age is missing"
-grep -qF '"mise/config/mise/tasks/git/auth/setup.zsh"' "$__config" ||
-    fail "Git auth setup task is missing"
-grep -qF '"mise/config/mise/utils/git-domains.zsh"' "$__config" ||
-    fail "Git domain helper is missing"
 if grep -qF '"mise upgrade --prune"' "$__config" ||
     grep -qF '"mise reshim -f"' "$__config"; then
     fail "legacy inline tool maintenance hook remains"

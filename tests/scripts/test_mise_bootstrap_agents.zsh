@@ -27,9 +27,6 @@ for __target in '"~/AGENTS.md"' '"~/CLAUDE.md"' '"~/.agents"'; do
         fail "legacy AI declaration still owns $__target"
     fi
 done
-grep -qF '"mise/config/mise/conf.d/agents.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy agents.toml"
-
 [[ -L "$HOME/AGENTS.md" ]] || fail "global AGENTS.md target is not a symlink"
 [[ -L "$HOME/CLAUDE.md" ]] || fail "global CLAUDE.md target is not a symlink"
 [[ "$(realpath "$HOME/AGENTS.md")" == "$(realpath home/AGENTS.md)" ]] ||

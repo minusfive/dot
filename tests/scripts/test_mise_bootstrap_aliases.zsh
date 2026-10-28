@@ -26,8 +26,6 @@ for __section in '[bootstrap.packages]' '[bootstrap.repos]' '[bootstrap.hooks]' 
         fail "aliases module must not declare $__section"
     fi
 done
-grep -qF '"mise/config/mise/conf.d/aliases.toml"' "$__control_plane" ||
-    fail "mise control-plane module does not deploy aliases.toml"
 for __profile in work personal; do
     local __profile_config="$(
         env MISE_ENV="$__profile" \

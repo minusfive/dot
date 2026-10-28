@@ -27,8 +27,7 @@ if [[ -f home/.config/mise/conf.d/bootstrap-ai.toml ]] &&
     grep -qF '"~/.claude"' home/.config/mise/conf.d/bootstrap-ai.toml; then
     fail "legacy AI declaration still owns ~/.claude"
 fi
-grep -qF '"mise/config/mise/conf.d/claude.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy claude.toml"
+
 
 bash -n home/.claude/statusline-command.sh || fail "Claude statusline has syntax errors"
 test "$(readlink home/.claude/skills)" = "../.agents/skills" ||

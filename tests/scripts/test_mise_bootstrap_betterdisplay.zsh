@@ -15,8 +15,6 @@ trap 'rm -rf -- "$__config_home"' EXIT
 if grep -qF '~/.config/BetterDisplay' "$__module"; then
     fail "BetterDisplay plist is still declared as a deployed dotfile"
 fi
-grep -qF '"mise/config/mise/conf.d/betterdisplay.toml"' "$__control_plane" ||
-    fail "control-plane module does not deploy BetterDisplay ownership"
 plutil -lint home/.config/BetterDisplay/config.plist >/dev/null ||
     fail "tracked BetterDisplay plist is invalid"
 

@@ -5,6 +5,3 @@ node = { version = "25", postinstall = "mise run global-install-packages-npm" }
 npm.bun = true
 node.compile = false
 node.gpg_verify = true
-
-[dotfiles]
-"node/config/mise/tasks/global-install-packages-npm.sh" = { source = "~/dev/personal/dot/home/.config/mise/tasks/global-install-packages-npm.sh", mode = "symlink", variants = [{ default = true, target = "{{ xdg_config_home }}/mise/tasks/global-install-packages-npm.sh" }] }

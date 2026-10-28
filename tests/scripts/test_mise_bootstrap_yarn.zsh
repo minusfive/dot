@@ -12,8 +12,6 @@ local __source="home/.config/yarn/zshrc.zsh"
 zsh -n "$__source" || fail "Yarn Zsh source has syntax errors"
 grep -qF '"~/.config/zsh/.zshrc-zone-0.zsh/yarn"' "$__config" ||
     fail "Yarn Zsh edit is missing"
-grep -qF '"mise/config/mise/conf.d/yarn.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy yarn.toml"
 for __profile in work personal; do
     local __profile_config="$(
         env MISE_ENV="$__profile" \

@@ -19,9 +19,12 @@ local __host_mise_config="$HOME/.config/mise"
 trap 'rm -rf "$__fixture_dir"' EXIT
 
 [[ -x "$__task" ]] || fail "cleanup inventory task is not executable"
-grep -qF '"mise/config/mise/tasks/bootstrap/post-dotfiles/cleanup/inventory.zsh"' \
-    home/.config/mise/conf.d/mise.toml ||
-    fail "cleanup inventory task is not deployed by the mise control plane"
+local __task_info="$(
+    env -u MISE_ENV MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+        mise -C "$__test_mise_repository" tasks info bootstrap:post-dotfiles:cleanup:inventory
+)"
+print -r -- "$__task_info" | grep -qF "Task: bootstrap:post-dotfiles:cleanup:inventory" ||
+    fail "cleanup inventory task is not discoverable from the active mise source configuration"
 
 mkdir -p "$__fixture_root/home/.config/mise/conf.d"
 cat > "$__fixture_root/home/.config/mise/conf.d/example.toml" <<'EOF'

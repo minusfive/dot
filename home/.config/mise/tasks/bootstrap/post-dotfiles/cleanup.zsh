@@ -49,6 +49,25 @@ is_repo_source() {
     esac
 }
 
+is_active_source_tree_path() {
+    local __path="$1"
+    case "$__path" in
+        "$__project_root/home/.config/mise"|"$__project_root/home/.config/mise"/*|"$__project_root_physical/home/.config/mise"|"$__project_root_physical/home/.config/mise"/*)
+            return 0
+            ;;
+    esac
+
+    local __parent="$(dirname "$__path")"
+    local __physical_parent
+    __physical_parent="$(cd "$__parent" 2>/dev/null && pwd -P)" || return 1
+    case "$__physical_parent/$(basename "$__path")" in
+        "$__project_root_physical/home/.config/mise"|"$__project_root_physical/home/.config/mise"/*)
+            return 0
+            ;;
+    esac
+    return 1
+}
+
 resolve_physical_source() {
     local __path="$1"
     local __suffix=""
@@ -94,6 +113,10 @@ __mise_dir="${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/mise}"
 [[ -d "$__mise_dir" ]] || die "mise configuration directory does not exist: $__mise_dir"
 __mise_dir="$(cd "$__mise_dir" 2>/dev/null && pwd -P)" ||
     die "mise configuration directory does not exist: $__mise_dir"
+__global_config_dir="$(normalize_path "${XDG_CONFIG_HOME:-$HOME/.config}/mise")"
+__active_source_dir="$(normalize_path "$__project_root/home/.config/mise")"
+__active_source_dir_physical="$(cd "$__active_source_dir" 2>/dev/null && pwd -P)" ||
+    die "active mise source directory does not exist: $__active_source_dir"
 __mise_state_dir="${MISE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/mise}"
 __mise_data_dir="${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}"
 __mise_cache_dir="${MISE_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/mise}"
@@ -221,9 +244,7 @@ for __scan_root in "${__scan_roots[@]}"; do
     [[ -e "$__scan_path" || -L "$__scan_path" ]] || continue
 
     while IFS= read -r __link; do
-    case "$__link" in
-        "$__project_root"/*|"$__project_root_physical"/*) continue ;;
-    esac
+    is_active_source_tree_path "$__link" && continue
     if [[ "$__link" == "$__mise_state_dir" ||
         "$__link" == "$__mise_state_dir"/* ||
         "$__link" == "$__mise_data_dir" ||
@@ -241,6 +262,25 @@ for __scan_root in "${__scan_roots[@]}"; do
     fi
 
     __source_path="$(normalize_path "$__source_path")"
+
+    if [[ "$__link" == "$__global_config_dir" ]]; then
+        if [[ -e "$__source_path" || -L "$__source_path" ]]; then
+            __source_physical_path="$(resolve_physical_source "$__source_path")" ||
+                die "cannot resolve global mise config directory source: $__link"
+        else
+            __source_physical_path="$__source_path"
+        fi
+
+        if [[ "$__source_physical_path" == "$__active_source_dir_physical" ]]; then
+            continue
+        fi
+        if is_repo_source "$__source_path" ||
+            is_repo_source "$__source_physical_path"; then
+            remove_stale_link "$__link" "$__source_physical_path"
+        fi
+        continue
+    fi
+
     if [[ -e "$__source_path" || -L "$__source_path" ]]; then
         __target_relative="${__link#$HOME/}"
         __migration_source="${__migration_sources[$__target_relative]-}"

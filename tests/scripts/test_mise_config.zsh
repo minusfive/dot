@@ -52,8 +52,9 @@ grep -qF '["validate_skill_evals"]' hk.pkl || fail "skill evaluation validation 
 grep -qF '["validate_skill_name_conflicts"]' hk.pkl || fail "skill name conflict hook is missing"
 grep -qF '["validate_task_name_conflicts"]' hk.pkl || fail "task name conflict hook is missing"
 
-grep -qF '"mise/config/mise/tasks/gh/auth/login.zsh"' home/.config/mise/conf.d/mise.toml ||
-    fail "GitHub auth task is not owned by the mise control plane"
+if grep -R -qF 'target = "{{ xdg_config_home }}/mise/' home/.config/mise/conf.d; then
+    fail "mise control-plane dotfiles must not own files inside the global config directory"
+fi
 if grep -R -qF 'target = "{{ mise_config_dir }}/' home/.config/mise/conf.d; then
     fail "mise dotfile targets must not resolve inside the repository-scoped MISE_CONFIG_DIR"
 fi
@@ -61,10 +62,9 @@ fi
     fail "persisted profile selector template is missing"
 [[ -f "home/.config/mise/profile.tmpl" ]] ||
     fail "resolved profile template is missing"
-grep -qF '"mise/config/mise/miserc.local.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "control plane does not deploy the persisted profile selector"
-grep -qF 'miserc.local.toml.tmpl", mode = "template", template = "tera"' home/.config/mise/conf.d/mise.toml ||
-    fail "persisted profile selector is not rendered with Tera"
+if grep -qF '"mise/config/mise/miserc.local.toml"' home/.config/mise/conf.d/mise.toml; then
+    fail "control plane must not own the optional local profile selector"
+fi
 grep -qF '"mise/state/minusfive/profile"' home/.config/mise/conf.d/mise.toml ||
     fail "control plane does not deploy the resolved profile state"
 grep -qF 'profile.tmpl", mode = "template", template = "tera"' home/.config/mise/conf.d/mise.toml ||
@@ -125,7 +125,9 @@ for __workspace in "$__personal_workspace" "$__work_workspace" "$__dot_workspace
 done
 grep -qF '[settings.dotfiles]' home/.config/mise/config.toml || fail "dotfiles settings are missing"
 grep -qF 'relative_symlinks = true' home/.config/mise/config.toml || fail "relative symlinks are not enabled"
-grep -qF '"mise/config/mise/conf.d/mise.toml"' home/.config/mise/conf.d/mise.toml || fail "mise module must manage itself"
+if grep -qF '"mise/config/mise/conf.d/mise.toml"' home/.config/mise/conf.d/mise.toml; then
+    fail "mise module must not redeploy the global config directory"
+fi
 if grep -R -qF '../../../home' home/.config/mise; then
     fail "legacy relative mise source path remains"
 fi
@@ -308,8 +310,8 @@ env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE "${__mise_default_env[@]}" \
     fail "default-path mise dotfile bootstrap failed"
 [[ ! -e "$__mise_default_xdg_config/opencode" ]] ||
     fail "work profile deployed the personal OpenCode target"
-grep -qxF 'env = ["work"]' "$__mise_default_config_dir/miserc.local.toml" ||
-    fail "missing profile state did not render the work selector"
+[[ ! -e "$__mise_default_config_dir/miserc.local.toml" ]] ||
+   fail "global config bootstrap created an unmanaged local selector"
 grep -qxF 'work' "$__mise_default_xdg_state/minusfive/profile" ||
     fail "work profile state was not written to the default XDG state directory"
 
@@ -318,13 +320,9 @@ local __default_mise_status="$(
         mise -C "$__mise_fixture_repository" -E work dot status --json
 )" || fail "default-path mise dotfile status failed"
 print -r -- "$__default_mise_status" |
-    jq -e --arg config "$__mise_default_config_dir/config.toml" \
-        --arg lock "$__mise_default_config_dir/mise.lock" \
-        --arg profile "$__mise_default_xdg_state/minusfive/profile" \
+    jq -e --arg profile "$__mise_default_xdg_state/minusfive/profile" \
         --arg nvim "$__mise_default_xdg_config/nvim" \
         '(.files | length > 0) and
-        any(.files[]; .target == $config and .mode == "symlink") and
-        any(.files[]; .target == $lock and .mode == "symlink") and
         any(.files[]; .target == $profile and .mode == "template") and
         any(.files[]; .target == $nvim and .mode == "symlink-each")' >/dev/null ||
     {
@@ -366,8 +364,8 @@ env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE "${__mise_custom_env[@]}" \
     fail "custom-path work mise dotfile bootstrap failed"
 [[ ! -e "$__mise_custom_xdg_config/opencode" ]] ||
     fail "custom work profile deployed the personal OpenCode target"
-grep -qxF 'env = ["work"]' "$__mise_custom_xdg_config/mise/miserc.local.toml" ||
-    fail "custom-path work profile selector was not rendered"
+[[ ! -e "$__mise_custom_xdg_config/mise/miserc.local.toml" ]] ||
+fail "custom-path bootstrap created an unmanaged local selector"
 env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE "${__mise_custom_env[@]}" \
     mise -C "$__mise_fixture_repository" -E personal bootstrap --only dotfiles --yes >/dev/null ||
     fail "custom-path personal mise dotfile bootstrap failed"
@@ -375,21 +373,17 @@ env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE "${__mise_custom_env[@]}" \
     fail "personal profile did not deploy OpenCode under XDG_CONFIG_HOME"
 [[ -L "$__mise_custom_xdg_config/opencode/opencode.jsonc" ]] ||
     fail "personal profile did not link the OpenCode source file"
-grep -qxF 'env = ["personal"]' "$__mise_custom_xdg_config/mise/miserc.local.toml" ||
-    fail "personal profile state did not render the personal selector"
+[[ ! -e "$__mise_custom_xdg_config/mise/miserc.local.toml" ]] ||
+    fail "personal bootstrap created an unmanaged local selector"
 
 local __custom_mise_status="$(
     env "${__mise_custom_env[@]}" MISE_SAFE=1 \
         mise -C "$__mise_fixture_repository" -E personal dot status --json
 )" || fail "custom-path mise dotfile status failed"
 print -r -- "$__custom_mise_status" |
-    jq -e --arg config "$__mise_custom_xdg_config/mise/config.toml" \
-        --arg lock "$__mise_custom_xdg_config/mise/mise.lock" \
-        --arg profile "$__mise_custom_xdg_state/minusfive/profile" \
+    jq -e --arg profile "$__mise_custom_xdg_state/minusfive/profile" \
         --arg nvim "$__mise_custom_xdg_config/nvim" \
         '(.files | length > 0) and
-        any(.files[]; .target == $config and .mode == "symlink") and
-        any(.files[]; .target == $lock and .mode == "symlink") and
         any(.files[]; .target == $profile and .mode == "template") and
         any(.files[]; .target == $nvim and .mode == "symlink-each")' >/dev/null ||
     fail "custom-path mise targets did not resolve to the fixture directories"
@@ -411,52 +405,10 @@ env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE \
     "${__custom_cleanup_env[@]}" \
     zsh "$__root_dir/home/.config/mise/tasks/bootstrap/post-dotfiles/cleanup.zsh" >/dev/null ||
     fail "custom-root cleanup failed after migration"
-[[ ! -L "$__mise_default_config_dir/config.toml" ]] ||
-    fail "custom-root cleanup left the old default mise config link"
-[[ ! -L "$__mise_default_config_dir/mise.lock" ]] ||
-    fail "custom-root cleanup left the old default mise lock link"
-[[ -L "$__mise_custom_xdg_config/mise/config.toml" ]] ||
-    fail "custom-root cleanup removed the active custom mise config link"
-
-local __mise_link_count
-__mise_link_count="$(find "$__mise_custom_xdg_config/mise" -type l | wc -l | tr -d ' ')"
-local __mise_declaration_count
-__mise_declaration_count="$(
-    awk '
-        /^\[dotfiles\]$/ { in_dotfiles = 1; next }
-        /^\[/ { in_dotfiles = 0 }
-        in_dotfiles && /^"mise\// { count++ }
-        END { print count }
-    ' "$__mise_source"
-)"
-local __symlink_each_declaration_count
-__symlink_each_declaration_count="$(grep -c 'mode = "symlink-each"' "$__mise_source")"
-local __template_declaration_count
-__template_declaration_count="$(grep -c 'template = "tera"' "$__mise_source")"
-local __symlink_each_source_count
-__symlink_each_source_count="$(find home/.config/mise/conf.d/macos -type f | wc -l | tr -d ' ')"
-local __nested_mise_declaration_count=0
-local __module
-for __module in home/.config/mise/conf.d/*.toml; do
-    [[ "$__module" == *mise.toml || "$__module" == *.personal.toml ]] && continue
-    (( __nested_mise_declaration_count += $(
-        awk '/^"[^"]+\/config\/mise\// { count++ } END { print count + 0 }' "$__module"
-    ) )) || :
-done
-local __expected_mise_link_count=$((__mise_declaration_count -
-    __symlink_each_declaration_count - __template_declaration_count +
-    __symlink_each_source_count + __nested_mise_declaration_count))
-[[ "$__mise_link_count" -eq "$__expected_mise_link_count" ]] ||
-    fail "expected $__expected_mise_link_count managed mise links in the custom XDG config directory, found $__mise_link_count"
-[[ -L "$__mise_custom_xdg_config/mise/conf.d/betterdisplay.toml" ]] ||
-    fail "isolated deployment omitted the BetterDisplay module link"
-[[ -f "$__mise_custom_xdg_config/mise/miserc.local.toml" ]] ||
-    fail "isolated deployment omitted the generated profile selector"
-if grep -qE '^"mise/config/mise/tasks/betterdisplay' "$__mise_source"; then
-    fail "mise control-plane module still declares BetterDisplay task links"
-fi
-[[ ! -e "$__mise_custom_xdg_config/mise/tasks/betterdisplay" ]] ||
-    fail "isolated deployment created BetterDisplay task links"
+[[ ! -e "$__mise_default_config_dir/config.toml" ]] ||
+    fail "default XDG config directory received a per-file mise config link"
+[[ ! -e "$__mise_custom_xdg_config/mise" ]] ||
+    fail "custom XDG config directory received per-file mise config ownership"
 grep -qF '*.local.*' home/.config/git/ignore ||
     fail "global Git ignore does not cover local-suffix paths"
 

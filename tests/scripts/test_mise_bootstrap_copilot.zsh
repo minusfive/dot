@@ -31,8 +31,6 @@ if [[ -e home/.config/mise/conf.d/bootstrap-ai.toml ]] &&
     grep -qF '"~/.copilot"' home/.config/mise/conf.d/bootstrap-ai.toml; then
     fail "legacy AI declaration still owns ~/.copilot"
 fi
-grep -qF '"mise/config/mise/conf.d/copilot.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy copilot.toml"
 for __profile in work personal; do
     local __profile_config="$(
         env MISE_ENV="$__profile" \

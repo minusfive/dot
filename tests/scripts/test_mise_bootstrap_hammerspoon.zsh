@@ -14,8 +14,6 @@ grep -qF '"hammerspoon/config/hammerspoon" = {' "$__config" ||
     fail "Hammerspoon symlink declaration is missing"
 grep -qF "defaults write org.hammerspoon.Hammerspoon MJConfigFile {{ (xdg_config_home ~ '/hammerspoon/init.lua') | quote }}" "$__config" ||
     fail "Hammerspoon macOS hook is missing"
-grep -qF '"mise/config/mise/conf.d/hammerspoon.toml" = {' home/.config/mise/conf.d/mise.toml ||
-    fail "Hammerspoon module is not deployed"
 local __source="home/.config/hammerspoon"
 local __target="$HOME/.config/hammerspoon"
 [[ -f "$__source/.luarc.json" ]] || fail "Hammerspoon local-development source is missing"

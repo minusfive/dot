@@ -26,8 +26,6 @@ grep -qF '"gh/config/gh/personal/hosts.yml" = { source = "~/dev/personal/dot/hom
 if grep -qF '[bootstrap.files."~/.config/gh/personal/hosts.yml"]' "$__config"; then
     fail "GitHub hosts resource must not remain a bootstrap file"
 fi
-grep -qF '"mise/config/mise/conf.d/gh.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy gh.toml"
 grep -qF 'source = "~/dev/personal/dot/home/.config/gh/personal/hosts.yml"' "$__config" || fail "GitHub hosts source is missing"
 grep -qF '"~/dev/personal/mise.toml/gh-config" = { source = "~/dev/personal/dot/home/.config/gh/gh-personal.mise.toml", template = "tera", merge = true }' "$__config" ||
     fail "personal GH_CONFIG_DIR merge entry is missing"

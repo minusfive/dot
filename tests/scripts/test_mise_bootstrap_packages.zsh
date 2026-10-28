@@ -7,8 +7,6 @@ echo "Testing shared package maintenance configuration..."
 
 local __config="home/.config/mise/conf.d/packages.toml"
 [[ -f "$__config" ]] || fail "missing $__config"
-grep -qF '"mise/config/mise/conf.d/packages.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy packages.toml"
 grep -qF "[bootstrap.hooks]" "$__config" || fail "package bootstrap hooks are missing"
 grep -qF '"mise bootstrap packages upgrade --yes"' "$__config" ||
     fail "package upgrade hook is missing"

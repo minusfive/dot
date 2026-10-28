@@ -10,8 +10,6 @@ local __config="home/.config/mise/conf.d/brew.toml"
 if [[ -e "home/.config/mise/conf.d/bootstrap-packages.toml" ]]; then
     fail "legacy shared package declaration must be retired"
 fi
-grep -qF '"mise/config/mise/conf.d/brew.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy brew.toml"
 grep -qF "[bootstrap.brew]" "$__config" || fail "Homebrew bootstrap section is missing"
 grep -qF "adopt = true" "$__config" || fail "Homebrew adoption is missing"
 grep -qF 'pre-packages = "mise run brew:install"' "$__config" ||
@@ -27,8 +25,6 @@ grep -qF 'eval "$(/opt/homebrew/bin/brew shellenv)"' \
 if grep -qF "/usr/local/bin/brew" home/.config/mise/tasks/brew/install.zsh; then
     fail "Homebrew installation task must not include the Intel prefix"
 fi
-grep -qF '"mise/config/mise/tasks/brew/install.zsh"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy the Homebrew installation task"
 local __task_info="$(
     env -u MISE_ENV MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
         mise -C "$__test_mise_repository" tasks info brew:install

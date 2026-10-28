@@ -27,8 +27,6 @@ if [[ -f home/.config/mise/conf.d/bootstrap-ai.toml ]] &&
     grep -qF '"opencode/config/opencode"' home/.config/mise/conf.d/bootstrap-ai.toml; then
     fail "legacy AI declaration still owns the OpenCode target"
 fi
-grep -qF '"mise/config/mise/conf.d/opencode.personal.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy opencode.personal.toml"
 if git grep -IlE 'BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|(^|[^[:alnum:]])(token|password|secret|api[-_]?key)[[:space:]]*[:=]' -- home/.config/opencode >/dev/null; then
     fail "credential-like content found in tracked OpenCode sources"
 fi

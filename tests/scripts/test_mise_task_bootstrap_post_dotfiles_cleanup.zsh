@@ -22,9 +22,12 @@ local __block_failure_output="$__fixture_dir/block-failure-output"
 trap 'rm -rf "$__fixture_dir"' EXIT
 
 [[ -x "$__task" ]] || fail "cleanup task is not executable"
-grep -qF '"mise/config/mise/tasks/bootstrap/post-dotfiles/cleanup.zsh"' \
-    home/.config/mise/conf.d/mise.toml ||
-    fail "cleanup task is not deployed by the mise control plane"
+local __task_info="$(
+    env -u MISE_ENV MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
+        mise -C "$__test_mise_repository" tasks info bootstrap:post-dotfiles:cleanup
+)"
+print -r -- "$__task_info" | grep -qF "Task: bootstrap:post-dotfiles:cleanup" ||
+    fail "cleanup task is not discoverable from the active mise source configuration"
 
 mkdir -p \
     "$__source_dir/.config/mise/conf.d" \
@@ -283,6 +286,30 @@ grep -qF 'mise:foreign' "$__fixture_home/.config/zsh/.zshrc" ||
 [[ -L "$__fixture_home/unrelated/stale" ]] ||
     fail "cleanup recursively scanned HOME"
 
+mv "$__target_dir" "$__fixture_dir/legacy-mise-config"
+ln -s "$__source_dir/.config/mise" "$__target_dir"
+ln -s "$__source_dir/.config/example/missing-from-source-tree.conf" \
+    "$__source_dir/.config/mise/conf.d/source-tree-link"
+env "${__fixture_env[@]}" zsh "$__task" > "$__output"
+[[ -L "$__target_dir" ]] || fail "active global mise config link was removed"
+[[ "$(realpath "$__target_dir")" == "$(realpath "$__source_dir/.config/mise")" ]] ||
+    fail "active global mise config link target changed"
+[[ -L "$__source_dir/.config/mise/conf.d/source-tree-link" ]] ||
+    fail "link inside the active mise source tree was removed"
+rm -f "$__source_dir/.config/mise/conf.d/source-tree-link"
+
+mkdir -p "$__source_dir/old-mise"
+rm -f "$__target_dir"
+ln -s "$__source_dir/old-mise" "$__target_dir"
+env "${__fixture_env[@]}" zsh "$__task" > "$__output"
+[[ ! -L "$__target_dir" ]] || fail "stale repository-owned global config link remains"
+mkdir -p "$__fixture_dir/external-mise"
+ln -s "$__fixture_dir/external-mise" "$__target_dir"
+env "${__fixture_env[@]}" zsh "$__task" > "$__output"
+[[ -L "$__target_dir" ]] || fail "external global config link was removed"
+[[ "$(readlink "$__target_dir")" == "$__fixture_dir/external-mise" ]] ||
+    fail "external global config link target changed"
+
 local __blocks_backup="$__fixture_dir/cleanup.blocks.backup"
 cp "$__source_dir/.config/mise/cleanup.blocks" "$__blocks_backup"
 printf '%s\t%s\n' '../outside' removed >> "$__source_dir/.config/mise/cleanup.blocks"
@@ -294,7 +321,8 @@ grep -qF "outside HOME" "$__block_failure_output" ||
 mv "$__blocks_backup" "$__source_dir/.config/mise/cleanup.blocks"
 
 
-[[ -L "$__target_dir/external" ]] || fail "external link was removed"
+[[ -L "$__fixture_dir/legacy-mise-config/external" ]] ||
+    fail "external link was removed"
 
 mkdir -p "$__fixture_dir/external-source"
 ln -s "$__fixture_dir/external-source" "$__source_dir/alias"
