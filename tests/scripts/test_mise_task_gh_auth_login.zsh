@@ -32,7 +32,8 @@ grep -qF '"mise/config/mise/tasks/gh/auth/login.zsh" = {' home/.config/mise/conf
         home/.config/mise/conf.d/mise.toml ||
     fail "GitHub auth task is not deployed by the mise control plane"
 
-local __fixture_dir="$__root_dir/.agents/projects.local/issue-61-mise-bootstrap/tmp/gh-auth-test.$$"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir gh-auth-login)" || exit 1
 local __bin_dir="$__fixture_dir/bin"
 local __log_file="$__fixture_dir/gh.log"
 local __state_file="$__fixture_dir/authenticated"
