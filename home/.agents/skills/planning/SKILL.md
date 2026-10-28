@@ -56,6 +56,8 @@ When producing or validating a plan, include only actionable execution instructi
    - When a plan names a file, write the full path relative to `~`.
 4. Verification/acceptance checks
 
+Keep each plan scoped to its current objective. Exclude unrelated alternatives, future work, and comparison-only options from the plan. Track deferred work in separate research or issue artifacts, and mention it in the plan only when an explicit dependency or handoff requires it.
+
 All open questions must be resolved during the planning conversation before presenting final plan output. Do not include meta-commentary, decision-making history, tradeoff history, or rationale narrative in final plan output.
 
 ## Execution Handoff
