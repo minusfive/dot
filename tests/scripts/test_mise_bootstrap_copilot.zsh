@@ -45,8 +45,8 @@ done
 
 local __settings_keys
 __settings_keys="$(jq -cS 'keys' "$__settings")"
-[[ "$__settings_keys" == '["colorMode","contextTier","effortLevel","experimental","footer","renderMarkdown","screenReader","showReasoning","theme"]' ]] ||
-    fail "Copilot settings source must contain exactly the nine approved keys"
+[[ "$__settings_keys" == '["colorMode","contextTier","effortLevel","experimental","footer","renderMarkdown","screenReader","showReasoning","subagents","theme"]' ]] ||
+    fail "Copilot settings source must contain exactly the ten approved keys"
 if jq -e 'keys | any(. == "model" or . == "allowedUrls" or . == "includeCoAuthoredBy" or . == "statusLine")' "$__settings" >/dev/null; then
     fail "excluded Copilot settings are tracked"
 fi
@@ -166,8 +166,8 @@ env MISE_ENV=work HOME="$__fixture_home" XDG_CONFIG_HOME="$__fixture_xdg" \
     fail "merged Copilot LSP target must remain a regular file"
 local __expected_managed
 local __actual_managed
-__expected_managed="$(jq -cS 'with_entries(select(.key | IN("renderMarkdown","screenReader","theme","footer","colorMode","experimental","showReasoning","effortLevel","contextTier")))' "$__settings")"
-__actual_managed="$(jq -cS 'with_entries(select(.key | IN("renderMarkdown","screenReader","theme","footer","colorMode","experimental","showReasoning","effortLevel","contextTier")))' "$__fixture_target")"
+__expected_managed="$(jq -cS 'with_entries(select(.key | IN("renderMarkdown","screenReader","theme","footer","colorMode","experimental","showReasoning","effortLevel","contextTier","subagents")))' "$__settings")"
+__actual_managed="$(jq -cS 'with_entries(select(.key | IN("renderMarkdown","screenReader","theme","footer","colorMode","experimental","showReasoning","effortLevel","contextTier","subagents")))' "$__fixture_target")"
 __expected_managed="$(jq -cS 'del(.footer)' <<<"$__expected_managed")"
 __actual_managed="$(jq -cS 'del(.footer)' <<<"$__actual_managed")"
 [[ "$__actual_managed" == "$__expected_managed" ]] || fail "managed Copilot settings were not applied"

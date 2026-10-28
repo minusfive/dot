@@ -22,5 +22,19 @@
   "experimental": true,
   "showReasoning": false,
   "effortLevel": "high",
-  "contextTier": "long_context"
+  "contextTier": "long_context",
+  "subagents": {
+    "agents": {
+      "rubber-duck": {
+        "model": "inherit",
+        "autoInvoke": true
+      },
+      "research": {
+        "model": "gpt-5.6-luna",
+        "providerId": "copilot",
+        "effortLevel": "high",
+        "contextTier": "long_context"
+      }
+    }
+  }
 }
