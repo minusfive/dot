@@ -22,7 +22,8 @@ if grep -qE '_v_|mise\.zsh|functions\.zsh' "$__installer"; then
     fail "mise installer retains retired lifecycle or UI helpers"
 fi
 
-local __fixture_dir="$__root_dir/.agents/projects.local/issue-61-mise-bootstrap/tmp/init-test.$$"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir mise-installer)" || exit 1
 local __bin_dir="$__fixture_dir/bin"
 local __installer_dir="$__fixture_dir/installer"
 local __home="$__fixture_dir/home"
