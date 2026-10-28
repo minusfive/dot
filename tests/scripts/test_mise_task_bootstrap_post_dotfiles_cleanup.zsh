@@ -335,4 +335,74 @@ grep -qF "outside this repository" "$__failure_output" ||
 [[ -L "$__fixture_home/.config/zsh/physical-bypass" ]] ||
     fail "cleanup removed the physically external link"
 
+local __ownership_root="$__fixture_dir/ownership-repository"
+local __ownership_home="$__fixture_dir/ownership-home"
+local __ownership_source="$__ownership_root/home/.config/mise"
+local __ownership_xdg="$__fixture_dir/ownership-xdg/config"
+local __ownership_explicit="$__fixture_dir/ownership-explicit/mise"
+local __ownership_global_config="$__fixture_dir/ownership-global.toml"
+local __ownership_external="$__fixture_dir/ownership-external"
+mkdir -p "$__ownership_source" "$__ownership_home" "$__ownership_xdg" \
+    "$__ownership_root/home/stale-mise" "$__ownership_external" \
+    "$(dirname "$__ownership_explicit")"
+printf '[settings]\n' > "$__ownership_global_config"
+: > "$__ownership_source/cleanup.paths"
+: > "$__ownership_source/cleanup.blocks"
+: > "$__ownership_source/cleanup.migrations"
+local -a __ownership_env=(
+    "HOME=$__ownership_home"
+    "XDG_CONFIG_HOME=$__ownership_xdg"
+    "MISE_GLOBAL_CONFIG_FILE=$__ownership_global_config"
+    "MISE_GLOBAL_CONFIG_ROOT=$__fixture_dir"
+    "MISE_PROJECT_ROOT=$__ownership_root"
+    "MISE_DATA_DIR=$__fixture_dir/ownership-data"
+    "MISE_STATE_DIR=$__fixture_dir/ownership-state"
+    "MISE_CACHE_DIR=$__fixture_dir/ownership-cache"
+    "MISE_TMP_DIR=$__fixture_dir/ownership-tmp"
+    "MISE_SYSTEM_CONFIG_DIR=$__fixture_dir/ownership-system-config"
+    "MISE_INSTALLS_DIR=$__fixture_dir/ownership-installs"
+    "MISE_INSTALL_STORE_DIR=$__fixture_dir/ownership-install-store"
+    "MISE_PLUGINS_DIR=$__fixture_dir/ownership-plugins"
+    "MISE_DOWNLOADS_DIR=$__fixture_dir/ownership-downloads"
+    "MISE_SHIMS_DIR=$__fixture_dir/ownership-shims"
+    "MISE_SYSTEM_DATA_DIR=$__fixture_dir/ownership-system-data"
+    "MISE_SYSTEM_INSTALLS_DIR=$__fixture_dir/ownership-system-installs"
+    "MISE_SYSTEM_SHIMS_DIR=$__fixture_dir/ownership-system-shims"
+    "MISE_NO_HOOKS=1"
+)
+env -u MISE_CONFIG_DIR "${__ownership_env[@]}" \
+    mise -C "$__ownership_root" trust "$__ownership_global_config" >/dev/null ||
+    fail "could not trust ownership cleanup fixture config"
+
+ln -s "$__ownership_root/home/stale-mise" "$__ownership_xdg/mise"
+env -u MISE_CONFIG_DIR "${__ownership_env[@]}" zsh "$__task" > "$__output"
+[[ ! -L "$__ownership_xdg/mise" ]] ||
+    fail "stale repository-owned custom XDG mise config link remains"
+ln -s "$__ownership_source" "$__ownership_xdg/mise"
+env -u MISE_CONFIG_DIR "${__ownership_env[@]}" zsh "$__task" > "$__output"
+[[ -L "$__ownership_xdg/mise" ]] ||
+    fail "active custom XDG mise source link was removed"
+rm -f "$__ownership_xdg/mise"
+ln -s "$__ownership_external" "$__ownership_xdg/mise"
+env -u MISE_CONFIG_DIR "${__ownership_env[@]}" zsh "$__task" > "$__output"
+[[ -L "$__ownership_xdg/mise" ]] ||
+    fail "external custom XDG mise config link was removed"
+
+ln -s "$__ownership_root/home/stale-mise" "$__ownership_explicit"
+env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_explicit" \
+    zsh "$__task" > "$__output"
+[[ ! -L "$__ownership_explicit" ]] ||
+    fail "stale repository-owned explicit mise config link remains"
+ln -s "$__ownership_source" "$__ownership_explicit"
+env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_explicit" \
+    zsh "$__task" > "$__output"
+[[ -L "$__ownership_explicit" ]] ||
+    fail "active explicit mise source link was removed"
+rm -f "$__ownership_explicit"
+ln -s "$__ownership_external" "$__ownership_explicit"
+env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_explicit" \
+    zsh "$__task" > "$__output"
+[[ -L "$__ownership_explicit" ]] ||
+    fail "external explicit mise config link was removed"
+
 echo "bootstrap:post-dotfiles:cleanup task passed."

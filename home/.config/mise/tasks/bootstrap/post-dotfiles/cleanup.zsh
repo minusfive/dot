@@ -109,11 +109,10 @@ __project_root="$(cd "$__project_root" 2>/dev/null && pwd -L)" ||
 __project_root_physical="$(cd "$__project_root" 2>/dev/null && pwd -P)" ||
     die "dotfiles repository does not exist: $__project_root"
 
-__mise_dir="${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/mise}"
-[[ -d "$__mise_dir" ]] || die "mise configuration directory does not exist: $__mise_dir"
-__mise_dir="$(cd "$__mise_dir" 2>/dev/null && pwd -P)" ||
-    die "mise configuration directory does not exist: $__mise_dir"
-__global_config_dir="$(normalize_path "${XDG_CONFIG_HOME:-$HOME/.config}/mise")"
+__global_config_dir="${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/mise}"
+[[ -d "$__global_config_dir" ]] || die "mise configuration directory does not exist: $__global_config_dir"
+__mise_dir="$(cd "$__global_config_dir" 2>/dev/null && pwd -P)" ||
+    die "mise configuration directory does not exist: $__global_config_dir"
 __active_source_dir="$(normalize_path "$__project_root/home/.config/mise")"
 __active_source_dir_physical="$(cd "$__active_source_dir" 2>/dev/null && pwd -P)" ||
     die "active mise source directory does not exist: $__active_source_dir"
@@ -225,6 +224,7 @@ done < "$__project_root/home/.config/mise/cleanup.paths"
 
 collect_target_scan_paths work
 collect_target_scan_paths personal
+add_scan_path "$__global_config_dir"
 
 __sorted_scan_paths=("${(@f)$(printf '%s\n' ${(k)__scan_paths} | LC_ALL=C sort)}")
 __scan_roots=()
@@ -263,7 +263,7 @@ for __scan_root in "${__scan_roots[@]}"; do
 
     __source_path="$(normalize_path "$__source_path")"
 
-    if [[ "$__link" == "$__global_config_dir" ]]; then
+    if [[ "$__link" == "$(normalize_path "$__global_config_dir")" ]]; then
         if [[ -e "$__source_path" || -L "$__source_path" ]]; then
             __source_physical_path="$(resolve_physical_source "$__source_path")" ||
                 die "cannot resolve global mise config directory source: $__link"
