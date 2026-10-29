@@ -27,7 +27,8 @@ Use the `orchestrator` agent as the primary coordinator. Follow `task-orchestrat
 4. Delegate balanced behavior units through `task-orchestration`.
 5. Follow its runtime-isolation rules for parallel worktrees and dependent branches.
 6. Integrate completed units into their issue lane. Serialize shared-file changes and merges.
-7. Do not use one PR for multiple issue plans unless I explicitly approve a merged-story plan.
+7. Rebase a lane onto a new `main` commit before delivery when the lane depends on that commit.
+8. Do not use one PR for multiple issue plans unless I explicitly approve a merged-story plan.
 
 ## Gate commits and pushes
 
@@ -56,13 +57,14 @@ This gate reviews the integrated PR diff before delivery. `execution-workflow` o
 9. Address every actionable finding in the matching worktree. For each one, run an independent critique, fix, focused tests, and authorized push before the next review poll.
 10. Reply in the corresponding review thread after each fix and resolve it when the fix fully addresses it. If no thread exists, record the reply and disposition through the applicable review channel and in the ledger.
 11. Follow `execution-workflow` to reconcile issue and project-card lanes after each review cycle. Reopen a closed issue and move its card back when review work moves the story backward.
-12. After a zero-finding review, keep the PR watched for four additional checks at 15-minute intervals because later automated reviews can appear.
-13. Remove an open PR only after that grace period is clean. Remove merged or closed PRs from the watch state automatically.
-14. Limit review-fix cycles to 10 per PR.
-15. If actionable findings remain after the tenth cycle, stop the cycle and report the remaining findings.
-16. Use `commit-guidelines` and `pr-guidelines` for every review-fix commit and push.
-17. Remove the matching worktree after a PR merges and the worktree is clean.
-18. Stop the external schedule when all watched PRs satisfy the grace period, and close the orchestration cycle when no actionable review work remains.
+12. Continue review polling, triage, and independent fixes while unrelated work runs.
+13. After a zero-finding review, keep the PR watched for four additional checks at 15-minute intervals because later automated reviews can appear.
+14. Remove an open PR only after that grace period is clean. Remove merged or closed PRs from the watch state automatically.
+15. Limit review-fix cycles to 10 per PR.
+16. If actionable findings remain after the tenth cycle, stop the cycle and report the remaining findings.
+17. Use `commit-guidelines` and `pr-guidelines` for every review-fix commit and push.
+18. Remove the matching worktree after a PR merges and the worktree is clean.
+19. Stop the external schedule when all watched PRs satisfy the grace period, and close the orchestration cycle when no actionable review work remains.
 
 ## Merge authority
 

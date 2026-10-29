@@ -22,6 +22,16 @@ Use this skill when shaping how a task executes: whether to fan out tool calls i
 - Keep critique separate from implementation. Follow `AGENTS.md` for separate current-turn commit and push authorization.
 - Follow this skill for delegation boundaries, progress supervision, and recovery.
 
+## Concurrent Execution
+
+- Identify all independent tasks and lanes before you start. Run them concurrently by default.
+- Treat lane parallelization as a fundamental `orchestrator` responsibility for every workflow.
+- Continue independent work while unrelated work runs, including review polling, triage, and implementation.
+- Record explicit dependencies before waiting. Serialize only shared mutable worktrees, branches, refs, rebase dependencies, or delivery operations.
+- Use checkpoints to reconcile all active lanes, their dependencies, and their current state.
+- Rebase an affected lane onto the new main commit before delivery when the lane depends on that commit.
+- Serialize the rebase and delivery operation.
+
 ## Planning Delegation
 
 - For substantial multi-phase work, assign a bounded planning agent to research constraints and draft end-to-end work units before implementation. Do not draft the plan yourself first.
