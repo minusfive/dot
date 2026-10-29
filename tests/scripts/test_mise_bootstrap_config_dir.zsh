@@ -7,7 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing mise bootstrap config-dir contract..."
 
 local __fixture_dir
-__fixture_dir="$(test_fixture_dir config-dir)"
+__fixture_dir="$(test_fixture_dir config-dir)" || exit 1
 [[ -n "$__fixture_dir" && -d "$__fixture_dir" ]] ||
     fail "could not create fixture directory"
 

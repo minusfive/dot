@@ -92,7 +92,8 @@ grep -qF 'min_version = "2026.10.21"' home/.config/mise/config.toml || fail "mis
 grep -qF 'minimum_release_age = "7d"' home/.config/mise/config.toml || fail "minimum release age is missing"
 grep -qF 'trusted_config_paths = ["~/dev/personal", "~/dev/personal/dot", "~/dev/work"]' home/.config/mise/config.toml ||
     fail "workspace trust paths are missing"
-local __trust_data="$(test_fixture_dir mise-config-trust)"
+local __trust_data
+__trust_data="$(test_fixture_dir mise-config-trust)" || exit 1
 trap 'rm -rf -- "$__trust_data"' EXIT
 local __trust_home="$__trust_data/home"
 local __trust_config="$__trust_home/.config/mise"
@@ -141,7 +142,8 @@ fi
 [[ ! -e scripts/os.zsh ]] || fail "OS operations must use mise macos tasks"
 
 local __mise_source="home/.config/mise/conf.d/mise.toml"
-local __mise_fixture_dir="$(test_fixture_dir mise-config)"
+local __mise_fixture_dir
+__mise_fixture_dir="$(test_fixture_dir mise-config)" || exit 1
 trap 'rm -rf -- "$__trust_data" "$__mise_fixture_dir"' EXIT
 local __mise_fixture_home="$__mise_fixture_dir/home"
 local __mise_fixture_repository="$__mise_fixture_home/dev/personal/dot"
@@ -478,7 +480,8 @@ for __local_file in \
 done
 
 local __fallback_home
-__fallback_home="$(test_fixture_dir fallback-home)"
+__fallback_home="$(test_fixture_dir fallback-home)" || exit 1
+trap 'rm -rf -- "$__trust_data" "$__mise_fixture_dir" "$__fallback_home"' EXIT
 mkdir -p "$__fallback_home/.config/mise/conf.d" "$__fallback_home/.local/state/minusfive"
 cp home/.config/mise/config.toml "$__fallback_home/.config/mise/config.toml"
 cp home/.config/mise/miserc.toml "$__fallback_home/.config/mise/miserc.toml"
@@ -505,7 +508,7 @@ if print -r -- "$__fallback_env" | grep -q '"MISE_PROFILE_SMOKE_PERSONAL": "1"';
 fi
 
 local __tmp_home
-__tmp_home="$(test_fixture_dir tmp-home)"
+__tmp_home="$(test_fixture_dir tmp-home)" || exit 1
 trap 'rm -rf -- "$__trust_data" "$__mise_fixture_dir" "$__fallback_home" "$__tmp_home"' EXIT
 mkdir -p "$__tmp_home/.config/mise/conf.d"
 cp home/.config/mise/config.toml "$__tmp_home/.config/mise/config.toml"

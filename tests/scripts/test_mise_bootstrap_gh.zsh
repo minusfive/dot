@@ -49,11 +49,11 @@ local __fixture_home="$__fixture_dir/home"
 local __fixture_repository="$__fixture_home/dev/personal/dot"
 local __fixture_xdg_config="$__fixture_dir/custom-xdg/config"
 local __host_mise_config="$HOME/.config/mise"
+trap 'rm -rf -- "$__fixture_dir"' EXIT
 mkdir -p "$__fixture_repository" "$__fixture_home/.config/mise" "$__fixture_xdg_config" \
     "$__fixture_dir/data" "$__fixture_dir/state" "$__fixture_dir/cache" \
     "$__fixture_dir/tmp" "$__fixture_dir/system-config" \
     "$__fixture_dir/xdg/data" "$__fixture_dir/xdg/state" "$__fixture_dir/xdg/cache"
-trap 'rm -rf -- "$__fixture_dir"' EXIT
 git -C "$__fixture_repository" init -q
 cp home/.config/gh/gh-work.mise.toml "$__fixture_repository/mise.toml"
 cp home/.config/gh/gh-personal.mise.toml "$__fixture_repository/mise.personal.toml"

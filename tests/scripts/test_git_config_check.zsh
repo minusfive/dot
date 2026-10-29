@@ -25,8 +25,8 @@ local __domains="$__repo/home/dev/personal/.domains"
 local __config="$__repo/home/.config/git/config"
 local __profile_config="$__repo/home/dev/personal/profile.gitconfig"
 local __ignored_config="$__repo/home/.config/git/ignore"
-mkdir -p "$__repo/home/dev/personal" "$__repo/home/.config/git"
 trap 'rm -rf -- "$__fixture_dir"' EXIT
+mkdir -p "$__repo/home/dev/personal" "$__repo/home/.config/git"
 git init -q "$__repo"
 
 printf ' # personal Git hosts\n\n GitHub.com. \n' > "$__domains"

@@ -76,9 +76,9 @@ local __fixture_unmanaged_before="$__fixture_dir/unmanaged.before"
 local __host_mise_config="$HOME/.config/mise"
 local __fixture_output="$__fixture_dir/dry-run.log"
 local __fixture_apply_output="$__fixture_dir/apply.log"
+trap 'rm -rf "$__fixture_dir"' EXIT
 mkdir -p "$__fixture_home/dev/personal" "$__fixture_config" "$__fixture_home/.config/zsh"
 ln -s "$__root_dir" "$__fixture_home/dev/personal/dot"
-trap 'rm -rf "$__fixture_dir"' EXIT
 
 cat > "$__fixture_config/config.toml" <<EOF
 [settings.dotfiles]

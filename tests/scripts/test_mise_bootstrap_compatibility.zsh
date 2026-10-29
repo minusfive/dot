@@ -29,8 +29,8 @@ local __installer_dir="$__fixture_dir/installer"
 local __home="$__fixture_dir/home"
 local __zdotdir="$__fixture_dir/zsh"
 local __log_file="$__fixture_dir/init.log"
-mkdir -p "$__bin_dir" "$__installer_dir" "$__home" "$__zdotdir"
 trap 'rm -rf -- "$__fixture_dir"' EXIT
+mkdir -p "$__bin_dir" "$__installer_dir" "$__home" "$__zdotdir"
 
 cat > "$__bin_dir/mise" <<'EOF'
 #!/usr/bin/env bash

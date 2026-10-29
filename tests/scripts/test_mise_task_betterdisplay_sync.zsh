@@ -6,9 +6,8 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 local __fixture_dir=""
 local __system_temp_dir=""
-__fixture_dir="$(mktemp -d)" || exit 1
-[[ -n "$__fixture_dir" ]] || exit 1
-__fixture_dir="$(realpath "$__fixture_dir")" || exit 1
+__fixture_dir="$(test_fixture_dir betterdisplay-sync)" || exit 1
+trap 'rm -rf -- "$__fixture_dir"' EXIT
 [[ -n "${TMPDIR:-}" ]] || exit 1
 __system_temp_dir="$(realpath "$TMPDIR")" || exit 1
 local __coreutils_bin_dir="${$(dirname "$(command -v realpath)")}"

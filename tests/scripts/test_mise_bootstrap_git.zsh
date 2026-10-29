@@ -47,9 +47,9 @@ local __work_repo="$__home/dev/work/repo"
 local __personal_profile="$__home/dev/personal/.gitconfig"
 local __work_profile="$__home/dev/work/.gitconfig"
 local __helper_log="$__fixture_dir/helpers.log"
+trap 'rm -rf -- "$__fixture_dir"' EXIT
 mkdir -p "$__home/dev/personal" "$__home/dev/work" "$__bin" "$__xdg_config/git" \
     "$__xdg_config/delta/themes" "$__xdg_config/gh/personal"
-trap 'rm -rf -- "$__fixture_dir"' EXIT
 
 __relative_link() {
     local __source="$1"

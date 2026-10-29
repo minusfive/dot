@@ -57,7 +57,8 @@ if grep -qF '[[tools."npm:mcp-hub"]]' home/.config/mise/mise.lock; then
     fail "mcp-hub tool lock entry must be removed"
 fi
 
-local __migration_fixture="$(test_fixture_dir mise-migration)"
+local __migration_fixture
+__migration_fixture="$(test_fixture_dir mise-migration)" || exit 1
 trap 'rm -rf -- "$__migration_fixture"' EXIT
 local __fixture_home="$__migration_fixture/home"
 local __fixture_repository="$__fixture_home/dev/personal/dot"

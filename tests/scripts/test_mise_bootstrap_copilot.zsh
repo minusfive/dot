@@ -54,7 +54,9 @@ fi
 zsh -n home/.copilot/statusline-context.sh || fail "Copilot statusline has syntax errors"
 [[ ! -e home/.copilot/copilot-instructions.md ]] || fail "deleted source-tree Copilot alias remains"
 
-local __fixture_root="$__root_dir/tests/.copilot-merge-fixture.$$"
+local __fixture_root
+__fixture_root="$(test_fixture_dir copilot-merge)" || exit 1
+trap 'rm -rf -- "${__fixture_root:-}"' EXIT
 local __fixture_home="$__fixture_root/home"
 local __fixture_config="$__fixture_root/mise-config"
 local __fixture_data="$__fixture_root/mise-data"
@@ -76,8 +78,6 @@ fi
 if [[ -e "$__live_lsp_config" ]]; then
     __live_lsp_before="$(shasum "$__live_lsp_config")"
 fi
-trap 'rm -rf -- "${__fixture_root:-}"' EXIT
-
 mkdir -p "$__fixture_home/.copilot" "$__fixture_repo/home/.copilot" "$__fixture_repo/home/.agents/agents" "$__fixture_config/conf.d" "$__fixture_data" "$__fixture_xdg" "$__fixture_state"
 cp "$__lsp_config" "$__fixture_repo/home/.copilot/lsp-config.json"
 cp "$__settings" "$__fixture_repo/home/.copilot/settings.json"

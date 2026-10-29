@@ -5,7 +5,13 @@ set -euo pipefail
 source "$(dirname "$0")/mise_test_helpers.zsh"
 
 local __task="$__root_dir/home/.config/mise/tasks/pr/review-watch.ts"
-local __fixture_dir="$__root_dir/.agents/projects.local/review-watch-repair/tmp/review-watch-test.$$"
+local __fixture_dir
+__fixture_dir="$(test_fixture_dir pr-review-watch)" || exit 1
+cleanup() {
+    chflags -R nouchg "$__fixture_dir" 2>/dev/null || true
+    rm -rf "$__fixture_dir"
+}
+trap cleanup EXIT
 local __bin_dir="$__fixture_dir/bin"
 local __state_file="$__fixture_dir/watch.json"
 local __log_file="$__fixture_dir/gh.log"
@@ -19,11 +25,6 @@ local __repository="$(
 )"
 
 mkdir -p "$__bin_dir"
-cleanup() {
-    chflags -R nouchg "$__fixture_dir" 2>/dev/null || true
-    rm -rf "$__fixture_dir"
-}
-trap cleanup EXIT
 
 cat > "$__bin_dir/gh" <<'EOF'
 #!/usr/bin/env bash

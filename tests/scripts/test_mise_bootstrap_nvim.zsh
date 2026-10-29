@@ -30,7 +30,8 @@ local __link_count="$(find "$__target" -type l | wc -l | tr -d ' ')"
 find "$__target" -type l -exec sh -c 'for path do case "$(readlink "$path")" in /*) exit 1;; esac; done' sh {} + ||
     fail "Neovim deployed link is absolute"
 [[ -f "$__target/.gitignore" ]] || fail "Neovim runtime boundary .gitignore is missing"
-local __smoke_fixture="$(test_fixture_dir nvim-smoke)"
+local __smoke_fixture
+__smoke_fixture="$(test_fixture_dir nvim-smoke)" || exit 1
 trap 'rm -rf -- "$__smoke_fixture"' EXIT
 mkdir -p "$__smoke_fixture/.config" "$__smoke_fixture/data" \
     "$__smoke_fixture/state" "$__smoke_fixture/cache"

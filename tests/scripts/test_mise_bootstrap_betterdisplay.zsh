@@ -9,7 +9,8 @@ assert_module_package betterdisplay brew-cask:betterdisplay
 
 local __module="home/.config/mise/conf.d/betterdisplay.toml"
 local __control_plane="home/.config/mise/conf.d/mise.toml"
-local __config_home="$(test_fixture_dir betterdisplay-config)"
+local __config_home
+__config_home="$(test_fixture_dir betterdisplay-config)" || exit 1
 trap 'rm -rf -- "$__config_home"' EXIT
 if grep -qF '~/.config/BetterDisplay' "$__module"; then
     fail "BetterDisplay plist is still declared as a deployed dotfile"
