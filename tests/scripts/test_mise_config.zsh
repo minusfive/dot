@@ -52,8 +52,9 @@ grep -qF '["validate_skill_evals"]' hk.pkl || fail "skill evaluation validation 
 grep -qF '["validate_skill_name_conflicts"]' hk.pkl || fail "skill name conflict hook is missing"
 grep -qF '["validate_task_name_conflicts"]' hk.pkl || fail "task name conflict hook is missing"
 
-grep -qF '"mise/config/mise/tasks/gh/auth/login.zsh"' home/.config/mise/conf.d/mise.toml ||
-    fail "GitHub auth task is not owned by the mise control plane"
+if grep -R -qF 'target = "{{ xdg_config_home }}/mise/' home/.config/mise/conf.d; then
+    fail "mise control-plane dotfiles must not own files inside the global config directory"
+fi
 if grep -R -qF 'target = "{{ mise_config_dir }}/' home/.config/mise/conf.d; then
     fail "mise dotfile targets must not resolve inside the repository-scoped MISE_CONFIG_DIR"
 fi
@@ -61,10 +62,9 @@ fi
     fail "persisted profile selector template is missing"
 [[ -f "home/.config/mise/profile.tmpl" ]] ||
     fail "resolved profile template is missing"
-grep -qF '"mise/config/mise/miserc.local.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "control plane does not deploy the persisted profile selector"
-grep -qF 'miserc.local.toml.tmpl", mode = "template", template = "tera"' home/.config/mise/conf.d/mise.toml ||
-    fail "persisted profile selector is not rendered with Tera"
+if grep -qF '"mise/config/mise/miserc.local.toml"' home/.config/mise/conf.d/mise.toml; then
+    fail "control plane must not own the optional local profile selector"
+fi
 grep -qF '"mise/state/minusfive/profile"' home/.config/mise/conf.d/mise.toml ||
     fail "control plane does not deploy the resolved profile state"
 grep -qF 'profile.tmpl", mode = "template", template = "tera"' home/.config/mise/conf.d/mise.toml ||
@@ -125,7 +125,9 @@ for __workspace in "$__personal_workspace" "$__work_workspace" "$__dot_workspace
 done
 grep -qF '[settings.dotfiles]' home/.config/mise/config.toml || fail "dotfiles settings are missing"
 grep -qF 'relative_symlinks = true' home/.config/mise/config.toml || fail "relative symlinks are not enabled"
-grep -qF '"mise/config/mise/conf.d/mise.toml"' home/.config/mise/conf.d/mise.toml || fail "mise module must manage itself"
+if grep -qF '"mise/config/mise/conf.d/mise.toml"' home/.config/mise/conf.d/mise.toml; then
+    fail "mise module must not redeploy the global config directory"
+fi
 if grep -R -qF '../../../home' home/.config/mise; then
     fail "legacy relative mise source path remains"
 fi
@@ -133,7 +135,6 @@ grep -qF 'source = "~/dev/personal/dot/home/AGENTS.md"' home/.config/mise/conf.d
     fail "Copilot source path is not canonical"
 [[ ! -e "home/.config/mise/conf.d/profiles.toml" ]] || fail "retired profile module remains"
 
-[[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 grep -qF 'auto_env = true' home/.config/mise/miserc.toml ||
     fail "auto_env must load platform-specific conf.d modules"
 if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/install-mise.zsh; then
@@ -147,7 +148,7 @@ __mise_fixture_dir="$(test_fixture_dir mise-config)" || exit 1
 trap 'rm -rf -- "$__trust_data" "$__mise_fixture_dir"' EXIT
 local __mise_fixture_home="$__mise_fixture_dir/home"
 local __mise_fixture_repository="$__mise_fixture_home/dev/personal/dot"
-local __host_mise_config="$HOME/.config/mise"
+local __mise_ignored_config="$__mise_fixture_dir/ignored-mise-config"
 local __mise_default_xdg_config="$__mise_fixture_home/.config"
 local __mise_default_xdg_data="$__mise_fixture_dir/default-xdg/data"
 local __mise_default_xdg_state="$__mise_fixture_dir/default-xdg/state"
@@ -174,7 +175,8 @@ mkdir -p \
     "$__mise_fixture_dir/mise-cache" \
     "$__mise_fixture_dir/mise-tmp" \
     "$__mise_fixture_dir/system-config" \
-    "$__mise_custom_config_dir"
+    "$__mise_custom_config_dir" \
+    "$__mise_ignored_config"
 ln -s "$__root_dir/home" "$__mise_fixture_repository/home"
 cp "$__root_dir/home/.config/mise/conf.d/opencode.personal.toml" \
     "$__mise_fixture_repository/mise.personal.toml"
@@ -263,7 +265,7 @@ trust_mise_fixture_config() {
         "MISE_SYSTEM_DATA_DIR=$__mise_fixture_dir/system-data"
         "MISE_SYSTEM_INSTALLS_DIR=$__mise_fixture_dir/system-installs"
         "MISE_SYSTEM_SHIMS_DIR=$__mise_fixture_dir/system-shims"
-        "MISE_IGNORED_CONFIG_PATHS=$__host_mise_config"
+        "MISE_IGNORED_CONFIG_PATHS=$__mise_ignored_config"
         "MISE_CEILING_PATHS=$__mise_fixture_home"
     )
 
@@ -285,7 +287,7 @@ local -a __mise_default_env=(
     "MISE_GLOBAL_CONFIG_FILE=$__mise_fixture_global_config"
     "MISE_GLOBAL_CONFIG_ROOT=$__mise_fixture_dir"
     "MISE_CEILING_PATHS=$__mise_fixture_home"
-    "MISE_IGNORED_CONFIG_PATHS=$__host_mise_config"
+    "MISE_IGNORED_CONFIG_PATHS=$__mise_ignored_config"
     "MISE_DATA_DIR=$__mise_fixture_dir/mise-data"
     "MISE_STATE_DIR=$__mise_fixture_dir/mise-state"
     "MISE_CACHE_DIR=$__mise_fixture_dir/mise-cache"
@@ -308,8 +310,8 @@ env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE "${__mise_default_env[@]}" \
     fail "default-path mise dotfile bootstrap failed"
 [[ ! -e "$__mise_default_xdg_config/opencode" ]] ||
     fail "work profile deployed the personal OpenCode target"
-grep -qxF 'env = ["work"]' "$__mise_default_config_dir/miserc.local.toml" ||
-    fail "missing profile state did not render the work selector"
+[[ ! -e "$__mise_default_config_dir/miserc.local.toml" ]] ||
+   fail "global config bootstrap created an unmanaged local selector"
 grep -qxF 'work' "$__mise_default_xdg_state/minusfive/profile" ||
     fail "work profile state was not written to the default XDG state directory"
 
@@ -318,13 +320,9 @@ local __default_mise_status="$(
         mise -C "$__mise_fixture_repository" -E work dot status --json
 )" || fail "default-path mise dotfile status failed"
 print -r -- "$__default_mise_status" |
-    jq -e --arg config "$__mise_default_config_dir/config.toml" \
-        --arg lock "$__mise_default_config_dir/mise.lock" \
-        --arg profile "$__mise_default_xdg_state/minusfive/profile" \
+    jq -e --arg profile "$__mise_default_xdg_state/minusfive/profile" \
         --arg nvim "$__mise_default_xdg_config/nvim" \
         '(.files | length > 0) and
-        any(.files[]; .target == $config and .mode == "symlink") and
-        any(.files[]; .target == $lock and .mode == "symlink") and
         any(.files[]; .target == $profile and .mode == "template") and
         any(.files[]; .target == $nvim and .mode == "symlink-each")' >/dev/null ||
     {
@@ -343,7 +341,7 @@ local -a __mise_custom_env=(
     "MISE_GLOBAL_CONFIG_FILE=$__mise_fixture_global_config"
     "MISE_GLOBAL_CONFIG_ROOT=$__mise_fixture_dir"
     "MISE_CEILING_PATHS=$__mise_fixture_home"
-    "MISE_IGNORED_CONFIG_PATHS=$__host_mise_config"
+    "MISE_IGNORED_CONFIG_PATHS=$__mise_ignored_config"
     "MISE_DATA_DIR=$__mise_fixture_dir/mise-data"
     "MISE_STATE_DIR=$__mise_fixture_dir/mise-state"
     "MISE_CACHE_DIR=$__mise_fixture_dir/mise-cache"
@@ -366,8 +364,8 @@ env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE "${__mise_custom_env[@]}" \
     fail "custom-path work mise dotfile bootstrap failed"
 [[ ! -e "$__mise_custom_xdg_config/opencode" ]] ||
     fail "custom work profile deployed the personal OpenCode target"
-grep -qxF 'env = ["work"]' "$__mise_custom_xdg_config/mise/miserc.local.toml" ||
-    fail "custom-path work profile selector was not rendered"
+[[ ! -e "$__mise_custom_xdg_config/mise/miserc.local.toml" ]] ||
+fail "custom-path bootstrap created an unmanaged local selector"
 env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE "${__mise_custom_env[@]}" \
     mise -C "$__mise_fixture_repository" -E personal bootstrap --only dotfiles --yes >/dev/null ||
     fail "custom-path personal mise dotfile bootstrap failed"
@@ -375,21 +373,17 @@ env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE "${__mise_custom_env[@]}" \
     fail "personal profile did not deploy OpenCode under XDG_CONFIG_HOME"
 [[ -L "$__mise_custom_xdg_config/opencode/opencode.jsonc" ]] ||
     fail "personal profile did not link the OpenCode source file"
-grep -qxF 'env = ["personal"]' "$__mise_custom_xdg_config/mise/miserc.local.toml" ||
-    fail "personal profile state did not render the personal selector"
+[[ ! -e "$__mise_custom_xdg_config/mise/miserc.local.toml" ]] ||
+    fail "personal bootstrap created an unmanaged local selector"
 
 local __custom_mise_status="$(
     env "${__mise_custom_env[@]}" MISE_SAFE=1 \
         mise -C "$__mise_fixture_repository" -E personal dot status --json
 )" || fail "custom-path mise dotfile status failed"
 print -r -- "$__custom_mise_status" |
-    jq -e --arg config "$__mise_custom_xdg_config/mise/config.toml" \
-        --arg lock "$__mise_custom_xdg_config/mise/mise.lock" \
-        --arg profile "$__mise_custom_xdg_state/minusfive/profile" \
+    jq -e --arg profile "$__mise_custom_xdg_state/minusfive/profile" \
         --arg nvim "$__mise_custom_xdg_config/nvim" \
         '(.files | length > 0) and
-        any(.files[]; .target == $config and .mode == "symlink") and
-        any(.files[]; .target == $lock and .mode == "symlink") and
         any(.files[]; .target == $profile and .mode == "template") and
         any(.files[]; .target == $nvim and .mode == "symlink-each")' >/dev/null ||
     fail "custom-path mise targets did not resolve to the fixture directories"
@@ -411,58 +405,20 @@ env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE \
     "${__custom_cleanup_env[@]}" \
     zsh "$__root_dir/home/.config/mise/tasks/bootstrap/post-dotfiles/cleanup.zsh" >/dev/null ||
     fail "custom-root cleanup failed after migration"
-[[ ! -L "$__mise_default_config_dir/config.toml" ]] ||
-    fail "custom-root cleanup left the old default mise config link"
-[[ ! -L "$__mise_default_config_dir/mise.lock" ]] ||
-    fail "custom-root cleanup left the old default mise lock link"
-[[ -L "$__mise_custom_xdg_config/mise/config.toml" ]] ||
-    fail "custom-root cleanup removed the active custom mise config link"
-
-local __mise_link_count
-__mise_link_count="$(find "$__mise_custom_xdg_config/mise" -type l | wc -l | tr -d ' ')"
-local __mise_declaration_count
-__mise_declaration_count="$(
-    awk '
-        /^\[dotfiles\]$/ { in_dotfiles = 1; next }
-        /^\[/ { in_dotfiles = 0 }
-        in_dotfiles && /^"mise\// { count++ }
-        END { print count }
-    ' "$__mise_source"
-)"
-local __symlink_each_declaration_count
-__symlink_each_declaration_count="$(grep -c 'mode = "symlink-each"' "$__mise_source")"
-local __template_declaration_count
-__template_declaration_count="$(grep -c 'template = "tera"' "$__mise_source")"
-local __symlink_each_source_count
-__symlink_each_source_count="$(find home/.config/mise/conf.d/macos -type f | wc -l | tr -d ' ')"
-local __nested_mise_declaration_count=0
-local __module
-for __module in home/.config/mise/conf.d/*.toml; do
-    [[ "$__module" == *mise.toml || "$__module" == *.personal.toml ]] && continue
-    (( __nested_mise_declaration_count += $(
-        awk '/^"[^"]+\/config\/mise\// { count++ } END { print count + 0 }' "$__module"
-    ) )) || :
-done
-local __expected_mise_link_count=$((__mise_declaration_count -
-    __symlink_each_declaration_count - __template_declaration_count +
-    __symlink_each_source_count + __nested_mise_declaration_count))
-[[ "$__mise_link_count" -eq "$__expected_mise_link_count" ]] ||
-    fail "expected $__expected_mise_link_count managed mise links in the custom XDG config directory, found $__mise_link_count"
-[[ -L "$__mise_custom_xdg_config/mise/conf.d/betterdisplay.toml" ]] ||
-    fail "isolated deployment omitted the BetterDisplay module link"
-[[ -f "$__mise_custom_xdg_config/mise/miserc.local.toml" ]] ||
-    fail "isolated deployment omitted the generated profile selector"
-if grep -qE '^"mise/config/mise/tasks/betterdisplay' "$__mise_source"; then
-    fail "mise control-plane module still declares BetterDisplay task links"
-fi
-[[ ! -e "$__mise_custom_xdg_config/mise/tasks/betterdisplay" ]] ||
-    fail "isolated deployment created BetterDisplay task links"
-grep -qF '*.local.*' home/.config/git/ignore ||
-    fail "global Git ignore does not cover local-suffix paths"
+[[ ! -e "$__mise_default_config_dir/config.toml" ]] ||
+    fail "default XDG config directory received a per-file mise config link"
+[[ ! -e "$__mise_custom_xdg_config/mise" ]] ||
+    fail "custom XDG config directory received per-file mise config ownership"
 
 # Mise deploys this source file as Git's global excludes file.
 [[ -f "home/.config/git/ignore" ]] || fail "mise global Git ignore source is missing"
-[[ -L "$HOME/.config/git/ignore" ]] || fail "mise did not install the global Git ignore file"
+local __mise_custom_git_ignore="$__mise_custom_xdg_config/git/ignore"
+[[ -L "$__mise_custom_git_ignore" ]] ||
+    fail "mise did not install the global Git ignore file under the custom XDG config directory"
+[[ "$(realpath "$__mise_custom_git_ignore")" == "$(realpath home/.config/git/ignore)" ]] ||
+    fail "custom XDG Git ignore target does not resolve to its tracked source"
+grep -qF '*.local.*' "$__mise_custom_git_ignore" ||
+    fail "global Git ignore does not cover local-suffix paths"
 
 for __local_file in \
     'mise.local.toml' \
@@ -475,7 +431,8 @@ for __local_file in \
     'example.local.yaml' \
     '.env.local.sample' \
     '.claude/settings.local.json'; do
-    git check-ignore -q --no-index "$__local_file" ||
+    git -c core.excludesFile="$__mise_custom_git_ignore" \
+        check-ignore -q --no-index "$__local_file" ||
         fail "bootstrapped global Git ignore does not ignore local config: $__local_file"
 done
 
@@ -497,7 +454,7 @@ __fallback_env="$(
         HOME="$__fallback_home" \
         XDG_CONFIG_HOME="$__fallback_home/.config" \
         XDG_STATE_HOME="$__fallback_home/.local/state" \
-        MISE_IGNORED_CONFIG_PATHS="$__host_mise_config" \
+        MISE_IGNORED_CONFIG_PATHS="$__fallback_home/.config/mise-ignored" \
         MISE_CEILING_PATHS="$__fallback_home" \
         mise -C "$__fallback_home" env --json
 )"
@@ -522,7 +479,7 @@ printf '\n[env]\nMISE_PROFILE_SMOKE_PERSONAL = "1"\n' >> "$__tmp_home/.config/mi
 
 local __work_env
 __work_env="$(env MISE_ENV=work HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
-    MISE_IGNORED_CONFIG_PATHS="$__host_mise_config" \
+    MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" env --json)"
 print -r -- "$__work_env" | grep -q '"MISE_PROFILE_SMOKE_BASE": "1"' || fail "work profile should load base config"
@@ -532,20 +489,20 @@ fi
 
 local __work_profile
 __work_profile="$(env MISE_ENV=work HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
-    MISE_IGNORED_CONFIG_PATHS="$__host_mise_config" \
+    MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" exec -- sh -c 'printf "%s" "$MISE_ENV"')"
 [[ "$__work_profile" == work ]] || fail "explicit work environment should override persisted state"
 local __cli_work_profile
 __cli_work_profile="$(env HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
-    MISE_IGNORED_CONFIG_PATHS="$__host_mise_config" \
+    MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" -E work exec -- sh -c 'printf "%s" "$MISE_ENV"')"
 [[ "$__cli_work_profile" == work ]] || fail "explicit -E work environment was not exported"
 
 local __personal_env
 __personal_env="$(env MISE_ENV=personal HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
-    MISE_IGNORED_CONFIG_PATHS="$__host_mise_config" \
+    MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" env --json)"
 print -r -- "$__personal_env" | grep -q '"MISE_PROFILE_SMOKE_BASE": "1"' || fail "personal profile should load base config"

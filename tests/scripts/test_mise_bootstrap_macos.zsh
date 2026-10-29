@@ -10,8 +10,7 @@ local __config="home/.config/mise/conf.d/macos/mise.macos.toml"
 local __control_plane="home/.config/mise/conf.d/mise.toml"
 
 [[ -f "$__config" ]] || fail "missing $__config"
-grep -qF '"mise/config/mise/conf.d/macos" = {' "$__control_plane" ||
-    fail "control-plane module does not deploy the macOS folder fragment"
+
 grep -qF '[bootstrap.directories."~/Pictures/screenshots"]' "$__config" ||
     fail "screenshots directory declaration is missing"
 grep -qF "[bootstrap.macos.dock]" "$__config" ||

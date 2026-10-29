@@ -10,6 +10,9 @@ local __control_plane="home/.config/mise/conf.d/mise.toml"
 local __control_plane_dotfiles="$(
     mise config get --file "$__control_plane" dotfiles
 )" || fail "could not parse the mise control-plane dotfiles"
+if print -r -- "$__control_plane_dotfiles" | grep -qF '"mise/config/mise/'; then
+    fail "control-plane module still declares per-file mise config ownership"
+fi
 local __work_profile_config="$(
     env MISE_ENV=work \
         MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
@@ -27,7 +30,6 @@ assert_module_contract() {
     local __declaration="$3"
     local __module_file="$(module_filename "$__module")"
     local __config="home/.config/mise/conf.d/$__module_file"
-    local __logical_target="mise/config/mise/conf.d/$__module_file"
     local __declarations
 
     [[ -f "$__config" ]] || fail "missing $__config"
@@ -59,12 +61,6 @@ assert_module_contract() {
             fail "unknown module contract kind: $__kind"
             ;;
     esac
-    print -r -- "$__control_plane_dotfiles" |
-        grep -qF "\"$__logical_target\"" ||
-        fail "control-plane module does not deploy $__module_file"
-    print -r -- "$__control_plane_dotfiles" |
-        grep -qF "target = \"{{ xdg_config_home }}/mise/conf.d/$__module_file\"" ||
-        fail "control-plane module target does not follow XDG_CONFIG_HOME for $__module_file"
     if [[ "$__kind" == personal ]]; then
         if print -r -- "$__work_profile_config" | grep -qF "$__module_file"; then
             fail "$__module must not be selected by the work profile"

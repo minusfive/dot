@@ -58,10 +58,6 @@ done
 grep -qF '[bootstrap.hooks]' "$__config" || fail "Oh My Zsh bootstrap hooks are missing"
 grep -qF 'post-dotfiles = "mise run omz:update"' "$__config" ||
     fail "Oh My Zsh update hook is missing"
-grep -qF '"mise/config/mise/conf.d/oh-my-zsh.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy oh-my-zsh.toml"
-grep -qF '"mise/config/mise/tasks/omz/update.zsh"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy the Oh My Zsh update task"
 [[ -f "home/.config/mise/tasks/omz/update.zsh" ]] ||
     fail "missing Oh My Zsh update task"
 zsh -n home/.config/mise/tasks/omz/update.zsh ||

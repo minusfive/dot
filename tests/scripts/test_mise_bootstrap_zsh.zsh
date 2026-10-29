@@ -41,8 +41,6 @@ zsh -n "$__migration_task" || fail "Zsh migration task has syntax errors"
 grep -qF '[bootstrap.hooks]' "$__config" || fail "Zsh bootstrap hooks are missing"
 grep -qF 'pre-dotfiles = "mise run zsh:migrate"' "$__config" ||
     fail "Zsh migration hook is missing"
-grep -qF '"mise/config/mise/tasks/zsh/migrate.zsh"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy the Zsh migration task"
 local __task_info="$(
     env -u MISE_ENV MISE_CONFIG_DIR="$__test_mise_config_dir" MISE_ENV_CONF_D=true \
         mise -C "$__test_mise_repository" tasks info zsh:migrate

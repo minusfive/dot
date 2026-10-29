@@ -111,15 +111,10 @@ assert_tool_module() {
     local __declaration="$2"
     local __module_file="$(module_filename "$__module")"
     local __config="home/.config/mise/conf.d/$__module_file"
-    local __control_plane="home/.config/mise/conf.d/mise.toml"
     [[ -f "$__config" ]] || fail "missing $__config"
     grep -qF "[tools]" "$__config" || fail "tools section is missing from $__config"
     grep -qF "$__declaration" "$__config" ||
         fail "$__declaration is missing from $__config"
-    grep -qF "\"mise/config/mise/conf.d/$__module_file\"" "$__control_plane" ||
-        fail "control-plane module does not deploy $__module_file"
-    grep -qF "target = \"{{ xdg_config_home }}/mise/conf.d/$__module_file\"" "$__control_plane" ||
-        fail "control-plane module target does not follow XDG_CONFIG_HOME for $__module_file"
     local __profile_config
     for __profile in work personal; do
         __profile_config="$(
@@ -139,14 +134,9 @@ assert_module_repo() {
     local __ref="${4:-}"
     local __module_file="$(module_filename "$__module")"
     local __config="home/.config/mise/conf.d/$__module_file"
-    local __control_plane="home/.config/mise/conf.d/mise.toml"
     [[ -f "$__config" ]] || fail "missing $__config"
     grep -qF "[bootstrap.repos]" "$__config" || fail "repository bootstrap section is missing from $__config"
     grep -qF "$__url" "$__config" || fail "$__url is missing from $__config"
-    grep -qF "\"mise/config/mise/conf.d/$__module_file\"" "$__control_plane" ||
-        fail "control-plane module does not deploy $__module_file"
-    grep -qF "target = \"{{ xdg_config_home }}/mise/conf.d/$__module_file\"" "$__control_plane" ||
-        fail "control-plane module target does not follow XDG_CONFIG_HOME for $__module_file"
     for __profile in work personal; do
         local __profile_config="$(
             env MISE_ENV="$__profile" \

@@ -25,8 +25,6 @@ for __source_path in home/.config/p10k/zshrc.zsh home/.config/p10k/zshrc-zone-2.
 done
 grep -qF 'ZSH_THEME="powerlevel10k/powerlevel10k"' home/.config/p10k/zshrc.zsh ||
     fail "Powerlevel10k module does not own ZSH_THEME"
-grep -qF '"mise/config/mise/conf.d/p10k.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy p10k.toml"
 for __other_config in home/.config/mise/conf.d/*.toml; do
     [[ "$__other_config" == "$__config" ]] && continue
     if grep -qF '"~/.config/oh-my-zsh/custom/themes/powerlevel10k"' "$__other_config" ||

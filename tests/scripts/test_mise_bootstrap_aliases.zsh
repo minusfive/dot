@@ -26,8 +26,6 @@ for __section in '[bootstrap.packages]' '[bootstrap.repos]' '[bootstrap.hooks]' 
         fail "aliases module must not declare $__section"
     fi
 done
-grep -qF '"mise/config/mise/conf.d/aliases.toml"' "$__control_plane" ||
-    fail "mise control-plane module does not deploy aliases.toml"
 for __profile in work personal; do
     local __profile_config="$(
         env MISE_ENV="$__profile" \
@@ -68,12 +66,12 @@ local __fixture_dir
 __fixture_dir="$(test_fixture_dir aliases-module)" || exit 1
 local __fixture_home="$__fixture_dir/home"
 local __fixture_config="$__fixture_home/.config/mise"
+local __fixture_ignored_config="$__fixture_dir/ignored-mise-config"
 local __fixture_zone="$__fixture_home/.config/zsh/.zshrc-zone-2.zsh"
 local __fixture_zone_before="$__fixture_dir/zone-2.before"
 local __fixture_aliases="$__fixture_home/.config/zsh/.aliases"
 local __fixture_unmanaged="$__fixture_home/unmanaged.fixture"
 local __fixture_unmanaged_before="$__fixture_dir/unmanaged.before"
-local __host_mise_config="$HOME/.config/mise"
 local __fixture_output="$__fixture_dir/dry-run.log"
 local __fixture_apply_output="$__fixture_dir/apply.log"
 trap 'rm -rf "$__fixture_dir"' EXIT
@@ -108,7 +106,7 @@ local __mise_env=(
     "MISE_GLOBAL_CONFIG_FILE=$__fixture_config/config.toml"
     "MISE_GLOBAL_CONFIG_ROOT=$__fixture_config"
     "MISE_CONFIG_DIR=$__fixture_config"
-    "MISE_IGNORED_CONFIG_PATHS=$__host_mise_config"
+    "MISE_IGNORED_CONFIG_PATHS=$__fixture_ignored_config"
     "MISE_CEILING_PATHS=$__fixture_home"
     "MISE_DATA_DIR=$__fixture_home/.local/share/mise"
     "MISE_CACHE_DIR=$__fixture_home/.cache/mise"

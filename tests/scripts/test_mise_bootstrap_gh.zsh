@@ -26,8 +26,6 @@ grep -qF '"gh/config/gh/personal/hosts.yml" = { source = "~/dev/personal/dot/hom
 if grep -qF '[bootstrap.files."~/.config/gh/personal/hosts.yml"]' "$__config"; then
     fail "GitHub hosts resource must not remain a bootstrap file"
 fi
-grep -qF '"mise/config/mise/conf.d/gh.toml"' home/.config/mise/conf.d/mise.toml ||
-    fail "mise control-plane module does not deploy gh.toml"
 grep -qF 'source = "~/dev/personal/dot/home/.config/gh/personal/hosts.yml"' "$__config" || fail "GitHub hosts source is missing"
 grep -qF '"~/dev/personal/mise.toml/gh-config" = { source = "~/dev/personal/dot/home/.config/gh/gh-personal.mise.toml", template = "tera", merge = true }' "$__config" ||
     fail "personal GH_CONFIG_DIR merge entry is missing"
@@ -48,7 +46,7 @@ __fixture_dir="$(test_fixture_dir gh-xdg-config)" || exit 1
 local __fixture_home="$__fixture_dir/home"
 local __fixture_repository="$__fixture_home/dev/personal/dot"
 local __fixture_xdg_config="$__fixture_dir/custom-xdg/config"
-local __host_mise_config="$HOME/.config/mise"
+local __fixture_ignored_config="$__fixture_dir/ignored-mise-config"
 trap 'rm -rf -- "$__fixture_dir"' EXIT
 mkdir -p "$__fixture_repository" "$__fixture_home/.config/mise" "$__fixture_xdg_config" \
     "$__fixture_dir/data" "$__fixture_dir/state" "$__fixture_dir/cache" \
@@ -77,7 +75,7 @@ local -a __fixture_env=(
     "MISE_SYSTEM_DATA_DIR=$__fixture_dir/system-data"
     "MISE_SYSTEM_INSTALLS_DIR=$__fixture_dir/system-installs"
     "MISE_SYSTEM_SHIMS_DIR=$__fixture_dir/system-shims"
-    "MISE_IGNORED_CONFIG_PATHS=$__host_mise_config"
+    "MISE_IGNORED_CONFIG_PATHS=$__fixture_ignored_config"
     "MISE_CEILING_PATHS=$__fixture_home"
     "MISE_NO_HOOKS=1"
 )

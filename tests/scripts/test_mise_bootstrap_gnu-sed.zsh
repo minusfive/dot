@@ -18,8 +18,7 @@ grep -qF '"brew:gnu-sed" = "latest"' "$__config" ||
     fail "GNU sed package declaration is incorrect"
 grep -qF '"~/.config/zsh/.zshrc-zone-0.zsh/gnu-sed" = { source = "~/dev/personal/dot/home/.config/gnu-sed/zshrc.zsh", template = "tera" }' "$__config" ||
     fail "GNU sed Zone 0 template declaration is missing"
-grep -qF '"mise/config/mise/conf.d/gnu-sed.toml"' "$__control_plane" ||
-    fail "mise control-plane module does not deploy gnu-sed.toml"
+
 if grep -qF '"~/.config/gnu-sed"' "$__config"; then
     fail "GNU sed module must not manage a standalone runtime target"
 fi

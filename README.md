@@ -19,7 +19,7 @@ mise bootstrap
 ```
 
 - The [`./scripts/install-mise.zsh`](./scripts/install-mise.zsh) installs `mise` when it is not available and checks the supported installation. On success it prints the commands for next steps.
-- Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` and selects the repository-scoped `mise` configuration.
+- Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` and selects the repository source for the global `mise` configuration.
 - The `mise` `bootstrap` command asks for approval before it changes `macOS` preferences, places files, installs tools and applications, and clones repositories. The selected profile is validated before profile-sensitive phases.
 - Use `mise bootstrap --dry-run` to preview changes without applying them.
 - The `mise` [`bootstrap:post-dotfiles`](./scripts/tasks/bootstrap/post-dotfiles.zsh) task updates the cleanup inventory and removes stale links after the dotfiles phase. The `bootstrap:final` hook applies repository fixes after tool installation.
@@ -47,7 +47,11 @@ Each repository path selects a local identity and credential profile for [`Git`]
 
 ### File ownership and application data
 
-The `home/` directory mirrors the target user's `$HOME` layout. `mise` places selected files where the corresponding tool or application expects to find them, including `mise` itself. A placed file can be a link, a copy, or an edit of an existing file.
+The `home/` directory contains source files for resources that `mise` places outside the repository. Most entries mirror the target user's `$HOME` layout. The `home/.config/mise/` tree contains repository-scoped source declarations for the global `mise` configuration and tasks. `mise` reads these declarations through `MISE_CONFIG_DIR`; the declarations are not deployed as a directory link at `$HOME/.config/mise`.
+
+Other `mise`-managed resources are deployed outside the repository. This includes the selected profile state at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile`. These resources can be links, copies, or edits of existing files.
+
+The global directory link is a later migration target. That migration can make `$HOME/.config/mise` a directory link to this source tree.
 
 The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`bootstrap.directories`][mise-bootstrap] entries describe how and when `mise` manages files and directories.
 
@@ -79,7 +83,7 @@ The files are grouped by purpose. Each module manages related resources. A `dotf
 │   │   ├── BetterDisplay/
 │   │   ├── ...
 │   │   └── mise/
-│   │       ├── conf.d/              # per-tool module files
+│   │       ├── conf.d/              # repository-scoped mise modules
 │   │       │   ├── 1password.toml
 │   │       │   ├── agents.toml
 │   │       │   ├── bat.toml
