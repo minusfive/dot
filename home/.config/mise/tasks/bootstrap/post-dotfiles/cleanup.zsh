@@ -109,13 +109,30 @@ __project_root="$(cd "$__project_root" 2>/dev/null && pwd -L)" ||
 __project_root_physical="$(cd "$__project_root" 2>/dev/null && pwd -P)" ||
     die "dotfiles repository does not exist: $__project_root"
 
-__global_config_dir="${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/mise}"
-[[ -d "$__global_config_dir" ]] || die "mise configuration directory does not exist: $__global_config_dir"
-__mise_dir="$(cd "$__global_config_dir" 2>/dev/null && pwd -P)" ||
-    die "mise configuration directory does not exist: $__global_config_dir"
 __active_source_dir="$(normalize_path "$__project_root/home/.config/mise")"
 __active_source_dir_physical="$(cd "$__active_source_dir" 2>/dev/null && pwd -P)" ||
     die "active mise source directory does not exist: $__active_source_dir"
+__configured_config_dir="${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/mise}"
+if [[ -n "${MISE_CONFIG_DIR:-}" && "$__configured_config_dir" != /* ]]; then
+    __configured_config_dir="$PWD/$__configured_config_dir"
+fi
+[[ -d "$__configured_config_dir" ]] ||
+    die "mise configuration directory does not exist: $__configured_config_dir"
+__configured_config_dir="$(normalize_path "$__configured_config_dir")"
+__configured_config_physical="$(cd "$__configured_config_dir" 2>/dev/null && pwd -P)" ||
+    die "mise configuration directory does not exist: $__configured_config_dir"
+__global_config_dir="$(normalize_path "${XDG_CONFIG_HOME:-$HOME/.config}/mise")"
+if [[ -n "${MISE_CONFIG_DIR:-}" ]]; then
+    case "$__configured_config_dir" in
+        "$__active_source_dir"|"$__active_source_dir"/*) ;;
+        *)
+            case "$__configured_config_physical" in
+                "$__active_source_dir_physical"|"$__active_source_dir_physical"/*) ;;
+                *) __global_config_dir="$__configured_config_dir" ;;
+            esac
+            ;;
+    esac
+fi
 __mise_state_dir="${MISE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/mise}"
 __mise_data_dir="${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}"
 __mise_cache_dir="${MISE_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/mise}"

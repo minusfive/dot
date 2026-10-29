@@ -7,6 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 echo "Testing bootstrap:post-dotfiles:cleanup task..."
 
 local __task="home/.config/mise/tasks/bootstrap/post-dotfiles/cleanup.zsh"
+local __task_path="$PWD/$__task"
 local __fixture_dir
 __fixture_dir="$(test_fixture_dir cleanup)" || exit 1
 local __fixture_home="$__fixture_dir/home"
@@ -373,6 +374,34 @@ local -a __ownership_env=(
 env -u MISE_CONFIG_DIR "${__ownership_env[@]}" \
     mise -C "$__ownership_root" trust "$__ownership_global_config" >/dev/null ||
     fail "could not trust ownership cleanup fixture config"
+
+ln -s "$__ownership_root/home/stale-mise" "$__ownership_xdg/mise"
+(cd "$__ownership_root" && env "${__ownership_env[@]}" MISE_CONFIG_DIR=home/.config/mise \
+    zsh "$__task_path") > "$__output"
+[[ ! -L "$__ownership_xdg/mise" ]] ||
+    fail "relative source-selected global config link remains"
+
+ln -s "$__ownership_root/home/stale-mise" "$__ownership_xdg/mise"
+env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_source" \
+    zsh "$__task" > "$__output"
+[[ ! -L "$__ownership_xdg/mise" ]] ||
+    fail "stale repository-owned source-selected global config link remains"
+ln -s "$__ownership_source" "$__ownership_xdg/mise"
+env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_source" \
+    zsh "$__task" > "$__output"
+[[ -L "$__ownership_xdg/mise" ]] ||
+    fail "active source-selected global config link was removed"
+[[ "$(realpath "$__ownership_xdg/mise")" == "$(realpath "$__ownership_source")" ]] ||
+    fail "active source-selected global config link target changed"
+rm -f "$__ownership_xdg/mise"
+ln -s "$__ownership_external" "$__ownership_xdg/mise"
+env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_source" \
+    zsh "$__task" > "$__output"
+[[ -L "$__ownership_xdg/mise" ]] ||
+    fail "external source-selected global config link was removed"
+[[ "$(readlink "$__ownership_xdg/mise")" == "$__ownership_external" ]] ||
+    fail "external source-selected global config link target changed"
+rm -f "$__ownership_xdg/mise"
 
 ln -s "$__ownership_root/home/stale-mise" "$__ownership_xdg/mise"
 env -u MISE_CONFIG_DIR "${__ownership_env[@]}" zsh "$__task" > "$__output"
