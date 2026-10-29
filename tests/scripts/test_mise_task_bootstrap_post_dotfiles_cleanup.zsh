@@ -343,12 +343,14 @@ local __ownership_xdg="$__fixture_dir/ownership-xdg/config"
 local __ownership_explicit="$__fixture_dir/ownership-explicit/mise"
 local __ownership_global_config="$__fixture_dir/ownership-global.toml"
 local __ownership_external="$__fixture_dir/ownership-external"
+local __ownership_alias="$__ownership_root/home/alias"
 mkdir -p "$__ownership_source" "$__ownership_home" "$__ownership_xdg" \
     "$__ownership_root/home/stale-mise" "$__ownership_external" \
     "$(dirname "$__ownership_explicit")" \
     "$__ownership_root/home/.agents/skills" "$__ownership_root/home/.claude" \
     "$__ownership_home/.claude/skills" "$__ownership_source/conf.d"
 ln -s "../.agents/skills" "$__ownership_root/home/.claude/skills"
+ln -s "$__ownership_external" "$__ownership_alias"
 printf '[settings]\n' > "$__ownership_global_config"
 : > "$__ownership_source/cleanup.paths"
 printf '.claude/skills\n' > "$__ownership_source/cleanup.paths"
@@ -406,6 +408,19 @@ env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_source" \
 [[ "$(readlink "$__ownership_xdg/mise")" == "$__ownership_external" ]] ||
     fail "external source-selected global config link target changed"
 rm -f "$__ownership_xdg/mise"
+
+ln -s "$__ownership_alias/missing-mise" "$__ownership_xdg/mise"
+env -u MISE_CONFIG_DIR "${__ownership_env[@]}" zsh "$__task" > "$__output"
+[[ -L "$__ownership_xdg/mise" ]] ||
+    fail "dangling external source-selected global config link was removed"
+[[ "$(readlink "$__ownership_xdg/mise")" == "$__ownership_alias/missing-mise" ]] ||
+    fail "dangling external source-selected global config link target changed"
+rm -f "$__ownership_xdg/mise"
+
+ln -s "$__ownership_root/home/stale-mise/missing-mise" "$__ownership_xdg/mise"
+env -u MISE_CONFIG_DIR "${__ownership_env[@]}" zsh "$__task" > "$__output"
+[[ ! -L "$__ownership_xdg/mise" ]] ||
+    fail "dangling repository-owned source-selected global config link remains"
 
 ln -s "$__ownership_root/home/stale-mise" "$__ownership_xdg/mise"
 env -u MISE_CONFIG_DIR "${__ownership_env[@]}" zsh "$__task" > "$__output"

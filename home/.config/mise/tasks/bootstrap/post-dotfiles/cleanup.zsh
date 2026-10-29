@@ -359,18 +359,13 @@ for __scan_root in "${__scan_roots[@]}"; do
 
     if [[ "$__link" == "$__xdg_config_dir" ||
         "$__link" == "$__configured_config_dir" ]]; then
-        if [[ -e "$__source_path" || -L "$__source_path" ]]; then
-            __source_physical_path="$(resolve_physical_source "$__source_path")" ||
-                die "cannot resolve global mise config directory source: $__link"
-        else
-            __source_physical_path="$__source_path"
-        fi
+        __source_physical_path="$(resolve_physical_source "$__source_path")" ||
+            die "cannot resolve global mise config directory source: $__link"
 
         if [[ "$__source_physical_path" == "$__active_source_dir_physical" ]]; then
             continue
         fi
-        if is_repo_source "$__source_path" ||
-            is_repo_source "$__source_physical_path"; then
+        if is_repo_source "$__source_physical_path"; then
             remove_stale_link "$__link" "$__source_physical_path"
         fi
         continue
