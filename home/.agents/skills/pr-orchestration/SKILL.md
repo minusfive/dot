@@ -50,17 +50,17 @@ This gate reviews the integrated PR diff before delivery. `execution-workflow` o
 3. Invoke the poll manually or through an external schedule, and consume its machine-readable JSON.
 4. The task does not notify a background agent; the scheduler or poll invocation returns findings to the orchestrator.
 5. Treat a nonzero poll exit as a failed poll with no state advance.
-6. Inspect new review summaries, inline comments, review decisions, and failed or pending checks.
-7. On every review cycle, inspect all unresolved review comments and threads on the PR, not only comments from the latest poll.
-8. Validate each remaining comment against the current diff and tests. Address every actionable comment in the matching worktree.
-9. After a zero-finding review, keep the PR watched for four additional checks at 15-minute intervals because later automated reviews can appear.
-10. Remove an open PR only after that grace period is clean. Remove merged or closed PRs from the watch state automatically.
-11. Limit review-fix cycles to 10 per PR.
-12. If actionable findings remain after the tenth cycle, stop the cycle and report the remaining findings.
-13. Run focused tests and an independent critique subagent before every review-fix commit and push.
-14. Use `commit-guidelines` and `pr-guidelines` for the review-fix commit and push.
-15. After every review-fix cycle and successful push, reply to each addressed actionable review thread with concise reasoning and the validating tests.
-16. Resolve each addressed thread when the fix fully addresses it. Leave unrelated or partially addressed threads open.
+6. Fetch and parse every complete new review body and all review comments, including comments without `path` or `line`, review summaries, and outside-diff sections, regardless of `review_decision` or empty inline-comment pages.
+7. On every review cycle, enumerate and validate all unresolved findings from review bodies, review summaries, inline threads, issue comments, and outside-diff sections.
+8. Keep a finding ledger with its source, validation evidence, and disposition: fix, reject with evidence, or accepted residual risk. Complete the ledger before moving the PR or story forward.
+9. Address every actionable finding in the matching worktree. For each one, run an independent critique, fix, focused tests, and authorized push before the next review poll.
+10. Reply in the corresponding review thread after each fix and resolve it when the fix fully addresses it. If no thread exists, record the reply and disposition through the applicable review channel and in the ledger.
+11. Follow `execution-workflow` to reconcile issue and project-card lanes after each review cycle. Reopen a closed issue and move its card back when review work moves the story backward.
+12. After a zero-finding review, keep the PR watched for four additional checks at 15-minute intervals because later automated reviews can appear.
+13. Remove an open PR only after that grace period is clean. Remove merged or closed PRs from the watch state automatically.
+14. Limit review-fix cycles to 10 per PR.
+15. If actionable findings remain after the tenth cycle, stop the cycle and report the remaining findings.
+16. Use `commit-guidelines` and `pr-guidelines` for every review-fix commit and push.
 17. Remove the matching worktree after a PR merges and the worktree is clean.
 18. Stop the external schedule when all watched PRs satisfy the grace period, and close the orchestration cycle when no actionable review work remains.
 
