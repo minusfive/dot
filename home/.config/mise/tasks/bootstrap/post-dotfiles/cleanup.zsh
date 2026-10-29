@@ -122,13 +122,16 @@ __configured_config_dir="${MISE_CONFIG_DIR:-$__xdg_config_dir}"
 if [[ -n "${MISE_CONFIG_DIR:-}" && "$__configured_config_dir" != /* ]]; then
     __configured_config_dir="$PWD/$__configured_config_dir"
 fi
-[[ -d "$__configured_config_dir" ]] ||
-    die "mise configuration directory does not exist: $__configured_config_dir"
 __configured_config_dir="$(normalize_path "$__configured_config_dir")"
-__configured_config_physical="$(cd "$__configured_config_dir" 2>/dev/null && pwd -P)" ||
-    die "mise configuration directory does not exist: $__configured_config_dir"
+__configured_config_physical=""
+if [[ ! -L "$__configured_config_dir" ]]; then
+    [[ -d "$__configured_config_dir" ]] ||
+        die "mise configuration directory does not exist: $__configured_config_dir"
+    __configured_config_physical="$(cd "$__configured_config_dir" 2>/dev/null && pwd -P)" ||
+        die "mise configuration directory does not exist: $__configured_config_dir"
+fi
 __xdg_config_physical=""
-if [[ -d "$__xdg_config_dir" ]]; then
+if [[ ! -L "$__xdg_config_dir" && -d "$__xdg_config_dir" ]]; then
     __xdg_config_physical="$(cd "$__xdg_config_dir" 2>/dev/null && pwd -P)" ||
         die "XDG mise configuration directory does not exist: $__xdg_config_dir"
 fi
@@ -212,11 +215,16 @@ add_config_root() {
     local __prefix=""
 
     [[ -n "$__root" ]] || return 0
-    case "$__root" in
-        "$HOME"/*) __prefix="${__root#$HOME/}" ;;
-        "$HOME") ;;
-        *) __prefix="__outside_home__" ;;
-    esac
+    if [[ "$__root" == "$__xdg_config_dir" ||
+        "$__root" == "$__configured_config_dir" ]]; then
+        __prefix=".config/mise"
+    else
+        case "$__root" in
+            "$HOME"/*) __prefix="${__root#$HOME/}" ;;
+            "$HOME") ;;
+            *) __prefix="__outside_home__" ;;
+        esac
+    fi
     __config_root_prefixes[$__root]="$__prefix"
     add_scan_path "$__root"
 }

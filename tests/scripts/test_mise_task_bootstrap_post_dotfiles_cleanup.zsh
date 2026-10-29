@@ -339,8 +339,8 @@ grep -qF "outside this repository" "$__failure_output" ||
 local __ownership_root="$__fixture_dir/ownership-repository"
 local __ownership_home="$__fixture_dir/ownership-home"
 local __ownership_source="$__ownership_root/home/.config/mise"
-local __ownership_xdg="$__ownership_home/.config"
-local __ownership_explicit="$__ownership_home/.mise-config"
+local __ownership_xdg="$__fixture_dir/ownership-xdg/config"
+local __ownership_explicit="$__fixture_dir/ownership-explicit/mise"
 local __ownership_global_config="$__fixture_dir/ownership-global.toml"
 local __ownership_external="$__fixture_dir/ownership-external"
 mkdir -p "$__ownership_source" "$__ownership_home" "$__ownership_xdg" \
@@ -421,6 +421,12 @@ env -u MISE_CONFIG_DIR "${__ownership_env[@]}" zsh "$__task" > "$__output"
 [[ -L "$__ownership_xdg/mise" ]] ||
     fail "external custom XDG mise config link was removed"
 
+rm -f "$__ownership_xdg/mise"
+ln -s "$__ownership_root/home/missing-mise" "$__ownership_xdg/mise"
+env -u MISE_CONFIG_DIR "${__ownership_env[@]}" zsh "$__task" > "$__output"
+[[ ! -L "$__ownership_xdg/mise" ]] ||
+    fail "dangling custom XDG mise config link remains"
+
 ln -s "$__ownership_root/home/stale-mise" "$__ownership_explicit"
 env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_explicit" \
     zsh "$__task" > "$__output"
@@ -447,8 +453,8 @@ printf 'explicit mismatch\n' > "$__ownership_source/explicit-mismatch.toml"
 cat > "$__ownership_source/cleanup.migrations" <<'EOF'
 .config/mise/custom-xdg-match.toml	home/.config/mise/custom-xdg-match.toml
 .config/mise/custom-xdg-mismatch.toml	home/.config/mise/custom-xdg-match.toml
-.mise-config/explicit-match.toml	home/.config/mise/explicit-match.toml
-.mise-config/explicit-mismatch.toml	home/.config/mise/explicit-match.toml
+.config/mise/explicit-match.toml	home/.config/mise/explicit-match.toml
+.config/mise/explicit-mismatch.toml	home/.config/mise/explicit-match.toml
 EOF
 ln -s "$__ownership_source/custom-xdg-match.toml" \
     "$__ownership_xdg/mise/custom-xdg-match.toml"
