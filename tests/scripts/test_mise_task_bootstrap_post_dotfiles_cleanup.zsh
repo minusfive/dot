@@ -339,15 +339,19 @@ grep -qF "outside this repository" "$__failure_output" ||
 local __ownership_root="$__fixture_dir/ownership-repository"
 local __ownership_home="$__fixture_dir/ownership-home"
 local __ownership_source="$__ownership_root/home/.config/mise"
-local __ownership_xdg="$__fixture_dir/ownership-xdg/config"
-local __ownership_explicit="$__fixture_dir/ownership-explicit/mise"
+local __ownership_xdg="$__ownership_home/.config"
+local __ownership_explicit="$__ownership_home/.mise-config"
 local __ownership_global_config="$__fixture_dir/ownership-global.toml"
 local __ownership_external="$__fixture_dir/ownership-external"
 mkdir -p "$__ownership_source" "$__ownership_home" "$__ownership_xdg" \
     "$__ownership_root/home/stale-mise" "$__ownership_external" \
-    "$(dirname "$__ownership_explicit")"
+    "$(dirname "$__ownership_explicit")" \
+    "$__ownership_root/home/.agents/skills" "$__ownership_root/home/.claude" \
+    "$__ownership_home/.claude/skills" "$__ownership_source/conf.d"
+ln -s "../.agents/skills" "$__ownership_root/home/.claude/skills"
 printf '[settings]\n' > "$__ownership_global_config"
 : > "$__ownership_source/cleanup.paths"
+printf '.claude/skills\n' > "$__ownership_source/cleanup.paths"
 : > "$__ownership_source/cleanup.blocks"
 : > "$__ownership_source/cleanup.migrations"
 local -a __ownership_env=(
@@ -443,8 +447,8 @@ printf 'explicit mismatch\n' > "$__ownership_source/explicit-mismatch.toml"
 cat > "$__ownership_source/cleanup.migrations" <<'EOF'
 .config/mise/custom-xdg-match.toml	home/.config/mise/custom-xdg-match.toml
 .config/mise/custom-xdg-mismatch.toml	home/.config/mise/custom-xdg-match.toml
-.config/mise/explicit-match.toml	home/.config/mise/explicit-match.toml
-.config/mise/explicit-mismatch.toml	home/.config/mise/explicit-match.toml
+.mise-config/explicit-match.toml	home/.config/mise/explicit-match.toml
+.mise-config/explicit-mismatch.toml	home/.config/mise/explicit-match.toml
 EOF
 ln -s "$__ownership_source/custom-xdg-match.toml" \
     "$__ownership_xdg/mise/custom-xdg-match.toml"
@@ -460,11 +464,15 @@ ln -s "$__ownership_source/explicit-match.toml" \
     "$__ownership_explicit/explicit-match.toml"
 ln -s "$__ownership_source/explicit-mismatch.toml" \
     "$__ownership_explicit/explicit-mismatch.toml"
+ln -s "$__ownership_root/home/.claude/skills/missing" \
+    "$__ownership_home/.claude/skills/tracked"
 env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_explicit" \
     zsh "$__task" > "$__output"
 [[ ! -L "$__ownership_explicit/explicit-match.toml" ]] ||
     fail "matching explicit migration link remains"
 [[ -L "$__ownership_explicit/explicit-mismatch.toml" ]] ||
     fail "mismatched explicit migration link was removed"
+[[ -L "$__ownership_home/.claude/skills/tracked" ]] ||
+    fail "repository link outside the selected mise roots was removed"
 
 echo "bootstrap:post-dotfiles:cleanup task passed."

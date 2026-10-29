@@ -88,6 +88,11 @@ remove_stale_link() {
     local __link="$1"
     local __source_path="$2"
 
+    if [[ "$__restrict_cleanup_to_config_roots" == true ]] &&
+        ! is_config_root_path "$__link"; then
+        return 0
+    fi
+
     is_repo_source "$__source_path" ||
         die "refusing to remove stale link with a source outside this repository: $__link"
 
@@ -112,7 +117,8 @@ __project_root_physical="$(cd "$__project_root" 2>/dev/null && pwd -P)" ||
 __active_source_dir="$(normalize_path "$__project_root/home/.config/mise")"
 __active_source_dir_physical="$(cd "$__active_source_dir" 2>/dev/null && pwd -P)" ||
     die "active mise source directory does not exist: $__active_source_dir"
-__configured_config_dir="${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/mise}"
+__xdg_config_dir="$(normalize_path "${XDG_CONFIG_HOME:-$HOME/.config}/mise")"
+__configured_config_dir="${MISE_CONFIG_DIR:-$__xdg_config_dir}"
 if [[ -n "${MISE_CONFIG_DIR:-}" && "$__configured_config_dir" != /* ]]; then
     __configured_config_dir="$PWD/$__configured_config_dir"
 fi
@@ -121,17 +127,10 @@ fi
 __configured_config_dir="$(normalize_path "$__configured_config_dir")"
 __configured_config_physical="$(cd "$__configured_config_dir" 2>/dev/null && pwd -P)" ||
     die "mise configuration directory does not exist: $__configured_config_dir"
-__global_config_dir="$(normalize_path "${XDG_CONFIG_HOME:-$HOME/.config}/mise")"
-if [[ -n "${MISE_CONFIG_DIR:-}" ]]; then
-    case "$__configured_config_dir" in
-        "$__active_source_dir"|"$__active_source_dir"/*) ;;
-        *)
-            case "$__configured_config_physical" in
-                "$__active_source_dir_physical"|"$__active_source_dir_physical"/*) ;;
-                *) __global_config_dir="$__configured_config_dir" ;;
-            esac
-            ;;
-    esac
+__xdg_config_physical=""
+if [[ -d "$__xdg_config_dir" ]]; then
+    __xdg_config_physical="$(cd "$__xdg_config_dir" 2>/dev/null && pwd -P)" ||
+        die "XDG mise configuration directory does not exist: $__xdg_config_dir"
 fi
 __mise_state_dir="${MISE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/mise}"
 __mise_data_dir="${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}"
@@ -141,9 +140,17 @@ __blocks_manifest="$__project_root/home/.config/mise/cleanup.blocks"
 __migrations_manifest="$__project_root/home/.config/mise/cleanup.migrations"
 
 typeset -A __scan_paths=()
+typeset -A __config_root_prefixes=()
 typeset -A __migration_sources=()
 typeset -A __active_targets=()
 typeset -A __active_symlink_each=()
+
+__restrict_cleanup_to_config_roots=false
+if [[ -n "${MISE_CONFIG_DIR:-}" &&
+    ( "$__configured_config_dir" != "$__xdg_config_dir" ||
+        "$__configured_config_physical" != "$__xdg_config_physical" ) ]]; then
+    __restrict_cleanup_to_config_roots=true
+fi
 
 if [[ -f "$__migrations_manifest" ]]; then
     while IFS=$'\t' read -r __target __source; do
@@ -200,6 +207,60 @@ add_scan_path() {
     __scan_paths[$__normalized_path]=1
 }
 
+add_config_root() {
+    local __root="$1"
+    local __prefix=""
+
+    [[ -n "$__root" ]] || return 0
+    case "$__root" in
+        "$HOME"/*) __prefix="${__root#$HOME/}" ;;
+        "$HOME") ;;
+        *) __prefix="__outside_home__" ;;
+    esac
+    __config_root_prefixes[$__root]="$__prefix"
+    add_scan_path "$__root"
+}
+
+is_config_root_path() {
+    local __path="$1"
+    local __root
+    for __root in ${(k)__config_root_prefixes}; do
+        [[ "$__path" == "$__root" || "$__path" == "$__root"/* ]] &&
+            return 0
+    done
+    return 1
+}
+
+migration_key_for_path() {
+    local __path="$1"
+    local __root __matched_root="" __suffix __prefix
+    for __root in ${(k)__config_root_prefixes}; do
+        if [[ "$__path" == "$__root" || "$__path" == "$__root"/* ]]; then
+            if [[ -z "$__matched_root" ]] ||
+                (( ${#__root} > ${#__matched_root} )); then
+                __matched_root="$__root"
+            fi
+        fi
+    done
+    if [[ -n "$__matched_root" ]]; then
+        __prefix="${__config_root_prefixes[$__matched_root]}"
+        [[ "$__prefix" != "__outside_home__" ]] || return 1
+        if [[ "$__path" == "$__matched_root" ]]; then
+            print -r -- "$__prefix"
+        else
+            __suffix="${__path#$__matched_root/}"
+            if [[ -n "$__prefix" ]]; then
+                print -r -- "$__prefix/$__suffix"
+            else
+                print -r -- "$__suffix"
+            fi
+        fi
+        return 0
+    fi
+    [[ "$__path" == "$HOME"/* ]] || return 1
+    print -r -- "${__path#$HOME/}"
+}
+
 collect_target_scan_paths() {
     local __profile="$1"
     local __status
@@ -241,7 +302,11 @@ done < "$__project_root/home/.config/mise/cleanup.paths"
 
 collect_target_scan_paths work
 collect_target_scan_paths personal
-add_scan_path "$__global_config_dir"
+add_config_root "$__xdg_config_dir"
+if [[ "$__configured_config_dir" != "$__active_source_dir" &&
+    "$__configured_config_physical" != "$__active_source_dir_physical" ]]; then
+    add_config_root "$__configured_config_dir"
+fi
 
 __sorted_scan_paths=("${(@f)$(printf '%s\n' ${(k)__scan_paths} | LC_ALL=C sort)}")
 __scan_roots=()
@@ -262,6 +327,10 @@ for __scan_root in "${__scan_roots[@]}"; do
 
     while IFS= read -r __link; do
     is_active_source_tree_path "$__link" && continue
+    if [[ "$__restrict_cleanup_to_config_roots" == true ]] &&
+        ! is_config_root_path "$__link"; then
+        continue
+    fi
     if [[ "$__link" == "$__mise_state_dir" ||
         "$__link" == "$__mise_state_dir"/* ||
         "$__link" == "$__mise_data_dir" ||
@@ -280,7 +349,8 @@ for __scan_root in "${__scan_roots[@]}"; do
 
     __source_path="$(normalize_path "$__source_path")"
 
-    if [[ "$__link" == "$(normalize_path "$__global_config_dir")" ]]; then
+    if [[ "$__link" == "$__xdg_config_dir" ||
+        "$__link" == "$__configured_config_dir" ]]; then
         if [[ -e "$__source_path" || -L "$__source_path" ]]; then
             __source_physical_path="$(resolve_physical_source "$__source_path")" ||
                 die "cannot resolve global mise config directory source: $__link"
@@ -299,11 +369,7 @@ for __scan_root in "${__scan_roots[@]}"; do
     fi
 
     if [[ -e "$__source_path" || -L "$__source_path" ]]; then
-        if [[ "$__link" == "$__global_config_dir"/* ]]; then
-            __target_relative=".config/mise/${__link#$__global_config_dir/}"
-        else
-            __target_relative="${__link#$HOME/}"
-        fi
+        __target_relative="$(migration_key_for_path "$__link")" || continue
         __migration_source="${__migration_sources[$__target_relative]-}"
         if [[ -n "$__migration_source" ]]; then
             __expected_source="$(normalize_path "$__project_root/$__migration_source")"
@@ -423,6 +489,10 @@ if [[ -f "$__blocks_manifest" ]]; then
             "$HOME"/*) ;;
             *) die "refusing stale mise block outside HOME: $__target" ;;
         esac
+        if [[ "$__restrict_cleanup_to_config_roots" == true ]] &&
+            ! is_config_root_path "$__target"; then
+            continue
+        fi
         [[ -f "$__target" && ! -L "$__target" ]] || continue
         remove_stale_block "$__target" "$__id"
     done < "$__blocks_manifest"
