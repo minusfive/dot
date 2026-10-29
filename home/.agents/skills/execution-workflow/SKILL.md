@@ -32,19 +32,25 @@ Use this lifecycle for every story and transition:
 6. Follow `pr-orchestration` for independent critique before GitHub issue-plan updates.
 7. If no explicit plan artifact or issue-based plan source is available, stop and request one before execution.
 8. Do not rewrite accepted story specs during execution; if execution discovers drift, trigger the drift protocol and request a targeted planning update.
-9. Keep story execution in topological dependency order.
+9. Keep each dependency chain in topological order. Run independent chains concurrently.
 
 ## Execution topology
 
-1. Build execution lanes from plan-provided dependencies and concurrency boundaries:
-   - Parallelize only stories marked as independent by the plan.
+1. Build execution lanes from plan-provided dependencies and concurrency boundaries.
+   - Classify each dependency as `hard dependency`, `shared mutable state`, `rebase/delivery dependency`, or `optional synchronization`.
+   - Maintain the dependency-aware ready queue and checkpoint ledger required by `task-orchestration`.
+   - Start every story whose hard dependencies are ready. Run independent chains concurrently.
    - Follow `task-orchestration` for worktree isolation and shared-write serialization.
+   - Use a `serialized shared-mutation lane` only for an explicitly recorded shared mutation or rebase/delivery boundary. Keep every other repository-changing scope in its own worktree.
 2. Preserve the plan's vertical integration checkpoints:
-   - Do not start downstream expansion before each checkpoint is end-to-end verifiable.
+   - Gate only the downstream lane that names the checkpoint as a dependency.
+   - Keep unrelated lanes running while that checkpoint is pending.
 3. Annotate each executing story as one of:
    - Sequential (critical path)
    - Parallelizable lane
    - Merged-with sibling (single PR covering multiple stories)
+4. When a dependency becomes ready, make an explicit handoff. Name the result, notify the dependent lane, rebase or apply the result when required, validate it, and update the ledger.
+5. Do not turn the full workflow into a serial queue.
 
 ## Kanban lifecycle
 
@@ -68,9 +74,10 @@ Use this lifecycle for every story and transition:
 
 ## Reconciliation checkpoints
 
-1. At startup and after each implementation, validation, critique, or review cycle, reconcile issue state, project-card lane, dependencies, blockers, and PR/review state.
+1. At startup and after each implementation, validation, critique, or review cycle, update the ready queue and checkpoint ledger for every active lane.
 2. Use `gh` to read current issue and project state. Run `mise run pr:review-watch -- poll` for watched pull requests.
-3. Compare the live state with the accepted plan and story records. Correct every drift before continuing, then record the checkpoint and corrections in the story artifact trail.
+3. Compare the live state with the accepted plan and story records. Correct drift before advancing the affected lane, then record the checkpoint and corrections in the story artifact trail.
+4. Resume every ready lane after reconciliation. Treat reconciliation as a global barrier only when the ledger records a hard dependency, shared mutation, rebase, or delivery boundary.
 
 ## Critique Gate
 
@@ -100,7 +107,7 @@ When asked to produce an execution workflow, return:
 
 1. Story execution state map using the canonical lifecycle states, plus failed critique cycle count per story.
 2. Exact plan artifact path in use for this execution cycle.
-3. Dependency-aware next-action queue for stories in `todo` and `research`.
+3. Dependency-aware ready queue for stories in `todo` and `research`, plus the checkpoint ledger for every active lane.
 4. Lane and merge plan for active stories (sequential, parallel, merged).
 5. Blockers and drift findings with required planning patches.
 6. Per-story acceptance, critique, and merge gate status.

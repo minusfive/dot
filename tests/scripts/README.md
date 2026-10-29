@@ -26,6 +26,10 @@ The target fixture links repository sources at `dev/personal/dot/home`. It isola
 
 The `test_fixture_dir` helper creates unique physical directories under `${TMPDIR:-/tmp}`. Each test removes its fixture on exit.
 
+#### `test_mise_test_helpers.zsh`
+
+Tests fixture containment, prunable and missing worktree handling, worktree-list errors, and fixture cleanup.
+
 #### `test_mise_bootstrap_lifecycle.zsh`
 
 Tests the native bootstrap command, profile previews, environment setup, failure boundaries, and retired task removal.
@@ -144,6 +148,7 @@ zsh tests/scripts/test_mise_bootstrap_betterdisplay.zsh
 zsh tests/scripts/test_mise_task_betterdisplay_sync.zsh
 zsh tests/scripts/test_git_config_check.zsh
 ./tests/scripts/test_mise_config.zsh
+zsh tests/scripts/test_mise_test_helpers.zsh
 for test in tests/scripts/test_mise_bootstrap_*.zsh tests/scripts/test_mise_task_*.zsh; do
     zsh "$test"
 done

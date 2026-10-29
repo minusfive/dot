@@ -14,11 +14,63 @@ fail() {
 
 test_fixture_dir() {
     local __name="$1"
-    local __path
-    __path="$(mktemp -d "${TMPDIR:-/tmp}/mise-${__name}.XXXXXX")" ||
+    local __tmp_root="${TMPDIR:-/tmp}"
+    local __worktree_root
+    local __worktree_line
+    local __worktree_list
+    local __worktree_prunable=0
+    local -i __worktree_count=0
+
+    __check_worktree_root() {
+        local __path="$1"
+        local __prunable="$2"
+        [[ -n "$__path" ]] || return 0
+        if (( __prunable )) && [[ ! -e "$__path" ]]; then
+            return 0
+        fi
+        [[ -e "$__path" ]] || return 0
+        __path="$(realpath "$__path")" ||
+            fail "could not resolve worktree root: $__path"
+        (( __worktree_count += 1 ))
+        if [[ "$__tmp_root" == "$__path" ||
+            "$__tmp_root" == "$__path"/* ]]; then
+            fail "fixture root is inside a repository worktree: $__tmp_root"
+        fi
+    }
+
+    __tmp_root="$(realpath "$__tmp_root")" ||
+        fail "could not resolve fixture root: ${TMPDIR:-/tmp}"
+    if ! __worktree_list="$(git -C "$__root_dir" worktree list --porcelain)"; then
+        fail "could not enumerate repository worktrees"
+    fi
+    while IFS= read -r __worktree_line; do
+        case "$__worktree_line" in
+            worktree\ *)
+                __check_worktree_root "$__worktree_root" "$__worktree_prunable"
+                __worktree_root="${__worktree_line#worktree }"
+                __worktree_prunable=0
+                ;;
+            prunable\ *)
+                __worktree_prunable=1
+                ;;
+            "")
+                __check_worktree_root "$__worktree_root" "$__worktree_prunable"
+                __worktree_root=""
+                __worktree_prunable=0
+                ;;
+        esac
+    done <<< "$__worktree_list"
+    __check_worktree_root "$__worktree_root" "$__worktree_prunable"
+    (( __worktree_count > 0 )) ||
+        fail "repository worktree list contains no worktree roots"
+    local __created_path
+    __created_path="$(mktemp -d "$__tmp_root/mise-${__name}.XXXXXX")" ||
         fail "could not create fixture directory"
-    __path="$(realpath "$__path")" ||
-        fail "could not resolve fixture directory: $__path"
+    local __path
+    if ! __path="$(realpath "$__created_path")"; then
+        rm -rf -- "$__created_path"
+        fail "could not resolve fixture directory: $__created_path"
+    fi
     print -r -- "$__path"
 }
 

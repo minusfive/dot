@@ -17,6 +17,16 @@ Use this skill for tests under `tests/scripts/` that verify the repository's mis
 - Keep profile checks with the profile or lifecycle test that owns the behavior.
 - Use `mise_test_helpers.zsh` for shared root setup and assertion helpers.
 
+## Fixture isolation
+
+- Create every disposable fixture through `test_fixture_dir` or a helper that delegates to it.
+- Keep fixture roots outside the repository and its worktrees. The helper creates unique directories under `${TMPDIR:-/tmp}`.
+- Ignore `prunable` entries only when their paths no longer exist. Reject every existing repository or worktree path, including paths marked `prunable`, and fail closed on command errors.
+- Register the owning trap or cleanup immediately after fixture creation.
+- Remove only paths that the fixture created. Do not remove pre-existing paths.
+- Create fixtures at runtime. Use a checked-in fixture tree only when a stable fixture is explicitly required.
+- Do not create `.test-*`, `.test-tmp`, or other fixture roots in a repository or worktree.
+
 ## Assertions
 
 The shared module contract test must verify the facts that can drift:
