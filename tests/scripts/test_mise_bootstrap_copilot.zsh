@@ -66,7 +66,6 @@ local __fixture_lsp_target="$__fixture_home/.copilot/lsp-config.json"
 local __fixture_agent_target="$__fixture_home/.copilot/agents/orchestrator.agent.md"
 local __live_settings="$HOME/.copilot/settings.json"
 local __live_lsp_config="$HOME/.copilot/lsp-config.json"
-local __live_mise_config="$HOME/.config/mise"
 local __live_workspace_root="$(dirname "$__root_dir")"
 local __live_before="absent"
 local __live_lsp_before="absent"
@@ -137,7 +136,7 @@ __dry_run="$(
     env MISE_ENV=work HOME="$__fixture_home" XDG_CONFIG_HOME="$__fixture_xdg" \
         MISE_DATA_DIR="$__fixture_data" MISE_STATE_DIR="$__fixture_state" \
         MISE_CONFIG_DIR="$__fixture_config" MISE_CONFIG_ROOT="$__fixture_config" \
-        MISE_IGNORED_CONFIG_PATHS="$__live_mise_config" \
+        MISE_IGNORED_CONFIG_PATHS="$__fixture_home/.config/mise" \
         MISE_TRUSTED_CONFIG_PATHS="$__live_workspace_root" \
         mise -C "$__fixture_repo" bootstrap --only dotfiles --dry-run 2>&1
 )"
@@ -154,7 +153,7 @@ print -r -- "$__dry_run" | grep -qF "statusline-context.sh" ||
 env MISE_ENV=work HOME="$__fixture_home" XDG_CONFIG_HOME="$__fixture_xdg" \
     MISE_DATA_DIR="$__fixture_data" MISE_STATE_DIR="$__fixture_state" \
     MISE_CONFIG_DIR="$__fixture_config" MISE_CONFIG_ROOT="$__fixture_config" \
-    MISE_IGNORED_CONFIG_PATHS="$__live_mise_config" \
+    MISE_IGNORED_CONFIG_PATHS="$__fixture_home/.config/mise" \
     MISE_TRUSTED_CONFIG_PATHS="$__live_workspace_root" \
     mise -C "$__fixture_repo" bootstrap --only dotfiles --yes >/dev/null
 

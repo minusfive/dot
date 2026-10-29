@@ -89,7 +89,7 @@ env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE \
     MISE_CONFIG_DIR="$__fixture_config" \
     MISE_GLOBAL_CONFIG_FILE="$__fixture_config/config.toml" \
     MISE_GLOBAL_CONFIG_ROOT="$__fixture_config" \
-    MISE_IGNORED_CONFIG_PATHS="$HOME/.config/mise" \
+    MISE_IGNORED_CONFIG_PATHS="$__fixture_home/.config/mise" \
     MISE_CEILING_PATHS="$__fixture_home" \
     MISE_DATA_DIR="$__migration_fixture/data" \
     MISE_STATE_DIR="$__migration_fixture/state/mise" \
@@ -108,7 +108,7 @@ env -u MISE_SAFE -u MISE_ENV -u MISE_AUTO_ENV \
     MISE_GLOBAL_CONFIG_FILE="$__fixture_config/config.toml" \
     MISE_GLOBAL_CONFIG_ROOT="$__fixture_config" \
     MISE_CONFIG_DIR="$__fixture_config" \
-    MISE_IGNORED_CONFIG_PATHS="$HOME/.config/mise" \
+    MISE_IGNORED_CONFIG_PATHS="$__fixture_home/.config/mise" \
     MISE_CEILING_PATHS="$__fixture_home" \
     MISE_DATA_DIR="$__migration_fixture/data" \
     MISE_CACHE_DIR="$__migration_fixture/cache" \
@@ -148,7 +148,7 @@ env -u MISE_SAFE -u MISE_ENV -u MISE_AUTO_ENV \
     MISE_CONFIG_DIR="$__fixture_config" \
     MISE_GLOBAL_CONFIG_FILE="$__fixture_config/config.toml" \
     MISE_GLOBAL_CONFIG_ROOT="$__fixture_config" \
-    MISE_IGNORED_CONFIG_PATHS="$HOME/.config/mise" \
+    MISE_IGNORED_CONFIG_PATHS="$__fixture_home/.config/mise" \
     MISE_CEILING_PATHS="$__fixture_home" \
     MISE_STATE_DIR="$__migration_fixture/state/mise" \
     MISE_DATA_DIR="$__migration_fixture/data" \

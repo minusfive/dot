@@ -135,7 +135,6 @@ grep -qF 'source = "~/dev/personal/dot/home/AGENTS.md"' home/.config/mise/conf.d
     fail "Copilot source path is not canonical"
 [[ ! -e "home/.config/mise/conf.d/profiles.toml" ]] || fail "retired profile module remains"
 
-[[ ! -L "$HOME/.config/mise" ]] || fail "mise target must be a physical directory"
 grep -qF 'auto_env = true' home/.config/mise/miserc.toml ||
     fail "auto_env must load platform-specific conf.d modules"
 if grep -qE -- '--brew|--vm|brew\.zsh|vm\.zsh' scripts/install-mise.zsh; then
@@ -149,7 +148,7 @@ __mise_fixture_dir="$(test_fixture_dir mise-config)" || exit 1
 trap 'rm -rf -- "$__trust_data" "$__mise_fixture_dir"' EXIT
 local __mise_fixture_home="$__mise_fixture_dir/home"
 local __mise_fixture_repository="$__mise_fixture_home/dev/personal/dot"
-local __host_mise_config="$HOME/.config/mise"
+local __mise_ignored_config="$__mise_fixture_dir/ignored-mise-config"
 local __mise_default_xdg_config="$__mise_fixture_home/.config"
 local __mise_default_xdg_data="$__mise_fixture_dir/default-xdg/data"
 local __mise_default_xdg_state="$__mise_fixture_dir/default-xdg/state"
@@ -176,7 +175,8 @@ mkdir -p \
     "$__mise_fixture_dir/mise-cache" \
     "$__mise_fixture_dir/mise-tmp" \
     "$__mise_fixture_dir/system-config" \
-    "$__mise_custom_config_dir"
+    "$__mise_custom_config_dir" \
+    "$__mise_ignored_config"
 ln -s "$__root_dir/home" "$__mise_fixture_repository/home"
 cp "$__root_dir/home/.config/mise/conf.d/opencode.personal.toml" \
     "$__mise_fixture_repository/mise.personal.toml"
@@ -265,7 +265,7 @@ trust_mise_fixture_config() {
         "MISE_SYSTEM_DATA_DIR=$__mise_fixture_dir/system-data"
         "MISE_SYSTEM_INSTALLS_DIR=$__mise_fixture_dir/system-installs"
         "MISE_SYSTEM_SHIMS_DIR=$__mise_fixture_dir/system-shims"
-        "MISE_IGNORED_CONFIG_PATHS=$__host_mise_config"
+        "MISE_IGNORED_CONFIG_PATHS=$__mise_ignored_config"
         "MISE_CEILING_PATHS=$__mise_fixture_home"
     )
 
@@ -287,7 +287,7 @@ local -a __mise_default_env=(
     "MISE_GLOBAL_CONFIG_FILE=$__mise_fixture_global_config"
     "MISE_GLOBAL_CONFIG_ROOT=$__mise_fixture_dir"
     "MISE_CEILING_PATHS=$__mise_fixture_home"
-    "MISE_IGNORED_CONFIG_PATHS=$__host_mise_config"
+    "MISE_IGNORED_CONFIG_PATHS=$__mise_ignored_config"
     "MISE_DATA_DIR=$__mise_fixture_dir/mise-data"
     "MISE_STATE_DIR=$__mise_fixture_dir/mise-state"
     "MISE_CACHE_DIR=$__mise_fixture_dir/mise-cache"
@@ -341,7 +341,7 @@ local -a __mise_custom_env=(
     "MISE_GLOBAL_CONFIG_FILE=$__mise_fixture_global_config"
     "MISE_GLOBAL_CONFIG_ROOT=$__mise_fixture_dir"
     "MISE_CEILING_PATHS=$__mise_fixture_home"
-    "MISE_IGNORED_CONFIG_PATHS=$__host_mise_config"
+    "MISE_IGNORED_CONFIG_PATHS=$__mise_ignored_config"
     "MISE_DATA_DIR=$__mise_fixture_dir/mise-data"
     "MISE_STATE_DIR=$__mise_fixture_dir/mise-state"
     "MISE_CACHE_DIR=$__mise_fixture_dir/mise-cache"
@@ -409,12 +409,16 @@ env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE \
     fail "default XDG config directory received a per-file mise config link"
 [[ ! -e "$__mise_custom_xdg_config/mise" ]] ||
     fail "custom XDG config directory received per-file mise config ownership"
-grep -qF '*.local.*' home/.config/git/ignore ||
-    fail "global Git ignore does not cover local-suffix paths"
 
 # Mise deploys this source file as Git's global excludes file.
 [[ -f "home/.config/git/ignore" ]] || fail "mise global Git ignore source is missing"
-[[ -L "$HOME/.config/git/ignore" ]] || fail "mise did not install the global Git ignore file"
+local __mise_custom_git_ignore="$__mise_custom_xdg_config/git/ignore"
+[[ -L "$__mise_custom_git_ignore" ]] ||
+    fail "mise did not install the global Git ignore file under the custom XDG config directory"
+[[ "$(realpath "$__mise_custom_git_ignore")" == "$(realpath home/.config/git/ignore)" ]] ||
+    fail "custom XDG Git ignore target does not resolve to its tracked source"
+grep -qF '*.local.*' "$__mise_custom_git_ignore" ||
+    fail "global Git ignore does not cover local-suffix paths"
 
 for __local_file in \
     'mise.local.toml' \
@@ -427,7 +431,8 @@ for __local_file in \
     'example.local.yaml' \
     '.env.local.sample' \
     '.claude/settings.local.json'; do
-    git check-ignore -q --no-index "$__local_file" ||
+    git -c core.excludesFile="$__mise_custom_git_ignore" \
+        check-ignore -q --no-index "$__local_file" ||
         fail "bootstrapped global Git ignore does not ignore local config: $__local_file"
 done
 
@@ -449,7 +454,7 @@ __fallback_env="$(
         HOME="$__fallback_home" \
         XDG_CONFIG_HOME="$__fallback_home/.config" \
         XDG_STATE_HOME="$__fallback_home/.local/state" \
-        MISE_IGNORED_CONFIG_PATHS="$__host_mise_config" \
+        MISE_IGNORED_CONFIG_PATHS="$__fallback_home/.config/mise-ignored" \
         MISE_CEILING_PATHS="$__fallback_home" \
         mise -C "$__fallback_home" env --json
 )"
@@ -474,7 +479,7 @@ printf '\n[env]\nMISE_PROFILE_SMOKE_PERSONAL = "1"\n' >> "$__tmp_home/.config/mi
 
 local __work_env
 __work_env="$(env MISE_ENV=work HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
-    MISE_IGNORED_CONFIG_PATHS="$__host_mise_config" \
+    MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" env --json)"
 print -r -- "$__work_env" | grep -q '"MISE_PROFILE_SMOKE_BASE": "1"' || fail "work profile should load base config"
@@ -484,20 +489,20 @@ fi
 
 local __work_profile
 __work_profile="$(env MISE_ENV=work HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
-    MISE_IGNORED_CONFIG_PATHS="$__host_mise_config" \
+    MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" exec -- sh -c 'printf "%s" "$MISE_ENV"')"
 [[ "$__work_profile" == work ]] || fail "explicit work environment should override persisted state"
 local __cli_work_profile
 __cli_work_profile="$(env HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
-    MISE_IGNORED_CONFIG_PATHS="$__host_mise_config" \
+    MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" -E work exec -- sh -c 'printf "%s" "$MISE_ENV"')"
 [[ "$__cli_work_profile" == work ]] || fail "explicit -E work environment was not exported"
 
 local __personal_env
 __personal_env="$(env MISE_ENV=personal HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
-    MISE_IGNORED_CONFIG_PATHS="$__host_mise_config" \
+    MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" env --json)"
 print -r -- "$__personal_env" | grep -q '"MISE_PROFILE_SMOKE_BASE": "1"' || fail "personal profile should load base config"

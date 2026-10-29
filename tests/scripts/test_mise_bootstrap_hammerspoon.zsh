@@ -42,7 +42,6 @@ local __fixture_global_config="$__fixture_dir/global-mise.toml"
 local __fixture_bin="$__fixture_dir/bin"
 local __defaults_log="$__fixture_dir/defaults.log"
 local __fixture_hammerspoon_target="$__fixture_xdg_config/hammerspoon"
-local __host_mise_config="$HOME/.config/mise"
 mkdir -p "$__fixture_repository" "$__fixture_bin" "$__fixture_mise_config" \
     "$__fixture_dir/data" "$__fixture_dir/state" "$__fixture_dir/cache" \
     "$__fixture_dir/tmp" "$__fixture_dir/system-config" "$__fixture_xdg_config" \
@@ -79,7 +78,7 @@ local -a __fixture_env=(
     "MISE_SYSTEM_DATA_DIR=$__fixture_dir/system-data"
     "MISE_SYSTEM_INSTALLS_DIR=$__fixture_dir/system-installs"
     "MISE_SYSTEM_SHIMS_DIR=$__fixture_dir/system-shims"
-    "MISE_IGNORED_CONFIG_PATHS=$__host_mise_config"
+    "MISE_IGNORED_CONFIG_PATHS=$__fixture_home/.config/mise"
     "MISE_CEILING_PATHS=$__fixture_home"
     "DEFAULTS_LOG=$__defaults_log"
     "PATH=$__fixture_bin:$PATH"

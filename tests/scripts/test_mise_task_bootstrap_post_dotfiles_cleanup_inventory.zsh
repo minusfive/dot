@@ -15,7 +15,6 @@ local __manifest="$__fixture_root/home/.config/mise/cleanup.paths"
 local __blocks_manifest="$__fixture_root/home/.config/mise/cleanup.blocks"
 local __migrations_manifest="$__fixture_root/home/.config/mise/cleanup.migrations"
 local __global_config="$__fixture_dir/global-mise.toml"
-local __host_mise_config="$HOME/.config/mise"
 trap 'rm -rf "$__fixture_dir"' EXIT
 
 [[ -x "$__task" ]] || fail "cleanup inventory task is not executable"
@@ -88,7 +87,7 @@ local -a __fixture_env=(
     "MISE_SYSTEM_DATA_DIR=$__fixture_dir/system-data"
     "MISE_SYSTEM_INSTALLS_DIR=$__fixture_dir/system-installs"
     "MISE_SYSTEM_SHIMS_DIR=$__fixture_dir/system-shims"
-    "MISE_IGNORED_CONFIG_PATHS=$__host_mise_config"
+    "MISE_IGNORED_CONFIG_PATHS=$__fixture_home/.config/mise"
     "MISE_CEILING_PATHS=$__fixture_root"
 )
 mkdir -p "$__fixture_dir/custom-xdg/config" "$__fixture_dir/custom-xdg/data" \
