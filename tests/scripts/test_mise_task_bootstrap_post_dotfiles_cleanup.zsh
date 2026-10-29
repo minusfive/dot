@@ -328,13 +328,17 @@ mv "$__blocks_backup" "$__source_dir/.config/mise/cleanup.blocks"
 mkdir -p "$__fixture_dir/external-source"
 ln -s "$__fixture_dir/external-source" "$__source_dir/alias"
 ln -s "$__source_dir/alias/missing" "$__fixture_home/.config/zsh/physical-bypass"
-if env "${__fixture_env[@]}" zsh "$__task" > "$__failure_output" 2>&1; then
-    fail "cleanup removed a link whose physical source is outside the repository"
-fi
-grep -qF "outside this repository" "$__failure_output" ||
-    fail "cleanup did not explain the physical containment refusal"
+env "${__fixture_env[@]}" zsh "$__task" > "$__output"
 [[ -L "$__fixture_home/.config/zsh/physical-bypass" ]] ||
     fail "cleanup removed the physically external link"
+
+ln -s "$__source_dir/alias/../missing" "$__fixture_home/.config/zsh/physical-dotdot-bypass"
+env "${__fixture_env[@]}" zsh "$__task" > "$__output" ||
+    fail "cleanup rejected an externally resolved dot-dot target"
+[[ -L "$__fixture_home/.config/zsh/physical-dotdot-bypass" ]] ||
+    fail "cleanup removed an external link before resolving its physical target"
+[[ "$(readlink "$__fixture_home/.config/zsh/physical-dotdot-bypass")" == "$__source_dir/alias/../missing" ]] ||
+    fail "cleanup changed an external link with a physical dot-dot target"
 
 local __ownership_root="$__fixture_dir/ownership-repository"
 local __ownership_home="$__fixture_dir/ownership-home"
@@ -407,6 +411,15 @@ env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_source" \
     fail "external source-selected global config link was removed"
 [[ "$(readlink "$__ownership_xdg/mise")" == "$__ownership_external" ]] ||
     fail "external source-selected global config link target changed"
+rm -f "$__ownership_xdg/mise"
+
+mkdir -p "$__fixture_dir/stale-mise"
+ln -s "$__ownership_root/home/alias/../stale-mise" "$__ownership_xdg/mise"
+env -u MISE_CONFIG_DIR "${__ownership_env[@]}" zsh "$__task" > "$__output"
+[[ -L "$__ownership_xdg/mise" ]] ||
+    fail "cleanup removed a global config link with an external physical target"
+[[ "$(readlink "$__ownership_xdg/mise")" == "$__ownership_root/home/alias/../stale-mise" ]] ||
+    fail "cleanup changed a global config link with an external physical target"
 rm -f "$__ownership_xdg/mise"
 
 ln -s "$__ownership_alias/missing-mise" "$__ownership_xdg/mise"

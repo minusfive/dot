@@ -70,8 +70,13 @@ is_active_source_tree_path() {
 
 resolve_physical_source() {
     local __path="$1"
+    local -i __depth="${2:-0}"
     local __suffix=""
     local __parent
+    local __link_value
+    local __link_target
+
+    (( __depth < 40 )) || return 1
 
     while [[ ! -e "$__path" && ! -L "$__path" ]]; do
         __parent="$(dirname "$__path")"
@@ -80,8 +85,21 @@ resolve_physical_source() {
         __path="$__parent"
     done
 
-    __path="$(cd "$__path" 2>/dev/null && pwd -P)" || return 1
-    print -r -- "$__path$__suffix"
+    if [[ -L "$__path" ]]; then
+        __link_value="$(readlink "$__path")" || return 1
+        if [[ "$__link_value" = /* ]]; then
+            __link_target="$__link_value"
+        else
+            __link_target="$(dirname "$__path")/$__link_value"
+        fi
+        resolve_physical_source "$__link_target$__suffix" "$((__depth + 1))"
+    elif [[ -d "$__path" ]]; then
+        __path="$(cd -P "$__path" 2>/dev/null && pwd -P)" || return 1
+        normalize_path "$__path$__suffix"
+    else
+        __parent="$(cd -P "$(dirname "$__path")" 2>/dev/null && pwd -P)" || return 1
+        normalize_path "$__parent/$(basename "$__path")$__suffix"
+    fi
 }
 
 remove_stale_link() {
@@ -355,8 +373,6 @@ for __scan_root in "${__scan_roots[@]}"; do
         __source_path="$(dirname "$__link")/$__link_value"
     fi
 
-    __source_path="$(normalize_path "$__source_path")"
-
     if [[ "$__link" == "$__xdg_config_dir" ||
         "$__link" == "$__configured_config_dir" ]]; then
         __source_physical_path="$(resolve_physical_source "$__source_path")" ||
@@ -371,12 +387,18 @@ for __scan_root in "${__scan_roots[@]}"; do
         continue
     fi
 
+    __source_physical_path="$(resolve_physical_source "$__source_path")" ||
+        die "cannot resolve stale link source path: $__link"
+
+    __source_path="$(normalize_path "$__source_path")"
+
     if [[ -e "$__source_path" || -L "$__source_path" ]]; then
         __target_relative="$(migration_key_for_path "$__link")" || continue
         __migration_source="${__migration_sources[$__target_relative]-}"
         if [[ -n "$__migration_source" ]]; then
-            __expected_source="$(normalize_path "$__project_root/$__migration_source")"
-            if [[ "$__source_path" == "$__expected_source" ]] &&
+            __expected_source="$(resolve_physical_source "$__project_root/$__migration_source")" ||
+                die "cannot resolve migrated link source path: $__link"
+            if [[ "$__source_physical_path" == "$__expected_source" ]] &&
                 ! is_active_target "$__link"; then
                 if [[ "$__dry_run" == "true" ]]; then
                     print -r -- "would remove migrated mise link $__link"
@@ -389,12 +411,8 @@ for __scan_root in "${__scan_roots[@]}"; do
         continue
     fi
 
-    __physical_source_path="$(resolve_physical_source "$__source_path")" ||
-        die "cannot resolve stale link source path: $__link"
-
-    if is_repo_source "$__source_path" ||
-        is_repo_source "$__physical_source_path"; then
-        remove_stale_link "$__link" "$__physical_source_path"
+    if is_repo_source "$__source_physical_path"; then
+        remove_stale_link "$__link" "$__source_physical_path"
     fi
     done < <(find "$__scan_path" -xdev -type l -print)
 done
