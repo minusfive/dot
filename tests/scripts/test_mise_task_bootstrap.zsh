@@ -56,8 +56,10 @@ if grep -qE '__profile_file|miserc\.local\.toml|dot apply|previous_' "$__pre_pac
     fail "pre-packages task still owns profile persistence or selector rendering"
 fi
 
-local __invalid_profile_log="$(mktemp)"
-trap 'rm -f -- "$__invalid_profile_log"' EXIT
+local __invalid_profile_fixture
+__invalid_profile_fixture="$(test_fixture_dir bootstrap-task)" || exit 1
+trap 'rm -rf -- "$__invalid_profile_fixture"' EXIT
+local __invalid_profile_log="$__invalid_profile_fixture/invalid-profile.log"
 for __hook in pre-packages pre-dotfiles; do
     if env MISE_CONFIG_DIR="$__root_dir/home/.config/mise" MISE_ENV_CONF_D=true \
         mise -E invalid -C "$__root_dir" run "bootstrap:$__hook" >| "$__invalid_profile_log" 2>&1; then

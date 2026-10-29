@@ -12,12 +12,12 @@ __fixture_dir="$(test_fixture_dir gh-download-file)" || exit 1
 local __bin_dir="$__fixture_dir/bin"
 local __output="$__fixture_dir/theme.txt"
 local __invocation="$__fixture_dir/invocation.txt"
+trap 'rm -rf "$__fixture_dir"' EXIT
 grep -qF '"mise/config/mise/tasks/gh/download/file.sh" = {' home/.config/mise/conf.d/mise.toml &&
     grep -qF 'target = "{{ xdg_config_home }}/mise/tasks/gh/download/file.sh"' \
         home/.config/mise/conf.d/mise.toml ||
     fail "gh download task is not deployed by the mise control plane"
 mkdir -p "$__bin_dir"
-trap 'rm -rf "$__fixture_dir"' EXIT
 
 cat > "$__bin_dir/mise" <<'EOF'
 #!/usr/bin/env bash

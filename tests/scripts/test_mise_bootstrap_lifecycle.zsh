@@ -32,8 +32,8 @@ local __fixture_home="$__fixture_dir/home"
 local __fixture_repository="$__fixture_home/dev/personal/dot"
 local __fixture_config="$__fixture_dir/mise-config"
 local __fixture_global_config="$__fixture_dir/global-mise.toml"
-mkdir -p "$__fixture_repository" "$__fixture_config"
 trap 'rm -rf -- "$__fixture_dir"' EXIT
+mkdir -p "$__fixture_repository" "$__fixture_config"
 ln -s "$__root_dir/home" "$__fixture_repository/home"
 git -C "$__fixture_repository" init -q
 cat > "$__fixture_global_config" <<'EOF'

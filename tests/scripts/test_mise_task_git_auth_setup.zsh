@@ -59,10 +59,10 @@ local __work_domains="$__home/dev/work/.domains"
 local __xdg_config="$__fixture_dir/custom-xdg/config"
 local __gh_config_personal="$__xdg_config/gh/personal"
 local __gh_config_work="$__xdg_config/gh/work"
+trap 'rm -rf -- "$__fixture_dir"' EXIT
 mkdir -p "$__bin" "$__home/dev/personal" "$__home/dev/work" \
     "$__xdg_config" \
     "$__gh_config_personal" "$__gh_config_work"
-trap 'rm -rf -- "$__fixture_dir"' EXIT
 local __zshenv_relative_source
 __zshenv_relative_source="$(python3 -c 'import os, sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$__root_dir/home/.config/zsh/.zshenv" "$__home")"
 ln -s "$__zshenv_relative_source" "$__home/.zshenv"

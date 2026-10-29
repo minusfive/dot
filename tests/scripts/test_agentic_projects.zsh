@@ -2,14 +2,17 @@
 
 set -euo pipefail
 
+source "$(dirname "$0")/mise_test_helpers.zsh"
+
 typeset -r __test_dir="$(realpath "$(dirname "$0")")"
 typeset -r __root_dir="$(dirname "$(dirname "$__test_dir")")"
 
 function main {
-    local __fixture_root="$(mktemp -d)"
+    local __fixture_root
+    __fixture_root="$(test_fixture_dir agentic-projects)" || exit 1
+    trap 'rm -rf -- "${__fixture_root:-}"' EXIT
     local __script="$__root_dir/home/.agents/skills/agentic-projects/scripts/manage-agentic-project.sh"
 
-    trap 'rm -rf -- "${__fixture_root:-}"' EXIT
     mkdir -p "$__fixture_root/repo"
 
     "$__script" \

@@ -37,8 +37,8 @@ __fixture_dir="$(test_fixture_dir gh-auth-login)" || exit 1
 local __bin_dir="$__fixture_dir/bin"
 local __log_file="$__fixture_dir/gh.log"
 local __state_file="$__fixture_dir/authenticated"
-mkdir -p "$__bin_dir"
 trap 'rm -rf -- "$__fixture_dir"' EXIT
+mkdir -p "$__bin_dir"
 
 cat > "$__bin_dir/mise" <<'EOF'
 #!/usr/bin/env bash

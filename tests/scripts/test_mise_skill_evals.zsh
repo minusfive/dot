@@ -7,7 +7,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 main() {
     local fixture skill_dir spec_dir workspace_dir global_skill_dir global_workspace_dir
 
-    fixture="$(mktemp -d)"
+    fixture="$(test_fixture_dir skill-evals)" || fail "could not create fixture directory"
     trap "rm -rf -- '$fixture'" EXIT
     skill_dir="$fixture/.agents/skills/demo"
     spec_dir="$skill_dir/evals"

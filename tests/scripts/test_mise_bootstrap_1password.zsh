@@ -36,8 +36,8 @@ local __fixture_xdg_config="$__fixture_dir/xdg/config"
 local __fixture_global_config="$__fixture_dir/global-mise.toml"
 local __fixture_mise_config="$__fixture_dir/mise-config"
 local __host_mise_config="$HOME/.config/mise"
-mkdir -p "$__fixture_repository" "$__fixture_xdg_config" "$__fixture_mise_config"
 trap 'rm -rf -- "$__fixture_dir"' EXIT
+mkdir -p "$__fixture_repository" "$__fixture_xdg_config" "$__fixture_mise_config"
 ln -s "$__root_dir/home" "$__fixture_repository/home"
 git -C "$__fixture_repository" init -q
 python3 - "$__config" "$__fixture_global_config" <<'PY'
