@@ -61,9 +61,16 @@ Use this lifecycle for every story and transition:
 4. Configure the Kanban view with exactly these lanes: `Blocked`, `Todo`, `Research`, `Implement`, `Validate`, `Critique`, and `Done`.
 5. Add each story to the project and map its lifecycle field to those lanes.
 6. Move each issue and project card through the lanes at every lifecycle transition.
-7. If GitHub sub-issues are available, use a parent issue for each story and sub-issues for independently tracked implementation units.
-8. Keep parent issues, sub-issues, and project cards synchronized at every lifecycle transition.
-9. Keep the accepted plan as the source of truth. Use GitHub issues, sub-issues, and project cards to reflect story state, dependencies, blockers, and acceptance evidence.
+7. If an issue moves backward from `Done` to any earlier lifecycle lane, reopen it if it is closed, record the reason and unblock condition, and synchronize the issue and project card.
+8. If GitHub sub-issues are available, use a parent issue for each story and sub-issues for independently tracked implementation units.
+9. Keep parent issues, sub-issues, and project cards synchronized at every lifecycle transition.
+10. Keep the accepted plan as the source of truth. Use GitHub issues, sub-issues, and project cards to reflect story state, dependencies, blockers, and acceptance evidence.
+
+## Reconciliation checkpoints
+
+1. At startup and after each implementation, validation, critique, or review cycle, reconcile issue state, project-card lane, dependencies, blockers, and PR/review state.
+2. Use `gh` to read current issue and project state. Run `mise run pr:review-watch -- poll` for watched pull requests.
+3. Compare the live state with the accepted plan and story records. Correct every drift before continuing, then record the checkpoint and corrections in the story artifact trail.
 
 ## Critique Gate
 
