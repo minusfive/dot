@@ -481,7 +481,7 @@ done
 
 local __fallback_home
 __fallback_home="$(test_fixture_dir fallback-home)" || exit 1
-trap 'rm -rf -- "$__fallback_home"' EXIT
+trap 'rm -rf -- "$__trust_data" "$__mise_fixture_dir" "$__fallback_home"' EXIT
 mkdir -p "$__fallback_home/.config/mise/conf.d" "$__fallback_home/.local/state/minusfive"
 cp home/.config/mise/config.toml "$__fallback_home/.config/mise/config.toml"
 cp home/.config/mise/miserc.toml "$__fallback_home/.config/mise/miserc.toml"
