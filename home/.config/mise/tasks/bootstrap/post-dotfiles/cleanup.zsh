@@ -390,9 +390,7 @@ for __scan_root in "${__scan_roots[@]}"; do
     __source_physical_path="$(resolve_physical_source "$__source_path")" ||
         die "cannot resolve stale link source path: $__link"
 
-    __source_path="$(normalize_path "$__source_path")"
-
-    if [[ -e "$__source_path" || -L "$__source_path" ]]; then
+    if [[ -e "$__source_physical_path" || -L "$__source_physical_path" ]]; then
         __target_relative="$(migration_key_for_path "$__link")" || continue
         __migration_source="${__migration_sources[$__target_relative]-}"
         if [[ -n "$__migration_source" ]]; then

@@ -340,6 +340,22 @@ env "${__fixture_env[@]}" zsh "$__task" > "$__output" ||
 [[ "$(readlink "$__fixture_home/.config/zsh/physical-dotdot-bypass")" == "$__source_dir/alias/../missing" ]] ||
     fail "cleanup changed an external link with a physical dot-dot target"
 
+printf 'physical\n' > "$__source_dir/.config/physical-owned.conf"
+ln -s "$__source_dir/.config/example" "$__source_dir/repo-alias"
+ln -s "$__source_dir/repo-alias/../physical-owned.conf" \
+    "$__fixture_home/.config/zsh/physical-existing-bypass"
+env "${__fixture_env[@]}" zsh "$__task" > "$__output"
+[[ -L "$__fixture_home/.config/zsh/physical-existing-bypass" ]] ||
+    fail "cleanup removed a link whose physical source exists"
+[[ "$(readlink "$__fixture_home/.config/zsh/physical-existing-bypass")" == "$__source_dir/repo-alias/../physical-owned.conf" ]] ||
+    fail "cleanup changed a link whose physical source exists"
+
+ln -s "$__source_dir/repo-alias/../physical-missing.conf" \
+    "$__fixture_home/.config/zsh/physical-missing-bypass"
+env "${__fixture_env[@]}" zsh "$__task" > "$__output"
+[[ ! -L "$__fixture_home/.config/zsh/physical-missing-bypass" ]] ||
+    fail "cleanup kept a link whose physical source is missing"
+
 local __ownership_root="$__fixture_dir/ownership-repository"
 local __ownership_home="$__fixture_dir/ownership-home"
 local __ownership_source="$__ownership_root/home/.config/mise"
