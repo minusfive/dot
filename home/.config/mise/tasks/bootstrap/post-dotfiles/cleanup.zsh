@@ -299,7 +299,11 @@ for __scan_root in "${__scan_roots[@]}"; do
     fi
 
     if [[ -e "$__source_path" || -L "$__source_path" ]]; then
-        __target_relative="${__link#$HOME/}"
+        if [[ "$__link" == "$__global_config_dir"/* ]]; then
+            __target_relative=".config/mise/${__link#$__global_config_dir/}"
+        else
+            __target_relative="${__link#$HOME/}"
+        fi
         __migration_source="${__migration_sources[$__target_relative]-}"
         if [[ -n "$__migration_source" ]]; then
             __expected_source="$(normalize_path "$__project_root/$__migration_source")"

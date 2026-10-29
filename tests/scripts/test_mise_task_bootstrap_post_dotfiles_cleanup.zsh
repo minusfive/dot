@@ -434,4 +434,37 @@ env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_explicit" \
 [[ -L "$__ownership_explicit" ]] ||
     fail "external explicit mise config link was removed"
 
+rm -f "$__ownership_xdg/mise" "$__ownership_explicit"
+mkdir -p "$__ownership_xdg/mise" "$__ownership_explicit"
+printf 'custom XDG match\n' > "$__ownership_source/custom-xdg-match.toml"
+printf 'custom XDG mismatch\n' > "$__ownership_source/custom-xdg-mismatch.toml"
+printf 'explicit match\n' > "$__ownership_source/explicit-match.toml"
+printf 'explicit mismatch\n' > "$__ownership_source/explicit-mismatch.toml"
+cat > "$__ownership_source/cleanup.migrations" <<'EOF'
+.config/mise/custom-xdg-match.toml	home/.config/mise/custom-xdg-match.toml
+.config/mise/custom-xdg-mismatch.toml	home/.config/mise/custom-xdg-match.toml
+.config/mise/explicit-match.toml	home/.config/mise/explicit-match.toml
+.config/mise/explicit-mismatch.toml	home/.config/mise/explicit-match.toml
+EOF
+ln -s "$__ownership_source/custom-xdg-match.toml" \
+    "$__ownership_xdg/mise/custom-xdg-match.toml"
+ln -s "$__ownership_source/custom-xdg-mismatch.toml" \
+    "$__ownership_xdg/mise/custom-xdg-mismatch.toml"
+env -u MISE_CONFIG_DIR "${__ownership_env[@]}" zsh "$__task" > "$__output"
+[[ ! -L "$__ownership_xdg/mise/custom-xdg-match.toml" ]] ||
+    fail "matching custom XDG migration link remains"
+[[ -L "$__ownership_xdg/mise/custom-xdg-mismatch.toml" ]] ||
+    fail "mismatched custom XDG migration link was removed"
+
+ln -s "$__ownership_source/explicit-match.toml" \
+    "$__ownership_explicit/explicit-match.toml"
+ln -s "$__ownership_source/explicit-mismatch.toml" \
+    "$__ownership_explicit/explicit-mismatch.toml"
+env "${__ownership_env[@]}" MISE_CONFIG_DIR="$__ownership_explicit" \
+    zsh "$__task" > "$__output"
+[[ ! -L "$__ownership_explicit/explicit-match.toml" ]] ||
+    fail "matching explicit migration link remains"
+[[ -L "$__ownership_explicit/explicit-mismatch.toml" ]] ||
+    fail "mismatched explicit migration link was removed"
+
 echo "bootstrap:post-dotfiles:cleanup task passed."
