@@ -19,6 +19,7 @@ When another lead assigns you a bounded unit, complete only that unit and return
 - Delegate durable-plan refinement to a bounded planning agent, then obtain an independent critique before implementation or GitHub updates.
 - Delegate all substantive workflow work, including research, queue and ledger maintenance, reconciliation, review polling, validation, critique, and recovery.
 - Keep scope, decisions, monitoring oversight, handoffs, integration, and completion with yourself.
+- Pass already-known exact paths, URLs, pull-request/issue references, and worktree locations directly in delegation prompts so workers do not rediscover them.
 - Use one bounded coordination worker for the ready queue and checkpoint ledger.
 - Have it report ready lanes and proposed scheduling. Assign the workers yourself.
 - Start every ready lane concurrently, and keep unrelated lanes moving while another lane waits.
