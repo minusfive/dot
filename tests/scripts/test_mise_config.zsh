@@ -409,6 +409,8 @@ env -u MISE_ENV -u MISE_AUTO_ENV -u MISE_SAFE \
     fail "default XDG config directory received a per-file mise config link"
 [[ ! -e "$__mise_custom_xdg_config/mise" ]] ||
     fail "custom XDG config directory received per-file mise config ownership"
+grep -qF '*.local.*' home/.config/git/ignore ||
+    fail "global Git ignore does not cover local-suffix paths"
 
 # Mise deploys this source file as Git's global excludes file.
 [[ -f "home/.config/git/ignore" ]] || fail "mise global Git ignore source is missing"

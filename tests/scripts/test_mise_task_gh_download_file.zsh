@@ -14,10 +14,6 @@ local __output="$__fixture_dir/theme.txt"
 local __invocation="$__fixture_dir/invocation.txt"
 [[ -x "$__task" ]] || fail "gh download task is not available in the active mise config directory"
 trap 'rm -rf "$__fixture_dir"' EXIT
-grep -qF '"mise/config/mise/tasks/gh/download/file.sh" = {' home/.config/mise/conf.d/mise.toml &&
-    grep -qF 'target = "{{ xdg_config_home }}/mise/tasks/gh/download/file.sh"' \
-        home/.config/mise/conf.d/mise.toml ||
-    fail "gh download task is not deployed by the mise control plane"
 mkdir -p "$__bin_dir"
 
 cat > "$__bin_dir/mise" <<'EOF'

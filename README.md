@@ -8,38 +8,114 @@ The configuration includes keyboard shortcuts for launching apps, managing windo
 
 ## Machine setup
 
-Clone the repository and initialize a machine:
+Clone the repository and review the native configuration bootstrap:
 
 ```bash
-git clone --single-branch --branch main git@github.com:minusfive/dot.git ~/dev/personal/dot
+git clone --single-branch --branch main https://github.com/minusfive/dot.git ~/dev/personal/dot
 cd ~/dev/personal/dot
 ./scripts/install-mise.zsh
-source scripts/mise-env.zsh
-mise bootstrap
+PATH="$HOME/.local/bin:$PATH" "$HOME/.local/bin/mise" bootstrap \
+  --from https://github.com/minusfive/dot.git \
+  --from-dir ~/dev/personal/dot \
+  --config-dir home/.config/mise \
+  --dry-run
 ```
 
-- The [`./scripts/install-mise.zsh`](./scripts/install-mise.zsh) installs `mise` when it is not available and checks the supported installation. On success it prints the commands for next steps.
-- Sourcing [`scripts/mise-env.zsh`](./scripts/mise-env.zsh) adds `mise` to `$PATH` and selects the repository source for the global `mise` configuration.
-- The `mise` `bootstrap` command asks for approval before it changes `macOS` preferences, places files, installs tools and applications, and clones repositories. The selected profile is validated before profile-sensitive phases.
-- Use `mise bootstrap --dry-run` to preview changes without applying them.
+- The [`./scripts/install-mise.zsh`](./scripts/install-mise.zsh) installs `mise` when it is not available. On success, it prints the native review command.
+- Review the checkout before the first native bootstrap. The `mise` `bootstrap` command asks for approval before it changes `macOS` preferences, places files, installs tools and applications, and clones repositories.
+
+If the global `mise` configuration directory is not empty, complete the migration below before you apply the first bootstrap. This also applies to a fresh checkout.
+
+An existing checkout requires the exact origin `https://github.com/minusfive/dot.git`. Verify the origin before you obtain the migration script:
+
+```bash
+git -C ~/dev/personal/dot remote get-url origin
+```
+
+If the output differs, change the origin:
+
+```bash
+git -C ~/dev/personal/dot remote set-url origin https://github.com/minusfive/dot.git
+```
+
+Fast-forward the checkout to obtain the migration script:
+
+```bash
+git -C ~/dev/personal/dot pull --ff-only
+```
+
+Run the migration dry run first. Then run the migration after you review the preflight report.
+
+```bash
+cd ~/dev/personal/dot
+./scripts/migrate-mise-config-dir.zsh --dry-run
+./scripts/migrate-mise-config-dir.zsh
+```
+
+- The migration moves the old configuration directory to a timestamped backup. It preserves approved local files and runs only the hook-free native files step.
+- The migration does not install packages, tools, services, repositories, hooks, or system settings. Run the normal profile bootstrap after the migration.
+- The migration checks the canonical `mise` version before it scans or changes the target. It requires `2026.10.21` or later.
+- An apply run can create the global configuration-directory link before a later child bootstrap prompt. If you decline that prompt, the link can remain.
+- Run the guarded rollback command to restore the recorded old directory. Do not remove the link manually.
+- Use the full native command with `--dry-run` to preview later changes without applying them.
 - The `mise` [`bootstrap:post-dotfiles`](./scripts/tasks/bootstrap/post-dotfiles.zsh) task updates the cleanup inventory and removes stale links after the dotfiles phase. The `bootstrap:final` hook applies repository fixes after tool installation.
-- If a phase fails, fix the reported phase, then rerun `mise -E <profile> bootstrap` with the same profile.
+- If a phase fails, fix the reported phase, then rerun `PATH="$HOME/.local/bin:$PATH" "$HOME/.local/bin/mise" -E <profile> bootstrap` with the same profile.
+
+Apply the reviewed configuration after the migration:
+
+```bash
+PATH="$HOME/.local/bin:$PATH" "$HOME/.local/bin/mise" bootstrap \
+  --from https://github.com/minusfive/dot.git \
+  --from-dir ~/dev/personal/dot \
+  --config-dir home/.config/mise
+```
 
 ### Profiles
 
 The `work` profile is the default and excludes personal-only tools and applications. To apply the `personal` profile, run:
 
 ```bash
-mise -E personal bootstrap
+PATH="$HOME/.local/bin:$PATH" "$HOME/.local/bin/mise" -E personal bootstrap \
+  --from https://github.com/minusfive/dot.git \
+  --from-dir ~/dev/personal/dot \
+  --config-dir home/.config/mise
 ```
 
 You can also set the profile with `MISE_ENV`:
 
 ```bash
-MISE_ENV=personal mise bootstrap
+PATH="$HOME/.local/bin:$PATH" MISE_ENV=personal "$HOME/.local/bin/mise" bootstrap \
+  --from https://github.com/minusfive/dot.git \
+  --from-dir ~/dev/personal/dot \
+  --config-dir home/.config/mise
 ```
 
 The selected profile is saved at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile`.
+
+### Repeat runs
+
+After the configuration link exists, run the native bootstrap again:
+
+```bash
+PATH="$HOME/.local/bin:$PATH" "$HOME/.local/bin/mise" bootstrap \
+  --from https://github.com/minusfive/dot.git \
+  --from-dir ~/dev/personal/dot \
+  --config-dir home/.config/mise
+```
+
+To restore the old configuration, run the rollback command after its guards pass:
+
+```bash
+cd ~/dev/personal/dot
+./scripts/migrate-mise-config-dir.zsh --rollback
+```
+
+To commit the migration and remove its backup after the normal bootstrap completes, run:
+
+```bash
+cd ~/dev/personal/dot
+./scripts/migrate-mise-config-dir.zsh --remove-backup
+```
 
 [`Hammerspoon`](./home/.config/hammerspoon/) reads the same state file through the [`ProfileState Spoon`](./home/.config/hammerspoon/Spoons/ProfileState.spoon/init.lua) so it can customize keyboard shortcuts and other automations for the selected profile. The `hs.settings` interface stores the profile in `macOS` defaults under a custom key, so other applications can read it.
 
@@ -47,11 +123,11 @@ Each repository path selects a local identity and credential profile for [`Git`]
 
 ### File ownership and application data
 
-The `home/` directory contains source files for resources that `mise` places outside the repository. Most entries mirror the target user's `$HOME` layout. The `home/.config/mise/` tree contains repository-scoped source declarations for the global `mise` configuration and tasks. `mise` reads these declarations through `MISE_CONFIG_DIR`; the declarations are not deployed as a directory link at `$HOME/.config/mise`.
+The `home/` directory contains source files for resources that `mise` places outside the repository. Most entries mirror the target user's `$HOME` layout. The `home/.config/mise/` tree contains repository-scoped source declarations for the global `mise` configuration and tasks. Before the migration, `mise` reads these declarations through `MISE_CONFIG_DIR`; the declarations are not deployed as a directory link at `$HOME/.config/mise`.
 
 Other `mise`-managed resources are deployed outside the repository. This includes the selected profile state at `${XDG_STATE_HOME:-$HOME/.local/state}/minusfive/profile`. These resources can be links, copies, or edits of existing files.
 
-The global directory link is a later migration target. That migration can make `$HOME/.config/mise` a directory link to this source tree.
+The migration command documented above moves an existing `$HOME/.config/mise` directory to a backup. It then makes `$HOME/.config/mise` a directory link to this source tree.
 
 The [`dotfiles`][mise-dotfiles], [`bootstrap.files`][mise-bootstrap], and [`bootstrap.directories`][mise-bootstrap] entries describe how and when `mise` manages files and directories.
 

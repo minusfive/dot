@@ -40,7 +40,7 @@ Tests the `bootstrap:pre-packages`, `bootstrap:pre-dotfiles`, and `bootstrap:pos
 
 #### `test_mise_bootstrap_compatibility.zsh`
 
-Tests `scripts/install-mise.zsh` help, official installation checks, clean-home acquisition, and source-safe environment setup.
+Tests the configuration-directory migration, rollback, backup removal, recovery guards, and installer behavior.
 
 #### `test_mise_task_gh_auth_login.zsh`
 
