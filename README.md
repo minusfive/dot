@@ -46,6 +46,7 @@ git -C ~/dev/personal/dot pull --ff-only
 Run the migration dry run first. Then run the migration after you review the preflight report.
 
 ```bash
+cd ~/dev/personal/dot
 ./scripts/migrate-mise-config-dir.zsh --dry-run
 ./scripts/migrate-mise-config-dir.zsh
 ```
@@ -92,12 +93,14 @@ PATH="$HOME/.local/bin:$PATH" "$HOME/.local/bin/mise" bootstrap \
 To restore the old configuration, run the rollback command after its guards pass:
 
 ```bash
+cd ~/dev/personal/dot
 ./scripts/migrate-mise-config-dir.zsh --rollback
 ```
 
 To commit the migration and remove its backup after the normal bootstrap completes, run:
 
 ```bash
+cd ~/dev/personal/dot
 ./scripts/migrate-mise-config-dir.zsh --remove-backup
 ```
 
