@@ -23,7 +23,8 @@ PATH="$HOME/.local/bin:$PATH" "$HOME/.local/bin/mise" bootstrap \
 
 - The [`./scripts/install-mise.zsh`](./scripts/install-mise.zsh) installs `mise` when it is not available. On success, it prints the native review command.
 - Review the checkout before the first native bootstrap. The `mise` `bootstrap` command asks for approval before it changes `macOS` preferences, places files, installs tools and applications, and clones repositories.
-- Apply the reviewed configuration with the same command without `--dry-run`.
+
+If the global `mise` configuration directory is not empty, complete the migration below before you apply the first bootstrap. This also applies to a fresh checkout.
 
 An existing checkout requires the exact origin `https://github.com/minusfive/dot.git`. Verify the origin before you obtain the migration script:
 
@@ -53,9 +54,21 @@ cd ~/dev/personal/dot
 
 - The migration moves the old configuration directory to a timestamped backup. It preserves approved local files and runs only the hook-free native files step.
 - The migration does not install packages, tools, services, repositories, hooks, or system settings. Run the normal profile bootstrap after the migration.
+- The migration checks the canonical `mise` version before it scans or changes the target. It requires `2026.10.21` or later.
+- An apply run can create the global configuration-directory link before a later child bootstrap prompt. If you decline that prompt, the link can remain.
+- Run the guarded rollback command to restore the recorded old directory. Do not remove the link manually.
 - Use the full native command with `--dry-run` to preview later changes without applying them.
 - The `mise` [`bootstrap:post-dotfiles`](./scripts/tasks/bootstrap/post-dotfiles.zsh) task updates the cleanup inventory and removes stale links after the dotfiles phase. The `bootstrap:final` hook applies repository fixes after tool installation.
 - If a phase fails, fix the reported phase, then rerun `PATH="$HOME/.local/bin:$PATH" "$HOME/.local/bin/mise" -E <profile> bootstrap` with the same profile.
+
+Apply the reviewed configuration after the migration:
+
+```bash
+PATH="$HOME/.local/bin:$PATH" "$HOME/.local/bin/mise" bootstrap \
+  --from https://github.com/minusfive/dot.git \
+  --from-dir ~/dev/personal/dot \
+  --config-dir home/.config/mise
+```
 
 ### Profiles
 

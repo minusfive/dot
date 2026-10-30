@@ -8,6 +8,7 @@ typeset -r __source_relative_path="home/.config/mise"
 typeset -r __state_relative_path="minusfive/mise-config-dir-migration"
 typeset -r __schema=1
 typeset -r __canonical_mise_path="$HOME/.local/bin/mise"
+typeset -r __minimum_mise_version="2026.10.21"
 typeset -r __selector_inventory_type="symlink"
 
 typeset __dry_run=false
@@ -122,6 +123,27 @@ typeset -a __inventory_backup_link_targets=()
 
 print_error() {
     print -u2 -- "error: $*"
+}
+
+validate_mise_version() {
+    local __version_output __version __version_rest
+    if ! __version_output="$("$__canonical_mise_path" version -q 2>/dev/null)"; then
+        print_error "could not determine the canonical mise version; minimum required version is $__minimum_mise_version"
+        return 1
+    fi
+    read -r __version __version_rest <<< "$__version_output"
+    [[ "$__version" =~ '^[0-9]+\.[0-9]+\.[0-9]+$' ]] || {
+        print_error "canonical mise version is unparseable; minimum required version is $__minimum_mise_version"
+        return 1
+    }
+    local __major __minor __patch
+    IFS=. read -r __major __minor __patch <<< "$__version"
+    if (( __major < 2026 ||
+        (__major == 2026 && __minor < 10) ||
+        (__major == 2026 && __minor == 10 && __patch < 21) )); then
+        print_error "canonical mise version $__version is older than the minimum required version $__minimum_mise_version"
+        return 1
+    fi
 }
 
 usage() {
@@ -2252,6 +2274,7 @@ PY_STATE_PATH
         return 1
     fi
     if [[ "$__recovery" != true ]]; then
+        validate_mise_version || return $?
         if [[ -d "$__target" && ! -L "$__target" ]]; then
             scan_target || return $?
         fi

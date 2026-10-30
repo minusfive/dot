@@ -94,7 +94,11 @@ setup_fixture() {
 #!/usr/bin/env bash
 set -euo pipefail
 printf 'canonical\n' >> "$MISE_LOG"
-    actual=("$@")
+    if [[ "${1:-}" == version && "${2:-}" == -q ]]; then
+        printf '%s\n' "${MISE_VERSION_OUTPUT-2026.10.21 macos-arm64 (fixture)}"
+        exit 0
+    fi
+        actual=("$@")
     expected=(
         --no-hooks
         bootstrap
@@ -161,6 +165,18 @@ reset_old_target() {
 
 run_migration() {
     fixture_env zsh "$__script" "$@"
+}
+
+run_migration_with_version_output() {
+    local __version_output="$1"
+    shift
+    MISE_VERSION_OUTPUT="$__version_output" run_migration "$@"
+}
+
+run_migration_with_version_output_yes() {
+    local __version_output="$1"
+    shift
+    printf 'y\n' | run_migration_with_version_output "$__version_output" "$@"
 }
 
 run_migration_with_state_home() {
@@ -652,6 +668,39 @@ assert_old_target
 printf 'n\n' | run_migration >| "$__fixture_dir/refused.out"
 grep -qF "cancelled" "$__fixture_dir/refused.out" || fail "confirmation refusal was not reported"
 assert_old_target
+
+setup_fixture
+local __old_version_target_snapshot
+__old_version_target_snapshot="$(find "$__fixture_config" -type l -o -type f | sort)" ||
+    fail "could not snapshot the old target for the old-version case"
+expect_failure "old mise version" "older than the minimum required version" \
+    run_migration_with_version_output "2026.10.20 macos-arm64 (fixture)"
+[[ "$__old_version_target_snapshot" == "$(find "$__fixture_config" -type l -o -type f | sort)" ]] ||
+    fail "old mise version changed the old target"
+[[ ! -e "$__fixture_state/minusfive/mise-config-dir-migration/transaction.json" ]] ||
+    fail "old mise version wrote migration state"
+
+setup_fixture
+local __invalid_version_state="$__fixture_state/minusfive/mise-config-dir-migration"
+local __invalid_version_snapshot="$__fixture_dir/invalid-version.snapshot"
+snapshot_recovery_files "$__invalid_version_snapshot" \
+    "$__fixture_config" \
+    "$__invalid_version_state/backups" \
+    "$__invalid_version_state/transaction.json" \
+    "$__invalid_version_state/transaction.lock"
+expect_failure "empty mise version" "unparseable" \
+    run_migration_with_version_output ""
+snapshot_recovery_files "$__fixture_dir/invalid-version.after" \
+    "$__fixture_config" \
+    "$__invalid_version_state/backups" \
+    "$__invalid_version_state/transaction.json" \
+    "$__invalid_version_state/transaction.lock"
+cmp -s "$__invalid_version_snapshot" "$__fixture_dir/invalid-version.after" ||
+    fail "empty mise version changed migration files"
+
+setup_fixture
+run_migration_with_version_output_yes "2026.10.21 macos-arm64 (fixture)" >| "$__fixture_dir/minimum-version.out"
+[[ -L "$__fixture_config" ]] || fail "minimum mise version did not allow the migration"
 
 setup_fixture
 fixture_git -C "$__fixture_checkout" config remote.origin.url https://github.com/example/wrong.git
