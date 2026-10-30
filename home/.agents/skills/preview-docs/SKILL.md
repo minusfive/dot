@@ -24,3 +24,5 @@ Return the task output without parsing or reformatting it.
 - Stop all preview servers when requested.
 
 Let the task own preview-state parsing and lifecycle details.
+
+Do not refresh a preview after every edit. Refresh only when the user requests it, when preview output is required for delivery, or during final validation.
