@@ -67,6 +67,6 @@ function {
     fi
 
     print -r -- ""
-    print -r -- "Run ${__code_color}\"$HOME/.local/bin/mise\" bootstrap --from https://github.com/minusfive/dot.git --from-dir ~/dev/personal/dot --config-dir home/.config/mise --dry-run${__reset_color} to review changes."
+    print -r -- "Run ${__code_color}PATH=\"$HOME/.local/bin:\$PATH\" \"$HOME/.local/bin/mise\" bootstrap --from https://github.com/minusfive/dot.git --from-dir ~/dev/personal/dot --config-dir home/.config/mise --dry-run${__reset_color} to review changes."
     print -r -- ""
 } "$@"

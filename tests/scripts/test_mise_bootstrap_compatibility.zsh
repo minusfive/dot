@@ -556,7 +556,7 @@ import sys
 output = open(sys.argv[1], encoding="utf-8").read()
 output = re.sub(r"\x1b\[[0-9;]*m", "", output)
 expected = (
-    f'Run "{sys.argv[2]}" bootstrap --from https://github.com/minusfive/dot.git '
+    f'Run PATH="{sys.argv[2].rsplit("/", 1)[0]}:$PATH" "{sys.argv[2]}" bootstrap --from https://github.com/minusfive/dot.git '
     '--from-dir ~/dev/personal/dot --config-dir home/.config/mise --dry-run '
     'to review changes.'
 )
@@ -1647,6 +1647,10 @@ grep -qF '"state": "verified"' \
 
 setup_fixture
 run_migration_yes >| "$__fixture_dir/remove-setup.out"
+__backup_dir="$(find "$__fixture_state/minusfive/mise-config-dir-migration/backups" -mindepth 1 -maxdepth 1 -type d -print -quit)" ||
+    fail "could not locate the backup-removal backup"
+[[ -n "$__backup_dir" && -d "$__backup_dir/config-dir" ]] ||
+    fail "backup-removal setup did not create a backup"
 run_migration --remove-backup >| "$__fixture_dir/remove.out"
 grep -qF '"state": "committed"' "$__manifest" || fail "backup removal did not commit"
 [[ ! -d "$__backup_dir" ]] || fail "backup removal did not remove the backup"
@@ -1960,6 +1964,7 @@ if grep -qF 'git@github.com/minusfive/dot.git' README.md; then
 fi
 grep -qF 'https://github.com/minusfive/dot.git' README.md || fail "README omits the HTTPS origin"
 grep -qF './scripts/migrate-mise-config-dir.zsh --dry-run' README.md || fail "README omits the migration dry run"
-grep -qF '"$HOME/.local/bin/mise" -E personal bootstrap' README.md || fail "README omits the personal profile journey"
+grep -qF 'PATH="$HOME/.local/bin:$PATH" "$HOME/.local/bin/mise" -E personal bootstrap' README.md ||
+    fail "README omits the personal profile journey"
 
 echo "mise config-directory migration compatibility passed."
