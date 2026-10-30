@@ -9,9 +9,11 @@ Use this skill when shaping how a task executes: whether to fan out tool calls i
 
 ## Tools vs Subagents
 
-- Prefer direct tool calls for small, bounded, local operations.
-- Delegate a bounded unit when isolated context, specialist capability, or context savings exceed its coordination cost.
-- Do not dispatch a subagent for a task the parent can resolve directly in a few tool calls.
+- Delegate every substantive workflow unit, including planning, research, queue and ledger maintenance, implementation, validation, critique, reconciliation, review polling and evidence collection, and recovery.
+- Use direct tools only for trivial coordination, status reads, handoffs, and final integration decisions.
+- Keep each delegated unit bounded, end-to-end, and independently verifiable.
+- Create at most one coordination worker, one reconciliation worker, and one review-monitoring worker per workflow.
+- Reuse those workers across loaded skills. Assign a replacement only when a worker stops or cannot deliver.
 - Keep ownership of a long-running workflow with the `orchestrator`. Do not assign the whole workflow to one implementation agent.
 
 ## Primary Orchestrator
@@ -36,15 +38,19 @@ Use this skill when shaping how a task executes: whether to fan out tool calls i
 
 - Identify all independent tasks and lanes before you start. Run them concurrently by default.
 - Treat lane parallelization as a fundamental `orchestrator` responsibility for every workflow.
-- Continue independent work while unrelated work runs, including review polling, triage, and implementation.
+- Continue independent work while unrelated work runs, including review polling, evidence collection, and implementation.
 - Classify every reason to wait as one of these dependency types:
   - `hard dependency`: the lane's next action cannot start or continue until a named result, decision, or artifact is ready.
   - `shared mutable state`: lanes can progress independently, but the named mutation must be serialized.
   - `rebase/delivery dependency`: the lane can progress now, but it must receive a handoff or rebase before integration or delivery.
   - `optional synchronization`: the information is useful, but it is never a gate.
-- Maintain a dependency-aware ready queue and checkpoint ledger for every active lane. Record the lane, dependency type, prerequisite, current state, next action, handoff or rebase point, and blocker.
-- Start every lane whose hard dependencies are ready. Do not wait for optional synchronization, an unrelated critique, or another lane's completion. Treat a shared-worktree or shared-ref update as a gate only when the ledger records it as a hard or rebase/delivery dependency.
-- Use checkpoints to update the ledger and resume every ready lane. A checkpoint is not a global barrier unless a recorded dependency requires one.
+- Use one coordination worker to maintain a dependency-aware ready queue and checkpoint ledger for every active lane. Require records for the lane, dependency type, prerequisite, current state, next action, handoff or rebase point, and blocker.
+- Have the coordination worker report every lane whose hard dependencies are ready.
+- Assign approved ready lanes concurrently.
+- Do not wait for optional synchronization, an unrelated critique, or another lane's completion.
+- Treat a shared-worktree or shared-ref update as a gate only when the ledger records it as a hard or rebase/delivery dependency.
+- Use checkpoint reports to have the coordination worker update the ledger. Resume every ready lane after the orchestrator approves the report.
+- A checkpoint is not a global barrier unless a recorded dependency requires one.
 - Serialize only the exact shared mutation, rebase, integration, or delivery boundary named in the ledger.
 - When a dependency becomes ready, make an explicit handoff. Name the result, notify the dependent lane, apply the handoff or rebase, run the required validation, and update the ledger.
 - Rebase an affected lane onto the new `main` commit before delivery when the ledger marks that commit as a rebase or delivery dependency.
@@ -52,7 +58,9 @@ Use this skill when shaping how a task executes: whether to fan out tool calls i
 
 ## Shell Command Supervision
 
-- Monitor active shell commands as well as subagents.
+- Assign shell command execution to workers.
+- Require each worker to report command status and progress.
+- Monitor active shell commands through worker reports and status operations.
 - At startup and after each checkpoint, inspect active shell sessions with the available status and read operations.
 - During a long wait, inspect active shell sessions at least every 60 seconds and after each command progress boundary, whichever comes first.
 - Before you start a test, build, validator, or delivery command, set a bounded timeout or define an explicit progress checkpoint.
@@ -61,7 +69,7 @@ Use this skill when shaping how a task executes: whether to fan out tool calls i
 - Use elapsed time, new output, CPU or process state, and expected duration to distinguish active progress from a stall.
 - Before intervention, ask the owning worker for a report.
 - If a shell stalls, preserve its output and other evidence before you stop its specific session or process.
-- Reassign or recover stalled work without deleting unrelated changes.
+- Decide whether to reassign or recover stalled work. Preserve unrelated changes.
 - Reconcile shell-session state with lane, issue, and pull request state before you move forward.
 - Keep independent lanes concurrent. Shell monitoring is not a global barrier.
 
@@ -84,7 +92,8 @@ Use this skill when shaping how a task executes: whether to fan out tool calls i
 - State the goal, inputs, owned and excluded files, dependencies, allowed actions, expected evidence, acceptance checks, and checkpoint in each assignment.
 - Aggregate outputs only at the dependency boundary that consumes them. Keep unrelated lanes running.
 - Ask workers for concise progress reports with changed files, completed work, validation evidence, divergence, blockers, and remaining scope.
-- At each checkpoint, update the ready queue and ledger. Compare each lane with its estimate, scope, and acceptance checks, then continue every ready lane.
+- At each checkpoint, have the coordination worker update the ready queue and ledger. Compare each lane with its estimate, scope, and acceptance checks.
+- Assign every ready lane after the orchestrator approves the checkpoint.
 - If an agent cannot deliver, do not take over its assigned work. Use the drift recovery sequence or report a blocker and next action.
 
 ## Drift Recovery

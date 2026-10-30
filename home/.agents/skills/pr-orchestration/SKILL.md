@@ -21,7 +21,7 @@ Use the `orchestrator` agent as the primary coordinator. Follow `task-orchestrat
 
 ## Build independent lanes
 
-1. Build a dependency graph from the issue plans.
+1. Reuse the coordination worker to build a dependency graph from the issue plans.
 2. Create one integration branch and worktree per issue.
 3. Keep issue lanes independent. Do not share mutable source files between lanes.
 4. Delegate balanced behavior units through `task-orchestration`.
@@ -50,6 +50,12 @@ This gate reviews the integrated PR diff before delivery. `execution-workflow` o
 
 ## Watch reviews
 
+Reuse the review-monitoring worker to poll every watched pull request and collect evidence. Keep triage, final dispositions, handoffs, and completion with the `orchestrator`.
+
+Have the review-monitoring worker maintain the finding ledger with its source and validation evidence. Have the `orchestrator` approve each final disposition, then delegate the ledger update.
+
+Workers and schedulers execute lifecycle and watch-state mutations only after the `orchestrator` approves them.
+
 1. Add every open PR to the repository's review-watch state.
 2. Treat `mise run pr:review-watch -- poll` as a one-shot poll, not a background watcher or notification channel.
 3. Invoke the poll manually or through an external schedule, and consume its machine-readable JSON.
@@ -68,11 +74,11 @@ This gate reviews the integrated PR diff before delivery. `execution-workflow` o
 12. For findings with a `fix` disposition, address each finding in the matching worktree. Run an independent critique, fix, focused tests, and authorized push before the next review poll.
 13. For each `fix` disposition, reply in the corresponding review thread after the push and resolve it when the fix fully addresses it. If no thread exists, record the reply and disposition through the applicable review channel and in the ledger.
 14. For an evidence-backed `rejected` or `accepted-risk` disposition, record the evidence and disposition in the ledger and applicable review channel. Do not create a fix push for these dispositions.
-15. After every poll and review-fix push, reconcile PR state, issue state, project-card lane, dependencies, blockers, finding ledger, and watch state. Do this before continuing. Follow `execution-workflow` for every backward review transition and to reconcile issue and project-card lanes after each review cycle. Reopen a closed issue and move its card back when review work moves the story backward.
-16. Continue review polling, triage, and independent fixes while unrelated work runs.
+15. After every poll and review-fix push, reconcile PR state, issue state, project-card lane, dependencies, blockers, finding ledger, and watch state. Do this before continuing. Follow `execution-workflow` for every backward review transition. Have the orchestrator approve the transition and delegate the issue and project-card mutations.
+16. Continue review polling and evidence collection while unrelated work runs. Have the orchestrator triage findings and assign approved fixes to delegated workers.
 17. After a poll shows no actionable findings, reconcile the ledger before starting or continuing the grace period. Start or continue the grace period only when the review state is `APPROVED`, the unresolved finding ledger is empty, and all required checks are clean and non-pending. Keep the PR watched for four additional checks at 15-minute intervals because later automated reviews can appear.
 18. Approval alone cannot move a story to `Done` or close its issue. Approval alone cannot remove its PR from watch or end or shorten the review grace period.
-19. Remove an open PR only after the grace period is clean and the unresolved finding ledger is empty. Do this only when all required checks are clean and non-pending. Remove merged or closed PRs from the watch state automatically.
+19. Remove an open PR only after the grace period is clean and the unresolved finding ledger is empty. Do this only when all required checks are clean and non-pending. Remove merged or closed PRs from the watch state automatically under the `orchestrator`-approved watch policy.
 20. Limit review-fix cycles to 10 per PR.
 21. If actionable findings remain after the tenth cycle, stop the cycle and report the remaining findings.
 22. Use `commit-guidelines` and `pr-guidelines` for every review-fix commit and push.

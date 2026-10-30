@@ -11,6 +11,8 @@ Use the `orchestrator` agent as the primary coordinator. Follow `task-orchestrat
 
 This skill owns story lifecycle and dependency gates.
 
+Delegate story, issue, project-card, sub-issue, and review-state mutations to bounded workers. Keep final state decisions, handoffs, integration, and completion with the `orchestrator`.
+
 ## Canonical lifecycle
 
 Use this lifecycle for every story and transition:
@@ -36,10 +38,11 @@ Use this lifecycle for every story and transition:
 
 ## Execution topology
 
-1. Build execution lanes from plan-provided dependencies and concurrency boundaries.
-   - Classify each dependency as `hard dependency`, `shared mutable state`, `rebase/delivery dependency`, or `optional synchronization`.
-   - Maintain the dependency-aware ready queue and checkpoint ledger required by `task-orchestration`.
-   - Start every story whose hard dependencies are ready. Run independent chains concurrently.
+1. Reuse the coordination worker to build execution lanes from plan-provided dependencies and concurrency boundaries.
+   - Have the worker classify each dependency as `hard dependency`, `shared mutable state`, `rebase/delivery dependency`, or `optional synchronization`.
+   - Have the worker maintain the dependency-aware ready queue and checkpoint ledger required by `task-orchestration`.
+   - Have the worker report every story whose hard dependencies are ready.
+   - Assign approved ready stories concurrently.
    - Follow `task-orchestration` for worktree isolation and shared-write serialization.
    - Use a `serialized shared-mutation lane` only for an explicitly recorded shared mutation or rebase/delivery boundary. Keep every other repository-changing scope in its own worktree.
 2. Preserve the plan's vertical integration checkpoints:
@@ -74,10 +77,14 @@ Use this lifecycle for every story and transition:
 
 ## Reconciliation checkpoints
 
-1. At startup and after each implementation, validation, critique, or review cycle, update the ready queue and checkpoint ledger for every active lane.
-2. Use `gh` to read current issue and project state. Run `mise run pr:review-watch -- poll` for watched pull requests.
-3. Compare the live state with the accepted plan and story records. Correct drift before advancing the affected lane, then record the checkpoint and corrections in the story artifact trail.
-4. Resume every ready lane after reconciliation. Treat reconciliation as a global barrier only when the ledger records a hard dependency, shared mutation, rebase, or delivery boundary.
+1. Reuse the reconciliation worker for each cycle.
+2. Have it update the ready queue and checkpoint ledger for every active lane.
+3. Reuse the review-monitoring worker to read current issue and project state with `gh`.
+4. Have it poll watched pull requests with `mise run pr:review-watch -- poll`.
+5. Have the reconciliation worker report drift and proposed corrections before the affected lane advances.
+6. Approve each correction before delegating the required state mutation.
+7. Resume every approved ready lane after reconciliation.
+8. Treat reconciliation as a global barrier only when the ledger records a hard dependency, shared mutation, rebase, or delivery boundary.
 
 ## Critique Gate
 
