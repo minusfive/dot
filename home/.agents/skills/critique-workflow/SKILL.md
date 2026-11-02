@@ -1,26 +1,38 @@
 ---
 name: critique-workflow
-description: Run critique, review, and audit workflows for agent instructions and prose, with verdicts and writing-style enforcement. Use when I ask for a critique, review, or audit.
+description: Run deterministic critique, review, and audit modes for agent instructions and prose. Use when I ask for a critique, review, or audit.
 ---
 
 # Critique Workflow
 
-Use this skill for critique, review, and audit tasks.
+Use this skill for critique, review, and audit work.
 
-When you identify a review finding, search the full applicable repository scope for matching occurrences. Apply the same correction to every match unless you document a verified reason to exclude it.
+Choose exactly one mode:
 
-## Mode Selection
+- [`assets/human-walkthrough.md`](assets/human-walkthrough.md) for interactive decisions with me.
+- [`assets/autonomous-cycle.md`](assets/autonomous-cycle.md) for unattended decisions.
 
-Choose exactly one mode and follow that mode file end-to-end:
+Default to autonomous mode unless I ask for an interactive walkthrough. Follow the selected mode and [`assets/common-invariants.md`](assets/common-invariants.md) end to end. Do not mix modes.
 
-- Use [`assets/human-walkthrough.md`](assets/human-walkthrough.md) when I explicitly ask for interactive walkthrough critique with decision gates.
-- Use [`assets/autonomous-cycle.md`](assets/autonomous-cycle.md) for deterministic unattended critique/review/audit cycles.
-- Default to autonomous mode unless I explicitly ask for interactive walkthrough mode.
+## Findings
 
-Do not mix steps across modes. The selected mode file is the full executable procedure.
+Build a complete findings set before execution. Assign each finding a stable identifier. Cluster findings that one correction can resolve. Search the full applicable repository scope for matching occurrences. Apply the same correction to every match unless evidence supports an exclusion.
 
-## `writing-style` Evaluation
+Use the canonical ASCII verdict tokens:
 
-- When the critique scope includes authored prose or instruction text, load `writing-style`, then `simple-english`, before final verdicts.
-- Evaluate prose and instruction wording against `writing-style` guidance and record style findings with the standard status tokens.
-- When style review is out of scope, record one explicit `NOTE` that `writing-style` evaluation is not applicable.
+- `PASS`;
+- `FAIL`;
+- `RISK`;
+- `NOTE`.
+
+Present findings as a numbered list. Include the issue, impact, suggested fix, and material residual risk.
+
+## Decision records
+
+Record each finding and decision in a compact machine-readable decision log. Use the required fields in `assets/common-invariants.md`. Set `mode` to the selected mode. Use `closed`, `escalated`, or `deferred` for the decision-log terminal state.
+
+When the scope includes authored prose or instruction text, evaluate it with `writing-style` and `simple-english` before final decisions. Record one explicit `NOTE` when style review is not applicable.
+
+After all findings have decisions, critique the decision log. Check for conflicting decisions, unresolved risks, and unverified assumptions. Resolve decision-log issues before execution.
+
+Keep decision-log terminal states separate from the repository workflow lifecycle. Use the owning skill for implementation, story, review, security, and delivery state.

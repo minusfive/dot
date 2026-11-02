@@ -1,50 +1,45 @@
 # Common Critique Invariants
 
-Apply these invariants in both human walkthrough and autonomous modes.
+Apply these invariants in both critique modes.
 
-## Shared Procedure
+## Findings procedure
 
-1. Build a complete findings set and assign each finding a stable identifier.
-2. Run a preliminary clustering pass to group findings that can be addressed by one cohesive solution.
-3. If the findings set is empty, return an explicit no-findings verdict with residual risks or confidence caveats, then end the flow.
-4. Present grouped and ungrouped findings in deterministic order, using numeric indexes.
-5. For each batch or standalone finding, provide:
-   - the concrete issue
-   - why it matters (one line)
-   - a suggested fix
-   - residual risks (only when material)
-6. Use explicit verdict status tokens for findings and decisions: `PASS`, `FAIL`, `RISK`, `NOTE`.
-7. Record each finding and decision in a compact, machine-readable decision log keyed by finding identifier and batch identifier.
-8. When scope includes authored prose or instruction text, load `writing-style`, then `simple-english`, run a `writing-style` evaluation, and include style findings before decision-log critique. When not applicable, add one explicit `NOTE`.
-9. After all findings have decisions, run a dedicated critique pass on the decision log before any execution:
-   - check for decision conflicts
-   - check for unresolved or newly introduced risks
-   - check for unverified assumptions
-10. Present the decision-log critique and resolve issues before execution.
-11. If a decision materially changes downstream findings, restate the updated assumptions before continuing.
-12. Keep each finding self-contained so decisions do not depend on hidden context.
+1. Build a complete findings set.
+2. Assign each finding a stable identifier.
+3. Cluster findings that one correction can resolve.
+4. If the set is empty, record an explicit no-findings result with residual risks or confidence limits.
+5. Present grouped and ungrouped findings in deterministic numeric order.
+6. Include the issue, impact, suggested fix, and material residual risk for each finding.
+7. Use `PASS`, `FAIL`, `RISK`, or `NOTE` for each finding and decision.
 
-## Required Decision Log Fields
+When the scope includes authored prose or instruction text, load `writing-style` and `simple-english`. Evaluate the prose before the decision-log critique. Record one `NOTE` when style review is not applicable.
 
-- `batch_id`
-- `finding_id`
-- `status_token` (`PASS` | `FAIL` | `RISK` | `NOTE`)
-- `issue`
-- `evidence_refs`
-- `impact`
-- `confidence` (routing only)
-- `decision`
-- `residual_risks`
-- `mode` (`human_walkthrough` | `autonomous`)
-- `terminal_state` (`closed` | `escalated` | `deferred`)
+After all findings have decisions, critique the decision log. Check for decision conflicts, unresolved risks, and unverified assumptions. Resolve those issues before execution. If a decision changes downstream findings, restate the updated assumptions before continuing. Keep each finding self-contained.
 
-## Optional Decision Log Fields
+## Required decision-log fields
 
-- `closure_criteria` (include only when closure requires explicit follow-up gates)
-- `decision_rationale` (include only when the decision is non-obvious or policy-sensitive)
+- `batch_id`;
+- `finding_id`;
+- `status_token`;
+- `issue`;
+- `evidence_refs`;
+- `impact`;
+- `confidence`;
+- `decision`;
+- `residual_risks`;
+- `mode`;
+- `terminal_state`.
 
-## Terminal States
+Use `human_walkthrough` or `autonomous` for `mode`. Use `closed`, `escalated`, or `deferred` for `terminal_state`.
 
-- `closed` — the final decision is recorded and no unresolved blocking `FAIL` remains.
-- `escalated` — blocking risk or control limits prevent safe closure; hand off with concrete next-investigation output.
-- `deferred` — scope intentionally postponed with explicit reasons and dependencies.
+Optional fields are `closure_criteria` for explicit follow-up gates and `decision_rationale` for non-obvious or policy-sensitive decisions.
+
+Use these terminal-state meanings:
+
+- `closed`: no unresolved blocking `FAIL` remains;
+- `escalated`: a blocking risk or control limit prevents safe closure;
+- `deferred`: the scope is postponed with explicit reasons and dependencies.
+
+## Boundary
+
+The decision log records critique decisions. It does not replace a story lifecycle, review ledger, security finding ledger, or delivery state. Use the owning skill for those states.

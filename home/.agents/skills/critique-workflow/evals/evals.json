@@ -1,0 +1,23 @@
+{
+  "skill_name": "critique-workflow",
+  "evals": [
+    {
+      "id": "autonomous-decision-log",
+      "prompt": "Run an unattended critique of an instruction-file change with two findings. Describe the mode, finding identifiers, verdict tokens, decision-log fields, cycle limit, and terminal states. Do not call tools.",
+      "expected_output": "Use autonomous mode, stable finding identifiers, the ASCII verdict tokens, the required decision-log fields, a maximum of three cycles, and only `closed`, `escalated`, or `deferred` as decision-log terminal states. Keep the decision log separate from the repository workflow lifecycle.",
+      "assertions": [
+        "The response uses autonomous mode and the required verdict tokens.",
+        "The response separates critique decision records from the repository workflow lifecycle."
+      ]
+    },
+    {
+      "id": "human-finding-gate",
+      "prompt": "Run an interactive critique of one prose finding. Describe what you present, what you ask me, and when you continue. Do not call tools.",
+      "expected_output": "Present one finding with its verdict token, issue, impact, proposed fix, and material residual risk. Ask me to approve, revise, or defer it. Wait for my explicit decision and record it before presenting the next finding.",
+      "assertions": [
+        "The response waits for an explicit user decision before continuing.",
+        "The response includes the required compact finding fields."
+      ]
+    }
+  ]
+}
