@@ -134,6 +134,10 @@ Use a separate `test_mise_bootstrap_<module>.zsh` file when a module needs behav
 
 Tests the grouped evaluation init, prepare, and validate tasks, canonical specifications, repository-local workspaces, ignore rules, and symlink rejection.
 
+#### `test_mise_task_ai_workflow_validate.zsh`
+
+Tests workflow contract and ledger validation, including identity, ownership, budgets, checkpoints, dependencies, redaction, transitions, candidate drift, and clean initialization.
+
 #### `test_agentic_projects.zsh`
 
 Tests hidden project creation and promotion to a checked-in workspace.

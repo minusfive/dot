@@ -1,0 +1,333 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://minusfive.dev/schemas/mise-workflow-contract.json",
+  "title": "Workflow worker contract",
+  "description": "This schema describes structural and advisory workflow data. External orchestration owns authorization, cancellation, and measured budget enforcement.",
+  "type": "object",
+  "unevaluatedProperties": false,
+  "required": [
+    "workflow_id",
+    "candidate_id",
+    "lane_id",
+    "artifact_id",
+    "state_owner",
+    "worktree",
+    "owned_paths",
+    "excluded_paths",
+    "authorization",
+    "budget",
+    "checkpoint",
+    "dependencies",
+    "acceptance",
+    "evidence_refs",
+    "redaction_status",
+    "terminal_state",
+    "state"
+  ],
+  "properties": {
+    "workflow_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "candidate_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "lane_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "state_owner": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "worktree": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "ref"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^(worktree://[A-Za-z0-9][A-Za-z0-9._~-]*(/[A-Za-z0-9][A-Za-z0-9._~-]*)*|opaque://worktree/[A-Za-z0-9][A-Za-z0-9._~-]*(/[A-Za-z0-9][A-Za-z0-9._~-]*)*)$"
+        },
+        "ref": {
+          "type": "string",
+          "pattern": "^(refs/)?[A-Za-z0-9][A-Za-z0-9._/@+-]{0,191}$"
+        },
+        "branch": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/@+-]{0,191}$"
+        }
+      }
+    },
+    "owned_paths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      }
+    },
+    "excluded_paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "description": "Identifies an external authorization gate. It is not proof of authorization.",
+      "additionalProperties": false,
+      "required": ["record_id", "source", "reference", "scope", "owned_paths", "expires_at"],
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "source": {
+          "const": "external_attestation"
+        },
+        "reference": {
+          "type": "string",
+          "pattern": "^attestation://[A-Za-z0-9][A-Za-z0-9._:/~@+-]{0,191}$"
+        },
+        "scope": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._:-]{0,127}$"
+        },
+        "owned_paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "expires_at": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 64
+        }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "description": "Records advisory limits. External orchestration owns enforcement.",
+      "additionalProperties": false,
+      "required": ["mode", "wall_clock_minutes", "tool_calls", "expires_at"],
+      "properties": {
+        "mode": {
+          "const": "advisory"
+        },
+        "wall_clock_minutes": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "tool_calls": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expires_at": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 64
+        }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initial_at", "last_at", "next_due_at", "status"],
+      "properties": {
+        "initial_at": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 64
+        },
+        "last_at": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 64
+        },
+        "next_due_at": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 64
+        },
+        "status": {
+          "enum": ["pending", "received"]
+        }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+      }
+    },
+    "acceptance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^(artifact|checkpoint|run|file)://[A-Za-z0-9][A-Za-z0-9._:/~@+-]{0,191}$"
+      }
+    },
+    "redaction_status": {
+      "enum": ["clean", "redacted"]
+    },
+    "terminal_state": {
+      "type": ["string", "null"],
+      "enum": ["closed", "escalated", "deferred", null]
+    },
+    "state": {
+      "enum": ["blocked", "todo", "research", "implement", "validate", "critique", "done"]
+    },
+    "record_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "record_type": {
+      "enum": ["checkpoint", "delivery", "finding", "handoff", "review", "frozen", "recovery"]
+    },
+    "record_status": {
+      "enum": ["historical", "active"]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recorded_at", "reason"],
+      "properties": {
+        "recorded_at": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 64
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "unblock_condition": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "resumed_from": {
+          "enum": ["blocked", "todo", "research", "implement", "validate", "critique", "done"]
+        },
+        "resumed_to": {
+          "enum": ["blocked", "todo", "research", "implement", "validate", "critique", "done"]
+        },
+        "runtime": {
+          "$ref": "#/$defs/runtimeEvidence"
+        }
+      }
+    },
+    "transition": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": {
+          "enum": ["blocked", "todo", "research", "implement", "validate", "critique", "done"]
+        },
+        "to": {
+          "enum": ["blocked", "todo", "research", "implement", "validate", "critique", "done"]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "runtimeEvidence": {
+      "type": "object",
+      "description": "Preserves historical runtime evidence without proving measurement or enforcement.",
+      "additionalProperties": false,
+      "required": [
+        "measured_start_at",
+        "measured_end_at",
+        "measured_tool_calls",
+        "measured_wall_clock_minutes",
+        "budget_tool_calls",
+        "budget_wall_clock_minutes",
+        "within_tool_call_budget",
+        "within_wall_clock_budget",
+        "checkpoint_event_ids",
+        "cancellation_status",
+        "stop_status"
+      ],
+      "properties": {
+        "attestation_ref": {
+          "type": "string",
+          "pattern": "^attestation://[A-Za-z0-9][A-Za-z0-9._:/~@+-]{0,191}$"
+        },
+        "measured_start_at": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 64
+        },
+        "measured_end_at": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 64
+        },
+        "measured_tool_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "measured_wall_clock_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "budget_tool_calls": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "budget_wall_clock_minutes": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "within_tool_call_budget": {
+          "type": "boolean"
+        },
+        "within_wall_clock_budget": {
+          "type": "boolean"
+        },
+        "checkpoint_event_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^(checkpoint|event)://[A-Za-z0-9][A-Za-z0-9._:/~@+-]{0,191}$"
+          }
+        },
+        "cancellation_status": {
+          "enum": ["not_cancelled", "cancelled"]
+        },
+        "stop_status": {
+          "enum": ["completed", "stopped", "cancelled"]
+        }
+      }
+    }
+  }
+}
