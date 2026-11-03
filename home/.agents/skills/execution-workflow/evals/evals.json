@@ -25,12 +25,14 @@
     },
     {
       "id": "material-boundary-recovery",
-      "prompt": "A worker lane completes workflow-policy's canonical freeze -> report -> escalate -> stop sequence. The accepted plan remains viable except that, in separate cases, its security boundary, feasibility boundary, or delivery boundary changes. Describe the story recovery for each case. Do not call tools.",
-      "expected_output": "After workflow-policy's canonical sequence, planning decides whether the full material-boundary predicate remains unchanged. A change to the security, feasibility, or delivery boundary requires planning to create, critique, and accept a targeted amendment with a new plan version. Execution-workflow resumes the blocked story at `research` only after that accepted amendment, without adding a lifecycle state.",
+      "prompt": "A worker lane completes workflow-policy's canonical freeze -> report -> escalate -> stop sequence. The accepted plan remains viable except that, in separate cases, its security boundary, feasibility boundary, or delivery boundary changes. In a fourth case, a required story field is missing, inconsistent, or non-actionable. Describe the story recovery for each case. Do not call tools.",
+      "expected_output": "After workflow-policy's canonical sequence, planning decides whether the full material-boundary predicate remains unchanged. A change to the security, feasibility, or delivery boundary requires planning to create, critique, and accept a targeted amendment with a new plan version. A missing, inconsistent, or non-actionable required story field also requires that amendment path. Execution-workflow resumes the blocked story at `research` only after the accepted amendment, without adding a lifecycle state.",
       "assertions": [
         "A material security-boundary change requires an accepted amendment and new plan version before execution-workflow resumes the story.",
         "A material feasibility-boundary change requires an accepted amendment and new plan version before execution-workflow resumes the story.",
         "A material delivery-boundary change requires an accepted amendment and new plan version before execution-workflow resumes the story.",
+        "A missing, inconsistent, or non-actionable required story field requires an accepted amendment and new plan version before execution-workflow resumes the story.",
+        "Planning must complete amendment critique before it accepts the amendment.",
         "The response preserves workflow-policy ownership of freeze -> report -> escalate -> stop and the canonical story lifecycle."
       ]
     }

@@ -8,10 +8,12 @@ main() {
     local fixture skill_dir spec_dir workspace_parent workspace_dir workspace_root case_path
     local materialized_iteration materialized_case configuration
     local migration_map historical_workspace global_skill_dir global_workspace_dir
-    local validation_output
+    local validation_output real_home_workspace missing_map_base
 
     fixture="$(test_fixture_dir skill-evals)" || fail "could not create fixture directory"
-    trap "rm -rf -- '$fixture'" EXIT
+    real_home_workspace="$__root_dir/home/.agents/eval-workspaces/task-orchestration"
+    [[ ! -e "$real_home_workspace" ]] || fail "real home mapping fixture already exists"
+    trap "rm -rf -- '$fixture' '$real_home_workspace'" EXIT
     skill_dir="$fixture/.agents/skills/demo"
     spec_dir="$skill_dir/evals"
     workspace_parent="$fixture/.agents/eval-workspaces"
@@ -55,6 +57,24 @@ EOF
 
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
         fail "validator rejected a valid fixture"
+
+    mkdir -p "$real_home_workspace/iteration-1"
+    jq -n '{
+        version: 1,
+        skill_name: "task-orchestration",
+        iteration: 1,
+        case_ids: ["legacy-case"]
+    }' >"$real_home_workspace/iteration-1/manifest.json"
+    for extra in benchmark.json feedback.json grading-summary.json; do
+        jq -n '{
+            skill_name: "task-orchestration",
+            iteration: 1
+        }' >"$real_home_workspace/iteration-1/$extra"
+    done
+    mise run ai:skills:evals:validate --base-path home >/dev/null ||
+        fail "validator did not resolve the canonical migration map for --base-path home"
+    rm -rf "$real_home_workspace"
+
     mise run ai:skills:evals:validate --base-path home >/dev/null ||
         fail "validator did not resolve its migration map from the task source"
 
@@ -115,6 +135,27 @@ EOF
     print -r -- "$validation_output" | grep -qF "Accepted legacy historical evaluation iteration" ||
         fail "validator did not classify the summary-only workspace as legacy historical"
 
+    missing_map_base="$fixture/nested-base"
+    mkdir -p "$missing_map_base/.agents/skills/demo/evals"
+    mkdir -p "$missing_map_base/.agents/eval-workspaces/legacy-demo/iteration-1"
+    cp "$spec_dir/evals.json" "$missing_map_base/.agents/skills/demo/evals/evals.json"
+    for extra in manifest.json benchmark.json feedback.json grading-summary.json; do
+        if [[ "$extra" == manifest.json ]]; then
+            jq --arg skill legacy-demo '.skill_name = $skill | del(.state)' \
+                "$workspace_dir/$extra" \
+                >"$missing_map_base/.agents/eval-workspaces/legacy-demo/iteration-1/$extra"
+        else
+            jq --arg skill legacy-demo '.skill_name = $skill' \
+                "$workspace_dir/$extra" \
+                >"$missing_map_base/.agents/eval-workspaces/legacy-demo/iteration-1/$extra"
+        fi
+    done
+    if validation_output="$(mise run ai:skills:evals:validate --base-path "$missing_map_base" 2>&1)"; then
+        fail "validator accepted a historical workspace without migration metadata"
+    fi
+    print -r -- "$validation_output" | grep -qF "historical skill migration map is required" ||
+        fail "validator did not explain that historical migration metadata is required"
+
     cp -R "$workspace_dir" "$fixture/historical-state"
     jq '.state = "historical"' "$fixture/historical-state/manifest.json" \
         >"$fixture/historical-state-manifest.json"
@@ -145,6 +186,42 @@ EOF
     if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
         fail "validator accepted a migration map cycle"
     fi
+    jq '.renames = [{from: "legacy-demo", to: "demo"}, {from: "other-demo", to: "demo"}]' \
+        "$migration_map" >"$fixture/migration-map-duplicate-target.json"
+    mv "$fixture/migration-map-duplicate-target.json" "$migration_map"
+    if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
+        fail "validator accepted a migration map with duplicate endpoints"
+    fi
+    cat >"$migration_map" <<'EOF'
+{
+  "version": 1,
+  "renames": [
+    {
+      "from": "legacy-demo",
+      "to": "demo"
+    }
+  ]
+}
+EOF
+
+    rm -rf "$fixture/.agents/eval-workspaces/legacy-demo"
+    jq '.renames = [{from: "old-a", to: "old-b"}, {from: "old-b", to: "demo"}]' \
+        "$migration_map" >"$fixture/migration-map-chain.json"
+    mv "$fixture/migration-map-chain.json" "$migration_map"
+    historical_workspace="$fixture/.agents/eval-workspaces/old-a/iteration-1"
+    mkdir -p "$historical_workspace"
+    for extra in manifest.json benchmark.json feedback.json grading-summary.json; do
+        if [[ "$extra" == manifest.json ]]; then
+            jq --arg skill old-a '.skill_name = $skill | del(.state)' \
+                "$workspace_dir/$extra" >"$historical_workspace/$extra"
+        else
+            jq --arg skill old-a '.skill_name = $skill' \
+                "$workspace_dir/$extra" >"$historical_workspace/$extra"
+        fi
+    done
+    mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
+        fail "validator rejected a rename chain that resolves to an active terminal spec"
+    rm -rf "$fixture/.agents/eval-workspaces/old-a"
     cat >"$migration_map" <<'EOF'
 {
   "version": 1,
@@ -222,6 +299,17 @@ EOF
     cp -R "$workspace_root/iteration-4/example-case" "$workspace_root/iteration-5/example-case"
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
         fail "validator rejected a complete newest preparation iteration"
+
+    cp "$workspace_root/iteration-5/benchmark.json" "$fixture/benchmark-preparation-valid.json"
+    jq '.run_summary = {passed: 1}' "$workspace_root/iteration-5/benchmark.json" \
+        >"$fixture/benchmark-preparation-invalid.json"
+    mv "$fixture/benchmark-preparation-invalid.json" "$workspace_root/iteration-5/benchmark.json"
+    if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
+        fail "validator accepted a fabricated preparation summary"
+    fi
+    mv "$fixture/benchmark-preparation-valid.json" "$workspace_root/iteration-5/benchmark.json"
+    mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
+        fail "validator rejected a restored preparation summary"
 
     mv "$workspace_root/iteration-5/benchmark.json" "$fixture/benchmark-missing.json"
     if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
@@ -306,6 +394,49 @@ EOF
     done
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
         fail "validator rejected a valid materialized fixture"
+
+    cp "$materialized_case/old_skill/grading.json" "$fixture/grading-valid.json"
+    jq '.run_id = "run-2"' "$materialized_case/old_skill/grading.json" \
+        >"$fixture/grading-mismatched.json"
+    mv "$fixture/grading-mismatched.json" "$materialized_case/old_skill/grading.json"
+    if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
+        fail "validator accepted mismatched timing and grading run IDs"
+    fi
+    mv "$fixture/grading-valid.json" "$materialized_case/old_skill/grading.json"
+
+    historical_workspace="$fixture/.agents/eval-workspaces/legacy-demo/iteration-6"
+    mkdir -p "$historical_workspace"
+    cp "$materialized_iteration/manifest.json" "$historical_workspace/manifest.json"
+    jq '.skill_name = "legacy-demo" | .state = "historical"' \
+        "$historical_workspace/manifest.json" >"$fixture/historical-manifest.json"
+    mv "$fixture/historical-manifest.json" "$historical_workspace/manifest.json"
+    for extra in benchmark.json feedback.json grading-summary.json; do
+        jq '.skill_name = "legacy-demo" |
+            .provenance.skill_identity = "legacy-demo" |
+            .provenance.spec_id = "legacy-demo/evals/evals.json"' \
+            "$materialized_iteration/$extra" >"$historical_workspace/$extra"
+    done
+    for configuration in with_skill old_skill; do
+        mkdir -p "$historical_workspace/example-case/$configuration"
+        jq '.skill_identity = "legacy-demo" |
+            .spec_id = "legacy-demo/evals/evals.json"' \
+            "$materialized_case/$configuration/timing.json" \
+            >"$historical_workspace/example-case/$configuration/timing.json"
+        cp "$materialized_case/$configuration/grading.json" \
+            "$historical_workspace/example-case/$configuration/grading.json"
+        cp -R "$materialized_case/$configuration/outputs" \
+            "$historical_workspace/example-case/$configuration/"
+        mkdir -p "$historical_workspace/example-case/$configuration/evidence"
+        printf '%s\n' "historical evidence" \
+            >"$historical_workspace/example-case/$configuration/evidence/run.txt"
+    done
+    mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
+        fail "validator rejected materialized artifacts in a historical iteration"
+    rm "$historical_workspace/example-case/with_skill/evidence/run.txt"
+    if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
+        fail "validator accepted invalid evidence in a historical materialized iteration"
+    fi
+    rm -rf "$fixture/.agents/eval-workspaces/legacy-demo/iteration-6"
 
     jq '. + {legacy_preparation: {version: 1, skills: ["demo"]}}' "$migration_map" \
         >"$fixture/migration-map-legacy-preparation.json"

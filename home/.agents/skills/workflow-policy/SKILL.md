@@ -167,7 +167,7 @@ Set earlier checkpoints for higher-risk lanes. At each checkpoint, use the worke
 
 ## Recovery
 
-- After `freeze -> report -> escalate -> stop`, require a plan amendment only when acceptance, scope, ownership, dependencies, security, feasibility, or delivery boundaries change.
+- After `freeze -> report -> escalate -> stop`, require a plan amendment when acceptance, scope, ownership, dependencies, security, feasibility, or delivery boundaries change, or when a required story field is missing, inconsistent, or non-actionable.
 - If the accepted plan remains viable and those boundaries remain unchanged, preserve the same plan and version. Resume through `execution-workflow` recovery without an amendment.
 - If a plan or authorization boundary changes, preserve evidence and stop all mutation until the boundary is accepted again.
 - If I am unavailable for a required decision, preserve evidence and stop all mutation.
@@ -222,17 +222,17 @@ Use the validator to check these fields, timestamps, and structural relationship
 - If the worker cannot report, use the available evidence, escalate, and stop the worker before critique when supported.
 - Capture the worker contract evidence schema and preserve the partial diff.
 - For story drift, move the story to `blocked` before drift critique and preserve its failed critique-cycle count.
-- Assign a separate critique worker to decide what to keep, discard, or rework.
+- Assign a separate critique worker to assess the report, changes, and validation evidence, and decide what to keep, discard, or rework.
+- For the affected lane, wait for this critique before you change the plan, ownership, or dependencies. Keep unrelated lanes in the ready queue.
 - Have `planning` decide whether the accepted plan remains viable after the critique.
 - If the accepted plan remains viable and its acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries remain unchanged, preserve the same plan and version. Resume through `execution-workflow` recovery without an amendment.
-- If any of those boundaries change, have `planning` create and accept a targeted amendment with a new plan version before `execution-workflow` resumes the story.
+- If a required story field is missing, inconsistent, or non-actionable, treat the accepted plan as non-viable even when those boundaries remain unchanged. If any material boundary changes, or the plan is non-viable, have `planning` create a targeted amendment with a new plan version.
+- Use `critique-workflow` to critique the amendment. Have `planning` accept or reject the amendment only after that critique. Resume through `execution-workflow` only after an accepted amendment or plan-preserving recovery decision.
 - Reassign the remaining work to a new worker with a complete worker contract.
 - Treat scope growth or an expired estimate as drift.
 - Do not change the plan and send the same worker new instructions.
-- Assign a separate critique worker to assess the report, changes, and validation evidence. Ask whether to keep, discard, or rework the progress, with reasons.
-- For the affected lane, wait for the critique before you change the plan, ownership, or dependencies. Keep unrelated lanes in the ready queue.
-- If a material boundary changes, assign a bounded planning worker to update the plan from the critique. Have an independent critic review the patch when the workflow requires it.
-- Accept the amendment when a material boundary changes. Otherwise, accept the plan-preserving recovery decision. Then assign remaining work to new workers with clear boundaries.
+- When a material boundary changes or the accepted plan is non-viable, have `planning` update the plan from the critique. Then use the amendment critique and acceptance sequence above.
+- Accept the plan-preserving recovery decision only when the full unchanged-boundary predicate holds. Then assign remaining work to new workers with clear boundaries.
 - Resume the story at `research` only after accepted plan recovery.
 - Preserve work that the critique recommends keeping. Discard only isolated, agent-owned changes that the critique finds unusable.
 - If the worker cannot report, use available evidence, state what is missing, and do not restart it on the same assignment.

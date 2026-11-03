@@ -129,6 +129,9 @@ validate_materialized_config() {
                     all(.[]; type == "string" and test("^[A-Za-z0-9._/-]+$")))))
     ' "${configuration_dir}/grading.json" >/dev/null ||
         die "invalid materialized grading report: ${configuration_dir#$PWD/}/grading.json"
+    [[ "$(jq -r '.run_id' "${configuration_dir}/timing.json")" ==
+        "$(jq -r '.run_id' "${configuration_dir}/grading.json")" ]] ||
+        die "materialized timing and grading run IDs do not match: ${configuration_dir#$PWD/}"
 
     while IFS= read -r referenced_file; do
         validate_evidence_file "$configuration_dir" "$referenced_file"
@@ -173,6 +176,31 @@ validate_materialized_reports() {
             validate_evidence_file "$iteration_dir" "$referenced_file"
         done < <(jq -r '.run.output_files[], .run.evidence_files[]' "$report_path")
     done
+}
+
+validate_preparation_reports() {
+    local iteration_dir="$1"
+    local skill="$2"
+    local iteration="$3"
+
+    jq -e --arg skill "$skill" --arg iteration "$iteration" '
+        (keys | sort) == ["delta", "iteration", "run_summary", "skill_name"] and
+        .skill_name == $skill and (.iteration | tostring) == $iteration and
+        .run_summary == {} and .delta == {}
+    ' "${iteration_dir}/benchmark.json" >/dev/null ||
+        die "preparation benchmark contains fabricated execution data: ${iteration_dir#$PWD/}/benchmark.json"
+    jq -e --arg skill "$skill" --arg iteration "$iteration" '
+        (keys | sort) == ["human_review", "iteration", "limitations", "recommendation", "skill_name"] and
+        .skill_name == $skill and (.iteration | tostring) == $iteration and
+        .human_review == [] and .limitations == [] and .recommendation == "hold"
+    ' "${iteration_dir}/feedback.json" >/dev/null ||
+        die "preparation feedback contains fabricated execution data: ${iteration_dir#$PWD/}/feedback.json"
+    jq -e --arg skill "$skill" --arg iteration "$iteration" '
+        (keys | sort) == ["cases", "iteration", "skill_name"] and
+        .skill_name == $skill and (.iteration | tostring) == $iteration and
+        .cases == {}
+    ' "${iteration_dir}/grading-summary.json" >/dev/null ||
+        die "preparation grading summary contains fabricated execution data: ${iteration_dir#$PWD/}/grading-summary.json"
 }
 
 validate_preparation_config() {
@@ -410,13 +438,14 @@ main() {
         done
     done
 
-    for map_target in "${migration_targets[@]}"; do
+    for map_source in "${migration_sources[@]}"; do
+        resolved_skill="$(resolve_workspace_skill "$map_source")"
         matched_workspace_skill=false
         for skill in "${active_skills[@]}"; do
-            [[ "$skill" == "$map_target" ]] && matched_workspace_skill=true
+            [[ "$skill" == "$resolved_skill" ]] && matched_workspace_skill=true
         done
         [[ "$matched_workspace_skill" == true ]] ||
-            die "historical skill migration target has no active evaluation spec: ${map_target}"
+            die "historical skill migration target has no active evaluation spec: ${resolved_skill}"
     done
 
     if [[ ! -e "$workspace_dir" && ! -L "$workspace_dir" ]]; then
@@ -452,8 +481,9 @@ main() {
                 [[ "$skill_root" == "$skills_path" ]] && spec="$candidate"
             fi
         done
-        [[ "$matched_workspace_skill" == true ]] ||
-            die "workspace has no matching skill spec: ${workspace_skill_name}"
+        if [[ "$matched_workspace_skill" != true ]]; then
+            die "workspace has no matching skill spec; historical skill migration map is required: ${workspace_skill_name}"
+        fi
         [[ -n "$spec" ]] || continue
         expected_ids="$(jq -c '[.evals[].id]' "$spec")"
 
@@ -578,8 +608,7 @@ main() {
                 [[ "$historical_workspace" == true ]] ||
                     die "historical evaluation state requires explicit migration metadata: ${manifest#$base_path/}"
                 historical_iteration=true
-            elif [[ -z "$iteration_state" && "$historical_workspace" == true &&
-                "$case_artifact_present" == false ]]; then
+            elif [[ -z "$iteration_state" && "$historical_workspace" == true ]]; then
                 historical_iteration=true
             elif [[ -z "$iteration_state" && "$case_artifact_present" == false ]] &&
                 is_legacy_preparation_skill "$workspace_skill_name" &&
@@ -607,7 +636,9 @@ main() {
             if [[ "$historical_iteration" == false &&
                 ( "$is_current_iteration" == true ||
                     "$is_preparation_iteration" == true ||
-                    "$is_materialized_iteration" == true ) ]]; then
+                    "$is_materialized_iteration" == true ) ]] ||
+                [[ "$historical_iteration" == true &&
+                    "$case_artifact_present" == true ]]; then
                 while IFS= read -r case_name; do
                     case_entry="${iteration_dir}/${case_name}"
                     [[ -e "$case_entry" || -L "$case_entry" ]] ||
@@ -636,6 +667,10 @@ main() {
                 done < <(jq -r '.[]' <<<"$manifest_ids")
                 if [[ "$materialized_execution" == true ]]; then
                     validate_materialized_reports "$iteration_dir" \
+                        "$workspace_skill_name" "$iteration_number"
+                fi
+                if [[ "$is_preparation_iteration" == true ]]; then
+                    validate_preparation_reports "$iteration_dir" \
                         "$workspace_skill_name" "$iteration_number"
                 fi
             fi

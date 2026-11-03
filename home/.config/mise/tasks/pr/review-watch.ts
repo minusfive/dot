@@ -22,6 +22,8 @@ type Review = {
   submittedAt?: string;
   state?: string;
   body?: string;
+  url?: string;
+  html_url?: string;
 };
 
 type Check = {
@@ -57,6 +59,7 @@ type PullRequest = {
   mergedAt?: string;
   closedAt?: string;
   headRefName?: string;
+  headRefOid?: string;
   reviewDecision?: string;
   reviews?: Review[];
   statusCheckRollup?: Check[];
@@ -71,6 +74,7 @@ type WatchEntry = {
     inline_comments: string[];
     issue_comments: string[];
   };
+  head?: string;
   graceChecks?: number;
   graceComplete?: boolean;
 };
@@ -124,6 +128,7 @@ type CommentCollection = {
 type LockOwner = {
   pid: number;
   identity: string;
+  identity_version: 2 | "legacy" | "unknown";
 };
 
 type LockSnapshot = {
@@ -190,7 +195,7 @@ async function getPullRequest(repository: string, number: number): Promise<PullR
       "--repo",
       repository,
       "--json",
-      "number,state,mergedAt,closedAt,headRefName,reviewDecision,reviews,statusCheckRollup",
+      "number,state,mergedAt,closedAt,headRefName,headRefOid,reviewDecision,reviews,statusCheckRollup",
     ]);
   } catch (error) {
     throw new Error(`${description} failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -265,6 +270,10 @@ function timestampValue(value: string): number {
   return Date.parse(value);
 }
 
+function isObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 function validateWatchEntry(value: unknown, stateFile: string): value is WatchEntry {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`invalid watch state: ${stateFile}`);
@@ -275,6 +284,9 @@ function validateWatchEntry(value: unknown, stateFile: string): value is WatchEn
     throw new Error(`invalid watch state: ${stateFile}`);
   }
   if (entry.lastSeenAt !== undefined && !isValidTimestamp(entry.lastSeenAt)) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  if (entry.head !== undefined && (typeof entry.head !== "string" || entry.head.trim().length === 0)) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
   if (entry.seen !== undefined) {
@@ -302,7 +314,56 @@ function validateWatchEntry(value: unknown, stateFile: string): value is WatchEn
   return true;
 }
 
-function validatePendingPoll(value: unknown, stateFile: string): value is PendingPoll {
+function validatePollResult(value: unknown, stateFile: string): asserts value is Record<string, unknown> {
+  if (!isObject(value)) throw new Error(`invalid watch state: ${stateFile}`);
+  if (!Number.isSafeInteger(value.number) || (value.number as number) <= 0 || typeof value.state !== "string") {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  for (const key of ["new_reviews", "new_inline_comments", "new_issue_comments", "checks"]) {
+    if (!Array.isArray(value[key])) throw new Error(`invalid watch state: ${stateFile}`);
+    if (!(value[key] as unknown[]).every(isObject)) throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  for (const key of ["inline_comments_pages", "issue_comments_pages"]) {
+    if (!Number.isSafeInteger(value[key]) || (value[key] as number) < 0) {
+      throw new Error(`invalid watch state: ${stateFile}`);
+    }
+  }
+  for (const key of ["has_new_activity", "has_failed_checks", "action_required"]) {
+    if (typeof value[key] !== "boolean") throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  for (const key of ["has_pending_checks", "grace_complete", "keep_watching", "removed"]) {
+    if (value[key] !== undefined && typeof value[key] !== "boolean") {
+      throw new Error(`invalid watch state: ${stateFile}`);
+    }
+  }
+  if (value.removed === true && typeof value.reason !== "string") {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+}
+
+function validatePayloadHeader(
+  value: unknown,
+  action: "add" | "poll",
+  repository: string,
+  stateFile: string,
+): asserts value is Record<string, unknown> {
+  if (
+    !isObject(value) ||
+    value.action !== action ||
+    value.repository !== repository ||
+    value.state_file !== stateFile
+  ) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  if (typeof value.watch_empty !== "boolean" || !Array.isArray(value.warnings)) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  if (!(value.warnings as unknown[]).every((warning) => typeof warning === "string")) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+}
+
+function validatePendingPoll(value: unknown, repository: string, stateFile: string): value is PendingPoll {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
@@ -310,13 +371,48 @@ function validatePendingPoll(value: unknown, stateFile: string): value is Pendin
   if (!pending.payload || typeof pending.payload !== "object" || !Array.isArray(pending.next_pull_requests)) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
+  validatePayloadHeader(pending.payload, "poll", repository, stateFile);
+  if (typeof pending.payload.scheduler_should_stop !== "boolean" || !Array.isArray(pending.payload.pull_requests)) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  const resultNumbers = new Set<number>();
+  for (const result of pending.payload.pull_requests) {
+    validatePollResult(result, stateFile);
+    const number = (result as Record<string, unknown>).number as number;
+    if (resultNumbers.has(number)) throw new Error(`invalid watch state: ${stateFile}`);
+    resultNumbers.add(number);
+  }
+  const nextNumbers = new Set<number>();
   for (const entry of pending.next_pull_requests) {
     validateWatchEntry(entry, stateFile);
+    if (nextNumbers.has(entry.number)) throw new Error(`invalid watch state: ${stateFile}`);
+    nextNumbers.add(entry.number);
+  }
+  for (const number of resultNumbers) {
+    const result = pending.payload.pull_requests.find((item) => (item as Record<string, unknown>).number === number) as
+      Record<string, unknown> | undefined;
+    if (result?.removed !== true && !nextNumbers.has(number)) {
+      throw new Error(`invalid watch state: ${stateFile}`);
+    }
+  }
+  for (const number of nextNumbers) {
+    const result = pending.payload.pull_requests.find((item) => (item as Record<string, unknown>).number === number) as
+      Record<string, unknown> | undefined;
+    if (!result || result.removed === true) throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  if (pending.payload.watch_empty !== (pending.next_pull_requests.length === 0)) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  if (
+    pending.payload.scheduler_should_stop &&
+    pending.next_pull_requests.some((entry) => entry.graceComplete !== true)
+  ) {
+    throw new Error(`invalid watch state: ${stateFile}`);
   }
   return true;
 }
 
-function validatePendingAdd(value: unknown, stateFile: string): value is PendingAdd {
+function validatePendingAdd(value: unknown, repository: string, stateFile: string): value is PendingAdd {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
@@ -332,8 +428,47 @@ function validatePendingAdd(value: unknown, stateFile: string): value is Pending
   if (!pending.requested_numbers.every((number) => Number.isSafeInteger(number) && number > 0)) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
+  if (
+    pending.requested_numbers.length === 0 ||
+    new Set(pending.requested_numbers).size !== pending.requested_numbers.length
+  ) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  if (pending.payload.action !== "add") {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  validatePayloadHeader(pending.payload, "add", repository, stateFile);
+  if (!Array.isArray(pending.payload.pull_requests) || !Array.isArray(pending.payload.reconciliation)) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  if (!(pending.payload.reconciliation as unknown[]).every(isObject)) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  const requestedNumbers = new Set(pending.requested_numbers);
+  const nextNumbers = new Set<number>();
   for (const entry of pending.next_pull_requests) {
     validateWatchEntry(entry, stateFile);
+    if (nextNumbers.has(entry.number)) throw new Error(`invalid watch state: ${stateFile}`);
+    nextNumbers.add(entry.number);
+  }
+  const payloadNumbers = new Set<number>();
+  for (const entry of pending.payload.pull_requests) {
+    validateWatchEntry(entry, stateFile);
+    if (payloadNumbers.has(entry.number)) throw new Error(`invalid watch state: ${stateFile}`);
+    payloadNumbers.add(entry.number);
+  }
+  if (
+    payloadNumbers.size !== nextNumbers.size ||
+    [...payloadNumbers].some((number) => !nextNumbers.has(number)) ||
+    [...nextNumbers].some((number) => !payloadNumbers.has(number))
+  ) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  for (const number of requestedNumbers) {
+    if (!nextNumbers.has(number)) throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  if (pending.payload.watch_empty !== (pending.next_pull_requests.length === 0)) {
+    throw new Error(`invalid watch state: ${stateFile}`);
   }
   return true;
 }
@@ -352,10 +487,10 @@ async function loadState(repository: string, stateFile: string): Promise<WatchSt
       pullRequests.push(entry);
     }
     if (parsed.pending_poll !== undefined) {
-      validatePendingPoll(parsed.pending_poll, stateFile);
+      validatePendingPoll(parsed.pending_poll, repository, stateFile);
     }
     if (parsed.pending_add !== undefined) {
-      validatePendingAdd(parsed.pending_add, stateFile);
+      validatePendingAdd(parsed.pending_add, repository, stateFile);
     }
     if (parsed.pending_poll !== undefined && parsed.pending_add !== undefined) {
       throw new Error(`invalid watch state: ${stateFile}`);
@@ -385,10 +520,10 @@ async function saveState(stateFile: string, state: WatchState): Promise<void> {
     }
   }
   if (state.pending_poll !== undefined) {
-    validatePendingPoll(state.pending_poll, stateFile);
+    validatePendingPoll(state.pending_poll, state.repository, stateFile);
   }
   if (state.pending_add !== undefined) {
-    validatePendingAdd(state.pending_add, stateFile);
+    validatePendingAdd(state.pending_add, state.repository, stateFile);
   }
   if (state.pending_poll !== undefined && state.pending_add !== undefined) {
     throw new Error(`invalid watch state: ${stateFile}`);
@@ -444,7 +579,7 @@ async function inspectProcess(
 ): Promise<{ state: "alive"; identity: string } | { state: "dead" | "unknown" }> {
   const proc = Bun.spawn(["ps", "-p", String(pid), "-o", "lstart="], {
     cwd: process.cwd(),
-    env: process.env,
+    env: { ...process.env, LC_ALL: "C", LANG: "C", TZ: "UTC" },
     stderr: "pipe",
     stdout: "pipe",
   });
@@ -475,7 +610,9 @@ function parseLockOwner(raw: string): LockOwner | undefined {
     ) {
       return undefined;
     }
-    return { pid, identity: value.identity };
+    const identityVersion =
+      value.identity_version === 2 ? 2 : value.identity_version === undefined ? "legacy" : "unknown";
+    return { pid, identity: value.identity, identity_version: identityVersion };
   } catch {
     return undefined;
   }
@@ -515,7 +652,9 @@ async function lockSnapshot(lockDirectory: string): Promise<LockSnapshot | undef
   if (pid === undefined) return { raw, stale: false };
   const inspection = await inspectProcess(pid);
   if (inspection.state === "dead") return { raw, stale: true };
-  if (inspection.state !== "alive" || owner === undefined) return { raw, stale: false };
+  if (inspection.state !== "alive" || owner === undefined || owner.identity_version !== 2) {
+    return { raw, stale: false };
+  }
   return { raw, stale: inspection.identity !== owner.identity };
 }
 
@@ -525,7 +664,7 @@ async function acquireLock(stateFile: string): Promise<() => Promise<void>> {
   if (!ownerIdentity) {
     throw new Error("unable to identify the review-watch process for lock ownership");
   }
-  const owner: LockOwner = { pid: process.pid, identity: ownerIdentity };
+  const owner: LockOwner = { pid: process.pid, identity: ownerIdentity, identity_version: 2 };
   await mkdir(dirname(stateFile), { recursive: true });
   for (;;) {
     let created = false;
@@ -590,6 +729,14 @@ function commentId(comment: ReviewComment, index: number): string {
   );
 }
 
+function pullRequestHead(pullRequest: PullRequest): string | undefined {
+  return pullRequest.headRefOid ?? pullRequest.headRefName;
+}
+
+function isPendingReview(review: Review): boolean {
+  return review.state?.toUpperCase() === "PENDING" && review.submittedAt == null;
+}
+
 function formatReview(review: Review, index: number): Record<string, unknown> {
   return {
     id: review.id,
@@ -598,19 +745,117 @@ function formatReview(review: Review, index: number): Record<string, unknown> {
     submitted_at: review.submittedAt,
     state: review.state,
     body: review.body ?? "",
+    url: review.url ?? review.html_url,
     summary: (review.body ?? "").split("\n").find(Boolean) ?? "",
     activity_id: reviewId(review, index),
   };
 }
 
-function formatComment(comment: ReviewComment, index: number, kind: CommentKind): Record<string, unknown> {
+type ResolutionResult = {
+  value: boolean | null;
+  warning?: string;
+};
+
+type ResolutionCollection = {
+  values: Array<boolean | null>;
+  warnings: string[];
+};
+
+const MAX_THREAD_RESOLUTION_LOOKUPS = 32;
+
+async function threadResolution(hostname: string, comment: ReviewComment, number: number): Promise<ResolutionResult> {
+  const direct = comment.isResolved ?? comment.resolved;
+  if (typeof direct === "boolean") return { value: direct };
+  if (!comment.node_id) return { value: null };
+  const query = `
+    query($id: ID!) {
+      node(id: $id) {
+        ... on PullRequestReviewComment {
+          pullRequestReviewThread { isResolved }
+        }
+      }
+    }
+  `;
+  try {
+    const output = await run("gh", [
+      "api",
+      "--hostname",
+      hostname,
+      "graphql",
+      "-f",
+      `query=${query}`,
+      "-F",
+      `id=${comment.node_id}`,
+    ]);
+    const value = parseJson<unknown>(output, "review comment thread resolution");
+    if (!isObject(value) || !isObject(value.data) || !isObject(value.data.node)) {
+      return {
+        value: null,
+        warning: `PR #${number} review thread ${commentId(comment, 0)} resolution lookup returned an invalid response`,
+      };
+    }
+    const node = value.data.node;
+    const thread = isObject(node.pullRequestReviewThread) ? node.pullRequestReviewThread : node;
+    if (typeof thread.isResolved !== "boolean") {
+      return {
+        value: null,
+        warning: `PR #${number} review thread ${commentId(comment, 0)} resolution was unavailable`,
+      };
+    }
+    return { value: thread.isResolved };
+  } catch {
+    return {
+      value: null,
+      warning: `PR #${number} review thread ${commentId(comment, 0)} resolution lookup failed`,
+    };
+  }
+}
+
+async function commentResolutions(
+  hostname: string,
+  comments: ReviewComment[],
+  number: number,
+): Promise<ResolutionCollection> {
+  const values = comments.map(() => null as boolean | null);
+  const lookups: Array<{ index: number; comment: ReviewComment }> = [];
+  for (const [index, comment] of comments.entries()) {
+    if (typeof (comment.isResolved ?? comment.resolved) === "boolean") {
+      values[index] = (comment.isResolved ?? comment.resolved) as boolean;
+    } else if (comment.node_id) {
+      lookups.push({ index, comment });
+    }
+  }
+  const warnings: string[] = [];
+  const boundedLookups = lookups.slice(0, MAX_THREAD_RESOLUTION_LOOKUPS);
+  if (lookups.length > boundedLookups.length) {
+    warnings.push(`review thread resolution lookup limit reached (${MAX_THREAD_RESOLUTION_LOOKUPS})`);
+  }
+  const results = await Promise.all(
+    boundedLookups.map(async ({ index, comment }) => ({
+      index,
+      result: await threadResolution(hostname, comment, number),
+    })),
+  );
+  for (const { index, result } of results) {
+    values[index] = result.value;
+    if (result.warning) warnings.push(result.warning);
+  }
+  return { values, warnings };
+}
+
+function formatComment(
+  comment: ReviewComment,
+  index: number,
+  kind: CommentKind,
+  resolution: boolean | null,
+): Record<string, unknown> {
   return {
     id: comment.id,
     node_id: comment.node_id,
     pull_request_review_id: comment.pull_request_review_id,
     in_reply_to_id: comment.in_reply_to_id,
     thread_id: comment.thread_id,
-    is_resolved: comment.isResolved ?? comment.resolved,
+    is_resolved: resolution,
     author: comment.user?.login,
     created_at: comment.created_at,
     path: comment.path,
@@ -624,17 +869,19 @@ function formatComment(comment: ReviewComment, index: number, kind: CommentKind)
   };
 }
 
-function validateReview(review: unknown, number: number, index: number): asserts review is Review {
+function validateReview(review: unknown, number: number, index: number): boolean {
   if (!review || typeof review !== "object" || Array.isArray(review)) {
     throw new Error(`PR #${number} review ${index + 1} is malformed`);
   }
   const value = review as Review;
-  if (!isValidTimestamp(value.submittedAt)) {
-    throw new Error(`PR #${number} review ${index + 1} has a missing or malformed submittedAt timestamp`);
-  }
   if (value.body !== undefined && typeof value.body !== "string") {
     throw new Error(`PR #${number} review ${index + 1} has a malformed body`);
   }
+  if (isPendingReview(value)) return false;
+  if (!isValidTimestamp(value.submittedAt)) {
+    throw new Error(`PR #${number} review ${index + 1} has a missing or malformed submittedAt timestamp`);
+  }
+  return true;
 }
 
 function validateComment(
@@ -664,10 +911,10 @@ function newReviews(
   seen: Set<string>,
 ): Array<Record<string, unknown>> {
   return reviews.flatMap((review, index) => {
-    validateReview(review, number, index);
+    if (!validateReview(review, number, index)) return [];
     const id = reviewId(review, index);
     const submittedAt = review.submittedAt as string;
-    if ((seen.size === 0 || seen.has(id)) && timestampValue(submittedAt) <= timestampValue(cutoff)) return [];
+    if (seen.has(id) || (seen.size === 0 && timestampValue(submittedAt) <= timestampValue(cutoff))) return [];
     return [formatReview(review, index)];
   });
 }
@@ -678,14 +925,15 @@ function newComments(
   number: number,
   kind: CommentKind,
   seen: Set<string>,
+  resolutions: Array<boolean | null>,
 ): Array<Record<string, unknown>> {
   return comments.flatMap((comment, index) => {
     validateComment(comment, number, kind, index);
     const id = commentId(comment, index);
     const createdAt = comment.created_at as string;
-    if ((seen.size === 0 || seen.has(`${kind}:${id}`)) && timestampValue(createdAt) <= timestampValue(cutoff))
+    if (seen.has(`${kind}:${id}`) || (seen.size === 0 && timestampValue(createdAt) <= timestampValue(cutoff)))
       return [];
-    return [formatComment(comment, index, kind)];
+    return [formatComment(comment, index, kind, resolutions[index] ?? null)];
   });
 }
 
@@ -721,7 +969,7 @@ function seenFor(
   issueComments: ReviewComment[],
 ): WatchEntry["seen"] {
   return {
-    reviews: reviews.map(reviewId),
+    reviews: reviews.filter((review, index) => validateReview(review, 0, index)).map(reviewId),
     inline_comments: inlineComments.map((comment, index) => `pulls:${commentId(comment, index)}`),
     issue_comments: issueComments.map((comment, index) => `issues:${commentId(comment, index)}`),
   };
@@ -735,34 +983,43 @@ function mergeSeen(previous: WatchEntry["seen"], current: WatchEntry["seen"]): W
   };
 }
 
-function reconciliationFor(
+async function reconciliationFor(
+  hostname: string,
   pullRequest: PullRequest,
   inlineCollection: CommentCollection,
   issueCollection: CommentCollection,
   number: number,
-): Record<string, unknown> {
+): Promise<Record<string, unknown>> {
   const reviews = pullRequest.reviews ?? [];
   const inlineComments = inlineCollection.comments;
   const issueComments = issueCollection.comments;
-  const formattedReviews = reviews.map((review, index) => {
-    validateReview(review, number, index);
-    return formatReview(review, index);
+  const formattedReviews = reviews.flatMap((review, index) => {
+    return validateReview(review, number, index) ? [formatReview(review, index)] : [];
   });
+  const inlineResolution = await commentResolutions(hostname, inlineComments, number);
+  const inlineResolutions = inlineResolution.values;
+  const issueResolutions = issueComments.map(() => null as boolean | null);
   const formattedInlineComments = inlineComments.map((comment, index) => {
     validateComment(comment, number, "pulls", index);
-    return formatComment(comment, index, "pulls");
+    return formatComment(comment, index, "pulls", inlineResolutions[index] ?? null);
   });
   const formattedIssueComments = issueComments.map((comment, index) => {
     validateComment(comment, number, "issues", index);
-    return formatComment(comment, index, "issues");
+    return formatComment(comment, index, "issues", issueResolutions[index] ?? null);
   });
   const checks = checksFor(pullRequest);
   const failedChecks = hasFailedChecks(checks);
   const pendingChecks = hasPendingChecks(checks);
+  const hasNewActivity =
+    formattedReviews.length > 0 || formattedInlineComments.length > 0 || formattedIssueComments.length > 0;
+  const hasUnresolvedActivity =
+    reviews.some((review) => review.state?.toUpperCase() === "CHANGES_REQUESTED") ||
+    inlineResolutions.some((resolution) => resolution !== true);
   return {
     number,
     state: pullRequest.state,
     head: pullRequest.headRefName,
+    head_oid: pullRequest.headRefOid,
     review_decision: pullRequest.reviewDecision,
     reviews: formattedReviews,
     inline_comments: formattedInlineComments,
@@ -772,16 +1029,32 @@ function reconciliationFor(
     issue_comments_pages: issueCollection.pages,
     has_failed_checks: failedChecks,
     has_pending_checks: pendingChecks,
-    action_required: failedChecks || pendingChecks || pullRequest.reviewDecision === "CHANGES_REQUESTED",
+    has_new_activity: hasNewActivity,
+    resolution_warnings: inlineResolution.warnings,
+    action_required:
+      hasNewActivity ||
+      hasUnresolvedActivity ||
+      failedChecks ||
+      pendingChecks ||
+      pullRequest.reviewDecision === "CHANGES_REQUESTED",
   };
 }
 
-function graceState(entry: WatchEntry, clean: boolean): WatchEntry {
-  const graceChecks = clean ? Math.min((entry.graceChecks ?? 0) + 1, 4) : 0;
+function graceState(entry: WatchEntry, clean: boolean, headChanged: boolean): WatchEntry {
+  const graceChecks = headChanged ? 0 : clean ? Math.min((entry.graceChecks ?? 0) + 1, 4) : 0;
   return {
     ...entry,
     graceChecks,
     graceComplete: graceChecks >= 4,
+  };
+}
+
+function replayPollPayload(payload: PollPayload): PollPayload {
+  if (!payload.scheduler_should_stop) return payload;
+  return {
+    ...payload,
+    scheduler_should_stop: false,
+    warnings: [...payload.warnings, "replayed poll cannot safely stop the scheduler"],
   };
 }
 
@@ -807,7 +1080,7 @@ async function main(): Promise<void> {
 
     if (ACTION === "add" || ACTION === "remove") {
       if (state.pending_add) {
-        if (ACTION !== "add" || (numbers.length > 0 && !sameNumbers(numbers, state.pending_add.requested_numbers))) {
+        if (ACTION !== "add" || numbers.length === 0 || !sameNumbers(numbers, state.pending_add.requested_numbers)) {
           throw new Error("a staged add must be acknowledged before changing watch state");
         }
         emit(state.pending_add.payload);
@@ -828,6 +1101,7 @@ async function main(): Promise<void> {
         pull_requests: [...state.pull_requests],
       };
       const reconciliation: Array<Record<string, unknown>> = [];
+      const warnings: string[] = [];
       const watchStartedAt = new Date().toISOString();
       if (ACTION === "add") {
         for (const number of numbers) {
@@ -838,11 +1112,17 @@ async function main(): Promise<void> {
             getReviewComments(hostname, owner, repo, number, "pulls"),
             getReviewComments(hostname, owner, repo, number, "issues"),
           ]);
-          reconciliation.push(reconciliationFor(pullRequest, inlineCollection, issueCollection, number));
+          reconciliation.push(
+            await reconciliationFor(hostname, pullRequest, inlineCollection, issueCollection, number),
+          );
+          const resolutionWarnings = reconciliation.at(-1)?.resolution_warnings;
+          if (Array.isArray(resolutionWarnings))
+            warnings.push(...resolutionWarnings.filter((warning) => typeof warning === "string"));
           nextState.pull_requests.push({
             number,
             addedAt: watchStartedAt,
             lastSeenAt: watchStartedAt,
+            head: pullRequestHead(pullRequest),
             seen: seenFor(pullRequest.reviews ?? [], inlineCollection.comments, issueCollection.comments),
             graceChecks: 0,
             graceComplete: false,
@@ -857,7 +1137,7 @@ async function main(): Promise<void> {
         repository,
         state_file: stateFile,
         watch_empty: nextState.pull_requests.length === 0,
-        warnings: [],
+        warnings,
         pull_requests: nextState.pull_requests,
         reconciliation,
       };
@@ -889,19 +1169,26 @@ async function main(): Promise<void> {
     }
 
     if (ACTION === "list") {
+      const visiblePullRequests =
+        state.pending_add?.next_pull_requests ?? state.pending_poll?.next_pull_requests ?? state.pull_requests;
       emit({
         action: "list",
         repository,
         state_file: stateFile,
-        watch_empty: state.pull_requests.length === 0,
+        watch_empty: visiblePullRequests.length === 0,
         warnings: [],
-        pull_requests: state.pull_requests,
+        pull_requests: visiblePullRequests,
+        pending_acknowledgment: state.pending_add
+          ? { action: "add", requested_numbers: state.pending_add.requested_numbers }
+          : state.pending_poll
+            ? { action: "poll" }
+            : null,
       });
       return;
     }
 
     if (state.pending_poll) {
-      emit(state.pending_poll.payload);
+      emit(replayPollPayload(state.pending_poll.payload));
       await saveState(stateFile, {
         version: 1,
         repository,
@@ -950,28 +1237,60 @@ async function main(): Promise<void> {
       const seenReviews = new Set(entry.seen?.reviews ?? []);
       const seenInlineComments = new Set(entry.seen?.inline_comments ?? []);
       const seenIssueComments = new Set(entry.seen?.issue_comments ?? []);
+      const inlineResolution = await commentResolutions(hostname, inlineCollection.comments, entry.number);
+      const inlineResolutions = inlineResolution.values;
+      const issueResolutions = issueCollection.comments.map(() => null as boolean | null);
+      warnings.push(...inlineResolution.warnings);
       const reviews = newReviews(pullRequest.reviews ?? [], cutoff, entry.number, seenReviews);
-      const inlineComments = newComments(inlineCollection.comments, cutoff, entry.number, "pulls", seenInlineComments);
-      const issueComments = newComments(issueCollection.comments, cutoff, entry.number, "issues", seenIssueComments);
+      const inlineComments = newComments(
+        inlineCollection.comments,
+        cutoff,
+        entry.number,
+        "pulls",
+        seenInlineComments,
+        inlineResolutions,
+      );
+      const issueComments = newComments(
+        issueCollection.comments,
+        cutoff,
+        entry.number,
+        "issues",
+        seenIssueComments,
+        issueResolutions,
+      );
       const checks = checksFor(pullRequest);
       const failedChecks = hasFailedChecks(checks);
       const pendingChecks = hasPendingChecks(checks);
       const hasNewActivity = reviews.length > 0 || inlineComments.length > 0 || issueComments.length > 0;
-      const clean = pullRequest.reviewDecision === "APPROVED" && !hasNewActivity && !failedChecks && !pendingChecks;
+      const hasUnresolvedActivity =
+        (pullRequest.reviews ?? []).some((review) => review.state?.toUpperCase() === "CHANGES_REQUESTED") ||
+        inlineResolutions.some((resolution) => resolution !== true);
+      const currentHead = pullRequestHead(pullRequest);
+      const headChanged = entry.head !== undefined && entry.head !== currentHead;
+      const clean =
+        pullRequest.reviewDecision === "APPROVED" &&
+        !hasNewActivity &&
+        !hasUnresolvedActivity &&
+        !failedChecks &&
+        !pendingChecks &&
+        !headChanged;
       const currentSeen = seenFor(pullRequest.reviews ?? [], inlineCollection.comments, issueCollection.comments);
       const nextEntry = graceState(
         {
           ...entry,
           lastSeenAt: now,
+          head: currentHead,
           seen: mergeSeen(entry.seen, currentSeen),
         },
         clean,
+        headChanged,
       );
       openEntries.push(nextEntry);
       results.push({
         number: entry.number,
         state: pullRequest.state,
         head: pullRequest.headRefName,
+        head_oid: pullRequest.headRefOid,
         review_decision: pullRequest.reviewDecision,
         new_reviews: reviews,
         new_inline_comments: inlineComments,
@@ -982,11 +1301,19 @@ async function main(): Promise<void> {
         has_new_activity: hasNewActivity,
         has_failed_checks: failedChecks,
         has_pending_checks: pendingChecks,
+        resolution_warnings: inlineResolution.warnings,
+        head_changed: headChanged,
+        has_unresolved_activity: hasUnresolvedActivity,
         grace_checks: nextEntry.graceChecks ?? 0,
         grace_complete: nextEntry.graceComplete === true,
         keep_watching: nextEntry.graceComplete !== true,
         action_required:
-          hasNewActivity || failedChecks || pendingChecks || pullRequest.reviewDecision === "CHANGES_REQUESTED",
+          hasNewActivity ||
+          hasUnresolvedActivity ||
+          headChanged ||
+          failedChecks ||
+          pendingChecks ||
+          pullRequest.reviewDecision === "CHANGES_REQUESTED",
       });
     }
 

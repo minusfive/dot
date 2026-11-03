@@ -6,7 +6,10 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 main() {
     local fixture valid_file delivery_file historical_file chronology_file
-    local chronology_invalid_file shared_exclusions_file exclusion_owner_file
+    local chronology_invalid_file first_record_before_contract_file
+    local mixed_direction_file shared_exclusions_file exclusion_owner_file
+    local owner_overlap_file lowercase_hex_value lowercase_value
+    local bearer_secret basic_secret bearer_direct_secret basic_direct_secret
     local future now output
     local contract_schema ledger_schema
     export MISE_CONFIG_DIR="$__root_dir/home/.config/mise"
@@ -226,15 +229,50 @@ main() {
     mise run ai:workflow:validate -- --file "$exclusion_owner_file" >/dev/null ||
         fail "validator rejected an exclusion-versus-owner path across contracts"
 
+    owner_overlap_file="$fixture/owner-overlap.json"
+    jq '
+        .contracts = [
+            (.contracts[0] |
+                .candidate_id = "candidate-1" |
+                .lane_id = "lane-1" |
+                .artifact_id = "artifact-1" |
+                .owned_paths = ["home/shared/owner"] |
+                .excluded_paths = ["home/shared/other"] |
+                .authorization.owned_paths = ["home/shared/owner"]),
+            (.contracts[0] |
+                .candidate_id = "candidate-2" |
+                .lane_id = "lane-2" |
+                .artifact_id = "artifact-2" |
+                .owned_paths = ["home/shared/owner"] |
+                .excluded_paths = ["home/shared/another"] |
+                .authorization.owned_paths = ["home/shared/owner"])
+        ]' "$valid_file" >"$owner_overlap_file"
+    if mise run ai:workflow:validate -- --file "$owner_overlap_file" >/dev/null 2>&1; then
+        fail "validator accepted overlapping owners across contracts"
+    fi
+
     jq '.contracts[0].acceptance = [
         "Normal prose can mention bearer tokens and basic authentication."
     ]' "$valid_file" >"$fixture/secret-prose.json"
     mise run ai:workflow:validate -- --file "$fixture/secret-prose.json" >/dev/null ||
         fail "validator flagged normal bearer/basic prose"
 
+    lowercase_hex_value="$(printf '%s%s%s%s' deadbeef deadbeef deadbeef deadbeef)"
+    lowercase_value="$(printf '%s%s%s' lowercase credential value)"
+    bearer_secret="$(printf '%s %s' 'Authorization: Bearer' "$lowercase_hex_value")"
+    basic_secret="$(printf '%s %s' 'Authorization: Basic' "$lowercase_value")"
+    bearer_direct_secret="$(printf '%s %s' Bearer "$lowercase_hex_value")"
+    basic_direct_secret="$(printf '%s %s' Basic "$lowercase_value")"
     for secret_value in \
-        "Authorization: Bearer token" \
+        "Authorization: ******" \
         "Authorization: Basic dXNlcjpwYXNzd29yZA==" \
+        "Authorization: Bearer deadbeefdeadbeefdeadbeefdeadbeef" \
+        "Authorization: Bearer deadbeefdeadbeefdeadbeefdeadbeef" \
+        "Authorization: Bearer $lowercase_hex_value" \
+        "$bearer_secret" \
+        "$basic_secret" \
+        "$bearer_direct_secret" \
+        "$basic_direct_secret" \
         "Bearer AbC1234567890xyz_" \
         "Cookie: sessionid=abc123456789" \
         "https://example.test/?token=abc123456789"; do
@@ -243,7 +281,7 @@ main() {
             "$valid_file" >"$fixture/secret-${secret_value//[^A-Za-z0-9]/-}.json"
         if mise run ai:workflow:validate -- \
             --file "$fixture/secret-${secret_value//[^A-Za-z0-9]/-}.json" >/dev/null 2>&1; then
-            fail "validator accepted an unredacted secret-like value: $secret_value"
+            fail "validator accepted an unredacted secret-like value"
         fi
     done
 
@@ -360,9 +398,28 @@ main() {
             },
             transition: {from: "critique", to: "done"}
         })
-    ]' "$valid_file" >"$chronology_file"
+    ] |
+    .contracts[0].checkpoint = {
+        initial_at: "2025-01-01T00:00:00Z",
+        last_at: "2025-01-01T00:00:00Z",
+        next_due_at: "2025-01-01T00:00:00Z",
+        status: "pending"
+    }' "$valid_file" >"$chronology_file"
     mise run ai:workflow:validate -- --file "$chronology_file" >/dev/null ||
         fail "validator rejected chronologically ordered timestamps with offsets"
+
+    first_record_before_contract_file="$fixture/first-record-before-contract.json"
+    jq '
+        .contracts[0].checkpoint = {
+            initial_at: "2025-01-01T00:00:00.200Z",
+            last_at: "2025-01-01T00:00:00.300Z",
+            next_due_at: "2025-01-01T00:00:00.400Z",
+            status: "pending"
+        }' "$chronology_file" >"$first_record_before_contract_file"
+    if mise run ai:workflow:validate -- \
+        --file "$first_record_before_contract_file" >/dev/null 2>&1; then
+        fail "validator accepted a first record before its contract checkpoint"
+    fi
 
     chronology_invalid_file="$fixture/chronology-invalid.json"
     jq '.records[1].checkpoint.initial_at = "2024-12-31T18:59:59.900-05:00" |
@@ -372,6 +429,25 @@ main() {
     if mise run ai:workflow:validate -- \
         --file "$chronology_invalid_file" >/dev/null 2>&1; then
         fail "validator accepted out-of-order normalized timestamps"
+    fi
+
+    mixed_direction_file="$fixture/chronology-mixed-direction.json"
+    jq '
+        .records[0].checkpoint = {
+            initial_at: "2025-01-01T00:00:00.100Z",
+            last_at: "2025-01-01T00:02:00.200Z",
+            next_due_at: "2025-01-01T00:03:00.300Z",
+            status: "pending"
+        } |
+        .records[1].checkpoint = {
+            initial_at: "2025-01-01T00:01:00.900Z",
+            last_at: "2025-01-01T00:01:30.950Z",
+            next_due_at: "2025-01-01T00:04:00.300Z",
+            status: "pending"
+        }' "$chronology_file" >"$mixed_direction_file"
+    if mise run ai:workflow:validate -- \
+        --file "$mixed_direction_file" >/dev/null 2>&1; then
+        fail "validator accepted mixed-direction checkpoint timestamps"
     fi
 
     print "Workflow validator tests passed."

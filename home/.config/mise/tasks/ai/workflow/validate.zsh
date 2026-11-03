@@ -262,18 +262,27 @@ validate_timestamps() {
             (.checkpoint.next_due_at | timestamp) as $next |
             ($initial != null and $last != null and $next != null and
                 $initial <= $last and $last <= $next and valid_runtime);
+        def componentwise_ge($current; $previous):
+            all(range(0; ($current | length)); $current[.] >= $previous[.]);
         . as $ledger |
+        ([$ledger.contracts[] |
+            {
+                key: ([.lane_id, .candidate_id] | join("\u0000")),
+                value: ([.checkpoint.initial_at, .checkpoint.last_at,
+                    .checkpoint.next_due_at] | map(timestamp))
+            }
+        ] | from_entries) as $initial |
         all($ledger.contracts[]; valid_entry(false)) and
         all($ledger.records[]; valid_entry(true)) and
         (reduce ($ledger.records[]?) as $record
-            ({previous: {}, valid: true};
+            ({previous: $initial, valid: true};
              ([$record.lane_id, $record.candidate_id] | join("\u0000")) as $key |
              ([$record.checkpoint.initial_at, $record.checkpoint.last_at,
-                $record.checkpoint.next_due_at] | map(timestamp)) as $current |
+                 $record.checkpoint.next_due_at] | map(timestamp)) as $current |
+             . as $state |
              .valid = (.valid and
-                (if .previous[$key] == null then true
-                 else $current >= .previous[$key]
-                 end)) |
+                 ($state.previous[$key] != null) and
+                 componentwise_ge($current; $state.previous[$key])) |
              .previous[$key] = $current
             ) | .valid)
     ' "$ledger" >/dev/null || die "ledger contains invalid or out-of-order timestamps"
@@ -480,9 +489,19 @@ check_secret_like_values() {
             )));
         def credential_token:
             length >= 16 and
-            ([test("[A-Z]"), test("[a-z]"), test("[0-9]"),
-                test("[^A-Za-z0-9]")] |
-                map(select(.)) | length) >= 3;
+            (
+                test("^[a-f0-9]+$") or
+                ([
+                    test("^[A-Z]+$"),
+                    test("^[a-z]+$"),
+                    test("^[0-9]+$"),
+                    test("^[^A-Za-z0-9]+$")
+                ] | any) or
+                ([
+                    test("[A-Z]"), test("[a-z]"), test("[0-9]"),
+                    test("[^A-Za-z0-9]")
+                ] | map(select(.)) | length) >= 3
+            );
         def authorization_header:
             test("(?i)(^|[[:space:];])authorization[[:space:]]*:[[:space:]]*" +
                 "(bearer|basic)[[:space:]]+[A-Za-z0-9+/=_.~-]+");

@@ -72,12 +72,14 @@
     },
     {
       "id": "amendment-boundary-recovery",
-      "prompt": "A worker lane drifts and completes the required freeze -> report -> escalate -> stop sequence. Describe the next recovery decision in both cases: (1) the accepted plan remains viable and acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries remain unchanged; (2) one of those material boundaries changes. Preserve freeze-first ordering and canonical lifecycle ownership. Do not call tools.",
-      "expected_output": "After freeze -> report -> escalate -> stop, planning decides whether the accepted plan remains viable. In the unchanged viable case, preserve the same plan and version, create no amendment, and let execution-workflow resume the blocked story through its existing recovery edge. In the material-change case, planning creates, critiques, and accepts a targeted amendment with a new plan version before execution-workflow resumes the story. Do not add a lifecycle state or silently resume a frozen lane.",
+      "prompt": "A worker lane drifts and completes the required freeze -> report -> escalate -> stop sequence. Describe the next recovery decision in three cases: (1) the accepted plan remains viable and acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries remain unchanged; (2) one of those material boundaries changes; (3) a required story field is missing, inconsistent, or non-actionable. Preserve freeze-first ordering and canonical lifecycle ownership. Do not call tools.",
+      "expected_output": "After freeze -> report -> escalate -> stop, planning decides whether the accepted plan remains viable. In the unchanged viable case, preserve the same plan and version, create no amendment, and let execution-workflow resume the blocked story through its existing recovery edge. In the material-change and non-viable-plan cases, planning creates a targeted amendment, critique-workflow critiques it, and planning accepts it only after that critique, with a new plan version before execution-workflow resumes the story. Do not add a lifecycle state or silently resume a frozen lane.",
       "assertions": [
         "The response requires the exact freeze -> report -> escalate -> stop ordering before the recovery decision.",
         "For unchanged viable acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries, the response preserves the same plan and version and requires no amendment.",
         "For a material boundary change, the response assigns planning to create and accept an amendment with a new plan version before execution resumes.",
+        "The response requires amendment critique before planning accepts the amendment.",
+        "A missing, inconsistent, or non-actionable required story field prevents plan-preserving recovery and requires an amendment.",
         "The response assigns plan decisions and amendments to planning and story recovery to execution-workflow without adding a lifecycle state."
       ]
     },
