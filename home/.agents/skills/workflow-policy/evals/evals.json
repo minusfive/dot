@@ -39,6 +39,28 @@
       ]
     },
     {
+      "id": "delegate-review-validation",
+      "prompt": "You must validate a pull request review that includes a summary, 44 nested additional comments, inline threads, and focused tests. Describe which work the orchestrator performs directly and which work it delegates. Do not access GitHub or run commands.",
+      "expected_output": "Delegate the complete review polling, nested-comment reconciliation, complete diff inspection, focused tests, and critique to a bounded review-monitoring worker. The orchestrator keeps scope and final decisions, inspects worker evidence, and does not repeat the worker's substantive validation.",
+      "assertions": [
+        "The response delegates review polling and nested-comment reconciliation.",
+        "The response delegates complete diff inspection and focused tests.",
+        "The response keeps scope and final decisions with the orchestrator.",
+        "The response does not duplicate the worker's substantive validation."
+      ]
+    },
+    {
+      "id": "direct-read-status-boundary",
+      "prompt": "A task requires ordinary file reads, branch status inspection, worker-evidence inspection, and complete pull request review validation. Describe which actions the orchestrator performs directly and which it delegates. Do not access GitHub or run commands.",
+      "expected_output": "Perform ordinary file reads, branch status inspection, and worker-evidence inspection directly. Delegate complete pull request review validation because it includes substantive polling, reconciliation, diff inspection, tests, and critique.",
+      "assertions": [
+        "The response keeps ordinary file reads direct.",
+        "The response keeps branch status inspection direct.",
+        "The response keeps worker-evidence inspection direct.",
+        "The response delegates complete pull request review validation."
+      ]
+    },
+    {
       "id": "budget-checkpoint-expiry-lifecycle-safe-recovery",
       "prompt": "A story worker reaches its wall-clock budget after unchanged output and misses the 15-minute or 25-call checkpoint. Describe the exact recovery sequence. Do not invent a lifecycle state.",
       "expected_output": "Treat the expiry and missed checkpoint as drift. Freeze the lane before edits, request one report if the worker can respond, then escalate and stop. Record historical frozen evidence with its reason and unblock condition. Mark the story blocked, preserve the critique-cycle count and evidence, run the required separate critique and planning recovery, accept the recovered plan, record historical recovery evidence, and resume at research.",

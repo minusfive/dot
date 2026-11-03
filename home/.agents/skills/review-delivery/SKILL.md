@@ -25,6 +25,12 @@ Review the complete candidate diff and validation evidence. Run an independent c
 
 Review each pull request with a one-shot review poll. Parse review bodies, review summaries, inline threads, issue comments, and outside-diff findings. Treat every unresolved finding as actionable, including comments without a path or thread. Keep the candidate in review until every finding has a terminal disposition. An approval does not close an unresolved finding. Treat a nonzero poll result as a failed poll with no state advance.
 
+Treat a review summary as a container for findings, not as the complete finding set. If it reports an `Additional comments: N` count, enumerate all `N` nested findings. Reconcile those findings with inline comments, replies, outside-diff findings, and thread resolution state before making a disposition.
+
+Count the raw nested comment artifacts before you classify findings. Treat each reply as evidence for its parent unless it adds a distinct finding. If the reported count differs from the collected artifact count, block disposition. Record an incomplete review poll.
+
+Delegate the complete review poll and candidate validation to a review-monitoring worker. The worker must inventory every review artifact, reconcile each finding, and run bounded validation. Consume its evidence instead of repeating the same review scope in the orchestrator.
+
 ## Review-watch handoffs
 
 Set up watch state with `mise run pr:review-watch -- add <pull-request-number>`. Record the state-file path and the candidate identity in the delivery evidence.

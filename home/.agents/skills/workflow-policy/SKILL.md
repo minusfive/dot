@@ -33,6 +33,8 @@ Delegate substantive work by default. As a narrow exception, direct tools can pe
 
 Use workers for substantive shell commands, validation, implementation, and long-running commands.
 
+- Delegate complete review-validation units, including GitHub review polling, nested or additional-comment reconciliation, complete diff inspection, focused tests, and critique. Direct read exceptions permit inspecting worker evidence, not repeating the worker's substantive validation.
+
 Use this decision table before each unit of work. The five-call rule is a signal, not the only rule.
 
 | Factor           | Work directly when                                                                            | Delegate when                                                                         |

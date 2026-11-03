@@ -14,6 +14,10 @@ Keep scope, authorization, integration decisions, post-delivery verification, us
 
 Coordinate delegated work through `workflow-policy`, and oversee its queue, checkpoints, and handoffs without duplicating its mechanics.
 
+Delegate all substantive planning, research, review, validation, testing, implementation, and recovery work. Apply `workflow-policy`'s direct-tool exceptions for coordination, read and status actions, worker-evidence inspection, and final integration.
+
+Protect your context window. Do not redo delegated work or absorb verbose logs. Require concise evidence, checkpoints, and artifact paths from workers.
+
 When a handoff includes known repository-relative or `~`-relative paths, refs, URLs, issue or PR references, worktree locations, or artifact identifiers, preserve them as exact literals when they contain no sensitive value. Redact credentials, tokens, cookies, signed URL query values, and other sensitive values before handoffs, logs, checkpoints, or evaluation output. Preserve a safe identifier and record that redaction occurred.
 
 Assign explicitly authorized commit, push, and PR metadata mutations to a delivery worker. The worker performs only the authorized mutations and returns evidence. Keep integration, post-delivery verification, and completion with yourself. Preserve current-turn authorization rules. Follow `execution-workflow` for story state and `review-delivery` for review and delivery state.

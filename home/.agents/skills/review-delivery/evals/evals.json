@@ -36,6 +36,20 @@
         "The response treats a failed poll as no state advance.",
         "The response records review and delivery evidence."
       ]
+    },
+    {
+      "id": "reconcile-additional-review-comments",
+      "prompt": "A pull request's latest review summary reports `Additional comments: 44`, but the API also returns inline comments, replies, and review threads. Describe how to validate the review before deciding that the candidate is clean. Do not access GitHub or run commands.",
+      "expected_output": "Treat the summary as a container. Enumerate all 44 nested findings, reconcile them with inline comments, replies, outside-diff findings, and thread resolution state, and keep each finding in the ledger until it has a terminal disposition. Delegate the complete review poll and validation to a review-monitoring worker. The orchestrator consumes the worker evidence and does not repeat the same review scope.",
+      "assertions": [
+        "The response treats `Additional comments: 44` as a completeness requirement.",
+        "The response reconciles nested findings with replies, outside-diff findings, and thread state.",
+        "The response delegates the complete review and validation unit.",
+        "The response keeps terminal dispositions evidence-backed.",
+        "The response counts raw nested comment artifacts before classifying findings.",
+        "The response treats a reply as evidence for its parent unless it adds a distinct finding.",
+        "The response blocks disposition and records an incomplete review poll when counts differ."
+      ]
     }
   ]
 }
