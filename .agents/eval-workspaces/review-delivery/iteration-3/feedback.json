@@ -1,0 +1,78 @@
+{
+  "skill_name": "review-delivery",
+  "iteration": 3,
+  "provenance": {
+    "harness_identity": "copilot-cli-prompt-v1; token_count=deterministic-character-estimate",
+    "skill_identity": "review-delivery",
+    "spec_id": "review-delivery/evals/evals.json"
+  },
+  "run": {
+    "duration_ms": 144988,
+    "ended_at": "2026-11-03T22:23:58.575Z",
+    "evidence_files": [
+      "parallel-issue-pr-delivery/with_skill/timing.json",
+      "parallel-issue-pr-delivery/with_skill/grading.json",
+      "parallel-issue-pr-delivery/with_skill/timing.json",
+      "parallel-issue-pr-delivery/with_skill/grading.json",
+      "parallel-issue-pr-delivery/old_skill/timing.json",
+      "parallel-issue-pr-delivery/old_skill/grading.json",
+      "parallel-issue-pr-delivery/old_skill/timing.json",
+      "parallel-issue-pr-delivery/old_skill/grading.json",
+      "isolated-bootstrap-validation/with_skill/timing.json",
+      "isolated-bootstrap-validation/with_skill/grading.json",
+      "isolated-bootstrap-validation/with_skill/timing.json",
+      "isolated-bootstrap-validation/with_skill/grading.json",
+      "isolated-bootstrap-validation/old_skill/timing.json",
+      "isolated-bootstrap-validation/old_skill/grading.json",
+      "isolated-bootstrap-validation/old_skill/timing.json",
+      "isolated-bootstrap-validation/old_skill/grading.json",
+      "review-watch-lifecycle/with_skill/timing.json",
+      "review-watch-lifecycle/with_skill/grading.json",
+      "review-watch-lifecycle/with_skill/timing.json",
+      "review-watch-lifecycle/with_skill/grading.json",
+      "review-watch-lifecycle/old_skill/timing.json",
+      "review-watch-lifecycle/old_skill/grading.json",
+      "review-watch-lifecycle/old_skill/timing.json",
+      "review-watch-lifecycle/old_skill/grading.json",
+      "reconcile-additional-review-comments/with_skill/timing.json",
+      "reconcile-additional-review-comments/with_skill/grading.json",
+      "reconcile-additional-review-comments/with_skill/timing.json",
+      "reconcile-additional-review-comments/with_skill/grading.json",
+      "reconcile-additional-review-comments/old_skill/timing.json",
+      "reconcile-additional-review-comments/old_skill/grading.json",
+      "reconcile-additional-review-comments/old_skill/timing.json",
+      "reconcile-additional-review-comments/old_skill/grading.json"
+    ],
+    "output_files": [
+      "parallel-issue-pr-delivery/with_skill/outputs/run-1.txt",
+      "parallel-issue-pr-delivery/with_skill/outputs/run-2.txt",
+      "parallel-issue-pr-delivery/old_skill/outputs/run-1.txt",
+      "parallel-issue-pr-delivery/old_skill/outputs/run-2.txt",
+      "isolated-bootstrap-validation/with_skill/outputs/run-1.txt",
+      "isolated-bootstrap-validation/with_skill/outputs/run-2.txt",
+      "isolated-bootstrap-validation/old_skill/outputs/run-1.txt",
+      "isolated-bootstrap-validation/old_skill/outputs/run-2.txt",
+      "review-watch-lifecycle/with_skill/outputs/run-1.txt",
+      "review-watch-lifecycle/with_skill/outputs/run-2.txt",
+      "review-watch-lifecycle/old_skill/outputs/run-1.txt",
+      "review-watch-lifecycle/old_skill/outputs/run-2.txt",
+      "reconcile-additional-review-comments/with_skill/outputs/run-1.txt",
+      "reconcile-additional-review-comments/with_skill/outputs/run-2.txt",
+      "reconcile-additional-review-comments/old_skill/outputs/run-1.txt",
+      "reconcile-additional-review-comments/old_skill/outputs/run-2.txt"
+    ],
+    "redaction_status": "clean",
+    "result": "passed",
+    "run_id": "review-delivery-3-all-cases-runs-1-2",
+    "started_at": "2026-11-03T22:23:29.696Z",
+    "status": "completed"
+  },
+  "human_review": [
+    "Two independent Copilot CLI runs were captured for every case and configuration."
+  ],
+  "limitations": [
+    "The CLI did not expose token usage in silent prompt mode; total_tokens is a deterministic output-character estimate.",
+    "Assertions were graded by a transparent case-specific keyword evidence pass over both captured outputs."
+  ],
+  "recommendation": "release"
+}

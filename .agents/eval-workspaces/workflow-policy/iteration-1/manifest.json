@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "skill_name": "workflow-policy",
+  "iteration": 1,
+  "case_ids": [
+    "balanced-end-to-end-delegation",
+    "parallel-branch-supervision",
+    "worker-cannot-deliver",
+    "complete-worker-contract-and-direct-delegate-choice",
+    "delegate-review-validation",
+    "direct-read-status-boundary",
+    "budget-checkpoint-expiry-lifecycle-safe-recovery",
+    "amendment-boundary-recovery",
+    "safe-opaque-reference-redaction-and-delivery-authority"
+  ],
+  "workspace": ".agents/eval-workspaces/workflow-policy",
+  "state": "materialized"
+}

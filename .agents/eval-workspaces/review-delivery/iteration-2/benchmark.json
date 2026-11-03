@@ -1,0 +1,93 @@
+{
+  "skill_name": "review-delivery",
+  "iteration": 2,
+  "provenance": {
+    "harness_identity": "copilot-cli-prompt-v1; token_count=deterministic-character-estimate",
+    "skill_identity": "review-delivery",
+    "spec_id": "review-delivery/evals/evals.json"
+  },
+  "run": {
+    "duration_ms": 139991,
+    "ended_at": "2026-11-03T22:23:36.627Z",
+    "evidence_files": [
+      "parallel-issue-pr-delivery/with_skill/timing.json",
+      "parallel-issue-pr-delivery/with_skill/grading.json",
+      "parallel-issue-pr-delivery/with_skill/timing.json",
+      "parallel-issue-pr-delivery/with_skill/grading.json",
+      "parallel-issue-pr-delivery/old_skill/timing.json",
+      "parallel-issue-pr-delivery/old_skill/grading.json",
+      "parallel-issue-pr-delivery/old_skill/timing.json",
+      "parallel-issue-pr-delivery/old_skill/grading.json",
+      "isolated-bootstrap-validation/with_skill/timing.json",
+      "isolated-bootstrap-validation/with_skill/grading.json",
+      "isolated-bootstrap-validation/with_skill/timing.json",
+      "isolated-bootstrap-validation/with_skill/grading.json",
+      "isolated-bootstrap-validation/old_skill/timing.json",
+      "isolated-bootstrap-validation/old_skill/grading.json",
+      "isolated-bootstrap-validation/old_skill/timing.json",
+      "isolated-bootstrap-validation/old_skill/grading.json",
+      "review-watch-lifecycle/with_skill/timing.json",
+      "review-watch-lifecycle/with_skill/grading.json",
+      "review-watch-lifecycle/with_skill/timing.json",
+      "review-watch-lifecycle/with_skill/grading.json",
+      "review-watch-lifecycle/old_skill/timing.json",
+      "review-watch-lifecycle/old_skill/grading.json",
+      "review-watch-lifecycle/old_skill/timing.json",
+      "review-watch-lifecycle/old_skill/grading.json",
+      "reconcile-additional-review-comments/with_skill/timing.json",
+      "reconcile-additional-review-comments/with_skill/grading.json",
+      "reconcile-additional-review-comments/with_skill/timing.json",
+      "reconcile-additional-review-comments/with_skill/grading.json",
+      "reconcile-additional-review-comments/old_skill/timing.json",
+      "reconcile-additional-review-comments/old_skill/grading.json",
+      "reconcile-additional-review-comments/old_skill/timing.json",
+      "reconcile-additional-review-comments/old_skill/grading.json"
+    ],
+    "output_files": [
+      "parallel-issue-pr-delivery/with_skill/outputs/run-1.txt",
+      "parallel-issue-pr-delivery/with_skill/outputs/run-2.txt",
+      "parallel-issue-pr-delivery/old_skill/outputs/run-1.txt",
+      "parallel-issue-pr-delivery/old_skill/outputs/run-2.txt",
+      "isolated-bootstrap-validation/with_skill/outputs/run-1.txt",
+      "isolated-bootstrap-validation/with_skill/outputs/run-2.txt",
+      "isolated-bootstrap-validation/old_skill/outputs/run-1.txt",
+      "isolated-bootstrap-validation/old_skill/outputs/run-2.txt",
+      "review-watch-lifecycle/with_skill/outputs/run-1.txt",
+      "review-watch-lifecycle/with_skill/outputs/run-2.txt",
+      "review-watch-lifecycle/old_skill/outputs/run-1.txt",
+      "review-watch-lifecycle/old_skill/outputs/run-2.txt",
+      "reconcile-additional-review-comments/with_skill/outputs/run-1.txt",
+      "reconcile-additional-review-comments/with_skill/outputs/run-2.txt",
+      "reconcile-additional-review-comments/old_skill/outputs/run-1.txt",
+      "reconcile-additional-review-comments/old_skill/outputs/run-2.txt"
+    ],
+    "redaction_status": "clean",
+    "result": "passed",
+    "run_id": "review-delivery-2-all-cases-runs-1-2",
+    "started_at": "2026-11-03T22:23:03.665Z",
+    "status": "completed"
+  },
+  "run_summary": {
+    "with_skill": {
+      "passed": 18,
+      "failed": 4,
+      "total": 22,
+      "pass_rate": 0.8181818181818182,
+      "total_tokens": 3117,
+      "duration_ms": 71226
+    },
+    "old_skill": {
+      "passed": 15,
+      "failed": 7,
+      "total": 22,
+      "pass_rate": 0.6818181818181818,
+      "total_tokens": 3160,
+      "duration_ms": 68765
+    }
+  },
+  "delta": {
+    "pass_rate": 0.13636363636363646,
+    "total_tokens": -43,
+    "duration_ms": 2461
+  }
+}
