@@ -46,7 +46,9 @@ Record unknowns as questions. Resolve every unknown that can change execution or
 
 ## Freeze and amendment
 
-Freeze the plan when I accept the plan artifact. Execution consumes the accepted artifact without rewriting story specifications. Treat missing, inconsistent, or non-actionable plan fields as execution drift. Use `execution-workflow` to block the affected story and preserve its evidence. Create a targeted amendment only when evidence shows that the accepted plan cannot satisfy its objective or acceptance checks.
+Freeze the plan when I accept the plan artifact. Execution consumes the accepted artifact without rewriting story specifications. Treat missing, inconsistent, or non-actionable plan fields as execution drift. Use `execution-workflow` to block the affected story and preserve its evidence. Create a targeted amendment when evidence shows that the accepted plan cannot satisfy its objective or acceptance checks, or when any material boundary changes.
+
+Planning owns the recovery decision and the decision to amend a plan. After `workflow-policy` completes the canonical `freeze -> report -> escalate -> stop` sequence and `execution-workflow` blocks the affected story, review the preserved report, evidence, and critique. If the accepted plan remains viable and acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries remain unchanged, record a plan-preserving recovery decision. Do not create an amendment or a new plan version. Execution can resume the blocked story at `research` after that decision. If any one of those boundaries changes, create and accept a targeted amendment with a new plan version before execution resumes.
 
 Planning owns amendment critique and acceptance. Use `critique-workflow` to critique the amendment, record the decision, and accept or reject the patch before execution consumes it. `review-delivery` reviews only candidates and pull requests.
 

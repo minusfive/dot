@@ -5,7 +5,9 @@ set -euo pipefail
 source "$(dirname "$0")/mise_test_helpers.zsh"
 
 main() {
-    local fixture valid_file delivery_file historical_file future now output
+    local fixture valid_file delivery_file historical_file chronology_file
+    local chronology_invalid_file shared_exclusions_file exclusion_owner_file
+    local future now output
     local contract_schema ledger_schema
     export MISE_CONFIG_DIR="$__root_dir/home/.config/mise"
     export TMPDIR="$HOME/.cache"
@@ -182,6 +184,69 @@ main() {
         fail "validator accepted case-colliding ownership claims"
     fi
 
+    shared_exclusions_file="$fixture/shared-exclusions.json"
+    jq '
+        .contracts = [
+            (.contracts[0] |
+                .candidate_id = "candidate-1" |
+                .lane_id = "lane-1" |
+                .artifact_id = "artifact-1" |
+                .owned_paths = ["home/shared/one"] |
+                .excluded_paths = ["home/shared/excluded"] |
+                .authorization.owned_paths = ["home/shared/one"]),
+            (.contracts[0] |
+                .candidate_id = "candidate-2" |
+                .lane_id = "lane-2" |
+                .artifact_id = "artifact-2" |
+                .owned_paths = ["home/shared/two"] |
+                .excluded_paths = ["home/shared/excluded"] |
+                .authorization.owned_paths = ["home/shared/two"])
+        ]' "$valid_file" >"$shared_exclusions_file"
+    mise run ai:workflow:validate -- --file "$shared_exclusions_file" >/dev/null ||
+        fail "validator rejected shared exclusions across contracts"
+
+    exclusion_owner_file="$fixture/exclusion-owner.json"
+    jq '
+        .contracts = [
+            (.contracts[0] |
+                .candidate_id = "candidate-1" |
+                .lane_id = "lane-1" |
+                .artifact_id = "artifact-1" |
+                .owned_paths = ["home/shared/owner"] |
+                .excluded_paths = ["home/shared/excluded"] |
+                .authorization.owned_paths = ["home/shared/owner"]),
+            (.contracts[0] |
+                .candidate_id = "candidate-2" |
+                .lane_id = "lane-2" |
+                .artifact_id = "artifact-2" |
+                .owned_paths = ["home/shared/excluded"] |
+                .excluded_paths = ["home/shared/other"] |
+                .authorization.owned_paths = ["home/shared/excluded"])
+        ]' "$valid_file" >"$exclusion_owner_file"
+    mise run ai:workflow:validate -- --file "$exclusion_owner_file" >/dev/null ||
+        fail "validator rejected an exclusion-versus-owner path across contracts"
+
+    jq '.contracts[0].acceptance = [
+        "Normal prose can mention bearer tokens and basic authentication."
+    ]' "$valid_file" >"$fixture/secret-prose.json"
+    mise run ai:workflow:validate -- --file "$fixture/secret-prose.json" >/dev/null ||
+        fail "validator flagged normal bearer/basic prose"
+
+    for secret_value in \
+        "Authorization: Bearer token" \
+        "Authorization: Basic dXNlcjpwYXNzd29yZA==" \
+        "Bearer AbC1234567890xyz_" \
+        "Cookie: sessionid=abc123456789" \
+        "https://example.test/?token=abc123456789"; do
+        jq --arg value "$secret_value" \
+            '.contracts[0].acceptance = [$value]' \
+            "$valid_file" >"$fixture/secret-${secret_value//[^A-Za-z0-9]/-}.json"
+        if mise run ai:workflow:validate -- \
+            --file "$fixture/secret-${secret_value//[^A-Za-z0-9]/-}.json" >/dev/null 2>&1; then
+            fail "validator accepted an unredacted secret-like value: $secret_value"
+        fi
+    done
+
     for sensitive_path in \
         ".GIT/config" \
         ".github/WORKFLOWS/release.yml" \
@@ -266,6 +331,48 @@ main() {
     ]' "$valid_file" >"$historical_file"
     mise run ai:workflow:validate -- --file "$historical_file" >/dev/null ||
         fail "validator rejected advisory historical evidence"
+
+    chronology_file="$fixture/chronology-normalized.json"
+    jq '.records = [
+        (.contracts[0] + {
+            record_id: "review-1",
+            record_type: "review",
+            record_status: "historical",
+            state: "critique",
+            checkpoint: {
+                initial_at: "2025-01-01T00:00:00.100Z",
+                last_at: "2025-01-01T00:00:00.200Z",
+                next_due_at: "2025-01-01T00:00:00.300Z",
+                status: "pending"
+            },
+            transition: {from: "validate", to: "critique"}
+        }),
+        (.contracts[0] + {
+            record_id: "review-2",
+            record_type: "review",
+            record_status: "historical",
+            state: "done",
+            checkpoint: {
+                initial_at: "2024-12-31T19:00:00.900-05:00",
+                last_at: "2024-12-31T19:00:01.100-05:00",
+                next_due_at: "2024-12-31T19:00:01.300-05:00",
+                status: "pending"
+            },
+            transition: {from: "critique", to: "done"}
+        })
+    ]' "$valid_file" >"$chronology_file"
+    mise run ai:workflow:validate -- --file "$chronology_file" >/dev/null ||
+        fail "validator rejected chronologically ordered timestamps with offsets"
+
+    chronology_invalid_file="$fixture/chronology-invalid.json"
+    jq '.records[1].checkpoint.initial_at = "2024-12-31T18:59:59.900-05:00" |
+        .records[1].checkpoint.last_at = "2024-12-31T18:59:59.950-05:00" |
+        .records[1].checkpoint.next_due_at = "2024-12-31T19:00:00.050-05:00"' \
+        "$chronology_file" >"$chronology_invalid_file"
+    if mise run ai:workflow:validate -- \
+        --file "$chronology_invalid_file" >/dev/null 2>&1; then
+        fail "validator accepted out-of-order normalized timestamps"
+    fi
 
     print "Workflow validator tests passed."
 }

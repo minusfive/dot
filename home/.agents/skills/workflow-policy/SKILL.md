@@ -85,7 +85,7 @@ Set earlier checkpoints for higher-risk lanes. At each checkpoint, use the worke
 - Otherwise, the `orchestrator` records the budget and freezes the lane at the first expired ceiling. If termination is supported, terminate the known command. Assign no further work and report `worker-budget-exhausted`.
 - Prose cannot forcibly stop an agent. A worker must not continue silently after wall, tool-call, diff, or retry budget expiry.
 - Preserve command output, the partial diff, and the last checkpoint when a budget expires.
-- For a story, route budget expiry through the `execution-workflow` drift protocol. Mark the story `blocked`, preserve its critique-cycle count and evidence, run the required critique and replan path, and resume at `research` only after accepted plan recovery. Treat `worker-budget-exhausted` as a report reason, not a new lifecycle state.
+- For a story, route budget expiry through the `execution-workflow` drift protocol. Mark the story `blocked`, preserve its critique-cycle count and evidence, run the required critique and plan-recovery path, and resume at `research` only after accepted plan recovery. Treat `worker-budget-exhausted` as a report reason, not a new lifecycle state.
 - Use workflow-specific limits for repair and recovery. Do not use one universal repair limit.
 
 ## Checkpoints
@@ -165,7 +165,8 @@ Set earlier checkpoints for higher-risk lanes. At each checkpoint, use the worke
 
 ## Recovery
 
-- Replan when acceptance, dependencies, ownership, security, or delivery boundaries change.
+- After `freeze -> report -> escalate -> stop`, require a plan amendment only when acceptance, scope, ownership, dependencies, security, feasibility, or delivery boundaries change.
+- If the accepted plan remains viable and those boundaries remain unchanged, preserve the same plan and version. Resume through `execution-workflow` recovery without an amendment.
 - If a plan or authorization boundary changes, preserve evidence and stop all mutation until the boundary is accepted again.
 - If I am unavailable for a required decision, preserve evidence and stop all mutation.
 - For story recovery, follow the drift protocol and `execution-workflow`.
@@ -220,14 +221,16 @@ Use the validator to check these fields, timestamps, and structural relationship
 - Capture the worker contract evidence schema and preserve the partial diff.
 - For story drift, move the story to `blocked` before drift critique and preserve its failed critique-cycle count.
 - Assign a separate critique worker to decide what to keep, discard, or rework.
-- Replan the remaining work from that critique.
+- Have `planning` decide whether the accepted plan remains viable after the critique.
+- If the accepted plan remains viable and its acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries remain unchanged, preserve the same plan and version. Resume through `execution-workflow` recovery without an amendment.
+- If any of those boundaries change, have `planning` create and accept a targeted amendment with a new plan version before `execution-workflow` resumes the story.
 - Reassign the remaining work to a new worker with a complete worker contract.
 - Treat scope growth or an expired estimate as drift.
 - Do not change the plan and send the same worker new instructions.
 - Assign a separate critique worker to assess the report, changes, and validation evidence. Ask whether to keep, discard, or rework the progress, with reasons.
 - For the affected lane, wait for the critique before you change the plan, ownership, or dependencies. Keep unrelated lanes in the ready queue.
-- Assign a bounded planning worker to update the plan from the critique. Have an independent critic review the patch when the workflow requires it.
-- Accept the updated plan, then assign remaining work to new workers with clear boundaries.
+- If a material boundary changes, assign a bounded planning worker to update the plan from the critique. Have an independent critic review the patch when the workflow requires it.
+- Accept the amendment when a material boundary changes. Otherwise, accept the plan-preserving recovery decision. Then assign remaining work to new workers with clear boundaries.
 - Resume the story at `research` only after accepted plan recovery.
 - Preserve work that the critique recommends keeping. Discard only isolated, agent-owned changes that the critique finds unusable.
 - If the worker cannot report, use available evidence, state what is missing, and do not restart it on the same assignment.

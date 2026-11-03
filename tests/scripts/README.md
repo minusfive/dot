@@ -136,7 +136,7 @@ Tests the grouped evaluation init, prepare, and validate tasks, canonical specif
 
 #### `test_mise_task_ai_workflow_validate.zsh`
 
-Tests workflow contract and ledger validation, including identity, ownership, budgets, checkpoints, dependencies, redaction, transitions, candidate drift, and clean initialization.
+Tests workflow contract and ledger validation, including schema artifacts, trusted-status rejection, worktree references, path aliasing and sensitive paths, advisory budgets, delivery gates, and historical runtime evidence.
 
 #### `test_agentic_projects.zsh`
 

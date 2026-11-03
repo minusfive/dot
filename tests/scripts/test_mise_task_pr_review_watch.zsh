@@ -31,6 +31,9 @@ cat > "$__bin_dir/gh" <<'EOF'
 set -euo pipefail
 
 printf '%s\n' "$*" >> "$GH_REVIEW_WATCH_LOG"
+if [[ -n "${GH_REVIEW_WATCH_DELAY:-}" ]]; then
+    sleep "$GH_REVIEW_WATCH_DELAY"
+fi
 if [[ "${GH_REVIEW_WATCH_FAIL_PR:-}" == "6" && "$*" == *"pr view 6"* ]]; then
     printf 'simulated PR failure\n' >&2
     exit 1
@@ -105,6 +108,89 @@ run_action() {
         usage_format="$__format" \
         bun "$__task"
 }
+
+write_fixture 10
+cat > "$__fixture_dir/pr-10.json" <<'EOF'
+{"number":10,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-10","reviewDecision":"CHANGES_REQUESTED","reviews":[{"id":101,"node_id":"R_101","author":{"login":"reviewer"},"submittedAt":"2024-01-02T00:00:00Z","state":"CHANGES_REQUESTED","body":"First line\nFull review body"}],"statusCheckRollup":[{"name":"build","status":"COMPLETED","conclusion":"SUCCESS"}]}
+EOF
+cat > "$__fixture_dir/pulls-10.json" <<'EOF'
+[[{"id":201,"node_id":"RC_201","pull_request_review_id":101,"in_reply_to_id":200,"user":{"login":"reviewer"},"created_at":"2024-01-03T00:00:00Z","body":"Full inline thread body","path":"src/main.ts","line":9,"start_line":8,"start_side":"LEFT","side":"RIGHT","html_url":"https://example.test/inline/201"}]]
+EOF
+cat > "$__fixture_dir/issues-10.json" <<'EOF'
+[[{"id":301,"node_id":"IC_301","user":{"login":"commenter"},"created_at":"2024-01-04T00:00:00Z","body":"Full issue comment body","html_url":"https://example.test/issue/301"}]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+run_action add 10 > "$__poll_output"
+jq -e '
+  .reconciliation[0].reviews[0].body == "First line\nFull review body" and
+  .reconciliation[0].reviews[0].id == 101 and
+  .reconciliation[0].inline_comments[0].body == "Full inline thread body" and
+  .reconciliation[0].inline_comments[0].pull_request_review_id == 101 and
+  .reconciliation[0].inline_comments[0].in_reply_to_id == 200 and
+  .reconciliation[0].issue_comments[0].body == "Full issue comment body" and
+  .reconciliation[0].checks[0].conclusion == "SUCCESS" and
+  .reconciliation[0].action_required == true
+' "$__poll_output" >/dev/null || fail "add did not reconcile complete pre-watch activity"
+jq -e '
+  .pull_requests[0].seen.reviews == ["101"] and
+  .pull_requests[0].seen.inline_comments == ["pulls:201"] and
+  .pull_requests[0].seen.issue_comments == ["issues:301"]
+' "$__state_file" >/dev/null || fail "pre-watch reconciliation identifiers were not persisted"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+: > "$__log_file"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 10 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "interrupted add unexpectedly succeeded"
+fi
+[[ ! -s "$__poll_output" ]] || fail "interrupted add emitted reconciliation before acknowledgement"
+jq -e '
+  .pending_add.payload.reconciliation[0].reviews[0].body == "First line\nFull review body" and
+  .pending_add.payload.reconciliation[0].inline_comments[0].body == "Full inline thread body" and
+  .pending_add.payload.reconciliation[0].issue_comments[0].body == "Full issue comment body" and
+  .pending_add.next_pull_requests[0].seen.reviews == ["101"] and
+  (.pull_requests | length == 0)
+' "$__state_file" >/dev/null || fail "interrupted add did not durably stage the complete reconciliation"
+: > "$__log_file"
+run_action add 10 > "$__poll_output"
+jq -e '
+  .reconciliation[0].reviews[0].body == "First line\nFull review body" and
+  .reconciliation[0].reviews[0].id == 101 and
+  .reconciliation[0].inline_comments[0].body == "Full inline thread body" and
+  .reconciliation[0].inline_comments[0].pull_request_review_id == 101 and
+  .reconciliation[0].inline_comments[0].in_reply_to_id == 200 and
+  .reconciliation[0].issue_comments[0].body == "Full issue comment body" and
+  .reconciliation[0].checks[0].conclusion == "SUCCESS" and
+  .reconciliation[0].action_required == true
+' "$__poll_output" >/dev/null || fail "next add did not recover the complete staged reconciliation"
+if grep -q '^pr view\|^api ' "$__log_file"; then
+    fail "staged add recovery fetched new activity instead of acknowledging the staged result"
+fi
+jq -e '(.pending_add | not) and .pull_requests[0].seen.reviews == ["101"]' "$__state_file" >/dev/null ||
+    fail "staged add recovery did not activate the candidate cursor"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+: > "$__log_file"
+if PR_REVIEW_WATCH_TEST_CRASH_AFTER_STAGE=1 run_action add 10 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "crashed add unexpectedly succeeded"
+fi
+[[ -d "$__state_file.lock" ]] || fail "crashed add did not leave its lock"
+jq -e '
+  .pending_add.payload.reconciliation[0].reviews[0].body == "First line\nFull review body" and
+  .pending_add.payload.reconciliation[0].inline_comments[0].body == "Full inline thread body" and
+  .pending_add.payload.reconciliation[0].issue_comments[0].body == "Full issue comment body"
+' "$__state_file" >/dev/null || fail "crashed add did not preserve the complete staged findings"
+: > "$__log_file"
+run_action add 10 > "$__poll_output"
+jq -e '
+  .reconciliation[0].reviews[0].body == "First line\nFull review body" and
+  .reconciliation[0].inline_comments[0].body == "Full inline thread body" and
+  .reconciliation[0].issue_comments[0].body == "Full issue comment body"
+' "$__poll_output" >/dev/null || fail "stale-lock recovery lost staged findings"
+if grep -q '^pr view\|^api ' "$__log_file"; then
+    fail "stale-lock recovery fetched new activity instead of replaying pending_add"
+fi
+jq -e '(.pending_add | not) and .pull_requests[0].seen.reviews == ["101"]' "$__state_file" >/dev/null ||
+    fail "stale-lock recovery did not activate the staged cursor"
 
 write_fixture 1
 cat > "$__fixture_dir/pulls-1.json" <<'EOF'
@@ -202,14 +288,15 @@ EOF
 cat > "$__fixture_dir/pr-1.json" <<'EOF'
 {"number":1,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-1","reviewDecision":"APPROVED","reviews":[{"author":{"login":"bad"},"submittedAt":"not-a-timestamp","body":"bad"},{"author":{"login":"missing"},"body":"missing"},{"author":{"login":"reviewer"},"submittedAt":"2024-01-02T00:00:00Z","state":"COMMENTED","body":"valid"}],"statusCheckRollup":[]}
 EOF
-run_poll > "$__poll_output"
-jq -e '
-  (.warnings | length == 2) and
-  (.warnings | any(.[]; contains("PR #1 review 1"))) and
-  (.warnings | any(.[]; contains("PR #1 review 2"))) and
-  (.pull_requests[0].new_reviews | length == 1) and
-  .pull_requests[0].new_reviews[0].author == "reviewer"
-' "$__poll_output" >/dev/null || fail "malformed review timestamps were not ignored with warnings"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "malformed review timestamps unexpectedly succeeded"
+fi
+grep -qF 'PR #1 review 1 has a missing or malformed submittedAt timestamp' "$__fixture_dir/error" ||
+    fail "malformed review error was not actionable"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "malformed review changed state bytes"
+[[ ! -d "$__state_file.lock" ]] || fail "malformed review left the lock"
 
 printf '{\n  "version": 1,\n  "repository": "%s",\n  "pull_requests": [{"number": 1, "addedAt": "2024-01-01T00:00:00Z"}]\n}\n' \
     "$__repository" > "$__state_file"
@@ -226,6 +313,35 @@ grep -qF 'page 2' "$__fixture_dir/error" || fail "malformed page error omitted p
     fail "failed poll changed state bytes"
 [[ ! -d "$__state_file.lock" ]] || fail "malformed poll left the lock"
 [[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "malformed poll left a temporary file"
+
+cat > "$__state_file" <<EOF
+{
+  "version": 1,
+  "repository": "$__repository",
+  "pull_requests": [{"number": 1, "addedAt": "2024-01-01T00:00:00Z", "lastSeenAt": "2024-01-02T00:00:00Z"}],
+  "pending_poll": {
+    "payload": {
+      "action": "poll",
+      "repository": "$__repository",
+      "state_file": "$__state_file",
+      "watch_empty": false,
+      "scheduler_should_stop": false,
+      "warnings": [],
+      "pull_requests": [{"number": 1, "state": "OPEN", "new_reviews": [{"body": "recover me"}]}]
+    },
+    "next_pull_requests": [{"number": 1, "addedAt": "2024-01-01T00:00:00Z", "lastSeenAt": "2024-01-03T00:00:00Z", "graceChecks": 1, "graceComplete": false}]
+  }
+}
+EOF
+: > "$__log_file"
+run_poll > "$__poll_output"
+jq -e '.pull_requests[0].new_reviews[0].body == "recover me"' "$__poll_output" >/dev/null ||
+    fail "interrupted poll did not replay the staged activity payload"
+if grep -q '^pr view\|^api ' "$__log_file"; then
+    fail "pending poll recovery fetched new activity instead of acknowledging staged results"
+fi
+jq -e '(.pending_poll | not) and (.pull_requests[0].lastSeenAt != null)' "$__state_file" >/dev/null ||
+    fail "interrupted poll did not advance state after replay"
 
 write_fixture 7 UNKNOWN
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":7,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
@@ -284,6 +400,12 @@ grep -qF "invalid watch state: $__state_file" "$__fixture_dir/error" ||
 [[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "malformed watch entry left a temporary file"
 
 write_fixture 2
+cat > "$__fixture_dir/pulls-2.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-2.json" <<'EOF'
+[[]]
+EOF
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
 chflags uchg "$__state_file"
@@ -343,6 +465,33 @@ grep -qE 'EPERM:.*rename' "$__fixture_dir/error" || fail "forced atomic failure 
 [[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "atomic rename failure left a temporary file"
 chflags nouchg "$__state_file"
 
+write_fixture 11
+cat > "$__fixture_dir/pulls-11.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-11.json" <<'EOF'
+[[]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":11,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+local __grace_poll=0
+while (( __grace_poll < 4 )); do
+    __grace_poll=$((__grace_poll + 1))
+    run_poll > "$__poll_output"
+    if (( __grace_poll < 4 )); then
+        jq -e '.scheduler_should_stop == false and .pull_requests[0].keep_watching == true' "$__poll_output" >/dev/null ||
+            fail "scheduler stopped before the four-check clean grace period"
+    fi
+done
+jq -e '
+  .watch_empty == false and
+  .scheduler_should_stop == true and
+  .pull_requests[0].grace_checks == 4 and
+  .pull_requests[0].grace_complete == true and
+  .pull_requests[0].keep_watching == false
+' "$__poll_output" >/dev/null || fail "clean grace period did not complete after four checks"
+jq -e '.pull_requests | length == 1 and .[0].number == 11' "$__state_file" >/dev/null ||
+    fail "grace-complete open PR was removed from watch state"
+
 write_fixture 4 CLOSED null '"2024-01-04T00:00:00Z"'
 write_fixture 5 MERGED '"2024-01-05T00:00:00Z"'
 cat > "$__fixture_dir/pulls-4.json" <<'EOF'
@@ -400,5 +549,74 @@ fi
 grep -qF 'watch state is locked' "$__fixture_dir/error" || fail "lock contention error was not actionable"
 [[ -d "$__state_file.lock" ]] || fail "lock contention removed the existing lock"
 rm -rf "$__state_file.lock"
+
+local __live_lock_identity
+__live_lock_identity="$(ps -p "$$" -o lstart= | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+mkdir "$__state_file.lock"
+printf '{"pid":%s,"identity":"%s"}\n' "$$" "$__live_lock_identity" > "$__state_file.lock/owner"
+if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "live lock contention unexpectedly succeeded"
+fi
+grep -qF 'watch state is locked' "$__fixture_dir/error" || fail "live lock contention error was not actionable"
+[[ -d "$__state_file.lock" ]] || fail "live lock contention removed the live owner lock"
+rm -rf "$__state_file.lock"
+
+cat > "$__bin_dir/ps" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${1:-}" == "-p" && "${2:-}" == "999999" ]]; then
+    sleep 1
+    exit 1
+fi
+exec /bin/ps "$@"
+EOF
+chmod +x "$__bin_dir/ps"
+write_fixture 2
+cat > "$__fixture_dir/pulls-2.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-2.json" <<'EOF'
+[[]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":2,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+mkdir "$__state_file.lock"
+printf '{"pid":999999,"identity":"stale"}\n' > "$__state_file.lock/owner"
+
+local __contender_one="$__fixture_dir/contender-one"
+local __contender_two="$__fixture_dir/contender-two"
+local __status_one="$__fixture_dir/status-one"
+local __status_two="$__fixture_dir/status-two"
+(
+    if GH_REVIEW_WATCH_DELAY=1 run_poll > "$__contender_one.out" 2> "$__contender_one.err"; then
+        print -r -- 0 > "$__status_one"
+    else
+        print -r -- "$?" > "$__status_one"
+    fi
+) &
+local __pid_one="$!"
+(
+    if GH_REVIEW_WATCH_DELAY=1 run_poll > "$__contender_two.out" 2> "$__contender_two.err"; then
+        print -r -- 0 > "$__status_two"
+    else
+        print -r -- "$?" > "$__status_two"
+    fi
+) &
+local __pid_two="$!"
+wait "$__pid_one"
+wait "$__pid_two"
+local __result_one="$(<"$__status_one")"
+local __result_two="$(<"$__status_two")"
+(( (__result_one == 0) + (__result_two == 0) == 1 )) ||
+    fail "concurrent stale-lock recovery did not produce exactly one winner"
+if (( __result_one != 0 )); then
+    grep -qF 'watch state is locked' "$__contender_one.err" ||
+        fail "losing stale-lock contender did not observe contention"
+fi
+if (( __result_two != 0 )); then
+    grep -qF 'watch state is locked' "$__contender_two.err" ||
+        fail "losing stale-lock contender did not observe contention"
+fi
+[[ ! -d "$__state_file.lock" ]] || fail "concurrent stale-lock recovery left the lock behind"
 
 echo "pr:review-watch task passed."

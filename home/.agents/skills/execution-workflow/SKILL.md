@@ -31,7 +31,7 @@ Freeze a story by recording its current state and moving it to `blocked` with th
 
 Move a story from `todo` to `research` only when its hard dependencies are ready. Move it to `implement` after the research and ownership checks pass. Move it to `validate` after the implementation matches the accepted story. Move it to `critique` after focused validation and acceptance evidence are complete. Move it to `done` only after the critique gate passes.
 
-After planning accepts a recovery amendment, resume the blocked story at `research`. Represent this as the recovery edge `blocked -> research` in the same lifecycle.
+After `workflow-policy` completes the canonical `freeze -> report -> escalate -> stop` sequence, planning records either a plan-preserving recovery decision or an accepted recovery amendment. Resume the blocked story at `research` only after that planning decision. Represent this as the recovery edge `blocked -> research` in the same lifecycle. Do not require an amendment when the accepted plan, acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries remain unchanged. Require an accepted amendment with a new plan version when any one of those boundaries changes.
 
 ## Dependency gates
 
@@ -62,7 +62,7 @@ Use `review-delivery` for independent candidate critique and pull request review
 
 ## Story drift
 
-If execution finds missing, inconsistent, or non-actionable plan fields, block the affected story immediately. Preserve its evidence and failed critique-cycle count. Keep dependent stories blocked when they require the affected story. If a worker is active, freeze the story before drift recovery and follow `workflow-policy`. Use `planning` for a targeted amendment, including its critique and acceptance. Execution consumes the exact accepted amendment path and version. Resume the story at `research` only after the amended plan is accepted. Assign remaining work to a new worker after recovery.
+If execution finds missing, inconsistent, or non-actionable plan fields, block the affected story immediately. Preserve its evidence and failed critique-cycle count. Keep dependent stories blocked when they require the affected story. If a worker is active, freeze the story before drift recovery and follow `workflow-policy`. After `workflow-policy` completes the canonical `freeze -> report -> escalate -> stop` sequence, use `planning` to decide whether the accepted plan remains viable. If it remains viable and acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries remain unchanged, record a plan-preserving recovery decision and resume the story at `research` without a new plan version. If any one of those boundaries changes, use `planning` for a targeted amendment, including its critique and acceptance, with a new plan version. Execution consumes the exact accepted amendment path and version, then resumes the story at `research`. Assign remaining work to a new worker after recovery.
 
 If I am unavailable for a required decision, preserve evidence and freeze the affected story. Do not change the plan, ownership, dependencies, or authorization while the decision is pending.
 

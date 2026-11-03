@@ -35,7 +35,7 @@ Treat a nonzero poll result, malformed response, or unavailable review service a
 
 Inspect new reviews, inline comments, issue comments, failed checks, and pending checks from each successful poll. Fix actionable findings in the matching candidate worktree, run independent critique and validation, then use the authorized delivery handoff.
 
-Remove a merged or closed pull request with `mise run pr:review-watch -- remove <pull-request-number>`. Stop the external schedule only after watch state is empty or no watched pull request has actionable review work under the approved watch policy.
+Remove a merged or closed pull request with `mise run pr:review-watch -- remove <pull-request-number>`. Stop the external schedule only when the poll output sets `scheduler_should_stop: true`: every watched open pull request completed its four-check clean grace period, or closed/merged and was removed. An empty actionable queue is not sufficient.
 
 Record delivery evidence for each candidate: the review poll output, finding ledger, validation results, authorized ref update, pushed ref, review response, and later poll confirmation. Keep the candidate fixed across these records.
 
@@ -60,7 +60,7 @@ Rebase a candidate only when the dependency ledger records a rebase or delivery 
 
 After independent critique and validation, assign only explicitly authorized commit, push, and pull request metadata mutations to a delivery worker. The delivery worker performs the authorized mutations and returns evidence. The orchestrator owns scope, authorization, integration decisions, and post-delivery verification. Preserve current-turn authorization and stop the lane when authorization expires.
 
-Keep an open pull request under review watch until GitHub reports it merged or closed, except for the documented clean grace period. Remove merged or closed pull requests from watch state under the approved watch policy. Stop the external schedule when no watched pull request has actionable review work. Start the clean grace period only when the review is approved, the unresolved finding ledger is empty, and required checks are clean and non-pending. Keep the pull request watched for four additional checks at 15-minute intervals. Do not remove an open pull request before the clean grace period ends. Approval alone cannot move a story to `Done`, close its issue, remove its pull request from watch, or end the grace period.
+Keep an open pull request under review watch until GitHub reports it merged or closed, except for the documented clean grace period. Remove merged or closed pull requests from watch state under the approved watch policy. Start the clean grace period only when the review is approved, the unresolved finding ledger is empty, and required checks are clean and non-pending. Keep the pull request watched for four additional checks at 15-minute intervals. Do not stop the scheduler while any watched open pull request has not completed that grace period. Do not remove an open pull request before the clean grace period ends. Approval alone cannot move a story to `Done`, close its issue, remove its pull request from watch, or end the grace period.
 
 ## Merge authority
 

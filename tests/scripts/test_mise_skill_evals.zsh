@@ -6,6 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 main() {
     local fixture skill_dir spec_dir workspace_parent workspace_dir workspace_root case_path
+    local materialized_iteration materialized_case configuration
     local migration_map historical_workspace global_skill_dir global_workspace_dir
     local validation_output
 
@@ -54,6 +55,8 @@ EOF
 
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
         fail "validator rejected a valid fixture"
+    mise run ai:skills:evals:validate --base-path home >/dev/null ||
+        fail "validator did not resolve its migration map from the task source"
 
     mv "$migration_map" "$fixture/migration-map-absent.json"
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
@@ -228,6 +231,110 @@ EOF
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
         fail "validator rejected a restored preparation iteration"
     rm -rf "$workspace_root/iteration-5"
+
+    materialized_iteration="$workspace_root/iteration-6"
+    materialized_case="$materialized_iteration/example-case"
+    mkdir -p "$materialized_iteration"
+    jq -n '{
+        version: 1,
+        skill_name: "demo",
+        iteration: 6,
+        case_ids: ["example-case"],
+        state: "materialized"
+    }' >"$materialized_iteration/manifest.json"
+    for extra in benchmark.json feedback.json grading-summary.json; do
+        jq -n '{
+            skill_name: "demo",
+            iteration: 6,
+            provenance: {
+                harness_identity: "test-harness",
+                skill_identity: "demo",
+                spec_id: "demo/evals/evals.json"
+            },
+            run: {
+                duration_ms: 1,
+                ended_at: "2026-01-01T00:00:20Z",
+                evidence_files: ["example-case/with_skill/evidence/run.txt"],
+                output_files: ["example-case/with_skill/outputs/run.txt"],
+                redaction_status: "clean",
+                result: "passed",
+                run_id: "run-1",
+                started_at: "2026-01-01T00:00:00Z",
+                status: "completed"
+            }
+        }' >"$materialized_iteration/$extra"
+    done
+    for configuration in with_skill old_skill; do
+        mkdir -p "$materialized_case/$configuration/outputs"
+        mkdir -p "$materialized_case/$configuration/evidence"
+        printf '%s\n' "materialized output" \
+            >"$materialized_case/$configuration/outputs/run.txt"
+        printf '%s\n' "materialized evidence" \
+            >"$materialized_case/$configuration/evidence/run.txt"
+        jq -n --arg configuration "$configuration" '{
+            case_id: "example-case",
+            configuration: $configuration,
+            duration_ms: 1,
+            ended_at: "2026-01-01T00:00:20Z",
+            evidence_files: ["evidence/run.txt"],
+            harness_identity: "test-harness",
+            output_files: ["outputs/run.txt"],
+            redaction_status: "clean",
+            result: "passed",
+            run_id: "run-1",
+            skill_identity: "demo",
+            spec_id: "demo/evals/evals.json",
+            started_at: "2026-01-01T00:00:00Z",
+            status: "completed",
+            total_tokens: 1
+        }' >"$materialized_case/$configuration/timing.json"
+        jq -n --arg configuration "$configuration" '{
+            assertion_results: [
+                {
+                    evidence: ["evidence/run.txt"],
+                    id: "assertion-1",
+                    status: "passed"
+                }
+            ],
+            case_id: "example-case",
+            configuration: $configuration,
+            redaction_status: "clean",
+            result: "passed",
+            run_id: "run-1",
+            status: "completed"
+        }' >"$materialized_case/$configuration/grading.json"
+    done
+    mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
+        fail "validator rejected a valid materialized fixture"
+
+    jq '. + {legacy_preparation: {version: 1, skills: ["demo"]}}' "$migration_map" \
+        >"$fixture/migration-map-legacy-preparation.json"
+    mv "$fixture/migration-map-legacy-preparation.json" "$migration_map"
+    mkdir -p "$workspace_root/iteration-7/example-case"
+    jq '.iteration = 7 | del(.state)' "$materialized_iteration/manifest.json" \
+        >"$fixture/manifest-legacy-preparation.json"
+    mv "$fixture/manifest-legacy-preparation.json" \
+        "$workspace_root/iteration-7/manifest.json"
+    for extra in benchmark.json feedback.json grading-summary.json; do
+        jq --argjson iteration 7 '.iteration = $iteration' \
+            "$workspace_root/iteration-4/$extra" >"$workspace_root/iteration-7/$extra"
+    done
+    mkdir -p "$workspace_root/iteration-7/example-case/with_skill"
+    if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
+        fail "validator accepted materialized case artifacts as legacy preparation"
+    fi
+    rm -rf "$workspace_root/iteration-7"
+    cat >"$migration_map" <<'EOF'
+{
+  "version": 1,
+  "renames": [
+    {
+      "from": "legacy-demo",
+      "to": "demo"
+    }
+  ]
+}
+EOF
 
     case_path="$workspace_root/iteration-4/example-case"
     mv "$case_path" "$fixture/example-case-directory"

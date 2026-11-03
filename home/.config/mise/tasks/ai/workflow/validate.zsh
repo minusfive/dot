@@ -268,8 +268,8 @@ validate_timestamps() {
         (reduce ($ledger.records[]?) as $record
             ({previous: {}, valid: true};
              ([$record.lane_id, $record.candidate_id] | join("\u0000")) as $key |
-             [$record.checkpoint.initial_at, $record.checkpoint.last_at,
-                $record.checkpoint.next_due_at] as $current |
+             ([$record.checkpoint.initial_at, $record.checkpoint.last_at,
+                $record.checkpoint.next_due_at] | map(timestamp)) as $current |
              .valid = (.valid and
                 (if .previous[$key] == null then true
                  else $current >= .previous[$key]
@@ -452,7 +452,7 @@ validate_paths() {
                         (overlap($owned; $excluded) | not))));
         def claims_for($contract):
             {candidate_id: $contract.candidate_id,
-                paths: ($contract.owned_paths + $contract.excluded_paths)};
+                paths: $contract.owned_paths};
         (all((.contracts[]?, .records[]?); .worktree.path | worktree_path)) and
         (all(.contracts[]; valid_claims)) and (all(.records[]; valid_claims)) and
         ([.contracts[] | claims_for(.)] as $claims |
@@ -478,10 +478,23 @@ check_secret_like_values() {
             ($key == "sig" or ($key | test(
                 "(apikey|apitoken|accesstoken|refreshtoken|clientsecret|oauthtoken|githubtoken|bearertoken|sessiontoken|token|secret|password|credential|cookie|privatekey|signingkey|encryptionkey|sshkey|basicauth|signedurl|signature)"
             )));
+        def credential_token:
+            length >= 16 and
+            ([test("[A-Z]"), test("[a-z]"), test("[0-9]"),
+                test("[^A-Za-z0-9]")] |
+                map(select(.)) | length) >= 3;
+        def authorization_header:
+            test("(?i)(^|[[:space:];])authorization[[:space:]]*:[[:space:]]*" +
+                "(bearer|basic)[[:space:]]+[A-Za-z0-9+/=_.~-]+");
+        def credential_authorization:
+            [match("(?i)(?<scheme>bearer|basic)[[:space:]]+" +
+                "(?<credential>[A-Za-z0-9+/=_.~-]+)"; "g") |
+                (.captures | map({key: .name, value: .string}) | from_entries).credential |
+                credential_token] | any;
         def secret_pattern:
             gsub("(?i)" + redaction_token; "") |
             (test("(?i)(ghp_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|xox[baprs]-[A-Za-z0-9-]+|AKIA[0-9A-Z]{16})") or
-             test("(?i)(bearer|basic)[[:space:]]+[A-Za-z0-9+/=_-]+") or
+             authorization_header or credential_authorization or
              test("-----BEGIN [A-Z ]*PRIVATE KEY-----") or
              test("(?i)(^|[?&[:space:]])(signature|sig|token|access_token|api_key|client_secret|password)=[^&#[:space:]]+") or
              test("(?i)(cookie:|set-cookie:|(^|[;[:space:]])(session|sid|phpsessid|csrftoken|sessionid)=[^;[:space:]]+)") or

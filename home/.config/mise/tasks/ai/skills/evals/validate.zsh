@@ -13,6 +13,7 @@ die() {
 }
 
 typeset -ga migration_sources migration_targets legacy_preparation_skills
+typeset -r task_source_dir="${0:A:h}"
 
 is_migration_source() {
     local name="$1"
@@ -88,10 +89,10 @@ validate_materialized_config() {
 
     jq -e --arg skill "$skill" --arg iteration "$iteration" --arg case "$case_id" \
         --arg configuration "$configuration" '
-        (keys | sort) == ["case_id", "configuration", "ended_at", "evidence_files",
-            "harness_identity", "output_files", "redaction_status", "result", "run_id",
-            "skill_identity", "spec_id", "started_at", "status", "total_tokens",
-            "duration_ms"] and
+        (keys | sort) == ["case_id", "configuration", "duration_ms", "ended_at",
+            "evidence_files", "harness_identity", "output_files", "redaction_status",
+            "result", "run_id", "skill_identity", "spec_id", "started_at", "status",
+            "total_tokens"] and
         .case_id == $case and .configuration == $configuration and
         (.run_id | type == "string" and test("^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")) and
         .spec_id == ($skill + "/evals/evals.json") and
@@ -243,7 +244,8 @@ main() {
     setopt localoptions null_glob
 
     local project_root base_path skills_path workspace_dir skill_root skill_dir skill evals_dir spec
-    local migration_map map_source map_target resolved_skill workspace_skill_name
+    local migration_map source_migration_map external_migration_map
+    local map_source map_target resolved_skill workspace_skill_name
     local workspace_skill iteration_dir iteration_name manifest expected_ids manifest_ids iteration_state
     local workspace_entry discoverability_dir case_entry case_name configuration_dir configuration
     local current_iteration iteration_number
@@ -282,7 +284,14 @@ main() {
         [[ "$root_is_known" == true ]] || workspace_skill_roots+=("$candidate_root")
     done < <(find "$base_path" -type d -path '*/.agents/skills' -print)
     workspace_dir="${base_path}/.agents/eval-workspaces"
-    migration_map="${base_path}/home/.config/mise/tasks/ai/skills/evals/migration-map.json"
+    source_migration_map="${task_source_dir}/migration-map.json"
+    external_migration_map="${base_path}/home/.config/mise/tasks/ai/skills/evals/migration-map.json"
+    migration_map=""
+    if [[ "$base_path" == "$project_root" || "$base_path" == "${project_root}/home" ]]; then
+        migration_map="$source_migration_map"
+    elif [[ -e "$external_migration_map" || -L "$external_migration_map" ]]; then
+        migration_map="$external_migration_map"
+    fi
     migration_sources=()
     migration_targets=()
     legacy_preparation_skills=()
@@ -541,20 +550,6 @@ main() {
                 ' "${iteration_dir}/${extra}" >/dev/null ||
                     die "invalid report identity: ${iteration_dir#$base_path/}/${extra}"
             done
-            if [[ "$iteration_state" == historical ]]; then
-                [[ "$historical_workspace" == true ]] ||
-                    die "historical evaluation state requires explicit migration metadata: ${manifest#$base_path/}"
-                historical_iteration=true
-            elif [[ -z "$iteration_state" && "$historical_workspace" == true &&
-                "$case_artifact_present" == false ]]; then
-                historical_iteration=true
-            elif [[ -z "$iteration_state" && "$case_artifact_present" == false ]] &&
-                is_legacy_preparation_skill "$workspace_skill_name" &&
-                is_legacy_preparation_summary "$iteration_dir"; then
-                legacy_preparation_iteration=true
-                historical_iteration=true
-            fi
-
             for case_entry in "$iteration_dir"/*; do
                 [[ -e "$case_entry" || -L "$case_entry" ]] || continue
                 case_name="${case_entry:t}"
@@ -579,11 +574,18 @@ main() {
                 done
             done
 
-            if [[ "$historical_iteration" == true &&
-                "$historical_workspace" == true &&
-                -z "$iteration_state" &&
-                "$case_artifact_present" == true ]]; then
-                historical_iteration=false
+            if [[ "$iteration_state" == historical ]]; then
+                [[ "$historical_workspace" == true ]] ||
+                    die "historical evaluation state requires explicit migration metadata: ${manifest#$base_path/}"
+                historical_iteration=true
+            elif [[ -z "$iteration_state" && "$historical_workspace" == true &&
+                "$case_artifact_present" == false ]]; then
+                historical_iteration=true
+            elif [[ -z "$iteration_state" && "$case_artifact_present" == false ]] &&
+                is_legacy_preparation_skill "$workspace_skill_name" &&
+                is_legacy_preparation_summary "$iteration_dir"; then
+                legacy_preparation_iteration=true
+                historical_iteration=true
             fi
 
             if [[ "$historical_iteration" == false &&

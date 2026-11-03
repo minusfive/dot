@@ -25,13 +25,14 @@
     {
       "id": "review-watch-lifecycle",
       "prompt": "Describe the workflow for watching open PRs for review comments, addressing new comments, and stopping when PRs merge. Do not access GitHub or run a watcher.",
-      "expected_output": "Set up each PR with `mise run pr:review-watch -- add <number>`, run `mise run pr:review-watch -- poll` as a one-shot task from an external scheduler, treat failed polls as no state advance, inspect review activity and checks, fix findings in the matching worktree with independent critique and validation, record delivery review evidence, remove merged or closed PRs with `mise run pr:review-watch -- remove <number>`, and stop the scheduler when watch state is empty.",
+      "expected_output": "Set up each PR with `mise run pr:review-watch -- add <number>`, run `mise run pr:review-watch -- poll` as a one-shot task from an external scheduler, treat failed polls as no state advance, inspect review activity and checks, fix findings in the matching worktree with independent critique and validation, record delivery review evidence, remove merged or closed PRs with `mise run pr:review-watch -- remove <number>`, and stop the scheduler only when poll output sets `scheduler_should_stop: true` after every watched open PR completes its four-check clean grace period or closes/merges; an empty actionable queue is not sufficient.",
       "assertions": [
         "The response uses the review-watch task as a one-shot poll.",
         "The response removes merged or closed PRs from the watch state.",
         "The response requires an independent critique subagent before review-fix commits and pushes.",
         "The response names explicit add, poll, and remove handoffs.",
         "The response assigns cadence and shutdown to an external scheduler.",
+        "The response waits for the explicit four-check grace-period shutdown signal instead of stopping on an empty actionable queue.",
         "The response treats a failed poll as no state advance.",
         "The response records review and delivery evidence."
       ]

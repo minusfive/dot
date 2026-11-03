@@ -18,11 +18,15 @@
     },
     {
       "id": "worker-cannot-deliver",
-      "prompt": "An implementation agent has drifted from its assigned migration and missed a checkpoint. Describe the sequence beginning with a progress-report request, including what you do if the worker responds and if it does not.",
-      "expected_output": "Request a report with completed work, changed files, validation evidence, blockers, and remaining scope. Stop the worker after the report, or stop it and use available evidence if it cannot report. Have a separate critique worker assess the progress before plan changes. Then delegate the plan update and assign remaining work to new workers.",
+      "prompt": "An implementation agent has drifted from its assigned migration and missed a checkpoint. Describe the complete recovery ordering for both cases: the worker responds, and the worker does not respond. The worker must not continue editing after the lane freezes. Preserve viable partial work and the canonical lifecycle.",
+      "expected_output": "For both cases, use the exact ordering freeze -> report -> escalate -> stop. Freeze the affected lane before any recovery request and prevent further edits. If the worker responds, request one report with completed work, changed files, validation evidence, blockers, and remaining scope. Then escalate and stop the worker or lane. If the worker does not respond, record a no-response report that states what is missing and preserves available evidence. Then escalate and stop the worker or lane. After stop, have a separate critique worker assess what to keep, discard, or rework. Have planning preserve the same plan and version when its boundaries remain unchanged, or create and accept an amendment with a new version only when a material boundary changes. Assign remaining work to new workers without adding a lifecycle state.",
       "assertions": [
-        "The response requests a report with work, files, evidence, blockers, and remaining scope when the worker can report.",
-        "The response assigns a separate critique worker before changing the plan."
+        "For the responding-worker path, the response states the ordered sequence freeze, report, escalate, stop.",
+        "For the non-responding-worker path, the response records a no-response report with what is missing and available evidence, then states escalation and stop in that order.",
+        "The response freezes the affected lane before either report step and prevents the worker from making further edits after freeze.",
+        "The responding-worker report includes completed work, changed files, validation evidence, blockers, and remaining scope.",
+        "The response assigns a separate critique worker after stop and before changing the plan.",
+        "The response preserves viable partial work and the canonical lifecycle without adding a lifecycle state."
       ]
     },
     {
@@ -42,6 +46,17 @@
         "The response freezes the lane before requesting one report and stops the lane or worker after escalation.",
         "The response uses execution-workflow drift recovery, preserves critique evidence, and resumes at research only after accepted plan recovery without adding a lifecycle state.",
         "The response represents frozen and recovery evidence as historical records rather than active contracts."
+      ]
+    },
+    {
+      "id": "amendment-boundary-recovery",
+      "prompt": "A worker lane drifts and completes the required freeze -> report -> escalate -> stop sequence. Describe the next recovery decision in both cases: (1) the accepted plan remains viable and acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries remain unchanged; (2) one of those material boundaries changes. Preserve freeze-first ordering and canonical lifecycle ownership. Do not call tools.",
+      "expected_output": "After freeze -> report -> escalate -> stop, planning decides whether the accepted plan remains viable. In the unchanged viable case, preserve the same plan and version, create no amendment, and let execution-workflow resume the blocked story through its existing recovery edge. In the material-change case, planning creates, critiques, and accepts a targeted amendment with a new plan version before execution-workflow resumes the story. Do not add a lifecycle state or silently resume a frozen lane.",
+      "assertions": [
+        "The response requires the exact freeze -> report -> escalate -> stop ordering before the recovery decision.",
+        "For unchanged viable acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries, the response preserves the same plan and version and requires no amendment.",
+        "For a material boundary change, the response assigns planning to create and accept an amendment with a new plan version before execution resumes.",
+        "The response assigns plan decisions and amendments to planning and story recovery to execution-workflow without adding a lifecycle state."
       ]
     },
     {
