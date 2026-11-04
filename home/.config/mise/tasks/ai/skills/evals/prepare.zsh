@@ -84,7 +84,8 @@ main() {
             skill_name: $skill,
             iteration: ($iteration | tonumber),
             case_ids: $case_ids,
-            workspace: $workspace
+            workspace: $workspace,
+            state: "preparation"
         }' >"${iteration_dir}/manifest.json"
 
     jq -n --arg skill "$skill" --arg iteration "$usage_iteration" '{

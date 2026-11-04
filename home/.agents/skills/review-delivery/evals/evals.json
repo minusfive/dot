@@ -1,0 +1,55 @@
+{
+  "skill_name": "review-delivery",
+  "evals": [
+    {
+      "id": "parallel-issue-pr-delivery",
+      "prompt": "Review candidates for issues #101, #102, and #103. Each issue needs its own pull request and worktree. One candidate drifts outside its files. I authorize commits, pushes, and pull request updates in this turn, but I will merge the pull requests. Describe the workflow only; do not access GitHub, create worktrees, commit, push, or update pull requests.",
+      "expected_output": "Assign stable candidate identities and keep each candidate fixed through critique and delivery. Stop the drifted candidate and route it through the owning planning and execution skills. Maintain a finding ledger with evidence-backed terminal dispositions. After independent critique and current-turn authorization, have a delivery worker perform only the authorized commit, push, and pull request metadata mutations. The orchestrator verifies delivery and leaves merging to me.",
+      "assertions": [
+        "The response keeps candidate identity fixed and routes candidate drift through planning and execution ownership.",
+        "The response uses evidence-backed finding dispositions and a separate critique before delivery.",
+        "The response assigns delivery mutations only after current-turn authorization and leaves merge authority to the user.",
+        "The response assigns separate pull requests and worktrees to the issues."
+      ]
+    },
+    {
+      "id": "isolated-bootstrap-validation",
+      "prompt": "Describe how to safely plan a move of a bootstrap-managed shell file into a new module without changing the live shell. Give the workflow only; do not inspect or edit files.",
+      "expected_output": "Use a separate worktree and isolated dummy HOME or temporary fixture, preserve runtime exclusions, and validate the focused behavior before commit.",
+      "assertions": [
+        "The response requires an isolated dummy tree or temporary fixture.",
+        "The response excludes the live HOME and runtime state from test mutations.",
+        "The response includes focused validation before the critique and commit gates."
+      ]
+    },
+    {
+      "id": "review-watch-lifecycle",
+      "prompt": "Describe the workflow for watching open PRs for review comments, addressing new comments, and stopping when PRs merge. Do not access GitHub or run a watcher.",
+      "expected_output": "Set up each PR with `mise run pr:review-watch -- add <number>`, run `mise run pr:review-watch -- poll` as a one-shot task from an external scheduler, treat failed polls as no state advance, inspect review activity and checks, fix findings in the matching worktree with independent critique and validation, record delivery review evidence, remove merged or closed PRs with `mise run pr:review-watch -- remove <number>`, and stop the scheduler only when poll output sets `scheduler_should_stop: true` after every watched open PR completes its four-check clean grace period or closes/merges; an empty actionable queue is not sufficient.",
+      "assertions": [
+        "The response uses the review-watch task as a one-shot poll.",
+        "The response removes merged or closed PRs from the watch state.",
+        "The response requires an independent critique subagent before review-fix commits and pushes.",
+        "The response names explicit add, poll, and remove handoffs.",
+        "The response assigns cadence and shutdown to an external scheduler.",
+        "The response waits for the explicit four-check grace-period shutdown signal instead of stopping on an empty actionable queue.",
+        "The response treats a failed poll as no state advance.",
+        "The response records review and delivery evidence."
+      ]
+    },
+    {
+      "id": "reconcile-additional-review-comments",
+      "prompt": "A pull request's latest review summary reports `Additional comments: 44`, but the API also returns inline comments, replies, and review threads. Describe how to validate the review before deciding that the candidate is clean. Do not access GitHub or run commands.",
+      "expected_output": "Treat the summary as a container. Enumerate all 44 nested findings, reconcile them with inline comments, replies, outside-diff findings, and thread resolution state, and keep each finding in the ledger until it has a terminal disposition. Delegate the complete review poll and validation to a review-monitoring worker. The orchestrator consumes the worker evidence and does not repeat the same review scope.",
+      "assertions": [
+        "The response treats `Additional comments: 44` as a completeness requirement.",
+        "The response reconciles nested findings with replies, outside-diff findings, and thread state.",
+        "The response delegates the complete review and validation unit.",
+        "The response keeps terminal dispositions evidence-backed.",
+        "The response counts raw nested comment artifacts before classifying findings.",
+        "The response treats a reply as evidence for its parent unless it adds a distinct finding.",
+        "The response blocks disposition and records an incomplete review poll when counts differ."
+      ]
+    }
+  ]
+}

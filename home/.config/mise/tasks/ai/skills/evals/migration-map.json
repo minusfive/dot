@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "legacy_preparation": {
+    "version": 1,
+    "skills": [
+      "agent-instructions-authoring",
+      "agent-instructions-evaluation",
+      "execution-workflow",
+      "mise-bootstrap-lifecycle",
+      "mise-bootstrap-modules",
+      "mise-bootstrap-profiles",
+      "mise-bootstrap-testing",
+      "mise-bootstrap-zsh",
+      "planning",
+      "pr-guidelines",
+      "pr-orchestration",
+      "preview-docs",
+      "readme-maintenance",
+      "task-orchestration"
+    ]
+  },
+  "renames": [
+    {
+      "from": "task-orchestration",
+      "to": "workflow-policy"
+    },
+    {
+      "from": "pr-orchestration",
+      "to": "review-delivery"
+    }
+  ]
+}

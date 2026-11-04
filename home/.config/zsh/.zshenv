@@ -13,3 +13,13 @@ export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 # Disable Next.js telemetry
 # https://nextjs.org/telemetry
 export NEXT_TELEMETRY_DISABLED=1
+
+# Use the repository mise configuration by default. Preserve caller-provided
+# values; set DOT_DISABLE_REPOSITORY_MISE_CONFIG=1 for isolated tests/tools.
+if [[ "${DOT_DISABLE_REPOSITORY_MISE_CONFIG:-}" != 1 &&
+    -d "$HOME/dev/personal/dot/home/.config/mise" ]]; then
+    [[ -n "${MISE_CONFIG_DIR+x}" ]] ||
+        export MISE_CONFIG_DIR="$HOME/dev/personal/dot/home/.config/mise"
+    [[ -n "${MISE_ENV_CONF_D+x}" ]] ||
+        export MISE_ENV_CONF_D=true
+fi

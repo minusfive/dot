@@ -11,8 +11,8 @@
 - Investigate uncertainty first rather than confirming assumptions. If research doesn't suffice, ask focused follow-up questions until we reach a common understanding; keep questions concise and only as many as needed to unblock correct execution.
 - Apply rigorous standards consistently to all ideas.
 - Critique plans and implementations; do not merely validate them. Surface blind spots, weak assumptions, edge cases, and sequencing risks even when the work appears correct.
-- For work that spans multiple GitHub issues, load `pr-orchestration` before implementation. After planning, load `execution-workflow` and execute the issues in dependency order through its lifecycle.
-- For delegated work, use the `orchestrator` agent as the primary coordinator. Follow `task-orchestration` for assignment sizing, isolation, supervision, and recovery.
+- For work that spans multiple GitHub issues, load `review-delivery` before implementation. After planning, load `execution-workflow` and execute the issues in dependency order through its lifecycle.
+- For delegated work, use the `orchestrator` agent as the primary coordinator. Follow `workflow-policy` for assignment sizing, isolation, supervision, and recovery.
 - When critique scope includes authored prose or instruction files, follow the `critique-workflow`, `writing-style`, and `simple-english` evaluation requirements.
 - Before marking work done (for example: done, completed, closed, shipped), run a fresh critique pass over every change you made. Ask: does the change do what I asked, are edge cases missed, are any assumptions unverified? Validation answers "does it parse/run"; critique answers "is it right". If critique finds issues, run one follow-up pass: fix the issues, then critique once more. If no issues are found in the first critique pass, surface that result and proceed. Do not treat a passing validation as done — work is complete only after one critique pass, plus at most one follow-up fix-and-critique pass when needed, and surfaced findings. This rule takes precedence over brevity or early-exit instructions.
 - If main-agent MCP tools or other primary tools hit access blockers, do not spawn subagents or use shell commands to bypass those blockers; surface the blocker and ask me how to proceed.
@@ -106,7 +106,7 @@ The skills below are available under [`.agents/skills/`](.agents/skills/). **MUS
 - `opencode-copilot-multipliers` — Sync GitHub Copilot model alias multiplier labels in the OpenCode config with current `github/docs` paid multipliers.
 - `planning` — Produce execution-ready implementation plans for multi-step, high-risk, ambiguous, or multi-file/service work.
 - `pr-guidelines` — Push branches, keep open pull requests current, and open pull requests using the project's title/body conventions and linked issues.
-- `pr-orchestration` — Orchestrate multi-issue GitHub delivery with issue plans, independent worktrees, isolated tests, critique gates, review watching, and manual merge handoff.
+- `review-delivery` — Coordinate multi-issue GitHub delivery with separate pull requests, isolated worktrees, review gates, and manual merge handoff.
 - `preview-docs` — Manage Markdown preview servers by listing, starting, selecting, refreshing, reconciling, or stopping previews.
 - `project-overview` — Discover project structure, architecture, and tooling before implementation in an unfamiliar area.
 - `qmd-setup` — Set up QMD in a repository with repository scanning, collection planning, YAML-defined collections, and approval-gated execution.
@@ -132,7 +132,7 @@ The skills below are available under [`.agents/skills/`](.agents/skills/). **MUS
 - `security` — Apply security checks for secrets, credentials, permissions, network access, dependency risk, and sensitive config. Use during implementation and security review.
 - `simple-english` — Apply ASD-STE100 Simplified Technical English to write, rewrite, or critique clear, unambiguous technical text.
 - `agent-instructions-evaluation` — Evaluate whether instruction changes improve outcomes. Use when revising skills or AGENTS/CLAUDE files and comparing before/after results with pass/fail checks.
-- `task-orchestration` — Choose how to split and coordinate work. Use when deciding what to run in parallel, what to delegate, and how to share temporary outputs.
+- `workflow-policy` — Define delegation boundaries, worker contracts, runtime isolation, checkpoints, recovery, and delivery authority for multi-step work.
 - `tanstack-cli` — Use TanStack CLI for app setup, add-on management, docs lookup, and MCP migration. Use when a project uses TanStack tools.
 - `writing-style` — Apply prose tone, standards, and publication-readiness rules when drafting, editing, or critiquing authored content.
 - `zsh` — Apply Zsh shell scripting conventions (error safety, logging helpers); use when authoring or modifying Zsh scripts.

@@ -1,0 +1,35 @@
+{
+  "skill_name": "security",
+  "evals": [
+    {
+      "id": "conditional-security-routing",
+      "prompt": "A change touches a signed URL, a credential handoff, and a generated runtime file. Describe when to route it to security, what evidence to record, and how to keep the lane safe. Do not call tools.",
+      "expected_output": "Route the security-sensitive boundary to security review, name the affected paths and owner, redact the signed query and credential, preserve safe identifiers, record the redaction status, and freeze the lane if a required security decision is unavailable.",
+      "assertions": [
+        "The response routes the signed URL and credential boundary to security review.",
+        "The response requires redaction evidence and safe identifiers."
+      ]
+    },
+    {
+      "id": "evidence-backed-closure",
+      "prompt": "A security review has one resolved finding and one accepted residual risk. Describe the closure evidence and authority boundaries. Do not call tools.",
+      "expected_output": "Close only with exact reviewed references, validation results, secret and redaction status, terminal disposition for every finding, residual-risk ownership, and the next handoff. Keep commit, push, pull request, and merge authority with the existing owners and me.",
+      "assertions": [
+        "The response requires evidence for every terminal finding disposition and residual-risk ownership.",
+        "The response preserves merge authority boundaries."
+      ]
+    },
+    {
+      "id": "complete-security-owner-controls",
+      "prompt": "Describe the security controls for a worker that edits a network-enabled tool, changes dependencies, writes logs, and runs with temporary filesystem access. Do not call tools.",
+      "expected_output": "Prevent secrets, inspect and redact sensitive logs, apply least privilege, check permissions, use secure network defaults, pin dependencies with integrity evidence, and close with evidence for every control and residual risk.",
+      "assertions": [
+        "The response includes secret prevention and sensitive-log checks with redaction.",
+        "The response includes least privilege and permission checks.",
+        "The response includes secure network defaults.",
+        "The response includes dependency pinning and integrity evidence.",
+        "The response requires evidence closure and residual-risk ownership."
+      ]
+    }
+  ]
+}
