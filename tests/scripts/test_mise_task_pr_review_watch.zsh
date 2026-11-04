@@ -57,7 +57,9 @@ if [[ "$1" == api ]]; then
             printf 'simulated unsupported GraphQL field\n' >&2
             exit 1
         fi
-        if [[ -n "${GH_REVIEW_WATCH_GRAPHQL_FIXTURE:-}" ]]; then
+        if [[ -n "${GH_REVIEW_WATCH_GRAPHQL_INNER_FIXTURE:-}" && "$*" == *"PullRequestReviewThread"* ]]; then
+            cat "$GH_REVIEW_WATCH_GRAPHQL_INNER_FIXTURE"
+        elif [[ -n "${GH_REVIEW_WATCH_GRAPHQL_FIXTURE:-}" ]]; then
             cat "$GH_REVIEW_WATCH_GRAPHQL_FIXTURE"
         else
             printf '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"isResolved":false,"comments":{"nodes":[{"id":"RC_201","fullDatabaseId":"201"}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}\n'
@@ -866,15 +868,49 @@ export GH_REVIEW_WATCH_GRAPHQL_REJECT_LEGACY=1
 run_poll > "$__poll_output"
 unset GH_REVIEW_WATCH_GRAPHQL_REJECT_LEGACY
 jq -e '
-  .pull_requests[0].head_changed == false and
+  .pull_requests[0].head_changed == true and
   .pull_requests[0].has_unresolved_activity == false and
-  .pull_requests[0].action_required == false and
-  .pull_requests[0].grace_checks == 4 and
+  .pull_requests[0].action_required == true and
+  .pull_requests[0].grace_checks == 0 and
   .pull_requests[0].head == "review-16" and
   .pull_requests[0].head_oid == "oid-16"
-' "$__poll_output" >/dev/null || fail "legacy head or superseded review state was handled incorrectly"
+' "$__poll_output" >/dev/null || fail "legacy head migration did not detect the new fetched OID"
 jq -e '.pull_requests[0].head == "oid-16"' "$__state_file" >/dev/null ||
     fail "legacy head name was not migrated to the fetched head OID"
+
+cat > "$__fixture_dir/pr-23.json" <<'EOF'
+{"number":23,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-23","headRefOid":"oid-23","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-23.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-23.json" <<'EOF'
+[[]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":23,\"addedAt\":\"2024-01-01T00:00:00Z\",\"lastSeenAt\":\"2024-01-03T00:00:00Z\",\"head\":\"oid-23-old\",\"seen\":{\"reviews\":[],\"inline_comments\":[],\"issue_comments\":[]},\"graceChecks\":3}]}"
+run_poll > "$__poll_output"
+jq -e '
+  .pull_requests[0].head_changed == true and
+  .pull_requests[0].action_required == true and
+  .pull_requests[0].grace_checks == 0
+' "$__poll_output" >/dev/null || fail "OID-native head changes did not reset the grace period"
+
+cat > "$__fixture_dir/pr-26.json" <<'EOF'
+{"number":26,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-26","headRefOid":"oid-26","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-26.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-26.json" <<'EOF'
+[[]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":26,\"addedAt\":\"2024-01-01T00:00:00Z\",\"lastSeenAt\":\"2024-01-03T00:00:00Z\",\"head\":\"oid-26\",\"seen\":{\"reviews\":[],\"inline_comments\":[],\"issue_comments\":[]},\"graceChecks\":3}]}"
+run_poll > "$__poll_output"
+jq -e '
+  .pull_requests[0].head_changed == false and
+  .pull_requests[0].action_required == false and
+  .pull_requests[0].grace_checks == 4
+' "$__poll_output" >/dev/null || fail "OID-native unchanged heads did not preserve the grace period"
 
 cat > "$__fixture_dir/pr-17.json" <<'EOF'
 {"number":17,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-17","headRefOid":"oid-17","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
@@ -942,6 +978,52 @@ jq -e '
   (.reconciliation[0].inline_comments | all(.is_resolved == false)) and
   (.reconciliation[0].resolution_warnings | length == 0)
 ' "$__poll_output" >/dev/null || fail "more than 32 inline comments were not fully resolved"
+
+cat > "$__fixture_dir/pr-24.json" <<'EOF'
+{"number":24,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-24","headRefOid":"oid-24","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-24.json" <<'EOF'
+[[{"id":2401,"node_id":"RC_2401","created_at":"2024-01-04T00:00:00Z","body":"outer cursor repeat","html_url":"https://example.test/inline/2401"}]]
+EOF
+cat > "$__fixture_dir/issues-24.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/graphql-repeat-outer-24.json" <<'EOF'
+{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[],"pageInfo":{"hasNextPage":true,"endCursor":"outer-repeat"}}}}}}
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-repeat-outer-24.json"
+run_action add 24 > "$__poll_output"
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE
+jq -e '
+  (.reconciliation[0].resolution_warnings | any(test("review thread resolution pagination repeated a cursor"))) and
+  .reconciliation[0].inline_comments[0].is_resolved == null
+' "$__poll_output" >/dev/null || fail "repeated outer review-thread cursor was not stopped conservatively"
+
+cat > "$__fixture_dir/pr-25.json" <<'EOF'
+{"number":25,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-25","headRefOid":"oid-25","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-25.json" <<'EOF'
+[[{"id":2501,"node_id":"RC_2501","created_at":"2024-01-04T00:00:00Z","body":"inner cursor repeat","html_url":"https://example.test/inline/2501"}]]
+EOF
+cat > "$__fixture_dir/issues-25.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/graphql-repeat-inner-25.json" <<'EOF'
+{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"id":"RT_2501","isResolved":true,"comments":{"nodes":[{"id":"RC_2501","fullDatabaseId":"2501"}],"pageInfo":{"hasNextPage":true,"endCursor":"inner-repeat"}}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}
+EOF
+cat > "$__fixture_dir/graphql-repeat-inner-page-25.json" <<'EOF'
+{"data":{"node":{"isResolved":true,"comments":{"nodes":[{"id":"RC_2501","fullDatabaseId":"2501"}],"pageInfo":{"hasNextPage":true,"endCursor":"inner-repeat"}}}}}
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-repeat-inner-25.json"
+export GH_REVIEW_WATCH_GRAPHQL_INNER_FIXTURE="$__fixture_dir/graphql-repeat-inner-page-25.json"
+run_action add 25 > "$__poll_output"
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE GH_REVIEW_WATCH_GRAPHQL_INNER_FIXTURE
+jq -e '
+  (.reconciliation[0].resolution_warnings | any(test("review thread comment pagination repeated a cursor"))) and
+  .reconciliation[0].inline_comments[0].is_resolved == true
+' "$__poll_output" >/dev/null || fail "repeated inner thread-comment cursor was not stopped conservatively"
 
 cat > "$__state_file" <<EOF
 {

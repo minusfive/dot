@@ -9,9 +9,9 @@ main() {
     local chronology_invalid_file submicro_invalid_file
     local first_record_before_contract_file
     local mixed_direction_file shared_exclusions_file exclusion_owner_file
-    local owner_overlap_file lowercase_hex_value
-    local bearer_secret bearer_direct_secret
-    local prose_bearer prose_basic prose_value
+    local owner_overlap_file lowercase_hex_value mixed_class_value
+    local auth_value credential_case credential_value scheme
+    local uppercase_prose lowercase_prose redacted_value
     local future now output
     local contract_schema ledger_schema
     export MISE_CONFIG_DIR="$__root_dir/home/.config/mise"
@@ -254,33 +254,70 @@ main() {
     fi
 
     jq '.contracts[0].acceptance = [
-        "Normal prose can mention bearer tokens and basic authentication."
+        "Normal prose can mention bearer/basic-authentication."
     ]' "$valid_file" >"$fixture/secret-prose.json"
     mise run ai:workflow:validate -- --file "$fixture/secret-prose.json" >/dev/null ||
         fail "validator flagged normal bearer/basic prose"
 
-    lowercase_hex_value="$(printf '%s%s%s%s' deadbeef deadbeef deadbeef deadbeef)"
-    bearer_secret="$(printf '%s %s' 'Authorization: Bearer' "$lowercase_hex_value")"
-    bearer_direct_secret="$(printf '%s %s' Bearer "$lowercase_hex_value")"
-    prose_bearer="Authorization: Bearer ordinarylowercaseprosevalue"
-    prose_basic="Basic ordinarylowercaseprosevalue"
-    for prose_value in "$prose_bearer" "$prose_basic"; do
-        jq --arg value "$prose_value" \
+    uppercase_prose="UPPERCASE PROSE can mention BEARER/BASIC-authentication."
+    lowercase_prose="lowercase prose can mention bearer/basic-authentication."
+    for auth_value in "$uppercase_prose" "$lowercase_prose"; do
+        jq --arg value "$auth_value" \
             '.contracts[0].acceptance = [$value]' \
-            "$valid_file" >"$fixture/secret-prose-${prose_value//[^A-Za-z0-9]/-}.json"
+            "$valid_file" >"$fixture/secret-prose-${auth_value//[^A-Za-z0-9]/-}.json"
         mise run ai:workflow:validate -- \
-            --file "$fixture/secret-prose-${prose_value//[^A-Za-z0-9]/-}.json" >/dev/null ||
-            fail "validator flagged lowercase bearer/basic prose"
+            --file "$fixture/secret-prose-${auth_value//[^A-Za-z0-9]/-}.json" >/dev/null ||
+            fail "validator flagged ordinary bearer/basic prose"
     done
+
+    lowercase_hex_value="$(printf '%s%s' deadbeef0123456789 abcdef0123456789)"
+    mixed_class_value="Abcdefghijklmnop1!"
+    for scheme in Bearer Basic; do
+        for credential_case in uppercase lowercase lowercase-hex mixed-class; do
+            case "$credential_case" in
+                uppercase)
+                    credential_value="ORDINARYUPPERCASEPROSEVALUE"
+                    ;;
+                lowercase)
+                    credential_value="ordinarylowercaseprosevalue"
+                    ;;
+                lowercase-hex)
+                    credential_value="$lowercase_hex_value"
+                    ;;
+                mixed-class)
+                    credential_value="$mixed_class_value"
+                    ;;
+            esac
+            auth_value="$scheme $credential_value"
+            jq --arg value "$auth_value" \
+                '.contracts[0].acceptance = [$value]' \
+                "$valid_file" >"$fixture/secret-${scheme}-${credential_case}.json"
+            if output="$(mise run ai:workflow:validate -- \
+                --file "$fixture/secret-${scheme}-${credential_case}.json" 2>&1)"; then
+                fail "validator accepted an unredacted authorization value"
+            fi
+            if print -r -- "$output" | grep -qF -- "$credential_value"; then
+                fail "validator exposed an authorization value"
+            fi
+        done
+    done
+
+    for redacted_value in \
+        "Bearer ******" \
+        "Basic ******" \
+        "Bearer <redacted>" \
+        "Basic [redacted]"; do
+        jq --arg value "$redacted_value" \
+            '.contracts[0].acceptance = [$value] | .contracts[0].redaction_status = "redacted"' \
+            "$valid_file" >"$fixture/redacted-${redacted_value//[^A-Za-z0-9]/-}.json"
+        mise run ai:workflow:validate -- \
+            --file "$fixture/redacted-${redacted_value//[^A-Za-z0-9]/-}.json" >/dev/null ||
+            fail "validator flagged a redacted authorization value"
+    done
+
     for secret_value in \
-        "Authorization: ******" \
         "Authorization: Basic dXNlcjpwYXNzd29yZA==" \
-        "Authorization: Bearer deadbeefdeadbeefdeadbeefdeadbeef" \
-        "Authorization: Bearer deadbeefdeadbeefdeadbeefdeadbeef" \
-        "Authorization: Bearer $lowercase_hex_value" \
-        "$bearer_secret" \
-        "$bearer_direct_secret" \
-        "Bearer AbC1234567890xyz_" \
+        "******" \
         "Cookie: sessionid=abc123456789" \
         "https://example.test/?token=abc123456789"; do
         jq --arg value "$secret_value" \

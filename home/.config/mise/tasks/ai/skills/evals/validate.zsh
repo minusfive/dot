@@ -52,6 +52,30 @@ resolve_workspace_skill() {
     print -r -- "$resolved"
 }
 
+reject_duplicate_skill_names() {
+    local root_base_path="$1"
+    local first_root second_root skill_dir duplicate_dir skill
+    local -i first_index second_index
+    local -a roots
+
+    shift
+    roots=("$@")
+
+    for (( first_index = 1; first_index <= ${#roots[@]}; first_index++ )); do
+        first_root="${roots[$first_index]}"
+        for (( second_index = first_index + 1; second_index <= ${#roots[@]}; second_index++ )); do
+            second_root="${roots[$second_index]}"
+            for skill_dir in "$first_root"/*; do
+                [[ -d "$skill_dir" ]] || continue
+                skill="${skill_dir:t}"
+                duplicate_dir="${second_root}/${skill}"
+                [[ -d "$duplicate_dir" ]] || continue
+                die "duplicate skill name across skill roots: ${skill}; found in ${skill_dir#$root_base_path/} and ${duplicate_dir#$root_base_path/}; remove one skill or rename one before validating evaluation specs"
+            done
+        done
+    done
+}
+
 valid_json() {
     local file="$1"
     jq empty "$file" >/dev/null 2>&1 ||
@@ -353,6 +377,7 @@ main() {
             alternate_skill_roots+=("$candidate_root")
         fi
     done < <(find "$base_path" -type d -path '*/.agents/skills' -print)
+    reject_duplicate_skill_names "$base_path" "${workspace_skill_roots[@]}"
     workspace_dir="${base_path}/.agents/eval-workspaces"
     source_migration_map="${task_source_dir}/migration-map.json"
     external_migration_map="${base_path}/home/.config/mise/tasks/ai/skills/evals/migration-map.json"

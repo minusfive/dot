@@ -840,9 +840,17 @@ async function reviewThreadResolutions(
 ): Promise<{ byComment: Map<string, boolean>; warnings: string[] }> {
   const byComment = new Map<string, boolean>();
   const warnings: string[] = [];
+  const requestedOuterCursors = new Set<string>();
   let cursor: string | undefined;
   try {
     for (;;) {
+      if (cursor !== undefined) {
+        if (requestedOuterCursors.has(cursor)) {
+          warnings.push(`PR #${number} review thread resolution pagination repeated a cursor; stopping conservatively`);
+          break;
+        }
+        requestedOuterCursors.add(cursor);
+      }
       const args = [
         "api",
         "--hostname",
@@ -910,6 +918,7 @@ async function reviewThreadResolutions(
           }
         };
         addComments(comments, node.isResolved);
+        const requestedCommentCursors = new Set<string>();
         let commentCursor = typeof commentsPageInfo.endCursor === "string" ? commentsPageInfo.endCursor : undefined;
         let commentHasNextPage = commentsPageInfo.hasNextPage;
         while (commentHasNextPage) {
@@ -917,6 +926,11 @@ async function reviewThreadResolutions(
             warnings.push(`PR #${number} review thread comment pagination was unavailable`);
             break;
           }
+          if (requestedCommentCursors.has(commentCursor)) {
+            warnings.push(`PR #${number} review thread comment pagination repeated a cursor; stopping conservatively`);
+            break;
+          }
+          requestedCommentCursors.add(commentCursor);
           const output = await run("gh", [
             "api",
             "--hostname",
@@ -1416,8 +1430,7 @@ async function main(): Promise<void> {
         hasUnresolvedReviewState(pullRequest.reviews ?? []) ||
         inlineResolutions.some((resolution) => resolution !== true);
       const currentHead = pullRequestHead(pullRequest);
-      const headChanged =
-        entry.head !== undefined && entry.head !== pullRequest.headRefName && entry.head !== pullRequest.headRefOid;
+      const headChanged = entry.head !== undefined && entry.head !== currentHead;
       const clean =
         pullRequest.reviewDecision === "APPROVED" &&
         !hasNewActivity &&

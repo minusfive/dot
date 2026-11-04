@@ -9,6 +9,7 @@ main() {
     local materialized_iteration materialized_case configuration
     local migration_map historical_workspace global_skill_dir global_workspace_dir
     local validation_output real_home_workspace missing_map_base renamed_workspace
+    local collision_primary_dir collision_alternate_dir
 
     fixture="$(test_fixture_dir skill-evals)" || fail "could not create fixture directory"
     real_home_workspace="$__root_dir/home/.agents/eval-workspaces/task-orchestration"
@@ -155,6 +156,7 @@ EOF
     fi
     print -r -- "$validation_output" | grep -qF "historical skill migration map is required" ||
         fail "validator did not explain that historical migration metadata is required"
+    rm -rf "$missing_map_base"
 
     cp -R "$workspace_dir" "$fixture/historical-state"
     jq '.state = "historical"' "$fixture/historical-state/manifest.json" \
@@ -569,6 +571,7 @@ EOF
         fail "validator did not report the renamed workspace's malformed alternate-root spec"
     mv "$fixture/global-evals.valid.json" "$global_skill_dir/evals/evals.json"
     rm -rf "$renamed_workspace"
+    rm -rf "${renamed_workspace:h}"
     cat >"$migration_map" <<'EOF'
 {
   "version": 1,
@@ -580,6 +583,60 @@ EOF
   ]
 }
 EOF
+
+    collision_primary_dir="$fixture/.agents/skills/collision"
+    collision_alternate_dir="$fixture/alternate/.agents/skills/collision"
+    mkdir -p "$collision_primary_dir/evals" "$collision_alternate_dir/evals"
+    printf '%s\n' '# Primary collision skill' >"$collision_primary_dir/SKILL.md"
+    printf '%s\n' '# Alternate collision skill' >"$collision_alternate_dir/SKILL.md"
+    jq -n '{
+        skill_name: "collision",
+        evals: [{
+            id: "primary-case",
+            prompt: "Use the primary collision specification.",
+            expected_output: "Primary collision result.",
+            assertions: ["The primary collision result is present."]
+        }]
+    }' >"$collision_primary_dir/evals/evals.json"
+    jq -n '{
+        skill_name: "collision",
+        evals: [{
+            id: "alternate-case",
+            prompt: "Use the alternate collision specification.",
+            expected_output: "Alternate collision result.",
+            assertions: ["The alternate collision result is present."]
+        }]
+    }' >"$collision_alternate_dir/evals/evals.json"
+    validation_output="$(mise run ai:skills:evals:validate --base-path "$fixture" \
+        --skills-path .agents/skills 2>&1)" &&
+        fail "validator silently selected one of two same-named skill roots"
+    print -r -- "$validation_output" |
+        grep -qF "duplicate skill name across skill roots: collision" ||
+        fail "validator did not report the duplicate skill name"
+    print -r -- "$validation_output" |
+        grep -qF ".agents/skills/collision" ||
+        fail "duplicate skill error did not identify the primary root"
+    print -r -- "$validation_output" |
+        grep -qF "alternate/.agents/skills/collision" ||
+        fail "duplicate skill error did not identify the alternate root"
+
+    rm -rf "$collision_alternate_dir"
+    mise run ai:skills:evals:validate --base-path "$fixture" \
+        --skills-path .agents/skills >/dev/null ||
+        fail "validator rejected a skill found only in the primary root"
+
+    mkdir -p "$collision_alternate_dir/evals"
+    printf '%s\n' '# Alternate collision skill' >"$collision_alternate_dir/SKILL.md"
+    cp "$fixture/alternate/.agents/skills/global/evals/evals.json" \
+        "$collision_alternate_dir/evals/evals.json"
+    jq --arg skill collision '.skill_name = $skill' \
+        "$collision_alternate_dir/evals/evals.json" >"$fixture/collision-alternate-evals.json"
+    mv "$fixture/collision-alternate-evals.json" "$collision_alternate_dir/evals/evals.json"
+    rm -rf "$collision_primary_dir"
+    mise run ai:skills:evals:validate --base-path "$fixture" \
+        --skills-path .agents/skills >/dev/null ||
+        fail "validator rejected a skill found only in the alternate root"
+    rm -rf "$collision_alternate_dir"
 
     mise run ai:skills:validate-conflicts --base-path "$fixture" >/dev/null ||
         fail "skill conflict validator rejected a clean fixture"

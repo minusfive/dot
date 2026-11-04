@@ -518,19 +518,19 @@ check_secret_like_values() {
                 "(apikey|apitoken|accesstoken|refreshtoken|clientsecret|oauthtoken|githubtoken|bearertoken|sessiontoken|token|secret|password|credential|cookie|privatekey|signingkey|encryptionkey|sshkey|basicauth|signedurl|signature)"
             )));
         def credential_token:
-            length >= 16 and
-            (
-                test("^[a-f0-9]+$") or
-                ([
-                    test("^[A-Z]+$"),
-                    test("^[0-9]+$"),
-                    test("^[^A-Za-z0-9]+$")
-                ] | any) or
-                ([
-                    test("[A-Z]"), test("[a-z]"), test("[0-9]"),
-                    test("[^A-Za-z0-9]")
-                ] | map(select(.)) | length) >= 3
-            );
+            test("^[A-Za-z]+$") or
+            (length >= 16 and
+                (
+                    test("^[a-f0-9]+$") or
+                    ([
+                        test("^[0-9]+$"),
+                        test("^[^A-Za-z0-9]+$")
+                    ] | any) or
+                    ([
+                        test("[A-Z]"), test("[a-z]"), test("[0-9]"),
+                        test("[^A-Za-z0-9]")
+                    ] | map(select(.)) | length) >= 3
+                ));
         def credential_authorization:
             [match("(?i)(?<scheme>bearer|basic)[[:space:]]+" +
                 "(?<credential>[A-Za-z0-9+/=_.~-]+)"; "g") |
