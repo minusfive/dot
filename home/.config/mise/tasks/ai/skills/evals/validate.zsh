@@ -649,6 +649,16 @@ main() {
                         die "invalid workspace directory: ${workspace_skill#$base_path/}/${case_name}"
                     [[ "$case_name" =~ '^iteration-[1-9][0-9]*$' ]] ||
                         die "invalid workspace directory: ${workspace_skill#$base_path/}/${case_name}"
+                    manifest="${workspace_entry}/manifest.json"
+                    [[ -f "$manifest" && ! -L "$manifest" ]] ||
+                        die "missing ${manifest#$base_path/}"
+                    valid_json "$manifest"
+                    if jq -e '
+                        .state == "historical" and
+                        .history_reason == "retired-materialized-incomplete"
+                    ' "$manifest" >/dev/null; then
+                        continue
+                    fi
                     iteration_number="${case_name#iteration-}"
                     [[ "$iteration_number" -gt "$current_iteration" ]] &&
                         current_iteration="$iteration_number"

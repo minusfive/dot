@@ -10,6 +10,8 @@ main() {
     local migration_map historical_workspace global_skill_dir global_workspace_dir
     local validation_output real_home_workspace missing_map_base renamed_workspace
     local collision_primary_dir collision_alternate_dir
+    local selection_skill_dir selection_spec_dir selection_workspace_root
+    local selection_active selection_retired selection_configuration
 
     fixture="$(test_fixture_dir skill-evals)" || fail "could not create fixture directory"
     real_home_workspace="$__root_dir/home/.agents/eval-workspaces/task-orchestration"
@@ -431,6 +433,94 @@ EOF
     done
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
         fail "validator rejected a valid materialized fixture"
+
+    selection_skill_dir="$fixture/.agents/skills/selection-demo"
+    selection_spec_dir="$selection_skill_dir/evals"
+    selection_workspace_root="$workspace_parent/selection-demo"
+    selection_active="$selection_workspace_root/iteration-2"
+    selection_retired="$selection_workspace_root/iteration-3"
+    mkdir -p "$selection_spec_dir"
+    printf '%s\n' '# Selection demo skill' >"$selection_skill_dir/SKILL.md"
+    cat >"$selection_spec_dir/evals.json" <<'EOF'
+{
+  "skill_name": "selection-demo",
+  "evals": [
+    {
+      "id": "expected-case",
+      "prompt": "A selection regression case.",
+      "expected_output": "The expected result.",
+      "assertions": ["The expected result is present."]
+    }
+  ]
+}
+EOF
+    mkdir -p "$selection_workspace_root"
+    cp -R "$materialized_iteration" "$selection_active"
+    mv "$selection_active/example-case" "$selection_active/mismatched-case"
+    jq --arg skill selection-demo --argjson iteration 2 --arg case mismatched-case '
+        .skill_name = $skill |
+        .iteration = $iteration |
+        .case_ids = [$case] |
+        .state = "materialized" |
+        del(.history_reason)
+    ' "$selection_active/manifest.json" >"$fixture/selection-active-manifest.json"
+    mv "$fixture/selection-active-manifest.json" "$selection_active/manifest.json"
+    for extra in benchmark.json feedback.json grading-summary.json; do
+        jq --arg skill selection-demo --argjson iteration 2 '
+            .skill_name = $skill |
+            .iteration = $iteration |
+            .provenance.skill_identity = $skill |
+            .provenance.spec_id = ($skill + "/evals/evals.json") |
+            .run.output_files |= map(sub("^example-case/"; "mismatched-case/")) |
+            .run.evidence_files |= map(sub("^example-case/"; "mismatched-case/"))
+        ' "$selection_active/$extra" >"$fixture/selection-active-$extra"
+        mv "$fixture/selection-active-$extra" "$selection_active/$extra"
+    done
+    for selection_configuration in with_skill old_skill; do
+        jq --arg skill selection-demo --arg case mismatched-case --arg configuration "$selection_configuration" '
+            .case_id = $case |
+            .configuration = $configuration |
+            .skill_identity = $skill |
+            .spec_id = ($skill + "/evals/evals.json")
+        ' "$selection_active/mismatched-case/$selection_configuration/timing.json" \
+            >"$fixture/selection-active-timing.json"
+        mv "$fixture/selection-active-timing.json" \
+            "$selection_active/mismatched-case/$selection_configuration/timing.json"
+        jq --arg case mismatched-case --arg configuration "$selection_configuration" '
+            .case_id = $case |
+            .configuration = $configuration
+        ' "$selection_active/mismatched-case/$selection_configuration/grading.json" \
+            >"$fixture/selection-active-grading.json"
+        mv "$fixture/selection-active-grading.json" \
+            "$selection_active/mismatched-case/$selection_configuration/grading.json"
+    done
+
+    cp -R "$selection_active" "$selection_retired"
+    jq --argjson iteration 3 '
+        .iteration = $iteration |
+        .state = "historical" |
+        .history_reason = "retired-materialized-incomplete"
+    ' "$selection_retired/manifest.json" >"$fixture/selection-retired-manifest.json"
+    mv "$fixture/selection-retired-manifest.json" "$selection_retired/manifest.json"
+    for extra in benchmark.json feedback.json grading-summary.json; do
+        jq --argjson iteration 3 '.iteration = $iteration' \
+            "$selection_retired/$extra" >"$fixture/selection-retired-$extra"
+        mv "$fixture/selection-retired-$extra" "$selection_retired/$extra"
+    done
+    for selection_configuration in with_skill old_skill; do
+        rm -rf "$selection_retired/mismatched-case/$selection_configuration/outputs"
+        rm -rf "$selection_retired/mismatched-case/$selection_configuration/evidence"
+    done
+    mv "$selection_active" "$fixture/selection-active-hidden"
+    mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
+        fail "validator rejected the higher retired selection fixture"
+    mv "$fixture/selection-active-hidden" "$selection_active"
+    validation_output="$(mise run ai:skills:evals:validate --base-path "$fixture" 2>&1)" &&
+        fail "validator let a retired incomplete iteration hide the current mismatch"
+    print -r -- "$validation_output" |
+        grep -qF "current evaluation manifest does not match the evaluation spec: .agents/eval-workspaces/selection-demo/iteration-2/manifest.json" ||
+        fail "validator did not report the active iteration mismatch"
+    rm -rf "$selection_skill_dir" "$selection_workspace_root"
 
     retired_iteration="$workspace_root/iteration-99"
     cp -R "$materialized_iteration" "$retired_iteration"
