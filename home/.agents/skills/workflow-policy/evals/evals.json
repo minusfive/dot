@@ -1,0 +1,101 @@
+{
+  "skill_name": "workflow-policy",
+  "evals": [
+    {
+      "id": "balanced-end-to-end-delegation",
+      "prompt": "Propose an agent assignment and delivery plan for a migration that changes an API field, data format, CLI output, tests, and documentation. The accepted scope requires API and CLI backward compatibility, a reversible data migration, and end-to-end coverage. I authorize commits, pushes, and PR metadata updates this turn, but I will merge. Name balanced behavior units, assignment boundaries, dependencies, acceptance checks, evidence, and checkpoints. Describe the proposed assignments only; do not launch agents or use tools.",
+      "expected_output": "Use the orchestrator as overall owner. Delegate bounded planning before implementation, then split implementation into balanced, end-to-end behavior units. Include related code, tests, and docs in each unit. Give each assignment explicit scope, files, dependencies, acceptance checks, evidence, and a checkpoint. Keep critique independent from implementation. Delegate authorized delivery to workers after separate commit and push authorization.",
+      "assertions": [
+        "The response identifies the orchestrator as the primary owner of scope, integration, and completion.",
+        "The response delegates substantial planning before implementation while keeping final decisions with the orchestrator.",
+        "The response delegates authorized commits, pushes, and PR updates to delivery agents rather than performing them in the orchestrator."
+      ]
+    },
+    {
+      "id": "parallel-branch-supervision",
+      "prompt": "Unit A owns an API contract and provider implementation. Unit B consumes that API and can start against a stub, but must integrate against A's implementation. Their files do not overlap. Describe how to organize branches, worktrees, checkpoints, and integration. Give the workflow only; do not create branches or use tools.",
+      "expected_output": "Run the independent work in separate worktrees. Let B start against the agreed stub while A is in progress, then stack or rebase B on A's validated branch before integration. Serialize only integration and supervise checkpoints against scope and estimates.",
+      "assertions": [
+        "The response starts Unit B against the agreed stub while Unit A is in progress.",
+        "The response assigns Unit A and Unit B separate worktrees.",
+        "The response serializes only integration with Unit A's validated branch, not Unit B's startup or independent work."
+      ]
+    },
+    {
+      "id": "worker-cannot-deliver",
+      "prompt": "An implementation agent has drifted from its assigned migration and missed a checkpoint. Describe the complete recovery ordering for both cases: the worker responds, and the worker does not respond. The worker must not continue editing after the lane freezes. Preserve viable partial work and the canonical lifecycle.",
+      "expected_output": "For both cases, use the exact ordering freeze -> report -> escalate -> stop. Freeze the affected lane before any recovery request and prevent further edits. If the worker responds, request one report with completed work, changed files, validation evidence, blockers, and remaining scope. Then escalate and stop the worker or lane. If the worker does not respond, record a no-response report that states what is missing and preserves available evidence. Then escalate and stop the worker or lane. After stop, have a separate critique worker assess what to keep, discard, or rework. Have planning preserve the same plan and version when its boundaries remain unchanged, or create and accept an amendment with a new version only when a material boundary changes. Assign remaining work to new workers without adding a lifecycle state.",
+      "assertions": [
+        "For the responding-worker path, the response states the ordered sequence freeze, report, escalate, stop.",
+        "For the non-responding-worker path, the response records a no-response report with what is missing and available evidence, then states escalation and stop in that order.",
+        "The response freezes the affected lane before either report step and prevents the worker from making further edits after freeze.",
+        "The responding-worker report includes completed work, changed files, validation evidence, blockers, and remaining scope.",
+        "The response assigns a separate critique worker after stop and before changing the plan.",
+        "The response preserves viable partial work and the canonical lifecycle without adding a lifecycle state."
+      ]
+    },
+    {
+      "id": "complete-worker-contract-and-direct-delegate-choice",
+      "prompt": "You must coordinate a repository change with one local read, one validation command, and one implementation unit. Describe which actions you perform directly and which you delegate. For the delegated unit, provide a complete worker contract with the goal, exact references, input artifacts, state owner, current-turn authorization, owned and excluded files, dependencies, allowed actions, hard budgets, checkpoint cadence, stop conditions, acceptance checks, evidence schema, and handoff point. Do not launch agents or use tools.",
+      "expected_output": "Perform the local read directly. Delegate the implementation and validation unit because it mutates files and runs substantive commands. Provide every worker-contract field, including exact safe references, state ownership, authorization expiry, budgets, checkpoint cadence, stop conditions, acceptance, evidence, and handoff.",
+      "assertions": [
+        "The response chooses direct work only for the local read and delegates the implementation or validation mutation.",
+        "The delegated contract includes all required fields and names the state owner and current-turn authorization."
+      ]
+    },
+    {
+      "id": "delegate-review-validation",
+      "prompt": "You must validate a pull request review that includes a summary, 44 nested additional comments, inline threads, and focused tests. Describe which work the orchestrator performs directly and which work it delegates. Do not access GitHub or run commands.",
+      "expected_output": "Delegate the complete review polling, nested-comment reconciliation, complete diff inspection, focused tests, and critique to a bounded review-monitoring worker. The orchestrator keeps scope and final decisions, inspects worker evidence, and does not repeat the worker's substantive validation.",
+      "assertions": [
+        "The response delegates review polling and nested-comment reconciliation.",
+        "The response delegates complete diff inspection and focused tests.",
+        "The response keeps scope and final decisions with the orchestrator.",
+        "The response does not duplicate the worker's substantive validation."
+      ]
+    },
+    {
+      "id": "direct-read-status-boundary",
+      "prompt": "A task requires ordinary file reads, branch status inspection, worker-evidence inspection, and complete pull request review validation. Describe which actions the orchestrator performs directly and which it delegates. Do not access GitHub or run commands.",
+      "expected_output": "Perform ordinary file reads, branch status inspection, and worker-evidence inspection directly. Delegate complete pull request review validation because it includes substantive polling, reconciliation, diff inspection, tests, and critique.",
+      "assertions": [
+        "The response keeps ordinary file reads direct.",
+        "The response keeps branch status inspection direct.",
+        "The response keeps worker-evidence inspection direct.",
+        "The response delegates complete pull request review validation."
+      ]
+    },
+    {
+      "id": "budget-checkpoint-expiry-lifecycle-safe-recovery",
+      "prompt": "A story worker reaches its wall-clock budget after unchanged output and misses the 15-minute or 25-call checkpoint. Describe the exact recovery sequence. Do not invent a lifecycle state.",
+      "expected_output": "Treat the expiry and missed checkpoint as drift. Freeze the lane before edits, request one report if the worker can respond, then escalate and stop. Record historical frozen evidence with its reason and unblock condition. Mark the story blocked, preserve the critique-cycle count and evidence, run the required separate critique and planning recovery, accept the recovered plan, record historical recovery evidence, and resume at research.",
+      "assertions": [
+        "The response freezes the lane before requesting one report and stops the lane or worker after escalation.",
+        "The response uses execution-workflow drift recovery, preserves critique evidence, and resumes at research only after accepted plan recovery without adding a lifecycle state.",
+        "The response represents frozen and recovery evidence as historical records rather than active contracts."
+      ]
+    },
+    {
+      "id": "amendment-boundary-recovery",
+      "prompt": "A worker lane drifts and completes the required freeze -> report -> escalate -> stop sequence. Describe the next recovery decision in three cases: (1) the accepted plan remains viable and acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries remain unchanged; (2) one of those material boundaries changes; (3) a required story field is missing, inconsistent, or non-actionable. Preserve freeze-first ordering and canonical lifecycle ownership. Do not call tools.",
+      "expected_output": "After freeze -> report -> escalate -> stop, planning decides whether the accepted plan remains viable. In the unchanged viable case, preserve the same plan and version, create no amendment, and let execution-workflow resume the blocked story through its existing recovery edge. In the material-change and non-viable-plan cases, planning creates a targeted amendment, critique-workflow critiques it, and planning accepts it only after that critique, with a new plan version before execution-workflow resumes the story. Do not add a lifecycle state or silently resume a frozen lane.",
+      "assertions": [
+        "The response requires the exact freeze -> report -> escalate -> stop ordering before the recovery decision.",
+        "For unchanged viable acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries, the response preserves the same plan and version and requires no amendment.",
+        "For a material boundary change, the response assigns planning to create and accept an amendment with a new plan version before execution resumes.",
+        "The response requires amendment critique before planning accepts the amendment.",
+        "A missing, inconsistent, or non-actionable required story field prevents plan-preserving recovery and requires an amendment.",
+        "The response assigns plan decisions and amendments to planning and story recovery to execution-workflow without adding a lifecycle state."
+      ]
+    },
+    {
+      "id": "safe-opaque-reference-redaction-and-delivery-authority",
+      "prompt": "Prepare a handoff for a delivery worker using `~/dev/personal/dot`, branch `chore/workflow-guardrails`, artifact `plan-17`, and URL `https://example.test/repo/pull/42?sig=SECRET`. The handoff also includes a credential `token=SECRET`. State what remains literal, what you redact, who authorizes and performs commit, push, and PR metadata mutations, and who verifies delivery.",
+      "expected_output": "Keep the safe repository-relative or `~`-relative path, branch, artifact identifier, and URL identity literal. Redact the signed query value and credential, record that redaction occurred, and preserve a safe URL identifier. The orchestrator owns scope, authorization, integration decisions, and post-delivery verification. The delivery worker performs only the explicitly authorized commit, push, and PR metadata mutations under current-turn authorization.",
+      "assertions": [
+        "The response preserves safe opaque references literally and redacts the signed query value and credential while recording the redaction.",
+        "The response separates orchestrator authority and post-delivery verification from the delivery worker's explicitly authorized mutations."
+      ]
+    }
+  ]
+}

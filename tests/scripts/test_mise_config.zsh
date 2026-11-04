@@ -454,6 +454,8 @@ __fallback_env="$(
         HOME="$__fallback_home" \
         XDG_CONFIG_HOME="$__fallback_home/.config" \
         XDG_STATE_HOME="$__fallback_home/.local/state" \
+        MISE_CONFIG_DIR="$__fallback_home/.config/mise" \
+        MISE_ENV_CONF_D=true \
         MISE_IGNORED_CONFIG_PATHS="$__fallback_home/.config/mise-ignored" \
         MISE_CEILING_PATHS="$__fallback_home" \
         mise -C "$__fallback_home" env --json
@@ -479,6 +481,7 @@ printf '\n[env]\nMISE_PROFILE_SMOKE_PERSONAL = "1"\n' >> "$__tmp_home/.config/mi
 
 local __work_env
 __work_env="$(env MISE_ENV=work HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
+    MISE_CONFIG_DIR="$__tmp_home/.config/mise" MISE_ENV_CONF_D=true \
     MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" env --json)"
@@ -489,12 +492,14 @@ fi
 
 local __work_profile
 __work_profile="$(env MISE_ENV=work HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
+    MISE_CONFIG_DIR="$__tmp_home/.config/mise" MISE_ENV_CONF_D=true \
     MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" exec -- sh -c 'printf "%s" "$MISE_ENV"')"
 [[ "$__work_profile" == work ]] || fail "explicit work environment should override persisted state"
 local __cli_work_profile
 __cli_work_profile="$(env HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
+    MISE_CONFIG_DIR="$__tmp_home/.config/mise" MISE_ENV_CONF_D=true \
     MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" -E work exec -- sh -c 'printf "%s" "$MISE_ENV"')"
@@ -502,10 +507,50 @@ __cli_work_profile="$(env HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.confi
 
 local __personal_env
 __personal_env="$(env MISE_ENV=personal HOME="$__tmp_home" XDG_CONFIG_HOME="$__tmp_home/.config" \
+    MISE_CONFIG_DIR="$__tmp_home/.config/mise" MISE_ENV_CONF_D=true \
     MISE_IGNORED_CONFIG_PATHS="$__tmp_home/.config/mise-ignored" \
     MISE_CEILING_PATHS="$__tmp_home" \
     mise -C "$__tmp_home" env --json)"
 print -r -- "$__personal_env" | grep -q '"MISE_PROFILE_SMOKE_BASE": "1"' || fail "personal profile should load base config"
 print -r -- "$__personal_env" | grep -q '"MISE_PROFILE_SMOKE_PERSONAL": "1"' || fail "personal profile should load personal config"
+
+local __zshenv_home="$__mise_fixture_dir/zshenv-home"
+local __zshenv_repository="$__zshenv_home/dev/personal/dot"
+mkdir -p "$__zshenv_repository"
+ln -s "$__root_dir/home" "$__zshenv_repository/home"
+ln -s "$__root_dir/home/.config/zsh/.zshenv" "$__zshenv_home/.zshenv"
+local __default_mise_env="$(
+    env -i HOME="$__zshenv_home" PATH="$PATH" \
+        zsh -c 'print -r -- "${MISE_CONFIG_DIR-unset}|${MISE_ENV_CONF_D-unset}"'
+)"
+[[ "$__default_mise_env" == "$__zshenv_repository/home/.config/mise|true" ]] ||
+    fail "fresh Zsh did not select the repository mise configuration"
+
+local __alternate_mise_config="$__zshenv_home/isolated-mise"
+local __explicit_mise_env="$(
+    env -i HOME="$__zshenv_home" PATH="$PATH" \
+        MISE_CONFIG_DIR="$__alternate_mise_config" MISE_ENV_CONF_D=false \
+        zsh -c 'print -r -- "${MISE_CONFIG_DIR-unset}|${MISE_ENV_CONF_D-unset}"'
+)"
+[[ "$__explicit_mise_env" == "$__alternate_mise_config|false" ]] ||
+    fail "Zsh overwrote explicitly supplied mise configuration values"
+
+local __opt_out_mise_env="$(
+    env -i HOME="$__zshenv_home" PATH="$PATH" \
+        DOT_DISABLE_REPOSITORY_MISE_CONFIG=1 \
+        zsh -c 'print -r -- "${MISE_CONFIG_DIR-unset}|${MISE_ENV_CONF_D-unset}"'
+)"
+[[ "$__opt_out_mise_env" == "unset|unset" ]] ||
+    fail "Zsh opt-out did not isolate repository mise configuration"
+
+local __fragment_config="$(
+    env -i HOME="$__zshenv_home" PATH="$PATH" MISE_ENV=work \
+        MISE_DATA_DIR="$__mise_fixture_dir/mise-data" \
+        MISE_STATE_DIR="$__mise_fixture_dir/mise-state" \
+        MISE_CACHE_DIR="$__mise_fixture_dir/mise-cache" MISE_NO_HOOKS=1 \
+        zsh -c 'mise -C "$HOME/dev/personal/dot" config ls --no-truncate'
+)" || fail "Zsh mise environment-fragment selection failed"
+print -r -- "$__fragment_config" | grep -qF "zsh.toml" ||
+    fail "Zsh did not select the repository environment fragment"
 
 echo "Global mise configuration passed."

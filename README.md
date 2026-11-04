@@ -125,6 +125,17 @@ Run all configured checks:
 mise run check
 ```
 
+Workflow contracts and evidence ledgers use a structural and advisory validator:
+
+```sh
+mise run ai:workflow:validate -- \
+ --file path/to/ledger.json
+```
+
+The `JSON Schema` files are reference artifacts. `jq` checks structure because the repository does not include a `JSON Schema` runtime. Active delivery records report external authorization and runtime requirements. External orchestration owns those gates, cancellation, and measured budget enforcement. The validator does not grant trust or prove runtime behavior. Use `--initialize` or `--dry-run` for an explicitly empty ledger.
+
+Delivery records use opaque worktree references. External orchestration resolves the reference and checks the actual worktree for symlink and alias safety.
+
 The [`hk` configuration](./hk.pkl) defines the checks and fixes in one place. Markdown checks preserve the existing line wrapping and reformat paragraphs that use hard line breaks. The repository also permits selected inline HTML.
 
 ## Previous `Nix` configuration

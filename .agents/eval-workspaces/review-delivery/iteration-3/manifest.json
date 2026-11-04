@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "skill_name": "review-delivery",
+  "iteration": 3,
+  "case_ids": [
+    "parallel-issue-pr-delivery",
+    "isolated-bootstrap-validation",
+    "review-watch-lifecycle",
+    "reconcile-additional-review-comments"
+  ],
+  "workspace": ".agents/eval-workspaces/review-delivery",
+  "state": "historical",
+  "history_reason": "retired-materialized-incomplete"
+}

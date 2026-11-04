@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://minusfive.dev/schemas/mise-workflow-ledger.json",
+  "title": "Workflow contract and evidence ledger",
+  "description": "This schema validates structural and advisory ledger data. External orchestration owns authorization, cancellation, and measured budget enforcement.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "contracts", "records"],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "workflow_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "contracts": {
+      "type": "array",
+      "items": {
+        "$ref": "https://minusfive.dev/schemas/mise-workflow-contract.json"
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "https://minusfive.dev/schemas/mise-workflow-contract.json"
+          },
+          {
+            "type": "object",
+            "required": ["record_id", "record_type", "record_status", "transition"],
+            "properties": {
+              "record_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+              },
+              "record_type": {
+                "enum": ["checkpoint", "delivery", "finding", "handoff", "review", "frozen", "recovery"]
+              },
+              "record_status": {
+                "enum": ["historical", "active"]
+              },
+              "transition": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["from", "to"],
+                "properties": {
+                  "from": {
+                    "enum": ["blocked", "todo", "research", "implement", "validate", "critique", "done"]
+                  },
+                  "to": {
+                    "enum": ["blocked", "todo", "research", "implement", "validate", "critique", "done"]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "record_type": {
+                  "const": "delivery"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "record_status": {
+                  "const": "active"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "record_status": {
+                  "const": "historical"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "contracts": {
+            "const": []
+          },
+          "records": {
+            "const": []
+          }
+        }
+      },
+      "then": {},
+      "else": {
+        "required": ["workflow_id"]
+      }
+    }
+  ]
+}
