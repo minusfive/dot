@@ -518,10 +518,10 @@ check_secret_like_values() {
                 "(apikey|apitoken|accesstoken|refreshtoken|clientsecret|oauthtoken|githubtoken|bearertoken|sessiontoken|token|secret|password|credential|cookie|privatekey|signingkey|encryptionkey|sshkey|basicauth|signedurl|signature)"
             )));
         def credential_token:
-            test("^[A-Za-z]+$") or
             (length >= 16 and
                 (
                     test("^[a-f0-9]+$") or
+                    test("^[A-F0-9]+$") or
                     ([
                         test("^[0-9]+$"),
                         test("^[^A-Za-z0-9]+$")

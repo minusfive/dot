@@ -9,8 +9,8 @@ main() {
     local chronology_invalid_file submicro_invalid_file
     local first_record_before_contract_file
     local mixed_direction_file shared_exclusions_file exclusion_owner_file
-    local owner_overlap_file lowercase_hex_value mixed_class_value
-    local auth_value credential_case credential_value scheme
+    local owner_overlap_file lowercase_hex_value uppercase_hex_value
+    local mixed_class_value auth_value credential_case credential_value scheme
     local uppercase_prose lowercase_prose redacted_value
     local future now output
     local contract_schema ledger_schema
@@ -271,9 +271,10 @@ main() {
     done
 
     lowercase_hex_value="$(printf '%s%s' deadbeef0123456789 abcdef0123456789)"
+    uppercase_hex_value="$(printf '%s%s' DEAD BEEF0123456789ABCDEF0123456789)"
     mixed_class_value="Abcdefghijklmnop1!"
     for scheme in Bearer Basic; do
-        for credential_case in uppercase lowercase lowercase-hex mixed-class; do
+        for credential_case in uppercase lowercase; do
             case "$credential_case" in
                 uppercase)
                     credential_value="ORDINARYUPPERCASEPROSEVALUE"
@@ -281,8 +282,22 @@ main() {
                 lowercase)
                     credential_value="ordinarylowercaseprosevalue"
                     ;;
+            esac
+            auth_value="$scheme $credential_value"
+            jq --arg value "$auth_value" \
+                '.contracts[0].acceptance = [$value]' \
+                "$valid_file" >"$fixture/secret-${scheme}-${credential_case}.json"
+            mise run ai:workflow:validate -- \
+                --file "$fixture/secret-${scheme}-${credential_case}.json" >/dev/null ||
+                fail "validator flagged ordinary authorization prose"
+        done
+        for credential_case in lowercase-hex uppercase-hex mixed-class; do
+            case "$credential_case" in
                 lowercase-hex)
                     credential_value="$lowercase_hex_value"
+                    ;;
+                uppercase-hex)
+                    credential_value="$uppercase_hex_value"
                     ;;
                 mixed-class)
                     credential_value="$mixed_class_value"
@@ -305,7 +320,7 @@ main() {
     for redacted_value in \
         "Bearer ******" \
         "Basic ******" \
-        "Bearer <redacted>" \
+        "Bearer [redacted]" \
         "Basic [redacted]"; do
         jq --arg value "$redacted_value" \
             '.contracts[0].acceptance = [$value] | .contracts[0].redaction_status = "redacted"' \
