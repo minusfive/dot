@@ -8,7 +8,7 @@ main() {
     local fixture skill_dir spec_dir workspace_parent workspace_dir workspace_root case_path
     local materialized_iteration materialized_case configuration
     local migration_map historical_workspace global_skill_dir global_workspace_dir
-    local validation_output real_home_workspace missing_map_base
+    local validation_output real_home_workspace missing_map_base renamed_workspace
 
     fixture="$(test_fixture_dir skill-evals)" || fail "could not create fixture directory"
     real_home_workspace="$__root_dir/home/.agents/eval-workspaces/task-orchestration"
@@ -514,6 +514,72 @@ EOF
         fail "validator rejected a workspace owned by the alternate skill root"
     mise run ai:skills:evals:validate --base-path "$fixture" --skills-path alternate/.agents/skills >/dev/null ||
         fail "validator rejected the alternate skill root workspace"
+
+    cp "$global_skill_dir/evals/evals.json" "$fixture/global-evals.valid.json"
+    jq '.evals = []' "$global_skill_dir/evals/evals.json" \
+        >"$fixture/global-evals.invalid.json"
+    mv "$fixture/global-evals.invalid.json" "$global_skill_dir/evals/evals.json"
+    validation_output="$(mise run ai:skills:evals:validate --base-path "$fixture" \
+        --skills-path .agents/skills 2>&1)" &&
+        fail "validator accepted a malformed alternate-root evaluation spec"
+    print -r -- "$validation_output" |
+        grep -qF "invalid evaluation spec: alternate/.agents/skills/global/evals/evals.json" ||
+        fail "validator did not report the malformed alternate-root evaluation spec"
+    mv "$fixture/global-evals.valid.json" "$global_skill_dir/evals/evals.json"
+
+    cat >"$migration_map" <<'EOF'
+{
+  "version": 1,
+  "renames": [
+    {
+      "from": "legacy-demo",
+      "to": "demo"
+    },
+    {
+      "from": "legacy-global",
+      "to": "global"
+    }
+  ]
+}
+EOF
+    renamed_workspace="$fixture/.agents/eval-workspaces/legacy-global/iteration-1"
+    mkdir -p "$renamed_workspace"
+    for extra in manifest.json benchmark.json feedback.json grading-summary.json; do
+        if [[ "$extra" == manifest.json ]]; then
+            jq --arg skill legacy-global '.skill_name = $skill | del(.state)' \
+                "$global_workspace_dir/$extra" >"$renamed_workspace/$extra"
+        else
+            jq --arg skill legacy-global '.skill_name = $skill' \
+                "$global_workspace_dir/$extra" >"$renamed_workspace/$extra"
+        fi
+    done
+    mise run ai:skills:evals:validate --base-path "$fixture" --skills-path .agents/skills >/dev/null ||
+        fail "validator rejected a renamed workspace resolved to an alternate-root spec"
+    rm -rf "$global_workspace_dir"
+
+    cp "$global_skill_dir/evals/evals.json" "$fixture/global-evals.valid.json"
+    jq '.evals = []' "$global_skill_dir/evals/evals.json" \
+        >"$fixture/global-evals.invalid.json"
+    mv "$fixture/global-evals.invalid.json" "$global_skill_dir/evals/evals.json"
+    validation_output="$(mise run ai:skills:evals:validate --base-path "$fixture" \
+        --skills-path .agents/skills 2>&1)" &&
+        fail "validator silently skipped a renamed workspace with a malformed alternate-root spec"
+    print -r -- "$validation_output" |
+        grep -qF "invalid evaluation spec: alternate/.agents/skills/global/evals/evals.json" ||
+        fail "validator did not report the renamed workspace's malformed alternate-root spec"
+    mv "$fixture/global-evals.valid.json" "$global_skill_dir/evals/evals.json"
+    rm -rf "$renamed_workspace"
+    cat >"$migration_map" <<'EOF'
+{
+  "version": 1,
+  "renames": [
+    {
+      "from": "legacy-demo",
+      "to": "demo"
+    }
+  ]
+}
+EOF
 
     mise run ai:skills:validate-conflicts --base-path "$fixture" >/dev/null ||
         fail "skill conflict validator rejected a clean fixture"

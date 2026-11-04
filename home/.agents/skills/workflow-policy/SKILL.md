@@ -129,6 +129,8 @@ Set earlier checkpoints for higher-risk lanes. At each checkpoint, use the worke
 ## Concurrent Execution
 
 - Identify all independent tasks and lanes before you start. Run them concurrently by default.
+- Start an independent consumer lane against the agreed stub while its provider lane is in progress.
+- Keep independent units in separate worktrees. Serialize only their integration with the provider's validated branch.
 - Treat lane parallelization as a fundamental `orchestrator` responsibility for every workflow.
 - Continue independent work while unrelated work runs, including review polling, evidence collection, and implementation.
 - Classify every reason to wait as one of these dependency types:
@@ -167,7 +169,7 @@ Set earlier checkpoints for higher-risk lanes. At each checkpoint, use the worke
 
 ## Recovery
 
-- After `freeze -> report -> escalate -> stop`, require a plan amendment when acceptance, scope, ownership, dependencies, security, feasibility, or delivery boundaries change, or when a required story field is missing, inconsistent, or non-actionable.
+- After `freeze -> report -> escalate -> stop`, require a targeted amendment when acceptance, scope, ownership, dependencies, security, feasibility, or delivery boundaries change, or when a required story or plan field is missing, inconsistent, or non-actionable.
 - If the accepted plan remains viable and those boundaries remain unchanged, preserve the same plan and version. Resume through `execution-workflow` recovery without an amendment.
 - If a plan or authorization boundary changes, preserve evidence and stop all mutation until the boundary is accepted again.
 - If I am unavailable for a required decision, preserve evidence and stop all mutation.

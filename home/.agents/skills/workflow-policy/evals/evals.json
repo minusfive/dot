@@ -14,7 +14,12 @@
     {
       "id": "parallel-branch-supervision",
       "prompt": "Unit A owns an API contract and provider implementation. Unit B consumes that API and can start against a stub, but must integrate against A's implementation. Their files do not overlap. Describe how to organize branches, worktrees, checkpoints, and integration. Give the workflow only; do not create branches or use tools.",
-      "expected_output": "Run the independent work in separate worktrees. Let B start against the agreed stub, then stack or rebase B on A's validated branch before integration. Serialize integration and supervise checkpoints against scope and estimates."
+      "expected_output": "Run the independent work in separate worktrees. Let B start against the agreed stub while A is in progress, then stack or rebase B on A's validated branch before integration. Serialize only integration and supervise checkpoints against scope and estimates.",
+      "assertions": [
+        "The response starts Unit B against the agreed stub while Unit A is in progress.",
+        "The response assigns Unit A and Unit B separate worktrees.",
+        "The response serializes only integration with Unit A's validated branch, not Unit B's startup or independent work."
+      ]
     },
     {
       "id": "worker-cannot-deliver",

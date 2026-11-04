@@ -58,6 +58,44 @@ valid_json() {
         die "invalid JSON: ${file#$base_path/}"
 }
 
+validate_evaluation_spec() {
+    local skill_dir="$1"
+    local skill="$2"
+    local spec="$3"
+    local evals_dir extra
+
+    evals_dir="${skill_dir}/evals"
+    [[ -d "$evals_dir" && ! -L "$evals_dir" ]] ||
+        die "${skill}/evals must be a physical directory"
+    [[ -f "$spec" && ! -L "$spec" ]] ||
+        die "${skill}/evals/evals.json must be a regular local file"
+
+    extra="$(find "$evals_dir" -mindepth 1 -maxdepth 1 ! -name evals.json -print -quit)"
+    [[ -z "$extra" ]] ||
+        die "${skill}/evals may contain only evals.json"
+
+    valid_json "$spec"
+    jq -e --arg skill "$skill" '
+        (keys | sort) == ["evals", "skill_name"] and
+        .skill_name == $skill and
+        (.evals | type == "array" and length > 0) and
+        all(.evals[];
+            (type == "object") and
+            ((keys - ["assertions", "expected_output", "files", "id", "prompt"]) | length == 0) and
+            (.id | type == "string" and length > 0 and test("^[a-z][a-z0-9-]*$")) and
+            (.prompt | type == "string" and length > 0) and
+            (.expected_output | type == "string" and length > 0) and
+            (.assertions? == null or
+                (.assertions | type == "array" and length > 0 and
+                    all(.[]; type == "string" and length > 0))) and
+            (.files? == null or
+                (.files | type == "array" and all(.[]; type == "string")))
+        ) and
+        ([.evals[].id] | length == (unique | length))
+    ' "$spec" >/dev/null ||
+        die "invalid evaluation spec: ${spec#$base_path/}"
+}
+
 validate_evidence_file() {
     local workspace_root="$1"
     local referenced_file="$2"
@@ -271,18 +309,18 @@ is_legacy_preparation_summary() {
 main() {
     setopt localoptions null_glob
 
-    local project_root base_path skills_path workspace_dir skill_root skill_dir skill evals_dir spec
+    local project_root base_path skills_path primary_skill_root workspace_dir skill_root skill_dir skill evals_dir spec
     local migration_map source_migration_map external_migration_map
     local map_source map_target resolved_skill workspace_skill_name
     local workspace_skill iteration_dir iteration_name manifest expected_ids manifest_ids iteration_state
     local workspace_entry discoverability_dir case_entry case_name configuration_dir configuration
     local current_iteration iteration_number
     local extra legacy_artifact candidate_root existing_root root_is_known
-    local candidate matched_workspace_skill
+    local candidate matched_workspace_skill primary_spec alternate_spec
     local map_index visited_name historical_workspace historical_iteration
     local case_artifact_present is_current_iteration is_preparation_iteration
     local is_materialized_iteration materialized_execution legacy_preparation_iteration
-    typeset -a skills_dirs workspace_skill_roots active_skills visited
+    typeset -a workspace_skill_roots alternate_skill_roots active_skills visited
 
     project_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
     [[ -n "$project_root" ]] || die "this task must be run inside a git repository"
@@ -298,9 +336,10 @@ main() {
     [[ "$skills_path" == /* ]] || skills_path="${base_path}/${skills_path}"
     skills_path="$(cd "$skills_path" 2>/dev/null && pwd -P)" ||
         die "skills path '${usage_skills_path:-.agents/skills}' does not exist"
-    skills_dirs=("$skills_path")
+    primary_skill_root="$skills_path"
     # Repositories can contain multiple .agents/skills trees that share one workspace directory.
-    workspace_skill_roots=("$skills_path")
+    workspace_skill_roots=("$primary_skill_root")
+    alternate_skill_roots=()
     while IFS= read -r candidate_root; do
         root_is_known=false
         for existing_root in "${workspace_skill_roots[@]}"; do
@@ -309,7 +348,10 @@ main() {
                 break
             fi
         done
-        [[ "$root_is_known" == true ]] || workspace_skill_roots+=("$candidate_root")
+        if [[ "$root_is_known" == false ]]; then
+            workspace_skill_roots+=("$candidate_root")
+            alternate_skill_roots+=("$candidate_root")
+        fi
     done < <(find "$base_path" -type d -path '*/.agents/skills' -print)
     workspace_dir="${base_path}/.agents/eval-workspaces"
     source_migration_map="${task_source_dir}/migration-map.json"
@@ -385,7 +427,7 @@ main() {
     done
     active_skills=()
 
-    for skill_root in "${skills_dirs[@]}"; do
+    for skill_root in "$primary_skill_root"; do
         for skill_dir in "$skill_root"/*; do
             [[ -d "$skill_dir" ]] || continue
             skill="${skill_dir:t}"
@@ -395,33 +437,7 @@ main() {
             evals_dir="${skill_dir}/evals"
             [[ -d "$evals_dir" ]] || continue
             spec="${evals_dir}/evals.json"
-            [[ -f "$spec" && ! -L "$spec" ]] ||
-                die "${skill}/evals/evals.json must be a regular local file"
-
-            extra="$(find "$evals_dir" -mindepth 1 -maxdepth 1 ! -name evals.json -print -quit)"
-            [[ -z "$extra" ]] ||
-                die "${skill}/evals may contain only evals.json"
-
-            valid_json "$spec"
-            jq -e --arg skill "$skill" '
-            (keys | sort) == ["evals", "skill_name"] and
-            .skill_name == $skill and
-            (.evals | type == "array" and length > 0) and
-            all(.evals[];
-                (type == "object") and
-                ((keys - ["assertions", "expected_output", "files", "id", "prompt"]) | length == 0) and
-                (.id | type == "string" and length > 0 and test("^[a-z][a-z0-9-]*$")) and
-                (.prompt | type == "string" and length > 0) and
-                (.expected_output | type == "string" and length > 0) and
-                (.assertions? == null or
-                    (.assertions | type == "array" and length > 0 and
-                        all(.[]; type == "string" and length > 0))) and
-                (.files? == null or
-                    (.files | type == "array" and all(.[]; type == "string")))
-            ) and
-            ([.evals[].id] | length == (unique | length))
-            ' "$spec" >/dev/null ||
-                die "invalid evaluation spec: ${spec#$base_path/}"
+            validate_evaluation_spec "$skill_dir" "$skill" "$spec"
         done
     done
 
@@ -473,18 +489,31 @@ main() {
         historical_workspace=false
         is_migration_source "$workspace_skill_name" && historical_workspace=true
         spec=""
+        primary_spec=""
+        alternate_spec=""
         matched_workspace_skill=false
-        for skill_root in "${workspace_skill_roots[@]}"; do
+        for skill_root in "$primary_skill_root" "${alternate_skill_roots[@]}"; do
             candidate="${skill_root}/${resolved_skill}/evals/evals.json"
-            if [[ -f "$candidate" ]]; then
+            if [[ -e "$candidate" || -L "$candidate" ]]; then
                 matched_workspace_skill=true
-                [[ "$skill_root" == "$skills_path" ]] && spec="$candidate"
+                validate_evaluation_spec "${candidate:h:h}" "$resolved_skill" "$candidate"
+                if [[ "$skill_root" == "$primary_skill_root" ]]; then
+                    primary_spec="$candidate"
+                elif [[ -z "$alternate_spec" ]]; then
+                    alternate_spec="$candidate"
+                fi
             fi
         done
         if [[ "$matched_workspace_skill" != true ]]; then
             die "workspace has no matching skill spec; historical skill migration map is required: ${workspace_skill_name}"
         fi
-        [[ -n "$spec" ]] || continue
+        if [[ -n "$primary_spec" ]]; then
+            spec="$primary_spec"
+        elif [[ -n "$alternate_spec" ]]; then
+            spec="$alternate_spec"
+        else
+            die "workspace has no selectable skill spec: ${workspace_skill_name}"
+        fi
         expected_ids="$(jq -c '[.evals[].id]' "$spec")"
 
         for workspace_entry in "$workspace_skill"/*; do

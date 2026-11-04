@@ -363,7 +363,12 @@ function validatePayloadHeader(
   }
 }
 
-function validatePendingPoll(value: unknown, repository: string, stateFile: string): value is PendingPoll {
+function validatePendingPoll(
+  value: unknown,
+  activePullRequests: WatchEntry[],
+  repository: string,
+  stateFile: string,
+): value is PendingPoll {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
@@ -399,6 +404,17 @@ function validatePendingPoll(value: unknown, repository: string, stateFile: stri
     const result = pending.payload.pull_requests.find((item) => (item as Record<string, unknown>).number === number) as
       Record<string, unknown> | undefined;
     if (!result || result.removed === true) throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  const activeNumbers = new Set(activePullRequests.map((entry) => entry.number));
+  for (const number of activeNumbers) {
+    const result = pending.payload.pull_requests.find((item) => (item as Record<string, unknown>).number === number) as
+      Record<string, unknown> | undefined;
+    if (!result && !nextNumbers.has(number)) {
+      throw new Error(`invalid watch state: ${stateFile}`);
+    }
+    if (result?.removed === true && nextNumbers.has(number)) {
+      throw new Error(`invalid watch state: ${stateFile}`);
+    }
   }
   if (pending.payload.watch_empty !== (pending.next_pull_requests.length === 0)) {
     throw new Error(`invalid watch state: ${stateFile}`);
@@ -487,7 +503,7 @@ async function loadState(repository: string, stateFile: string): Promise<WatchSt
       pullRequests.push(entry);
     }
     if (parsed.pending_poll !== undefined) {
-      validatePendingPoll(parsed.pending_poll, repository, stateFile);
+      validatePendingPoll(parsed.pending_poll, pullRequests, repository, stateFile);
     }
     if (parsed.pending_add !== undefined) {
       validatePendingAdd(parsed.pending_add, repository, stateFile);
@@ -520,7 +536,7 @@ async function saveState(stateFile: string, state: WatchState): Promise<void> {
     }
   }
   if (state.pending_poll !== undefined) {
-    validatePendingPoll(state.pending_poll, state.repository, stateFile);
+    validatePendingPoll(state.pending_poll, state.pull_requests, state.repository, stateFile);
   }
   if (state.pending_add !== undefined) {
     validatePendingAdd(state.pending_add, state.repository, stateFile);
@@ -737,6 +753,28 @@ function isPendingReview(review: Review): boolean {
   return review.state?.toUpperCase() === "PENDING" && review.submittedAt == null;
 }
 
+function latestSubmittedReviews(reviews: Review[]): Review[] {
+  const latest = new Map<string, { review: Review; index: number }>();
+  for (const [index, review] of reviews.entries()) {
+    if (isPendingReview(review)) continue;
+    const reviewer = review.author?.login ?? `review:${review.id ?? index}`;
+    const current = latest.get(reviewer);
+    if (
+      !current ||
+      timestampValue(review.submittedAt as string) > timestampValue(current.review.submittedAt as string) ||
+      (timestampValue(review.submittedAt as string) === timestampValue(current.review.submittedAt as string) &&
+        index > current.index)
+    ) {
+      latest.set(reviewer, { review, index });
+    }
+  }
+  return [...latest.values()].map(({ review }) => review);
+}
+
+function hasUnresolvedReviewState(reviews: Review[]): boolean {
+  return latestSubmittedReviews(reviews).some((review) => review.state?.toUpperCase() === "CHANGES_REQUESTED");
+}
+
 function formatReview(review: Review, index: number): Record<string, unknown> {
   return {
     id: review.id,
@@ -751,68 +789,185 @@ function formatReview(review: Review, index: number): Record<string, unknown> {
   };
 }
 
-type ResolutionResult = {
-  value: boolean | null;
-  warning?: string;
-};
-
 type ResolutionCollection = {
   values: Array<boolean | null>;
   warnings: string[];
 };
 
-const MAX_THREAD_RESOLUTION_LOOKUPS = 32;
-
-async function threadResolution(hostname: string, comment: ReviewComment, number: number): Promise<ResolutionResult> {
-  const direct = comment.isResolved ?? comment.resolved;
-  if (typeof direct === "boolean") return { value: direct };
-  if (!comment.node_id) return { value: null };
-  const query = `
-    query($id: ID!) {
-      node(id: $id) {
-        ... on PullRequestReviewComment {
-          pullRequestReviewThread { isResolved }
+function resolutionQuery(): string {
+  return `
+    query($owner: String!, $name: String!, $number: Int!, $cursor: String) {
+      repository(owner: $owner, name: $name) {
+        pullRequest(number: $number) {
+          reviewThreads(first: 100, after: $cursor) {
+            nodes {
+              id
+              isResolved
+              comments(first: 100) {
+                nodes { id fullDatabaseId }
+                pageInfo { hasNextPage endCursor }
+              }
+            }
+            pageInfo { hasNextPage endCursor }
+          }
         }
       }
     }
   `;
+}
+
+function threadCommentsQuery(): string {
+  return `
+    query($id: ID!, $cursor: String) {
+      node(id: $id) {
+        ... on PullRequestReviewThread {
+          isResolved
+          comments(first: 100, after: $cursor) {
+            nodes { id fullDatabaseId }
+            pageInfo { hasNextPage endCursor }
+          }
+        }
+      }
+    }
+  `;
+}
+
+async function reviewThreadResolutions(
+  hostname: string,
+  owner: string,
+  repo: string,
+  number: number,
+): Promise<{ byComment: Map<string, boolean>; warnings: string[] }> {
+  const byComment = new Map<string, boolean>();
+  const warnings: string[] = [];
+  let cursor: string | undefined;
   try {
-    const output = await run("gh", [
-      "api",
-      "--hostname",
-      hostname,
-      "graphql",
-      "-f",
-      `query=${query}`,
-      "-F",
-      `id=${comment.node_id}`,
-    ]);
-    const value = parseJson<unknown>(output, "review comment thread resolution");
-    if (!isObject(value) || !isObject(value.data) || !isObject(value.data.node)) {
-      return {
-        value: null,
-        warning: `PR #${number} review thread ${commentId(comment, 0)} resolution lookup returned an invalid response`,
-      };
+    for (;;) {
+      const args = [
+        "api",
+        "--hostname",
+        hostname,
+        "graphql",
+        "-f",
+        `query=${resolutionQuery()}`,
+        "-F",
+        `owner=${owner}`,
+        "-F",
+        `name=${repo}`,
+        "-F",
+        `number=${number}`,
+      ];
+      if (cursor) args.push("-f", `cursor=${cursor}`);
+      const output = await run("gh", args);
+      const value = parseJson<unknown>(output, "review comment thread resolution");
+      const repository = isObject(value) && isObject(value.data) ? value.data.repository : undefined;
+      const pullRequest = isObject(repository) ? repository.pullRequest : undefined;
+      const reviewThreads = isObject(pullRequest) ? pullRequest.reviewThreads : undefined;
+      const nodes = isObject(reviewThreads) ? reviewThreads.nodes : undefined;
+      const pageInfo = isObject(reviewThreads) ? reviewThreads.pageInfo : undefined;
+      if (
+        !Array.isArray(nodes) ||
+        !isObject(pageInfo) ||
+        typeof pageInfo.hasNextPage !== "boolean" ||
+        (pageInfo.endCursor !== null && typeof pageInfo.endCursor !== "string")
+      ) {
+        warnings.push(`PR #${number} review thread resolution lookup returned an invalid response`);
+        break;
+      }
+      for (const node of nodes) {
+        if (
+          !isObject(node) ||
+          typeof node.id !== "string" ||
+          typeof node.isResolved !== "boolean" ||
+          !isObject(node.comments)
+        ) {
+          warnings.push(`PR #${number} review thread resolution was unavailable`);
+          continue;
+        }
+        const comments = node.comments.nodes;
+        const commentsPageInfo = node.comments.pageInfo;
+        if (
+          !Array.isArray(comments) ||
+          !isObject(commentsPageInfo) ||
+          typeof commentsPageInfo.hasNextPage !== "boolean" ||
+          (commentsPageInfo.endCursor !== null && typeof commentsPageInfo.endCursor !== "string")
+        ) {
+          warnings.push(`PR #${number} review thread resolution returned an invalid response`);
+          continue;
+        }
+        const addComments = (items: unknown[], resolved: boolean): void => {
+          for (const comment of items) {
+            if (!isObject(comment)) continue;
+            if (
+              (typeof comment.fullDatabaseId === "string" || typeof comment.fullDatabaseId === "number") &&
+              String(comment.fullDatabaseId).length > 0
+            ) {
+              byComment.set(String(comment.fullDatabaseId), resolved);
+            }
+            if (typeof comment.id === "string" && comment.id.length > 0) {
+              byComment.set(comment.id, resolved);
+            }
+          }
+        };
+        addComments(comments, node.isResolved);
+        let commentCursor = typeof commentsPageInfo.endCursor === "string" ? commentsPageInfo.endCursor : undefined;
+        let commentHasNextPage = commentsPageInfo.hasNextPage;
+        while (commentHasNextPage) {
+          if (!commentCursor) {
+            warnings.push(`PR #${number} review thread comment pagination was unavailable`);
+            break;
+          }
+          const output = await run("gh", [
+            "api",
+            "--hostname",
+            hostname,
+            "graphql",
+            "-f",
+            `query=${threadCommentsQuery()}`,
+            "-F",
+            `id=${node.id}`,
+            "-f",
+            `cursor=${commentCursor}`,
+          ]);
+          const value = parseJson<unknown>(output, "review comment thread resolution");
+          const thread = isObject(value) && isObject(value.data) ? value.data.node : undefined;
+          const threadComments = isObject(thread) ? thread.comments : undefined;
+          const threadNodes = isObject(threadComments) ? threadComments.nodes : undefined;
+          const threadPageInfo = isObject(threadComments) ? threadComments.pageInfo : undefined;
+          if (
+            !isObject(thread) ||
+            typeof thread.isResolved !== "boolean" ||
+            !Array.isArray(threadNodes) ||
+            !isObject(threadPageInfo) ||
+            typeof threadPageInfo.hasNextPage !== "boolean" ||
+            (threadPageInfo.endCursor !== null && typeof threadPageInfo.endCursor !== "string")
+          ) {
+            warnings.push(`PR #${number} review thread resolution returned an invalid response`);
+            break;
+          }
+          addComments(threadNodes, thread.isResolved);
+          commentHasNextPage = threadPageInfo.hasNextPage;
+          if (!commentHasNextPage) break;
+          commentCursor = typeof threadPageInfo.endCursor === "string" ? threadPageInfo.endCursor : undefined;
+        }
+      }
+      if (!pageInfo.hasNextPage) break;
+      if (typeof pageInfo.endCursor !== "string" || pageInfo.endCursor.length === 0) {
+        warnings.push(`PR #${number} review thread resolution pagination was unavailable`);
+        break;
+      }
+      cursor = pageInfo.endCursor;
     }
-    const node = value.data.node;
-    const thread = isObject(node.pullRequestReviewThread) ? node.pullRequestReviewThread : node;
-    if (typeof thread.isResolved !== "boolean") {
-      return {
-        value: null,
-        warning: `PR #${number} review thread ${commentId(comment, 0)} resolution was unavailable`,
-      };
-    }
-    return { value: thread.isResolved };
   } catch {
-    return {
-      value: null,
-      warning: `PR #${number} review thread ${commentId(comment, 0)} resolution lookup failed`,
-    };
+    warnings.push(`PR #${number} review thread batch resolution lookup failed`);
   }
+  return { byComment, warnings };
 }
 
 async function commentResolutions(
   hostname: string,
+  owner: string,
+  repo: string,
   comments: ReviewComment[],
   number: number,
 ): Promise<ResolutionCollection> {
@@ -826,19 +981,17 @@ async function commentResolutions(
     }
   }
   const warnings: string[] = [];
-  const boundedLookups = lookups.slice(0, MAX_THREAD_RESOLUTION_LOOKUPS);
-  if (lookups.length > boundedLookups.length) {
-    warnings.push(`review thread resolution lookup limit reached (${MAX_THREAD_RESOLUTION_LOOKUPS})`);
-  }
-  const results = await Promise.all(
-    boundedLookups.map(async ({ index, comment }) => ({
-      index,
-      result: await threadResolution(hostname, comment, number),
-    })),
-  );
-  for (const { index, result } of results) {
-    values[index] = result.value;
-    if (result.warning) warnings.push(result.warning);
+  if (lookups.length === 0) return { values, warnings };
+  const resolutions = await reviewThreadResolutions(hostname, owner, repo, number);
+  warnings.push(...resolutions.warnings);
+  for (const { index, comment } of lookups) {
+    const keys = [comment.id, comment.node_id].filter((value): value is string | number => value !== undefined);
+    const resolution = keys.map((key) => resolutions.byComment.get(String(key))).find((value) => value !== undefined);
+    if (resolution === undefined && resolutions.warnings.length === 0) {
+      warnings.push(`PR #${number} review thread ${commentId(comment, index)} resolution was unavailable`);
+    } else {
+      values[index] = resolution ?? null;
+    }
   }
   return { values, warnings };
 }
@@ -985,6 +1138,8 @@ function mergeSeen(previous: WatchEntry["seen"], current: WatchEntry["seen"]): W
 
 async function reconciliationFor(
   hostname: string,
+  owner: string,
+  repo: string,
   pullRequest: PullRequest,
   inlineCollection: CommentCollection,
   issueCollection: CommentCollection,
@@ -996,7 +1151,7 @@ async function reconciliationFor(
   const formattedReviews = reviews.flatMap((review, index) => {
     return validateReview(review, number, index) ? [formatReview(review, index)] : [];
   });
-  const inlineResolution = await commentResolutions(hostname, inlineComments, number);
+  const inlineResolution = await commentResolutions(hostname, owner, repo, inlineComments, number);
   const inlineResolutions = inlineResolution.values;
   const issueResolutions = issueComments.map(() => null as boolean | null);
   const formattedInlineComments = inlineComments.map((comment, index) => {
@@ -1013,8 +1168,7 @@ async function reconciliationFor(
   const hasNewActivity =
     formattedReviews.length > 0 || formattedInlineComments.length > 0 || formattedIssueComments.length > 0;
   const hasUnresolvedActivity =
-    reviews.some((review) => review.state?.toUpperCase() === "CHANGES_REQUESTED") ||
-    inlineResolutions.some((resolution) => resolution !== true);
+    hasUnresolvedReviewState(reviews) || inlineResolutions.some((resolution) => resolution !== true);
   return {
     number,
     state: pullRequest.state,
@@ -1032,11 +1186,7 @@ async function reconciliationFor(
     has_new_activity: hasNewActivity,
     resolution_warnings: inlineResolution.warnings,
     action_required:
-      hasNewActivity ||
-      hasUnresolvedActivity ||
-      failedChecks ||
-      pendingChecks ||
-      pullRequest.reviewDecision === "CHANGES_REQUESTED",
+      hasNewActivity || hasUnresolvedActivity || failedChecks || pendingChecks || hasUnresolvedReviewState(reviews),
   };
 }
 
@@ -1113,7 +1263,7 @@ async function main(): Promise<void> {
             getReviewComments(hostname, owner, repo, number, "issues"),
           ]);
           reconciliation.push(
-            await reconciliationFor(hostname, pullRequest, inlineCollection, issueCollection, number),
+            await reconciliationFor(hostname, owner, repo, pullRequest, inlineCollection, issueCollection, number),
           );
           const resolutionWarnings = reconciliation.at(-1)?.resolution_warnings;
           if (Array.isArray(resolutionWarnings))
@@ -1237,7 +1387,7 @@ async function main(): Promise<void> {
       const seenReviews = new Set(entry.seen?.reviews ?? []);
       const seenInlineComments = new Set(entry.seen?.inline_comments ?? []);
       const seenIssueComments = new Set(entry.seen?.issue_comments ?? []);
-      const inlineResolution = await commentResolutions(hostname, inlineCollection.comments, entry.number);
+      const inlineResolution = await commentResolutions(hostname, owner, repo, inlineCollection.comments, entry.number);
       const inlineResolutions = inlineResolution.values;
       const issueResolutions = issueCollection.comments.map(() => null as boolean | null);
       warnings.push(...inlineResolution.warnings);
@@ -1263,10 +1413,11 @@ async function main(): Promise<void> {
       const pendingChecks = hasPendingChecks(checks);
       const hasNewActivity = reviews.length > 0 || inlineComments.length > 0 || issueComments.length > 0;
       const hasUnresolvedActivity =
-        (pullRequest.reviews ?? []).some((review) => review.state?.toUpperCase() === "CHANGES_REQUESTED") ||
+        hasUnresolvedReviewState(pullRequest.reviews ?? []) ||
         inlineResolutions.some((resolution) => resolution !== true);
       const currentHead = pullRequestHead(pullRequest);
-      const headChanged = entry.head !== undefined && entry.head !== currentHead;
+      const headChanged =
+        entry.head !== undefined && entry.head !== pullRequest.headRefName && entry.head !== pullRequest.headRefOid;
       const clean =
         pullRequest.reviewDecision === "APPROVED" &&
         !hasNewActivity &&
@@ -1313,7 +1464,7 @@ async function main(): Promise<void> {
           headChanged ||
           failedChecks ||
           pendingChecks ||
-          pullRequest.reviewDecision === "CHANGES_REQUESTED",
+          hasUnresolvedReviewState(pullRequest.reviews ?? []),
       });
     }
 

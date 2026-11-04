@@ -234,36 +234,66 @@ validate_timestamps() {
                 try (
                     capture("^(?<date>[0-9]{4}-[0-9]{2}-[0-9]{2})(T(?<clock>[0-9]{2}:[0-9]{2}:[0-9]{2}))(?<fraction>\\.[0-9]+)?(?<zone>Z|(?<sign>[+-])(?<hour>[0-9]{2}):(?<minute>[0-9]{2}))$") as $parts |
                     (($parts.date + "T" + $parts.clock) | strptime("%Y-%m-%dT%H:%M:%S") | mktime) as $base |
-                    ($parts.fraction // "0" | tonumber) as $fraction |
+                    (($parts.fraction // ".0") |
+                        sub("^\\."; "") |
+                        sub("0+$"; "") |
+                        if . == "" then "0" else . end) as $fraction |
                     if ($parts.zone != "Z" and
                         (($parts.hour | tonumber) > 23 or ($parts.minute | tonumber) > 59)) then null
                     else
                         (if $parts.zone == "Z" then 0
                         else ($parts.hour | tonumber) * 3600 + ($parts.minute | tonumber) * 60
                         end) as $offset |
-                        if $parts.zone == "Z" then $base + $fraction
-                        elif $parts.sign == "+" then $base - $offset + $fraction
-                        else $base + $offset + $fraction
-                        end
+                        {
+                            seconds: (
+                                if $parts.zone == "Z" then $base
+                                elif $parts.sign == "+" then $base - $offset
+                                else $base + $offset
+                                end
+                            ),
+                            fraction: $fraction
+                        }
                     end
                 ) catch null
             else null end;
+        def pad_fraction($fraction; $length):
+            $fraction +
+                (reduce range(($fraction | length); $length) as $index
+                    (""; . + "0"));
+        def compare_timestamps($left; $right):
+            if $left.seconds < $right.seconds then -1
+            elif $left.seconds > $right.seconds then 1
+            else
+                ([$left.fraction | length, $right.fraction | length] | max) as $length |
+                (pad_fraction($left.fraction; $length)) as $left_fraction |
+                (pad_fraction($right.fraction; $length)) as $right_fraction |
+                if $left_fraction < $right_fraction then -1
+                elif $left_fraction > $right_fraction then 1
+                else 0
+                end
+            end;
+        def timestamp_le($left; $right):
+            compare_timestamps($left; $right) <= 0;
+        def timestamp_ge($left; $right):
+            compare_timestamps($left; $right) >= 0;
         def valid_runtime:
             (.evidence.runtime? // null) as $runtime |
             if $runtime == null then true
             else
                 ($runtime.measured_start_at | timestamp) as $start |
                 ($runtime.measured_end_at | timestamp) as $end |
-                $start != null and $end != null and $start <= $end
+                $start != null and $end != null and timestamp_le($start; $end)
             end;
         def valid_entry($record):
             (.checkpoint.initial_at | timestamp) as $initial |
             (.checkpoint.last_at | timestamp) as $last |
             (.checkpoint.next_due_at | timestamp) as $next |
             ($initial != null and $last != null and $next != null and
-                $initial <= $last and $last <= $next and valid_runtime);
+                timestamp_le($initial; $last) and timestamp_le($last; $next) and
+                valid_runtime);
         def componentwise_ge($current; $previous):
-            all(range(0; ($current | length)); $current[.] >= $previous[.]);
+            all(range(0; ($current | length));
+                timestamp_ge($current[.]; $previous[.]));
         . as $ledger |
         ([$ledger.contracts[] |
             {
@@ -493,7 +523,6 @@ check_secret_like_values() {
                 test("^[a-f0-9]+$") or
                 ([
                     test("^[A-Z]+$"),
-                    test("^[a-z]+$"),
                     test("^[0-9]+$"),
                     test("^[^A-Za-z0-9]+$")
                 ] | any) or
@@ -502,9 +531,6 @@ check_secret_like_values() {
                     test("[^A-Za-z0-9]")
                 ] | map(select(.)) | length) >= 3
             );
-        def authorization_header:
-            test("(?i)(^|[[:space:];])authorization[[:space:]]*:[[:space:]]*" +
-                "(bearer|basic)[[:space:]]+[A-Za-z0-9+/=_.~-]+");
         def credential_authorization:
             [match("(?i)(?<scheme>bearer|basic)[[:space:]]+" +
                 "(?<credential>[A-Za-z0-9+/=_.~-]+)"; "g") |
@@ -513,7 +539,7 @@ check_secret_like_values() {
         def secret_pattern:
             gsub("(?i)" + redaction_token; "") |
             (test("(?i)(ghp_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|xox[baprs]-[A-Za-z0-9-]+|AKIA[0-9A-Z]{16})") or
-             authorization_header or credential_authorization or
+             credential_authorization or
              test("-----BEGIN [A-Z ]*PRIVATE KEY-----") or
              test("(?i)(^|[?&[:space:]])(signature|sig|token|access_token|api_key|client_secret|password)=[^&#[:space:]]+") or
              test("(?i)(cookie:|set-cookie:|(^|[;[:space:]])(session|sid|phpsessid|csrftoken|sessionid)=[^;[:space:]]+)") or

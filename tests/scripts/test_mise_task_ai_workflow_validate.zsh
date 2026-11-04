@@ -6,10 +6,12 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 main() {
     local fixture valid_file delivery_file historical_file chronology_file
-    local chronology_invalid_file first_record_before_contract_file
+    local chronology_invalid_file submicro_invalid_file
+    local first_record_before_contract_file
     local mixed_direction_file shared_exclusions_file exclusion_owner_file
-    local owner_overlap_file lowercase_hex_value lowercase_value
-    local bearer_secret basic_secret bearer_direct_secret basic_direct_secret
+    local owner_overlap_file lowercase_hex_value
+    local bearer_secret bearer_direct_secret
+    local prose_bearer prose_basic prose_value
     local future now output
     local contract_schema ledger_schema
     export MISE_CONFIG_DIR="$__root_dir/home/.config/mise"
@@ -258,11 +260,18 @@ main() {
         fail "validator flagged normal bearer/basic prose"
 
     lowercase_hex_value="$(printf '%s%s%s%s' deadbeef deadbeef deadbeef deadbeef)"
-    lowercase_value="$(printf '%s%s%s' lowercase credential value)"
     bearer_secret="$(printf '%s %s' 'Authorization: Bearer' "$lowercase_hex_value")"
-    basic_secret="$(printf '%s %s' 'Authorization: Basic' "$lowercase_value")"
     bearer_direct_secret="$(printf '%s %s' Bearer "$lowercase_hex_value")"
-    basic_direct_secret="$(printf '%s %s' Basic "$lowercase_value")"
+    prose_bearer="Authorization: Bearer ordinarylowercaseprosevalue"
+    prose_basic="Basic ordinarylowercaseprosevalue"
+    for prose_value in "$prose_bearer" "$prose_basic"; do
+        jq --arg value "$prose_value" \
+            '.contracts[0].acceptance = [$value]' \
+            "$valid_file" >"$fixture/secret-prose-${prose_value//[^A-Za-z0-9]/-}.json"
+        mise run ai:workflow:validate -- \
+            --file "$fixture/secret-prose-${prose_value//[^A-Za-z0-9]/-}.json" >/dev/null ||
+            fail "validator flagged lowercase bearer/basic prose"
+    done
     for secret_value in \
         "Authorization: ******" \
         "Authorization: Basic dXNlcjpwYXNzd29yZA==" \
@@ -270,9 +279,7 @@ main() {
         "Authorization: Bearer deadbeefdeadbeefdeadbeefdeadbeef" \
         "Authorization: Bearer $lowercase_hex_value" \
         "$bearer_secret" \
-        "$basic_secret" \
         "$bearer_direct_secret" \
-        "$basic_direct_secret" \
         "Bearer AbC1234567890xyz_" \
         "Cookie: sessionid=abc123456789" \
         "https://example.test/?token=abc123456789"; do
@@ -429,6 +436,25 @@ main() {
     if mise run ai:workflow:validate -- \
         --file "$chronology_invalid_file" >/dev/null 2>&1; then
         fail "validator accepted out-of-order normalized timestamps"
+    fi
+
+    submicro_invalid_file="$fixture/chronology-submicro-invalid.json"
+    jq '
+        .records[0].checkpoint = {
+            initial_at: "2025-01-01T00:00:00.30000000000000002Z",
+            last_at: "2025-01-01T00:00:00.40000000000000002Z",
+            next_due_at: "2025-01-01T00:00:00.50000000000000002Z",
+            status: "pending"
+        } |
+        .records[1].checkpoint = {
+            initial_at: "2025-01-01T00:00:00.30000000000000001Z",
+            last_at: "2025-01-01T00:00:00.40000000000000001Z",
+            next_due_at: "2025-01-01T00:00:00.50000000000000001Z",
+            status: "pending"
+        }' "$chronology_file" >"$submicro_invalid_file"
+    if mise run ai:workflow:validate -- \
+        --file "$submicro_invalid_file" >/dev/null 2>&1; then
+        fail "validator accepted distinct sub-microsecond timestamps as equal"
     fi
 
     mixed_direction_file="$fixture/chronology-mixed-direction.json"

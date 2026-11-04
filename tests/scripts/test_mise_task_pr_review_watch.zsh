@@ -53,7 +53,15 @@ if [[ "$1" == api ]]; then
             printf 'simulated GraphQL failure\n' >&2
             exit 1
         fi
-        printf '{"data":{"node":{"pullRequestReviewThread":{"isResolved":false}}}}\n'
+        if [[ "${GH_REVIEW_WATCH_GRAPHQL_REJECT_LEGACY:-}" == "1" && "$*" == *"pullRequestReviewThread"* ]]; then
+            printf 'simulated unsupported GraphQL field\n' >&2
+            exit 1
+        fi
+        if [[ -n "${GH_REVIEW_WATCH_GRAPHQL_FIXTURE:-}" ]]; then
+            cat "$GH_REVIEW_WATCH_GRAPHQL_FIXTURE"
+        else
+            printf '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"isResolved":false,"comments":{"nodes":[{"id":"RC_201","fullDatabaseId":"201"}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}\n'
+        fi
         exit 0
     fi
     path="${@: -1}"
@@ -843,5 +851,187 @@ if (( __result_two != 0 )); then
 fi
 [[ ! -d "$__state_file.lock" ]] || fail "concurrent stale-lock recovery left the lock behind"
 unset GH_REVIEW_WATCH_BARRIER_DIR
+
+cat > "$__fixture_dir/pr-16.json" <<'EOF'
+{"number":16,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-16","headRefOid":"oid-16","reviewDecision":"APPROVED","reviews":[{"id":1601,"author":{"login":"reviewer"},"submittedAt":"2024-01-01T00:00:00Z","state":"CHANGES_REQUESTED","body":"old request"},{"id":1602,"author":{"login":"reviewer"},"submittedAt":"2024-01-02T00:00:00Z","state":"APPROVED","body":"superseded request"}],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-16.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-16.json" <<'EOF'
+[[]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":16,\"addedAt\":\"2024-01-01T00:00:00Z\",\"lastSeenAt\":\"2024-01-03T00:00:00Z\",\"head\":\"review-16\",\"seen\":{\"reviews\":[\"1601\",\"1602\"],\"inline_comments\":[],\"issue_comments\":[]},\"graceChecks\":3}]}"
+export GH_REVIEW_WATCH_GRAPHQL_REJECT_LEGACY=1
+run_poll > "$__poll_output"
+unset GH_REVIEW_WATCH_GRAPHQL_REJECT_LEGACY
+jq -e '
+  .pull_requests[0].head_changed == false and
+  .pull_requests[0].has_unresolved_activity == false and
+  .pull_requests[0].action_required == false and
+  .pull_requests[0].grace_checks == 4 and
+  .pull_requests[0].head == "review-16" and
+  .pull_requests[0].head_oid == "oid-16"
+' "$__poll_output" >/dev/null || fail "legacy head or superseded review state was handled incorrectly"
+jq -e '.pull_requests[0].head == "oid-16"' "$__state_file" >/dev/null ||
+    fail "legacy head name was not migrated to the fetched head OID"
+
+cat > "$__fixture_dir/pr-17.json" <<'EOF'
+{"number":17,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-17","headRefOid":"oid-17","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-17.json" <<'EOF'
+[[{"id":1701,"node_id":"RC_1701","created_at":"2024-01-04T00:00:00Z","body":"supported resolution","html_url":"https://example.test/inline/1701"}]]
+EOF
+cat > "$__fixture_dir/issues-17.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/graphql-valid-17.json" <<'EOF'
+{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"id":"RT_1701","isResolved":true,"comments":{"nodes":[{"id":"RC_1701","fullDatabaseId":"1701"}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-valid-17.json"
+export GH_REVIEW_WATCH_GRAPHQL_REJECT_LEGACY=1
+run_action add 17 > "$__poll_output"
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE GH_REVIEW_WATCH_GRAPHQL_REJECT_LEGACY
+jq -e '
+  .reconciliation[0].inline_comments[0].is_resolved == true and
+  (.reconciliation[0].resolution_warnings | length == 0)
+' "$__poll_output" >/dev/null || fail "supported review-thread GraphQL resolution was not used"
+
+cat > "$__fixture_dir/pr-18.json" <<'EOF'
+{"number":18,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-18","headRefOid":"oid-18","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-18.json" <<'EOF'
+[[{"id":1801,"node_id":"RC_1801","created_at":"2024-01-04T00:00:00Z","body":"invalid response","html_url":"https://example.test/inline/1801"}]]
+EOF
+cat > "$__fixture_dir/issues-18.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/graphql-invalid-18.json" <<'EOF'
+{"data":{"repository":{"pullRequest":{"reviewThreads":null}}}}
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-invalid-18.json"
+run_action add 18 > "$__poll_output"
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE
+jq -e '
+  .reconciliation[0].inline_comments[0].is_resolved == null and
+  (.reconciliation[0].resolution_warnings | any(test("returned an invalid response")))
+' "$__poll_output" >/dev/null || fail "invalid GraphQL resolution response was not reported"
+
+cat > "$__fixture_dir/pr-19.json" <<'EOF'
+{"number":19,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-19","headRefOid":"oid-19","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+jq -n '[range(1901;1934) | {id:.,node_id:("RC_"+tostring),created_at:"2024-01-04T00:00:00Z",body:("comment "+tostring),html_url:("https://example.test/inline/"+tostring)}]' |
+    jq -s '.' > "$__fixture_dir/pulls-19.json"
+cat > "$__fixture_dir/issues-19.json" <<'EOF'
+[[]]
+EOF
+jq -n '
+  {data:{repository:{pullRequest:{reviewThreads:{
+    nodes:[{id:"RT_19",isResolved:false,comments:{nodes:[range(1901;1934) | {id:("RC_"+tostring),fullDatabaseId:(tostring)}],pageInfo:{hasNextPage:false,endCursor:null}}}],
+    pageInfo:{hasNextPage:false,endCursor:null}
+  }}}}}
+' > "$__fixture_dir/graphql-many-19.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-many-19.json"
+run_action add 19 > "$__poll_output"
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE
+jq -e '
+  (.reconciliation[0].inline_comments | length == 33) and
+  (.reconciliation[0].inline_comments | all(.is_resolved == false)) and
+  (.reconciliation[0].resolution_warnings | length == 0)
+' "$__poll_output" >/dev/null || fail "more than 32 inline comments were not fully resolved"
+
+cat > "$__state_file" <<EOF
+{
+  "version": 1,
+  "repository": "$__repository",
+  "pull_requests": [
+    {"number": 20, "addedAt": "2024-01-01T00:00:00Z"},
+    {"number": 21, "addedAt": "2024-01-01T00:00:00Z"}
+  ],
+  "pending_poll": {
+    "payload": {
+      "action": "poll",
+      "repository": "$__repository",
+      "state_file": "$__state_file",
+      "watch_empty": false,
+      "scheduler_should_stop": false,
+      "warnings": [],
+      "pull_requests": [{
+        "number": 20,
+        "state": "OPEN",
+        "new_reviews": [],
+        "new_inline_comments": [],
+        "new_issue_comments": [],
+        "checks": [],
+        "inline_comments_pages": 0,
+        "issue_comments_pages": 0,
+        "has_new_activity": false,
+        "has_failed_checks": false,
+        "has_pending_checks": false,
+        "action_required": false
+      }]
+    },
+    "next_pull_requests": [{
+      "number": 20,
+      "addedAt": "2024-01-01T00:00:00Z",
+      "graceChecks": 1,
+      "graceComplete": false,
+      "seen": {"reviews": [], "inline_comments": [], "issue_comments": []}
+    }]
+  }
+}
+EOF
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "staged poll omission of an active watch unexpectedly succeeded"
+fi
+grep -qF "invalid watch state: $__state_file" "$__fixture_dir/error" ||
+    fail "staged poll omission error was not actionable"
+[[ ! -s "$__poll_output" ]] || fail "staged poll omission emitted output"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "staged poll omission changed state bytes"
+
+cat > "$__state_file" <<EOF
+{
+  "version": 1,
+  "repository": "$__repository",
+  "pull_requests": [{"number": 22, "addedAt": "2024-01-01T00:00:00Z"}],
+  "pending_poll": {
+    "payload": {
+      "action": "poll",
+      "repository": "$__repository",
+      "state_file": "$__state_file",
+      "watch_empty": true,
+      "scheduler_should_stop": true,
+      "warnings": [],
+      "pull_requests": [{
+        "number": 22,
+        "state": "MERGED",
+        "new_reviews": [],
+        "new_inline_comments": [],
+        "new_issue_comments": [],
+        "checks": [],
+        "inline_comments_pages": 0,
+        "issue_comments_pages": 0,
+        "has_new_activity": false,
+        "has_failed_checks": false,
+        "has_pending_checks": false,
+        "action_required": false,
+        "removed": true,
+        "reason": "merged"
+      }]
+    },
+    "next_pull_requests": []
+  }
+}
+EOF
+run_poll > "$__poll_output"
+jq -e '.pull_requests[0].number == 22 and .pull_requests[0].removed == true' "$__poll_output" >/dev/null ||
+    fail "explicit staged removal result did not replay"
+jq -e '(.pull_requests | length == 0) and (.pending_poll | not)' "$__state_file" >/dev/null ||
+    fail "staged removal replay did not clear the active watch"
 
 echo "pr:review-watch task passed."
