@@ -142,6 +142,10 @@ The [`hk` configuration](./hk.pkl) defines the checks and fixes in one place. Ma
 
 I previously maintained a configuration based on [`Nix`][nix-config]. I no longer maintain it because `mise` now provides many of the features I used from `Nix`.
 
+## License
+
+Original work in this repository is available under the [`MIT License`](./LICENSE). Bundled third-party components keep their own licenses and notices.
+
 [keyboard-layout]: https://github.com/minusfive/zmk-config
 [mise]: https://mise.jdx.dev
 [mise-bootstrap]: https://mise.jdx.dev/bootstrap.html
