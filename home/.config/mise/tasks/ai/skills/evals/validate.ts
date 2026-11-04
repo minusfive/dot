@@ -27,18 +27,22 @@ type Context = {
 
 class ValidationError extends Error {}
 
+/** Return whether a filesystem error means that a path is absent. */
 function isMissingError(error: unknown): boolean {
   return (error as NodeJS.ErrnoException).code === "ENOENT";
 }
 
+/** Stop validation with a user-facing error. */
 function die(message: string): never {
   throw new ValidationError(message);
 }
 
+/** Convert an unknown thrown value to displayable text. */
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/** Return whether a path exists, including a dangling symlink. */
 function pathExists(path: string): boolean {
   try {
     lstatSync(path);
@@ -49,6 +53,7 @@ function pathExists(path: string): boolean {
   }
 }
 
+/** Return whether a path is a symlink. */
 function isSymlink(path: string): boolean {
   try {
     return lstatSync(path).isSymbolicLink();
@@ -58,6 +63,7 @@ function isSymlink(path: string): boolean {
   }
 }
 
+/** Return whether a path is a physical directory. */
 function isPhysicalDirectory(path: string): boolean {
   try {
     const stat = lstatSync(path);
@@ -68,6 +74,7 @@ function isPhysicalDirectory(path: string): boolean {
   }
 }
 
+/** Return whether a path is a regular local file. */
 function isRegularFile(path: string): boolean {
   try {
     const stat = lstatSync(path);
@@ -78,6 +85,7 @@ function isRegularFile(path: string): boolean {
   }
 }
 
+/** Return whether a path resolves to a regular file. */
 function isFollowedRegularFile(path: string): boolean {
   try {
     return lstatSync(realpathSync(path)).isFile();
@@ -87,6 +95,7 @@ function isFollowedRegularFile(path: string): boolean {
   }
 }
 
+/** Return whether a path resolves to a directory. */
 function isFollowedDirectory(path: string): boolean {
   try {
     return lstatSync(realpathSync(path)).isDirectory();
@@ -96,6 +105,7 @@ function isFollowedDirectory(path: string): boolean {
   }
 }
 
+/** Return sorted child paths for a directory. */
 function entries(path: string): string[] {
   try {
     return readdirSync(path)
@@ -107,15 +117,18 @@ function entries(path: string): string[] {
   }
 }
 
+/** Return the physical directories directly below a path. */
 function physicalDirectories(path: string): string[] {
   return entries(path).filter(isPhysicalDirectory);
 }
 
+/** Render a path relative to the validation base. */
 function displayPath(path: string, basePath: string): string {
   const displayed = relative(basePath, path);
   return displayed === "" ? "." : displayed;
 }
 
+/** Parse a JSON file and report invalid JSON with its repository-relative path. */
 function readJson(path: string, context: Context): JsonValue {
   try {
     return JSON.parse(readFileSync(path, "utf8")) as JsonValue;
@@ -124,50 +137,61 @@ function readJson(path: string, context: Context): JsonValue {
   }
 }
 
+/** Return an object view for a JSON value. */
 function object(value: JsonValue): JsonObject | undefined {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? (value as JsonObject) : undefined;
 }
 
+/** Return sorted object keys for a JSON value. */
 function keys(value: JsonValue): string[] {
   const record = object(value);
   return record ? Object.keys(record).sort() : [];
 }
 
+/** Check that a JSON object has exactly the expected keys. */
 function sameKeys(value: JsonValue, expected: string[]): boolean {
   const actual = keys(value);
   return actual.length === expected.length && actual.every((key, index) => key === expected[index]);
 }
 
+/** Return whether a JSON value is a string. */
 function isString(value: JsonValue): value is string {
   return typeof value === "string";
 }
 
+/** Return whether a JSON value is an array. */
 function isArray(value: JsonValue): value is JsonValue[] {
   return Array.isArray(value);
 }
 
+/** Return whether a JSON value is an object record. */
 function isRecord(value: JsonValue): value is JsonObject {
   return object(value) !== undefined;
 }
 
+/** Return whether a JSON value is a valid skill or case name. */
 function isPositiveName(value: JsonValue): value is string {
   return isString(value) && /^[a-z][a-z0-9-]*$/.test(value);
 }
 
+/** Return whether a JSON value is an array of strings. */
 function isStringArray(value: JsonValue, nonEmpty: boolean): value is string[] {
   return isArray(value) && (!nonEmpty || value.length > 0) && value.every((entry) => isString(entry));
 }
 
+/** Return whether a JSON value is an array of strings matching a pattern. */
 function isAllowedStringArray(value: JsonValue, pattern: RegExp, nonEmpty: boolean): value is string[] {
   return (
     isArray(value) && (!nonEmpty || value.length > 0) && value.every((entry) => isString(entry) && pattern.test(entry))
   );
 }
 
+/** Return whether all strings in an array are unique. */
 function unique(values: string[]): boolean {
   return new Set(values).size === values.length;
 }
 
+/** Convert a JSON scalar or value to a string for identity comparisons. */
 function valueAsString(value: JsonValue): string {
   if (value === null) return "null";
   if (typeof value === "string") return value;
@@ -176,6 +200,7 @@ function valueAsString(value: JsonValue): string {
   return JSON.stringify(value);
 }
 
+/** Compare JSON values without depending on object key order. */
 function jsonEqual(left: JsonValue, right: JsonValue): boolean {
   if (left === right) return true;
   if (Array.isArray(left) && Array.isArray(right)) {
@@ -192,16 +217,19 @@ function jsonEqual(left: JsonValue, right: JsonValue): boolean {
   );
 }
 
+/** Apply jq's alternative operator semantics to optional JSON values. */
 function jqAlternative(value: JsonValue | undefined, fallback: JsonValue): JsonValue {
   return value === undefined || value === null || value === false ? fallback : value;
 }
 
+/** Return the output from a Git command, or an empty string when it fails. */
 function runGit(args: string[]): string {
   const result = spawnSync("git", args, { encoding: "utf8" });
   if (result.status !== 0) return "";
   return result.stdout.trim();
 }
 
+/** Resolve a directory argument and report the task-specific error on failure. */
 function resolveDirectory(pathValue: string, projectRoot: string, errorText: string): string {
   const candidate = isAbsolute(pathValue) ? pathValue : join(projectRoot, pathValue);
   try {
@@ -211,6 +239,7 @@ function resolveDirectory(pathValue: string, projectRoot: string, errorText: str
   }
 }
 
+/** Find all `.agents/skills` directories below the validation base path. */
 function findSkillRoots(basePath: string): string[] {
   const found: string[] = [];
   const visit = (directory: string): void => {
@@ -226,14 +255,17 @@ function findSkillRoots(basePath: string): string[] {
   return found.sort();
 }
 
+/** Return whether a skill name is a migration source. */
 function isMigrationSource(context: Context, name: string): boolean {
   return context.migrationSources.includes(name);
 }
 
+/** Return whether a skill is listed as a legacy preparation skill. */
 function isLegacyPreparationSkill(context: Context, name: string): boolean {
   return context.legacyPreparationSkills.includes(name);
 }
 
+/** Resolve a historical skill name through the migration chain. */
 function resolveWorkspaceSkill(context: Context, name: string): string {
   let resolved = name;
   while (true) {
@@ -243,6 +275,7 @@ function resolveWorkspaceSkill(context: Context, name: string): string {
   }
 }
 
+/** Reject duplicate skill names across the discovered skill roots. */
 function rejectDuplicateSkillNames(context: Context): void {
   for (let firstIndex = 0; firstIndex < context.workspaceSkillRoots.length; firstIndex += 1) {
     const firstRoot = context.workspaceSkillRoots[firstIndex]!;
@@ -261,6 +294,7 @@ function rejectDuplicateSkillNames(context: Context): void {
   }
 }
 
+/** Validate one skill evaluation specification and return its parsed object. */
 function validateEvaluationSpec(context: Context, skillDir: string, skill: string, spec: string): JsonObject {
   const evalsDir = join(skillDir, "evals");
   if (!isPhysicalDirectory(evalsDir)) die(`${skill}/evals must be a physical directory`);
@@ -291,7 +325,8 @@ function validateEvaluationSpec(context: Context, skillDir: string, skill: strin
       if (
         evaluation.assertions !== undefined &&
         evaluation.assertions !== null &&
-        !isStringArray(evaluation.assertions, true)
+        (!isStringArray(evaluation.assertions, true) ||
+          evaluation.assertions.some((assertion) => assertion.length === 0))
       )
         return false;
       if (evaluation.files !== undefined && evaluation.files !== null && !isStringArray(evaluation.files, false))
@@ -303,7 +338,21 @@ function validateEvaluationSpec(context: Context, skillDir: string, skill: strin
   return value!;
 }
 
-function validateEvidenceFile(context: Context, workspaceRoot: string, referencedFile: string): void {
+/** Return the positional grading IDs expected for the assertions in one case. */
+function declaredAssertionIds(spec: JsonObject, caseId: string): string[] {
+  const evaluation = (spec.evals as JsonValue[]).find((entry) => object(entry)?.id === caseId);
+  const assertions = object(evaluation)?.assertions;
+  if (!isStringArray(assertions, false)) return [];
+  return assertions.map((_, index) => `assertion-${index + 1}`);
+}
+
+/** Validate one evidence reference and return whether the referenced file exists. */
+function validateEvidenceFile(
+  context: Context,
+  workspaceRoot: string,
+  referencedFile: string,
+  allowMissing = false,
+): boolean {
   const prefix = `${displayPath(workspaceRoot, context.basePath)}/${referencedFile}`;
   if (isAbsolute(referencedFile) || referencedFile.includes("\\")) {
     die(`evidence path must be relative: ${prefix}`);
@@ -330,22 +379,27 @@ function validateEvidenceFile(context: Context, workspaceRoot: string, reference
   try {
     canonicalPath = realpathSync(join(workspaceRoot, referencedFile));
   } catch {
+    if (allowMissing) return false;
     die(`could not resolve evidence path: ${prefix}`);
   }
   if (canonicalPath !== expectedRoot && !canonicalPath.startsWith(`${expectedRoot}${sep}`)) {
     die(`evidence path escapes its workspace: ${prefix}`);
   }
   if (!isRegularFile(canonicalPath)) {
+    if (allowMissing) return false;
     die(`materialized report references a missing or symlinked evidence file: ${prefix}`);
   }
+  return true;
 }
 
+/** Validate timing and grading metadata for one materialized configuration. */
 function validateMaterializedMetadata(
   context: Context,
   configurationDir: string,
   skill: string,
   caseId: string,
   configuration: string,
+  expectedAssertionIds: string[],
 ): { timing: JsonObject; grading: JsonObject } {
   const timingPath = join(configurationDir, "timing.json");
   const gradingPath = join(configurationDir, "grading.json");
@@ -381,8 +435,10 @@ function validateMaterializedMetadata(
     isString(timing?.harness_identity) &&
     timing.harness_identity.length > 0 &&
     timing.harness_identity.length <= 192 &&
-    ["completed", "failed", "cancelled", "blocked"].includes(String(timing?.status)) &&
-    ["passed", "failed", "cancelled", "blocked"].includes(String(timing?.result)) &&
+    isString(timing?.status) &&
+    ["completed", "failed", "cancelled", "blocked"].includes(timing.status) &&
+    isString(timing?.result) &&
+    ["passed", "failed", "cancelled", "blocked"].includes(timing.result) &&
     isString(timing?.started_at) &&
     timing.started_at.length >= 20 &&
     timing.started_at.length <= 64 &&
@@ -395,7 +451,8 @@ function validateMaterializedMetadata(
     typeof timing?.total_tokens === "number" &&
     Number.isInteger(timing.total_tokens) &&
     timing.total_tokens >= 0 &&
-    ["clean", "redacted"].includes(String(timing?.redaction_status)) &&
+    isString(timing?.redaction_status) &&
+    ["clean", "redacted"].includes(timing.redaction_status) &&
     isAllowedStringArray(timing?.output_files, /^[A-Za-z0-9._/-]+$/, true) &&
     isAllowedStringArray(timing?.evidence_files, /^[A-Za-z0-9._/-]+$/, false);
   if (!validTiming) die(`invalid materialized timing report: ${displayPath(timingPath, context.basePath)}`);
@@ -415,9 +472,12 @@ function validateMaterializedMetadata(
     isString(grading?.run_id) &&
     grading.run_id.length > 0 &&
     grading.run_id.length <= 128 &&
-    ["completed", "failed", "cancelled", "blocked"].includes(String(grading?.status)) &&
-    ["passed", "failed", "cancelled", "blocked"].includes(String(grading?.result)) &&
-    ["clean", "redacted"].includes(String(grading?.redaction_status)) &&
+    isString(grading?.status) &&
+    ["completed", "failed", "cancelled", "blocked"].includes(grading.status) &&
+    isString(grading?.result) &&
+    ["passed", "failed", "cancelled", "blocked"].includes(grading.result) &&
+    isString(grading?.redaction_status) &&
+    ["clean", "redacted"].includes(grading.redaction_status) &&
     isArray(grading?.assertion_results) &&
     grading.assertion_results.every((entry) => {
       const assertion = object(entry);
@@ -425,25 +485,46 @@ function validateMaterializedMetadata(
         sameKeys(entry, ["evidence", "id", "status"]) &&
         isString(assertion?.id) &&
         /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(assertion.id) &&
-        ["passed", "failed", "blocked"].includes(String(assertion?.status)) &&
+        isString(assertion?.status) &&
+        ["passed", "failed", "blocked"].includes(assertion.status) &&
         isAllowedStringArray(assertion?.evidence, /^[A-Za-z0-9._/-]+$/, true)
       );
     });
   if (!validGrading) die(`invalid materialized grading report: ${displayPath(gradingPath, context.basePath)}`);
+  const assertionResults = grading!.assertion_results as JsonValue[];
+  const actualAssertionIds = assertionResults.map((entry) => object(entry)?.id);
+  if (
+    actualAssertionIds.length !== expectedAssertionIds.length ||
+    !isStringArray(actualAssertionIds, false) ||
+    !unique(actualAssertionIds)
+  ) {
+    die(
+      `materialized grading assertions do not match the evaluation spec: ${displayPath(gradingPath, context.basePath)}`,
+    );
+  }
   if (timing.run_id !== grading?.run_id) {
     die(`materialized timing and grading run IDs do not match: ${displayPath(configurationDir, context.basePath)}`);
   }
   return { timing, grading: grading! };
 }
 
+/** Validate evidence references for one materialized configuration. */
 function validateMaterializedConfig(
   context: Context,
   configurationDir: string,
   skill: string,
   caseId: string,
   configuration: string,
+  expectedAssertionIds: string[],
 ): void {
-  const { timing, grading } = validateMaterializedMetadata(context, configurationDir, skill, caseId, configuration);
+  const { timing, grading } = validateMaterializedMetadata(
+    context,
+    configurationDir,
+    skill,
+    caseId,
+    configuration,
+    expectedAssertionIds,
+  );
   for (const referencedFile of [...(timing.output_files as string[]), ...(timing.evidence_files as string[])]) {
     validateEvidenceFile(context, configurationDir, referencedFile);
   }
@@ -454,9 +535,9 @@ function validateMaterializedConfig(
   }
 }
 
+/** Determine whether a retired configuration is incomplete. */
 function retiredConfigIsIncomplete(context: Context, configurationDir: string): boolean {
   const outputDir = join(configurationDir, "outputs");
-  const evidenceDir = join(configurationDir, "evidence");
   let incomplete = false;
   if (pathExists(outputDir)) {
     if (!isPhysicalDirectory(outputDir)) {
@@ -464,37 +545,32 @@ function retiredConfigIsIncomplete(context: Context, configurationDir: string): 
     }
     const timing = object(readJson(join(configurationDir, "timing.json"), context))!;
     for (const referencedFile of timing.output_files as string[]) {
-      validateEvidenceFile(context, configurationDir, referencedFile);
+      incomplete = !validateEvidenceFile(context, configurationDir, referencedFile, true) || incomplete;
     }
   } else {
     incomplete = true;
   }
-  if (pathExists(evidenceDir)) {
-    if (!isPhysicalDirectory(evidenceDir)) {
-      die(`retired historical evidence directory is not physical: ${displayPath(evidenceDir, context.basePath)}`);
+  const timing = object(readJson(join(configurationDir, "timing.json"), context))!;
+  const grading = object(readJson(join(configurationDir, "grading.json"), context))!;
+  for (const referencedFile of timing.evidence_files as string[]) {
+    incomplete = !validateEvidenceFile(context, configurationDir, referencedFile, true) || incomplete;
+  }
+  for (const assertion of grading.assertion_results as JsonValue[]) {
+    for (const referencedFile of object(assertion)?.evidence as string[]) {
+      incomplete = !validateEvidenceFile(context, configurationDir, referencedFile, true) || incomplete;
     }
-    const timing = object(readJson(join(configurationDir, "timing.json"), context))!;
-    const grading = object(readJson(join(configurationDir, "grading.json"), context))!;
-    for (const referencedFile of timing.evidence_files as string[]) {
-      validateEvidenceFile(context, configurationDir, referencedFile);
-    }
-    for (const assertion of grading.assertion_results as JsonValue[]) {
-      for (const referencedFile of object(assertion)?.evidence as string[]) {
-        validateEvidenceFile(context, configurationDir, referencedFile);
-      }
-    }
-  } else {
-    incomplete = true;
   }
   return incomplete;
 }
 
+/** Validate every configuration in a retired historical iteration. */
 function validateRetiredHistoricalIteration(
   context: Context,
   iterationDir: string,
   manifestIds: string[],
   skill: string,
   iteration: string,
+  spec: JsonObject,
 ): void {
   let completeMaterialized = true;
   for (const caseName of manifestIds) {
@@ -512,7 +588,14 @@ function validateRetiredHistoricalIteration(
         if (!isRegularFile(path)) die(`missing retired historical metadata: ${displayPath(path, context.basePath)}`);
         readJson(path, context);
       }
-      validateMaterializedMetadata(context, configurationDir, skill, caseName, configuration);
+      validateMaterializedMetadata(
+        context,
+        configurationDir,
+        skill,
+        caseName,
+        configuration,
+        declaredAssertionIds(spec, caseName),
+      );
       if (retiredConfigIsIncomplete(context, configurationDir)) completeMaterialized = false;
     }
   }
@@ -523,6 +606,7 @@ function validateRetiredHistoricalIteration(
   }
 }
 
+/** Validate aggregate reports for a materialized iteration. */
 function validateMaterializedReports(context: Context, iterationDir: string, skill: string, iteration: string): void {
   for (const report of ["benchmark.json", "feedback.json", "grading-summary.json"]) {
     const reportPath = join(iterationDir, report);
@@ -552,8 +636,10 @@ function validateMaterializedReports(context: Context, iterationDir: string, ski
       ]) &&
       isString(run?.run_id) &&
       /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(run.run_id) &&
-      ["completed", "failed", "cancelled", "blocked"].includes(String(run?.status)) &&
-      ["passed", "failed", "cancelled", "blocked"].includes(String(run?.result)) &&
+      isString(run?.status) &&
+      ["completed", "failed", "cancelled", "blocked"].includes(run.status) &&
+      isString(run?.result) &&
+      ["passed", "failed", "cancelled", "blocked"].includes(run.result) &&
       isString(run?.started_at) &&
       run.started_at.length >= 20 &&
       run.started_at.length <= 64 &&
@@ -563,7 +649,8 @@ function validateMaterializedReports(context: Context, iterationDir: string, ski
       typeof run?.duration_ms === "number" &&
       Number.isInteger(run.duration_ms) &&
       run.duration_ms >= 0 &&
-      ["clean", "redacted"].includes(String(run?.redaction_status)) &&
+      isString(run?.redaction_status) &&
+      ["clean", "redacted"].includes(run.redaction_status) &&
       isAllowedStringArray(run?.output_files, /^[A-Za-z0-9._/-]+$/, true) &&
       isAllowedStringArray(run?.evidence_files, /^[A-Za-z0-9._/-]+$/, false);
     if (!valid) die(`invalid materialized report: ${displayPath(reportPath, context.basePath)}`);
@@ -573,6 +660,7 @@ function validateMaterializedReports(context: Context, iterationDir: string, ski
   }
 }
 
+/** Validate aggregate reports for a preparation iteration. */
 function validatePreparationReports(context: Context, iterationDir: string, skill: string, iteration: string): void {
   const benchmarkPath = join(iterationDir, "benchmark.json");
   const benchmark = object(readJson(benchmarkPath, context));
@@ -613,6 +701,7 @@ function validatePreparationReports(context: Context, iterationDir: string, skil
   }
 }
 
+/** Validate preparation metadata for one configuration. */
 function validatePreparationConfig(context: Context, configurationDir: string): void {
   const timingPath = join(configurationDir, "timing.json");
   const timing = object(readJson(timingPath, context));
@@ -634,6 +723,7 @@ function validatePreparationConfig(context: Context, configurationDir: string): 
   }
 }
 
+/** Identify a legacy preparation summary that needs historical handling. */
 function isLegacyPreparationSummary(context: Context, iterationDir: string): boolean {
   const benchmark = object(readJson(join(iterationDir, "benchmark.json"), context));
   const benchmarkKeys = [
@@ -693,6 +783,7 @@ function isLegacyPreparationSummary(context: Context, iterationDir: string): boo
   );
 }
 
+/** Reject symlinks anywhere in a repository-local evaluation workspace. */
 function assertNoWorkspaceSymlinks(path: string): void {
   for (const child of entries(path)) {
     if (isSymlink(child)) die(`evaluation workspaces must not contain symlinks`);
@@ -700,6 +791,7 @@ function assertNoWorkspaceSymlinks(path: string): void {
   }
 }
 
+/** Find the first artifact below a root that matches a predicate. */
 function findLegacyArtifact(root: string, predicate: (path: string) => boolean): string | undefined {
   for (const child of entries(root)) {
     if (predicate(child)) return child;
@@ -711,6 +803,7 @@ function findLegacyArtifact(root: string, predicate: (path: string) => boolean):
   return undefined;
 }
 
+/** Load and validate the historical skill migration map. */
 function loadMigration(context: Context, migrationMap: string): void {
   if (!pathExists(migrationMap)) return;
   if (!isRegularFile(migrationMap)) {
@@ -766,6 +859,7 @@ function loadMigration(context: Context, migrationMap: string): void {
   }
 }
 
+/** Validate the selected base path and all repository-local evaluation artifacts. */
 function main(): void {
   const projectRoot = runGit(["rev-parse", "--show-toplevel"]);
   if (!projectRoot) die("this task must be run inside a git repository");
@@ -806,7 +900,10 @@ function main(): void {
   const sourceMigrationMap = join(context.taskSourceDir, "migration-map.json");
   const externalMigrationMap = join(basePath, "home/.config/mise/tasks/ai/skills/evals/migration-map.json");
   let migrationMap = "";
-  if (basePath === projectRoot || basePath === join(projectRoot, "home")) {
+  const sourceMigrationMapIsLocal =
+    relative(projectRoot, sourceMigrationMap) !== ".." &&
+    !relative(projectRoot, sourceMigrationMap).startsWith(`..${sep}`);
+  if (sourceMigrationMapIsLocal && (basePath === projectRoot || basePath === join(projectRoot, "home"))) {
     migrationMap = sourceMigrationMap;
   } else if (pathExists(externalMigrationMap)) {
     migrationMap = externalMigrationMap;
@@ -825,7 +922,7 @@ function main(): void {
     const skill = basename(skillDir);
     if (isMigrationSource(context, skill)) die(`active skill uses historical name: ${skill}`);
     const evalsDir = join(skillDir, "evals");
-    if (!isFollowedDirectory(evalsDir)) continue;
+    if (!pathExists(evalsDir)) continue;
     validateEvaluationSpec(context, skillDir, skill, join(evalsDir, "evals.json"));
   }
 
@@ -870,7 +967,10 @@ function main(): void {
   );
   if (legacyConfig) die(`legacy evaluation configuration directory: ${displayPath(legacyConfig, basePath)}`);
 
-  for (const workspaceSkill of physicalDirectories(workspaceDir)) {
+  for (const workspaceSkill of entries(workspaceDir)) {
+    if (!isPhysicalDirectory(workspaceSkill)) {
+      die(`invalid evaluation workspace skill: ${displayPath(workspaceSkill, basePath)}`);
+    }
     const workspaceSkillName = basename(workspaceSkill);
     const resolvedSkill = resolveWorkspaceSkill(context, workspaceSkillName);
     const historicalWorkspace = isMigrationSource(context, workspaceSkillName);
@@ -1030,9 +1130,10 @@ function main(): void {
       }
 
       if (retiredHistoricalIteration) {
-        validateRetiredHistoricalIteration(context, iterationDir, ids, workspaceSkillName, iterationNumber);
+        validateRetiredHistoricalIteration(context, iterationDir, ids, workspaceSkillName, iterationNumber, specValue);
       } else if (
-        (!historicalIteration && (isCurrentIteration || isPreparationIteration || isMaterializedIteration)) ||
+        (!historicalIteration &&
+          (isCurrentIteration || isPreparationIteration || isMaterializedIteration || caseArtifactPresent)) ||
         (historicalIteration && caseArtifactPresent)
       ) {
         let materializedExecution = false;
@@ -1055,7 +1156,14 @@ function main(): void {
               validatePreparationConfig(context, configurationDir);
             } else {
               materializedExecution = true;
-              validateMaterializedConfig(context, configurationDir, workspaceSkillName, caseName, configuration);
+              validateMaterializedConfig(
+                context,
+                configurationDir,
+                workspaceSkillName,
+                caseName,
+                configuration,
+                declaredAssertionIds(specValue, caseName),
+              );
             }
           }
         }
