@@ -6,7 +6,7 @@ source "$(dirname "$0")/mise_test_helpers.zsh"
 
 main() {
     local fixture skill_dir spec_dir workspace_parent workspace_dir workspace_root case_path
-    local materialized_iteration materialized_case configuration
+    local materialized_iteration materialized_case retired_iteration configuration
     local migration_map historical_workspace global_skill_dir global_workspace_dir
     local validation_output real_home_workspace missing_map_base renamed_workspace
     local collision_primary_dir collision_alternate_dir
@@ -175,6 +175,41 @@ EOF
         fail "validator accepted arbitrary historical state without migration metadata"
     fi
     rm -rf "$workspace_root/iteration-99" "$fixture/historical-state"
+
+    retired_iteration="$workspace_root/iteration-99"
+    mkdir -p "$retired_iteration"
+    for extra in manifest.json benchmark.json feedback.json grading-summary.json; do
+        cp "$workspace_dir/$extra" "$retired_iteration/$extra"
+    done
+    jq '.iteration = 99 | .state = "historical" | .history_reason = "retired-materialized-incomplete"' \
+        "$retired_iteration/manifest.json" >"$fixture/manifest-retired.json"
+    mv "$fixture/manifest-retired.json" "$retired_iteration/manifest.json"
+    jq --argjson iteration 99 '.iteration = $iteration' \
+        "$retired_iteration/benchmark.json" >"$fixture/benchmark-retired.json"
+    mv "$fixture/benchmark-retired.json" "$retired_iteration/benchmark.json"
+    jq --argjson iteration 99 '.iteration = $iteration' \
+        "$retired_iteration/feedback.json" >"$fixture/feedback-retired.json"
+    mv "$fixture/feedback-retired.json" "$retired_iteration/feedback.json"
+    jq --argjson iteration 99 '.iteration = $iteration' \
+        "$retired_iteration/grading-summary.json" >"$fixture/grading-retired.json"
+    mv "$fixture/grading-retired.json" "$retired_iteration/grading-summary.json"
+    if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
+        fail "validator accepted a retired historical iteration without case metadata"
+    fi
+
+    jq 'del(.history_reason)' "$retired_iteration/manifest.json" \
+        >"$fixture/manifest-retired-missing-reason.json"
+    mv "$fixture/manifest-retired-missing-reason.json" "$retired_iteration/manifest.json"
+    if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
+        fail "validator accepted a retired historical iteration without its reason"
+    fi
+    jq '.history_reason = "arbitrary-history"' "$retired_iteration/manifest.json" \
+        >"$fixture/manifest-retired-wrong-reason.json"
+    mv "$fixture/manifest-retired-wrong-reason.json" "$retired_iteration/manifest.json"
+    if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
+        fail "validator accepted an arbitrary historical reason"
+    fi
+    rm -rf "$retired_iteration"
 
     jq '.renames = [{from: "legacy-demo", to: "unknown-demo"}]' "$migration_map" \
         >"$fixture/migration-map-invalid.json"
@@ -396,6 +431,141 @@ EOF
     done
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
         fail "validator rejected a valid materialized fixture"
+
+    retired_iteration="$workspace_root/iteration-99"
+    cp -R "$materialized_iteration" "$retired_iteration"
+    jq '.iteration = 99 | .state = "historical" | .history_reason = "retired-materialized-incomplete"' \
+        "$retired_iteration/manifest.json" >"$fixture/manifest-retired-with-cases.json"
+    mv "$fixture/manifest-retired-with-cases.json" "$retired_iteration/manifest.json"
+    for extra in benchmark.json feedback.json grading-summary.json; do
+        jq '.iteration = 99' "$retired_iteration/$extra" \
+            >"$fixture/$extra-retired-with-cases.json"
+        mv "$fixture/$extra-retired-with-cases.json" "$retired_iteration/$extra"
+    done
+    for configuration in with_skill old_skill; do
+        rm -rf "$retired_iteration/example-case/$configuration/outputs"
+        rm -rf "$retired_iteration/example-case/$configuration/evidence"
+    done
+    mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
+        fail "validator rejected an incomplete retired historical iteration"
+
+    for malformed in timing-identity timing-run timing-status timing-redaction \
+        grading-identity grading-run grading-status grading-redaction grading-assertion grading-report; do
+        cp "$retired_iteration/example-case/with_skill/timing.json" \
+            "$fixture/timing-retired-valid.json"
+        cp "$retired_iteration/example-case/with_skill/grading.json" \
+            "$fixture/grading-retired-valid.json"
+        case "$malformed" in
+            timing-identity)
+                jq '.case_id = "wrong-case"' \
+                    "$retired_iteration/example-case/with_skill/timing.json" \
+                    >"$fixture/timing-retired-invalid.json"
+                mv "$fixture/timing-retired-invalid.json" \
+                    "$retired_iteration/example-case/with_skill/timing.json"
+                ;;
+            timing-run)
+                jq '.run_id = "run-2"' \
+                    "$retired_iteration/example-case/with_skill/timing.json" \
+                    >"$fixture/timing-retired-invalid.json"
+                mv "$fixture/timing-retired-invalid.json" \
+                    "$retired_iteration/example-case/with_skill/timing.json"
+                ;;
+            timing-status)
+                jq '.status = "invalid"' \
+                    "$retired_iteration/example-case/with_skill/timing.json" \
+                    >"$fixture/timing-retired-invalid.json"
+                mv "$fixture/timing-retired-invalid.json" \
+                    "$retired_iteration/example-case/with_skill/timing.json"
+                ;;
+            timing-redaction)
+                jq '.redaction_status = "invalid"' \
+                    "$retired_iteration/example-case/with_skill/timing.json" \
+                    >"$fixture/timing-retired-invalid.json"
+                mv "$fixture/timing-retired-invalid.json" \
+                    "$retired_iteration/example-case/with_skill/timing.json"
+                ;;
+            grading-identity)
+                jq '.configuration = "wrong-config"' \
+                    "$retired_iteration/example-case/with_skill/grading.json" \
+                    >"$fixture/grading-retired-invalid.json"
+                mv "$fixture/grading-retired-invalid.json" \
+                    "$retired_iteration/example-case/with_skill/grading.json"
+                ;;
+            grading-run)
+                jq '.run_id = "run-2"' \
+                    "$retired_iteration/example-case/with_skill/grading.json" \
+                    >"$fixture/grading-retired-invalid.json"
+                mv "$fixture/grading-retired-invalid.json" \
+                    "$retired_iteration/example-case/with_skill/grading.json"
+                ;;
+            grading-status)
+                jq '.status = "invalid"' \
+                    "$retired_iteration/example-case/with_skill/grading.json" \
+                    >"$fixture/grading-retired-invalid.json"
+                mv "$fixture/grading-retired-invalid.json" \
+                    "$retired_iteration/example-case/with_skill/grading.json"
+                ;;
+            grading-redaction)
+                jq '.redaction_status = "invalid"' \
+                    "$retired_iteration/example-case/with_skill/grading.json" \
+                    >"$fixture/grading-retired-invalid.json"
+                mv "$fixture/grading-retired-invalid.json" \
+                    "$retired_iteration/example-case/with_skill/grading.json"
+                ;;
+            grading-assertion)
+                jq '.assertion_results = [{}]' \
+                    "$retired_iteration/example-case/with_skill/grading.json" \
+                    >"$fixture/grading-retired-invalid.json"
+                mv "$fixture/grading-retired-invalid.json" \
+                    "$retired_iteration/example-case/with_skill/grading.json"
+                ;;
+            grading-report)
+                jq '.unexpected = true' \
+                    "$retired_iteration/example-case/with_skill/grading.json" \
+                    >"$fixture/grading-retired-invalid.json"
+                mv "$fixture/grading-retired-invalid.json" \
+                    "$retired_iteration/example-case/with_skill/grading.json"
+                ;;
+        esac
+        if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
+            fail "validator accepted malformed $malformed metadata under the retired marker"
+        fi
+        mv "$fixture/timing-retired-valid.json" \
+            "$retired_iteration/example-case/with_skill/timing.json"
+        mv "$fixture/grading-retired-valid.json" \
+            "$retired_iteration/example-case/with_skill/grading.json"
+    done
+
+    jq 'del(.history_reason)' "$retired_iteration/manifest.json" \
+        >"$fixture/manifest-retired-missing-reason.json"
+    mv "$fixture/manifest-retired-missing-reason.json" "$retired_iteration/manifest.json"
+    if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
+        fail "validator accepted an incomplete historical iteration without its reason"
+    fi
+    jq '.history_reason = "arbitrary-history"' "$retired_iteration/manifest.json" \
+        >"$fixture/manifest-retired-wrong-reason.json"
+    mv "$fixture/manifest-retired-wrong-reason.json" "$retired_iteration/manifest.json"
+    if mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null 2>&1; then
+        fail "validator accepted an arbitrary historical reason"
+    fi
+    rm -rf "$retired_iteration"
+
+    retired_iteration="$workspace_root/iteration-99"
+    cp -R "$materialized_iteration" "$retired_iteration"
+    jq '.iteration = 99 | .state = "historical" | .history_reason = "retired-materialized-incomplete"' \
+        "$retired_iteration/manifest.json" >"$fixture/manifest-retired-complete.json"
+    mv "$fixture/manifest-retired-complete.json" "$retired_iteration/manifest.json"
+    for extra in benchmark.json feedback.json grading-summary.json; do
+        jq '.iteration = 99' "$retired_iteration/$extra" \
+            >"$fixture/$extra-retired-complete.json"
+        mv "$fixture/$extra-retired-complete.json" "$retired_iteration/$extra"
+    done
+    validation_output="$(mise run ai:skills:evals:validate --base-path "$fixture" 2>&1)" &&
+        fail "validator accepted complete materialized artifacts under the retired marker"
+    print -r -- "$validation_output" |
+        grep -qF "retired historical evaluation iteration is complete" ||
+        fail "validator did not reject complete artifacts under the retired historical marker"
+    rm -rf "$retired_iteration"
 
     cp "$materialized_case/old_skill/grading.json" "$fixture/grading-valid.json"
     jq '.run_id = "run-2"' "$materialized_case/old_skill/grading.json" \

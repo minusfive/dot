@@ -9,5 +9,6 @@
     "reconcile-additional-review-comments"
   ],
   "workspace": ".agents/eval-workspaces/review-delivery",
-  "state": "materialized"
+  "state": "historical",
+  "history_reason": "retired-materialized-incomplete"
 }

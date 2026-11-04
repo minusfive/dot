@@ -142,7 +142,7 @@ validate_evidence_file() {
         die "materialized report references a missing or symlinked evidence file: ${workspace_root#$base_path/}/${referenced_file}"
 }
 
-validate_materialized_config() {
+validate_materialized_metadata() {
     local configuration_dir="$1"
     local skill="$2"
     local iteration="$3"
@@ -194,13 +194,84 @@ validate_materialized_config() {
     [[ "$(jq -r '.run_id' "${configuration_dir}/timing.json")" ==
         "$(jq -r '.run_id' "${configuration_dir}/grading.json")" ]] ||
         die "materialized timing and grading run IDs do not match: ${configuration_dir#$PWD/}"
+}
 
+validate_materialized_config() {
+    local configuration_dir="$1"
+    local skill="$2"
+    local iteration="$3"
+    local case_id="$4"
+    local configuration="$5"
+
+    validate_materialized_metadata "$@"
     while IFS= read -r referenced_file; do
         validate_evidence_file "$configuration_dir" "$referenced_file"
     done < <(jq -r '.output_files[], .evidence_files[]' "${configuration_dir}/timing.json")
     while IFS= read -r referenced_file; do
         validate_evidence_file "$configuration_dir" "$referenced_file"
     done < <(jq -r '.assertion_results[].evidence[]' "${configuration_dir}/grading.json")
+}
+
+retired_config_is_incomplete() {
+    local configuration_dir="$1"
+    local output_dir="${configuration_dir}/outputs"
+    local evidence_dir="${configuration_dir}/evidence"
+    local referenced_file incomplete=false
+
+    if [[ -e "$output_dir" || -L "$output_dir" ]]; then
+        [[ -d "$output_dir" && ! -L "$output_dir" ]] ||
+            die "retired historical output directory is not physical: ${output_dir#$PWD/}"
+        while IFS= read -r referenced_file; do
+            validate_evidence_file "$configuration_dir" "$referenced_file"
+        done < <(jq -r '.output_files[]' "${configuration_dir}/timing.json")
+    else
+        incomplete=true
+    fi
+    if [[ -e "$evidence_dir" || -L "$evidence_dir" ]]; then
+        [[ -d "$evidence_dir" && ! -L "$evidence_dir" ]] ||
+            die "retired historical evidence directory is not physical: ${evidence_dir#$PWD/}"
+        while IFS= read -r referenced_file; do
+            validate_evidence_file "$configuration_dir" "$referenced_file"
+        done < <(jq -r '.evidence_files[]' "${configuration_dir}/timing.json")
+        while IFS= read -r referenced_file; do
+            validate_evidence_file "$configuration_dir" "$referenced_file"
+        done < <(jq -r '.assertion_results[].evidence[]' "${configuration_dir}/grading.json")
+    else
+        incomplete=true
+    fi
+    [[ "$incomplete" == true ]]
+}
+
+validate_retired_historical_iteration() {
+    local iteration_dir="$1"
+    local manifest_ids="$2"
+    local case_name case_entry configuration configuration_dir
+    local complete_materialized=true
+
+    while IFS= read -r case_name; do
+        case_entry="${iteration_dir}/${case_name}"
+        [[ -d "$case_entry" && ! -L "$case_entry" ]] ||
+            die "missing retired historical evaluation case directory: ${case_entry#$PWD/}"
+        for configuration in with_skill old_skill; do
+            configuration_dir="${case_entry}/${configuration}"
+            [[ -d "$configuration_dir" && ! -L "$configuration_dir" ]] ||
+                die "missing retired historical evaluation configuration: ${configuration_dir#$PWD/}"
+            for extra in timing.json grading.json; do
+                [[ -f "${configuration_dir}/${extra}" && ! -L "${configuration_dir}/${extra}" ]] ||
+                    die "missing retired historical metadata: ${configuration_dir#$PWD/}/${extra}"
+                valid_json "${configuration_dir}/${extra}"
+            done
+            validate_materialized_metadata \
+                "$configuration_dir" "$workspace_skill_name" "$iteration_number" \
+                "$case_name" "$configuration"
+            if retired_config_is_incomplete "$configuration_dir"; then
+                complete_materialized=false
+            fi
+        done
+    done < <(jq -r '.[]' <<<"$manifest_ids")
+
+    [[ "$complete_materialized" == false ]] ||
+        die "retired historical evaluation iteration is complete; remove the retired marker: ${iteration_dir#$PWD/}"
 }
 
 validate_materialized_reports() {
@@ -336,7 +407,7 @@ main() {
     local project_root base_path skills_path primary_skill_root workspace_dir skill_root skill_dir skill evals_dir spec
     local migration_map source_migration_map external_migration_map
     local map_source map_target resolved_skill workspace_skill_name
-    local workspace_skill iteration_dir iteration_name manifest expected_ids manifest_ids iteration_state
+    local workspace_skill iteration_dir iteration_name manifest expected_ids manifest_ids iteration_state history_reason
     local workspace_entry discoverability_dir case_entry case_name configuration_dir configuration
     local current_iteration iteration_number
     local extra legacy_artifact candidate_root existing_root root_is_known
@@ -344,6 +415,7 @@ main() {
     local map_index visited_name historical_workspace historical_iteration
     local case_artifact_present is_current_iteration is_preparation_iteration
     local is_materialized_iteration materialized_execution legacy_preparation_iteration
+    local retired_historical_iteration
     typeset -a workspace_skill_roots alternate_skill_roots active_skills visited
 
     project_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
@@ -605,11 +677,16 @@ main() {
                 ([.case_ids[]] | length == (unique | length)) and
                 (.state? == null or
                     ((.state | type == "string") and
-                        (.state == "historical" or .state == "preparation" or .state == "materialized")))
+                        (.state == "historical" or .state == "preparation" or .state == "materialized"))) and
+                ((has("history_reason") | not) or
+                    (.history_reason | type == "string" and
+                        . == "retired-materialized-incomplete")) and
+                ((has("history_reason") | not) or .state == "historical")
             ' "$manifest" >/dev/null ||
                 die "invalid evaluation manifest: ${manifest#$base_path/}"
             manifest_ids="$(jq -c '.case_ids' "$manifest")"
             iteration_state="$(jq -r '.state // empty' "$manifest")"
+            history_reason="$(jq -r '.history_reason // empty' "$manifest")"
             iteration_number="${iteration_name#iteration-}"
             case_artifact_present=false
             is_current_iteration=false
@@ -618,6 +695,7 @@ main() {
             materialized_execution=false
             historical_iteration=false
             legacy_preparation_iteration=false
+            retired_historical_iteration=false
             [[ "$iteration_number" -eq "$current_iteration" ]] &&
                 is_current_iteration=true
             [[ "$iteration_state" == preparation ]] &&
@@ -659,9 +737,15 @@ main() {
             done
 
             if [[ "$iteration_state" == historical ]]; then
-                [[ "$historical_workspace" == true ]] ||
-                    die "historical evaluation state requires explicit migration metadata: ${manifest#$base_path/}"
-                historical_iteration=true
+                if [[ "$history_reason" == retired-materialized-incomplete &&
+                    "$historical_workspace" == false ]]; then
+                    retired_historical_iteration=true
+                    historical_iteration=true
+                else
+                    [[ "$historical_workspace" == true ]] ||
+                        die "historical evaluation state requires explicit migration metadata: ${manifest#$base_path/}"
+                    historical_iteration=true
+                fi
             elif [[ -z "$iteration_state" && "$historical_workspace" == true ]]; then
                 historical_iteration=true
             elif [[ -z "$iteration_state" && "$case_artifact_present" == false ]] &&
@@ -679,7 +763,11 @@ main() {
 
             if [[ "$case_artifact_present" == false &&
                 "$historical_iteration" == true ]]; then
-                print -- "Accepted legacy historical evaluation iteration: ${iteration_dir#$base_path/}"
+                if [[ "$retired_historical_iteration" == true ]]; then
+                    print -- "Validating retired incomplete historical evaluation iteration: ${iteration_dir#$base_path/}"
+                else
+                    print -- "Accepted legacy historical evaluation iteration: ${iteration_dir#$base_path/}"
+                fi
             fi
 
             if [[ "$case_artifact_present" == false &&
@@ -687,7 +775,9 @@ main() {
                 die "evaluation iteration has no case artifacts or explicit historical state: ${iteration_dir#$base_path/}"
             fi
 
-            if [[ "$historical_iteration" == false &&
+            if [[ "$retired_historical_iteration" == true ]]; then
+                validate_retired_historical_iteration "$iteration_dir" "$manifest_ids"
+            elif [[ "$historical_iteration" == false &&
                 ( "$is_current_iteration" == true ||
                     "$is_preparation_iteration" == true ||
                     "$is_materialized_iteration" == true ) ]] ||
