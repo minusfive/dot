@@ -903,21 +903,23 @@ async function reviewThreadResolutions(
           warnings.push(`PR #${number} review thread resolution returned an invalid response`);
           continue;
         }
-        const addComments = (items: unknown[], resolved: boolean): void => {
+        const threadCommentKeys = new Set<string>();
+        let threadResolution = node.isResolved;
+        const addComments = (items: unknown[]): void => {
           for (const comment of items) {
             if (!isObject(comment)) continue;
             if (
               (typeof comment.fullDatabaseId === "string" || typeof comment.fullDatabaseId === "number") &&
               String(comment.fullDatabaseId).length > 0
             ) {
-              byComment.set(String(comment.fullDatabaseId), resolved);
+              threadCommentKeys.add(String(comment.fullDatabaseId));
             }
             if (typeof comment.id === "string" && comment.id.length > 0) {
-              byComment.set(comment.id, resolved);
+              threadCommentKeys.add(comment.id);
             }
           }
         };
-        addComments(comments, node.isResolved);
+        addComments(comments);
         const requestedCommentCursors = new Set<string>();
         let commentCursor = typeof commentsPageInfo.endCursor === "string" ? commentsPageInfo.endCursor : undefined;
         let commentHasNextPage = commentsPageInfo.hasNextPage;
@@ -959,10 +961,14 @@ async function reviewThreadResolutions(
             warnings.push(`PR #${number} review thread resolution returned an invalid response`);
             break;
           }
-          addComments(threadNodes, thread.isResolved);
+          addComments(threadNodes);
+          threadResolution = thread.isResolved;
           commentHasNextPage = threadPageInfo.hasNextPage;
           if (!commentHasNextPage) break;
           commentCursor = typeof threadPageInfo.endCursor === "string" ? threadPageInfo.endCursor : undefined;
+        }
+        for (const key of threadCommentKeys) {
+          byComment.set(key, threadResolution);
         }
       }
       if (!pageInfo.hasNextPage) break;

@@ -991,7 +991,7 @@ cat > "$__fixture_dir/pr-27.json" <<'EOF'
 {"number":27,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-27","headRefOid":"oid-27","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
 EOF
 cat > "$__fixture_dir/pulls-27.json" <<'EOF'
-[[{"id":2702,"node_id":"RC_2702","created_at":"2024-01-04T00:00:00Z","body":"later outer page comment","html_url":"https://example.test/inline/2702"}]]
+[[{"id":2701,"node_id":"RC_2701","created_at":"2024-01-04T00:00:00Z","body":"first outer page comment","html_url":"https://example.test/inline/2701"},{"id":2702,"node_id":"RC_2702","created_at":"2024-01-04T00:00:00Z","body":"later outer page comment","html_url":"https://example.test/inline/2702"}]]
 EOF
 cat > "$__fixture_dir/issues-27.json" <<'EOF'
 [[]]
@@ -1009,7 +1009,8 @@ export GH_REVIEW_WATCH_GRAPHQL_PAGE_FIXTURE="$__fixture_dir/graphql-paginated-ou
 run_action add 27 > "$__poll_output"
 unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE GH_REVIEW_WATCH_GRAPHQL_PAGE_FIXTURE
 jq -e '
-  (.reconciliation[0].inline_comments | length == 1) and
+  (.reconciliation[0].inline_comments | length == 2) and
+  (.reconciliation[0].inline_comments | any(.id == 2701 and .is_resolved == false)) and
   (.reconciliation[0].inline_comments | any(.id == 2702 and .is_resolved == true)) and
   (.reconciliation[0].resolution_warnings | length == 0)
 ' "$__poll_output" >/dev/null || fail "valid outer review-thread later page was not mapped"
@@ -1040,7 +1041,7 @@ run_action add 28 > "$__poll_output"
 unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE GH_REVIEW_WATCH_GRAPHQL_INNER_FIXTURE GH_REVIEW_WATCH_GRAPHQL_INNER_PAGE_FIXTURE
 jq -e '
   (.reconciliation[0].inline_comments | length == 2) and
-  (.reconciliation[0].inline_comments | any(.id == 2801 and .is_resolved == false)) and
+  (.reconciliation[0].inline_comments | any(.id == 2801 and .is_resolved == true)) and
   (.reconciliation[0].inline_comments | any(.id == 2802 and .is_resolved == true)) and
   (.reconciliation[0].resolution_warnings | length == 0)
 ' "$__poll_output" >/dev/null || fail "distinct inner review-thread comment later page was not mapped"
