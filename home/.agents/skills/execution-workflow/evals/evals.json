@@ -4,10 +4,11 @@
     {
       "id": "mapping-story-states-to-todos",
       "prompt": "An accepted plan is at `~/.agents/projects.local/repo/plan.md`. A story in `critique` has failed twice. A delegated worker changed an excluded file and missed an end-to-end checkpoint; a downstream story depends on it. Describe the required workflow. Do not call tools. Todo tracking may be used, but do not prescribe a global per-story todo or status mapping.",
-      "expected_output": "Block the affected story with the drift and unblock condition, preserve the two failed critique findings, and keep downstream work blocked. Follow workflow-policy for worker recovery, use `critique-workflow` to critique the targeted amendment before planning accepts it, and let execution consume the exact accepted patch. Resume the affected story at `research` only after the accepted patch lands. Leave todo tracking choices to each agent and session.",
+      "expected_output": "Block the affected story with the drift, record the blocker reason and unblock condition, preserve the two failed critique findings, and keep downstream work blocked. Follow workflow-policy's exact `freeze -> report -> escalate -> stop` sequence for worker recovery, use `critique-workflow` to critique the targeted amendment before planning accepts it, and let execution consume the exact accepted patch. Resume the affected story at `research` only after the accepted patch lands. Leave todo tracking choices to each agent and session.",
       "assertions": [
         "The response blocks the affected story immediately and carries forward the two failed critique findings and unblock condition.",
         "The response resumes the affected story at `research` only after the accepted plan patch lands.",
+        "The response requires the exact `freeze -> report -> escalate -> stop` sequence before recovery proceeds.",
         "The response requires `critique-workflow` to critique every targeted amendment before planning accepts it.",
         "The response assigns plan amendment acceptance to planning, not review-delivery."
       ]
@@ -15,13 +16,15 @@
     {
       "id": "viable-recovery-without-amendment",
       "prompt": "A worker lane completes workflow-policy's canonical freeze -> report -> escalate -> stop sequence. The accepted plan remains viable because all required plan fields are present, consistent, and actionable, and acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries remain unchanged. Describe the story recovery. Do not call tools.",
-      "expected_output": "Before workflow-policy begins the canonical freeze -> report -> escalate -> stop sequence, the affected story is blocked/frozen and its evidence is preserved. After workflow-policy completes that exact sequence, ask planning to record a plan-preserving recovery decision without an amendment or new plan version only because all required plan fields are present, consistent, and actionable and the material boundaries remain unchanged. Resume the story at `research` only after that decision, using the existing lifecycle.",
+      "expected_output": "Before workflow-policy begins the canonical freeze -> report -> escalate -> stop sequence, the affected story is blocked/frozen, its blocker reason and unblock condition are recorded, and its evidence is preserved. After workflow-policy completes that exact sequence, ask planning to record a plan-preserving recovery decision that preserves the accepted plan version without amendment or plan-version churn, only because all required plan fields are present, consistent, and actionable and the material boundaries remain unchanged. Resume the story at `research` only after that decision, using the existing lifecycle.",
       "assertions": [
         "The response preserves workflow-policy ownership of the canonical freeze -> report -> escalate -> stop sequence.",
         "The response blocks/freezes the affected story and preserves its evidence before workflow-policy begins the canonical freeze -> report -> escalate -> stop sequence.",
         "The response requires the exact freeze -> report -> escalate -> stop sequence before the plan-preserving recovery decision.",
         "The response requires all required plan fields to remain present, consistent, and actionable before it permits plan-preserving recovery.",
         "The response requires acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries to remain unchanged before it permits plan-preserving recovery.",
+        "The response requires the blocked story to record both a blocker reason and an unblock condition before plan-preserving recovery.",
+        "The response preserves the accepted plan version and rejects plan-version churn when no amendment is required.",
         "The response distinguishes viable recovery from an accepted plan amendment.",
         "The response assigns the recovery decision to planning and the story transition to execution-workflow.",
         "The response resumes the blocked story at `research` only after the plan-preserving recovery decision."
@@ -29,8 +32,8 @@
     },
     {
       "id": "material-boundary-recovery",
-      "prompt": "A worker lane completes workflow-policy's canonical freeze -> report -> escalate -> stop sequence. The accepted plan remains viable except that, in separate cases, its security boundary, feasibility boundary, or delivery boundary changes. In a fourth case, a required story field is missing, inconsistent, or non-actionable. In a fifth case, a required plan field is missing, inconsistent, or non-actionable. Describe the story recovery for each case. Do not call tools.",
-      "expected_output": "Before workflow-policy begins the canonical freeze -> report -> escalate -> stop sequence, the affected story is moved to `blocked` and its blocker reason, unblock condition, and other evidence are preserved before drift recovery. After workflow-policy completes that exact sequence, planning decides whether the full material-boundary predicate remains unchanged. A change to the security, feasibility, or delivery boundary requires `critique-workflow` to critique a targeted amendment before planning accepts it with a new plan version. A missing, inconsistent, or non-actionable required story or plan field also makes the plan non-viable and requires that amendment path. Execution-workflow resumes the blocked story at `research` only after the accepted amendment, without adding a lifecycle state.",
+      "prompt": "A worker lane completes workflow-policy's canonical freeze -> report -> escalate -> stop sequence. The accepted plan remains viable except that, in separate cases, its security boundary, feasibility boundary, or delivery boundary changes. In a fourth case, a required story field is missing, inconsistent, or non-actionable. In a fifth case, a required plan field is missing, inconsistent, or non-actionable. Planning identifies the accepted amendment by an exact persisted path and version. Describe the story recovery for each case. Do not call tools.",
+      "expected_output": "Before workflow-policy begins the canonical freeze -> report -> escalate -> stop sequence, the affected story is moved to `blocked` and its blocker reason, unblock condition, and other evidence are preserved before drift recovery. After workflow-policy completes that exact sequence, planning decides whether the full material-boundary predicate remains unchanged. A change to the security, feasibility, or delivery boundary requires `critique-workflow` to critique a targeted amendment before planning accepts it with a new plan version. A missing, inconsistent, or non-actionable required story or plan field also makes the plan non-viable and requires that amendment path. Execution-workflow must consume the exact accepted amendment path and version before resuming the blocked story at `research`, without adding a lifecycle state.",
       "assertions": [
         "The response blocks/freezes the affected story and preserves its evidence before workflow-policy begins the canonical freeze -> report -> escalate -> stop sequence.",
         "The response moves the affected story to `blocked` before drift recovery and preserves the blocker reason and unblock condition as evidence.",
@@ -40,6 +43,7 @@
         "A material delivery-boundary change requires an accepted amendment and new plan version before execution-workflow resumes the story.",
         "A missing, inconsistent, or non-actionable required plan field makes the plan non-viable and requires an accepted amendment and new plan version before execution-workflow resumes the story.",
         "A missing, inconsistent, or non-actionable required story field requires an accepted amendment and new plan version before execution-workflow resumes the story.",
+        "The response requires execution-workflow to consume the exact accepted amendment path and version before resuming the story.",
         "The response requires `critique-workflow` to critique every targeted amendment before planning accepts it.",
         "The response preserves workflow-policy ownership of freeze -> report -> escalate -> stop and the canonical story lifecycle."
       ]

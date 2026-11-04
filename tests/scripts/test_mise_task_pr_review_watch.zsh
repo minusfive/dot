@@ -58,9 +58,17 @@ if [[ "$1" == api ]]; then
             exit 1
         fi
         if [[ -n "${GH_REVIEW_WATCH_GRAPHQL_INNER_FIXTURE:-}" && "$*" == *"PullRequestReviewThread"* ]]; then
-            cat "$GH_REVIEW_WATCH_GRAPHQL_INNER_FIXTURE"
+            if [[ -n "${GH_REVIEW_WATCH_GRAPHQL_INNER_PAGE_FIXTURE:-}" && "$*" == *"cursor=inner-next"* ]]; then
+                cat "$GH_REVIEW_WATCH_GRAPHQL_INNER_PAGE_FIXTURE"
+            else
+                cat "$GH_REVIEW_WATCH_GRAPHQL_INNER_FIXTURE"
+            fi
         elif [[ -n "${GH_REVIEW_WATCH_GRAPHQL_FIXTURE:-}" ]]; then
-            cat "$GH_REVIEW_WATCH_GRAPHQL_FIXTURE"
+            if [[ -n "${GH_REVIEW_WATCH_GRAPHQL_PAGE_FIXTURE:-}" && "$*" == *"cursor=outer-next"* ]]; then
+                cat "$GH_REVIEW_WATCH_GRAPHQL_PAGE_FIXTURE"
+            else
+                cat "$GH_REVIEW_WATCH_GRAPHQL_FIXTURE"
+            fi
         else
             printf '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"isResolved":false,"comments":{"nodes":[{"id":"RC_201","fullDatabaseId":"201"}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}\n'
         fi
@@ -978,6 +986,66 @@ jq -e '
   (.reconciliation[0].inline_comments | all(.is_resolved == false)) and
   (.reconciliation[0].resolution_warnings | length == 0)
 ' "$__poll_output" >/dev/null || fail "more than 32 inline comments were not fully resolved"
+
+cat > "$__fixture_dir/pr-27.json" <<'EOF'
+{"number":27,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-27","headRefOid":"oid-27","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-27.json" <<'EOF'
+[[{"id":2702,"node_id":"RC_2702","created_at":"2024-01-04T00:00:00Z","body":"later outer page comment","html_url":"https://example.test/inline/2702"}]]
+EOF
+cat > "$__fixture_dir/issues-27.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/graphql-paginated-outer-27.json" <<'EOF'
+{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"id":"RT_2701","isResolved":false,"comments":{"nodes":[{"id":"RC_2701","fullDatabaseId":"2701"}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}],"pageInfo":{"hasNextPage":true,"endCursor":"outer-next"}}}}}}
+EOF
+cat > "$__fixture_dir/graphql-paginated-outer-page-27.json" <<'EOF'
+{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"id":"RT_2702","isResolved":true,"comments":{"nodes":[{"id":"RC_2702","fullDatabaseId":"2702"}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+: > "$__log_file"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-paginated-outer-27.json"
+export GH_REVIEW_WATCH_GRAPHQL_PAGE_FIXTURE="$__fixture_dir/graphql-paginated-outer-page-27.json"
+run_action add 27 > "$__poll_output"
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE GH_REVIEW_WATCH_GRAPHQL_PAGE_FIXTURE
+jq -e '
+  (.reconciliation[0].inline_comments | length == 1) and
+  (.reconciliation[0].inline_comments | any(.id == 2702 and .is_resolved == true)) and
+  (.reconciliation[0].resolution_warnings | length == 0)
+' "$__poll_output" >/dev/null || fail "valid outer review-thread later page was not mapped"
+grep -qF 'cursor=outer-next' "$__log_file" ||
+    fail "outer review-thread pagination did not request the distinct later cursor"
+
+cat > "$__fixture_dir/pr-28.json" <<'EOF'
+{"number":28,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-28","headRefOid":"oid-28","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-28.json" <<'EOF'
+[[{"id":2801,"node_id":"RC_2801","created_at":"2024-01-04T00:00:00Z","body":"first inner page comment","html_url":"https://example.test/inline/2801"},{"id":2802,"node_id":"RC_2802","created_at":"2024-01-04T00:00:00Z","body":"later inner page comment","html_url":"https://example.test/inline/2802"}]]
+EOF
+cat > "$__fixture_dir/issues-28.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/graphql-paginated-inner-28.json" <<'EOF'
+{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"id":"RT_2801","isResolved":false,"comments":{"nodes":[{"id":"RC_2801","fullDatabaseId":"2801"}],"pageInfo":{"hasNextPage":true,"endCursor":"inner-next"}}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}
+EOF
+cat > "$__fixture_dir/graphql-paginated-inner-page-28.json" <<'EOF'
+{"data":{"node":{"isResolved":true,"comments":{"nodes":[{"id":"RC_2802","fullDatabaseId":"2802"}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+: > "$__log_file"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-paginated-inner-28.json"
+export GH_REVIEW_WATCH_GRAPHQL_INNER_FIXTURE="$__fixture_dir/graphql-paginated-inner-28.json"
+export GH_REVIEW_WATCH_GRAPHQL_INNER_PAGE_FIXTURE="$__fixture_dir/graphql-paginated-inner-page-28.json"
+run_action add 28 > "$__poll_output"
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE GH_REVIEW_WATCH_GRAPHQL_INNER_FIXTURE GH_REVIEW_WATCH_GRAPHQL_INNER_PAGE_FIXTURE
+jq -e '
+  (.reconciliation[0].inline_comments | length == 2) and
+  (.reconciliation[0].inline_comments | any(.id == 2801 and .is_resolved == false)) and
+  (.reconciliation[0].inline_comments | any(.id == 2802 and .is_resolved == true)) and
+  (.reconciliation[0].resolution_warnings | length == 0)
+' "$__poll_output" >/dev/null || fail "distinct inner review-thread comment later page was not mapped"
+grep -qF 'cursor=inner-next' "$__log_file" ||
+    fail "inner review-thread comment pagination did not request the distinct later cursor"
 
 cat > "$__fixture_dir/pr-24.json" <<'EOF'
 {"number":24,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-24","headRefOid":"oid-24","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
