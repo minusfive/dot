@@ -63,7 +63,7 @@ EOF
 
     git -C "$fixture" add -A
     git -C "$fixture" -c user.name=test -c user.email=test@example.com \
-        -c commit.gpgsign=false commit -qm baseline ||
+        -c commit.gpgsign=false -c core.hooksPath=/dev/null commit -qm baseline ||
         fail "could not create fixture baseline"
     printf '%s\n' 'unrelated change' >"$fixture/README.md"
     validation_output="$(mise run ai:skills:evals:validate \
@@ -73,8 +73,11 @@ EOF
         fail "changed-only validator did not skip unrelated changes"
     rm "$fixture/README.md"
     printf '%s\n' 'skill change' >"$skill_dir/notes.txt"
-    mise run ai:skills:evals:validate --base-path "$fixture" --changed-only >/dev/null ||
+    validation_output="$(mise run ai:skills:evals:validate \
+        --base-path "$fixture" --changed-only 2>&1)" ||
         fail "changed-only validator rejected a changed skill"
+    print -r -- "$validation_output" | grep -qvF "No skill evaluation files changed" ||
+        fail "changed-only validator skipped a changed skill"
     rm "$skill_dir/notes.txt"
 
     mkdir -p "$real_home_workspace/iteration-1"

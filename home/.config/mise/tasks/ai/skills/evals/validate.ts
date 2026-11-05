@@ -266,6 +266,8 @@ function selectChangedSkills(context: Context, paths: string[], changedRoot: str
   const skillRoots = [context.primarySkillRoot, ...context.alternateSkillRoots].map((root) =>
     relative(changedRoot, root),
   );
+  const workspaceRoot = relative(changedRoot, join(context.basePath, ".agents/eval-workspaces"));
+  const workspacePrefix = workspaceRoot === "" ? "" : `${workspaceRoot}/`;
   for (const path of paths) {
     if (path === "home/.config/mise/tasks/ai/skills/evals/migration-map.json") return null;
     if (path.startsWith("home/.config/mise/tasks/ai/skills/evals/")) continue;
@@ -273,7 +275,6 @@ function selectChangedSkills(context: Context, paths: string[], changedRoot: str
       const skill = skillFromChangedPath(path, root);
       if (skill) selected.add(skill);
     }
-    const workspacePrefix = ".agents/eval-workspaces/";
     if (path.startsWith(workspacePrefix)) {
       const [skill] = path.slice(workspacePrefix.length).split("/");
       if (skill) selected.add(skill);
@@ -1043,8 +1044,13 @@ function main(): void {
       die(`invalid evaluation workspace skill: ${displayPath(workspaceSkill, basePath)}`);
     }
     const workspaceSkillName = basename(workspaceSkill);
-    if (context.selectedSkills && !context.selectedSkills.has(workspaceSkillName)) continue;
     const resolvedSkill = resolveWorkspaceSkill(context, workspaceSkillName);
+    if (
+      context.selectedSkills &&
+      !context.selectedSkills.has(workspaceSkillName) &&
+      !context.selectedSkills.has(resolvedSkill)
+    )
+      continue;
     const historicalWorkspace = isMigrationSource(context, workspaceSkillName);
     let primarySpec = "";
     let alternateSpec = "";
