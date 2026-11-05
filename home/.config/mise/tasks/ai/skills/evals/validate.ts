@@ -244,7 +244,7 @@ function changedGitRoot(basePath: string): string {
 /** Return the tracked and untracked paths changed from the current Git HEAD. */
 function changedPaths(basePath: string): string[] {
   const root = changedGitRoot(basePath);
-  const tracked = runGitAt(root, ["diff", "--name-only", "HEAD"]);
+  const tracked = runGitAt(root, ["diff", "--name-only", "--no-renames", "HEAD"]);
   const untracked = runGitAt(root, ["ls-files", "--others", "--exclude-standard"]);
   return [
     ...new Set([...tracked.split("\n"), ...untracked.split("\n")].filter((path): path is string => path.length > 0)),
@@ -968,7 +968,7 @@ function main(): void {
   rejectDuplicateSkillNames(context);
 
   const sourceMigrationMap = join(context.taskSourceDir, "migration-map.json");
-  const externalMigrationMap = join(basePath, "home/.config/mise/tasks/ai/skills/evals/migration-map.json");
+  const externalMigrationMap = join(projectRoot, "home/.config/mise/tasks/ai/skills/evals/migration-map.json");
   let migrationMap = "";
   const sourceMigrationMapIsLocal =
     relative(projectRoot, sourceMigrationMap) !== ".." &&

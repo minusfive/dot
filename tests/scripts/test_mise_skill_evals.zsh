@@ -8,12 +8,13 @@ main() {
     local fixture skill_dir spec_dir workspace_parent workspace_dir workspace_root case_path
     local materialized_iteration materialized_case retired_iteration configuration
     local migration_map historical_workspace global_skill_dir global_workspace_dir
-    local validation_output missing_map_base renamed_workspace canonical_output
+    local validation_output missing_map_base renamed_workspace canonical_output fixture_real
     local collision_primary_dir collision_alternate_dir
     local selection_skill_dir selection_spec_dir selection_workspace_root
     local selection_active selection_retired selection_configuration
 
     fixture="$(test_fixture_dir skill-evals)" || fail "could not create fixture directory"
+    fixture_real="$(cd "$fixture" && pwd -P)"
     trap "rm -rf -- '$fixture'" EXIT
     skill_dir="$fixture/.agents/skills/demo"
     spec_dir="$skill_dir/evals"
@@ -83,10 +84,9 @@ EOF
         --base-path "$fixture/home" --skills-path "$fixture/.agents/skills" \
         --skill demo --iteration 99 --dry-run 2>&1)" ||
         fail "prepare task rejected a base path with a separate skill source"
-    print -r -- "$canonical_output" | grep -qF ".agents/eval-workspaces/demo/iteration-99" ||
+    print -r -- "$canonical_output" |
+        grep -qxF -- "Would create ${fixture_real}/.agents/eval-workspaces/demo/iteration-99" ||
         fail "prepare task did not use the repository-root evaluation workspace"
-    print -r -- "$canonical_output" | grep -qvF "home/.agents/eval-workspaces" ||
-        fail "prepare task used a base-path-local evaluation workspace"
 
     mv "$migration_map" "$fixture/migration-map-absent.json"
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
