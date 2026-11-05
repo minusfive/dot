@@ -32,6 +32,8 @@ main() {
     [[ "$base_path" == /* ]] || base_path="${project_root}/${base_path}"
     base_path="$(cd "$base_path" 2>/dev/null && pwd -P)" ||
         die "base path '${usage_base_path:-.}' does not exist"
+    project_root="$(git -C "$base_path" rev-parse --show-toplevel 2>/dev/null || true)"
+    [[ -n "$project_root" ]] || die "base path is not inside a git repository"
 
     skills_path="$usage_skills_path"
     [[ -n "$skills_path" ]] || skills_path="${base_path}/.agents/skills"
@@ -66,7 +68,7 @@ main() {
     ' "$spec" >/dev/null || die "invalid evaluation specification: ${spec#$base_path/}"
 
     case_ids=( ${(f)"$(jq -r '.evals[].id' "$spec")"} )
-    workspace_root="${base_path}/.agents/eval-workspaces/${skill}"
+    workspace_root="${project_root}/.agents/eval-workspaces/${skill}"
     iteration_dir="${workspace_root}/iteration-${usage_iteration}"
     [[ ! -d "$iteration_dir" ]] ||
         die "evaluation iteration already exists: ${iteration_dir#$base_path/}; use a new iteration number"

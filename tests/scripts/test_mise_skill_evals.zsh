@@ -8,15 +8,14 @@ main() {
     local fixture skill_dir spec_dir workspace_parent workspace_dir workspace_root case_path
     local materialized_iteration materialized_case retired_iteration configuration
     local migration_map historical_workspace global_skill_dir global_workspace_dir
-    local validation_output real_home_workspace missing_map_base renamed_workspace
+    local validation_output missing_map_base renamed_workspace canonical_output fixture_real
     local collision_primary_dir collision_alternate_dir
     local selection_skill_dir selection_spec_dir selection_workspace_root
     local selection_active selection_retired selection_configuration
 
     fixture="$(test_fixture_dir skill-evals)" || fail "could not create fixture directory"
-    real_home_workspace="$__root_dir/home/.agents/eval-workspaces/task-orchestration"
-    [[ ! -e "$real_home_workspace" ]] || fail "real home mapping fixture already exists"
-    trap "rm -rf -- '$fixture' '$real_home_workspace'" EXIT
+    fixture_real="$(cd "$fixture" && pwd -P)"
+    trap "rm -rf -- '$fixture'" EXIT
     skill_dir="$fixture/.agents/skills/demo"
     spec_dir="$skill_dir/evals"
     workspace_parent="$fixture/.agents/eval-workspaces"
@@ -61,25 +60,33 @@ EOF
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
         fail "validator rejected a valid fixture"
 
-    mkdir -p "$real_home_workspace/iteration-1"
-    jq -n '{
-        version: 1,
-        skill_name: "task-orchestration",
-        iteration: 1,
-        case_ids: ["legacy-case"]
-    }' >"$real_home_workspace/iteration-1/manifest.json"
-    for extra in benchmark.json feedback.json grading-summary.json; do
-        jq -n '{
-            skill_name: "task-orchestration",
-            iteration: 1
-        }' >"$real_home_workspace/iteration-1/$extra"
-    done
-    mise run ai:skills:evals:validate --base-path home >/dev/null ||
-        fail "validator did not resolve the canonical migration map for --base-path home"
-    rm -rf "$real_home_workspace"
+    git -C "$fixture" add -A
+    git -C "$fixture" -c user.name=test -c user.email=test@example.com \
+        -c commit.gpgsign=false -c core.hooksPath=/dev/null commit -qm baseline ||
+        fail "could not create fixture baseline"
+    printf '%s\n' 'unrelated change' >"$fixture/README.md"
+    validation_output="$(mise run ai:skills:evals:validate \
+        --base-path "$fixture" --changed-only 2>&1)" ||
+        fail "changed-only validator rejected unrelated changes"
+    print -r -- "$validation_output" | grep -qF "No skill evaluation files changed" ||
+        fail "changed-only validator did not skip unrelated changes"
+    rm "$fixture/README.md"
+    printf '%s\n' 'skill change' >"$skill_dir/notes.txt"
+    validation_output="$(mise run ai:skills:evals:validate \
+        --base-path "$fixture" --changed-only 2>&1)" ||
+        fail "changed-only validator rejected a changed skill"
+    if print -r -- "$validation_output" | grep -qF "No skill evaluation files changed"; then
+        fail "changed-only validator skipped a changed skill"
+    fi
+    rm "$skill_dir/notes.txt"
 
-    mise run ai:skills:evals:validate --base-path home >/dev/null ||
-        fail "validator did not resolve its migration map from the task source"
+    canonical_output="$(mise run ai:skills:evals:prepare \
+        --base-path "$fixture/home" --skills-path "$fixture/.agents/skills" \
+        --skill demo --iteration 99 --dry-run 2>&1)" ||
+        fail "prepare task rejected a base path with a separate skill source"
+    print -r -- "$canonical_output" |
+        grep -qxF -- "Would create ${fixture_real}/.agents/eval-workspaces/demo/iteration-99" ||
+        fail "prepare task did not use the repository-root evaluation workspace"
 
     mv "$migration_map" "$fixture/migration-map-absent.json"
     mise run ai:skills:evals:validate --base-path "$fixture" >/dev/null ||
@@ -141,6 +148,7 @@ EOF
     missing_map_base="$fixture/nested-base"
     mkdir -p "$missing_map_base/.agents/skills/demo/evals"
     mkdir -p "$missing_map_base/.agents/eval-workspaces/legacy-demo/iteration-1"
+    git -C "$missing_map_base" init -q
     cp "$spec_dir/evals.json" "$missing_map_base/.agents/skills/demo/evals/evals.json"
     for extra in manifest.json benchmark.json feedback.json grading-summary.json; do
         if [[ "$extra" == manifest.json ]]; then
