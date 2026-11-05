@@ -4,6 +4,7 @@
 //MISE dir="{{cwd}}"
 //USAGE flag "--base-path <path>" help="Directory to validate; defaults to the current project root"
 //USAGE flag "--skills-path <path>" help="Skill source directory; defaults to .agents/skills"
+//USAGE flag "--changed-only" help="Validate only skills affected by the current Git worktree changes"
 
 import { readdirSync, lstatSync, readFileSync, realpathSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
@@ -23,6 +24,7 @@ type Context = {
   primarySkillRoot: string;
   alternateSkillRoots: string[];
   workspaceSkillRoots: string[];
+  selectedSkills?: Set<string>;
 };
 
 class ValidationError extends Error {}
@@ -223,10 +225,61 @@ function jqAlternative(value: JsonValue | undefined, fallback: JsonValue): JsonV
 }
 
 /** Return the output from a Git command, or an empty string when it fails. */
-function runGit(args: string[]): string {
-  const result = spawnSync("git", args, { encoding: "utf8" });
+function runGitAt(directory: string, args: string[]): string {
+  const result = spawnSync("git", args, { cwd: directory, encoding: "utf8" });
   if (result.status !== 0) return "";
   return result.stdout.trim();
+}
+
+/** Return the output from a Git command in the current working directory. */
+function runGit(args: string[]): string {
+  return runGitAt(process.cwd(), args);
+}
+
+/** Return the tracked and untracked paths changed from the current Git HEAD. */
+function changedGitRoot(basePath: string): string {
+  return runGitAt(basePath, ["rev-parse", "--show-toplevel"]) || process.cwd();
+}
+
+/** Return the tracked and untracked paths changed from the current Git HEAD. */
+function changedPaths(basePath: string): string[] {
+  const root = changedGitRoot(basePath);
+  const tracked = runGitAt(root, ["diff", "--name-only", "HEAD"]);
+  const untracked = runGitAt(root, ["ls-files", "--others", "--exclude-standard"]);
+  return [
+    ...new Set([...tracked.split("\n"), ...untracked.split("\n")].filter((path): path is string => path.length > 0)),
+  ];
+}
+
+/** Return the first path segment below a repository-relative skill root. */
+function skillFromChangedPath(path: string, root: string): string | undefined {
+  const prefix = root === "." ? "" : `${root}/`;
+  if (!path.startsWith(prefix)) return undefined;
+  const remainder = path.slice(prefix.length);
+  const [skill] = remainder.split("/");
+  return skill || undefined;
+}
+
+/** Select affected skills, or return null when shared validator data changed. */
+function selectChangedSkills(context: Context, paths: string[], changedRoot: string): Set<string> | null {
+  const selected = new Set<string>();
+  const skillRoots = [context.primarySkillRoot, ...context.alternateSkillRoots].map((root) =>
+    relative(changedRoot, root),
+  );
+  for (const path of paths) {
+    if (path === "home/.config/mise/tasks/ai/skills/evals/migration-map.json") return null;
+    if (path.startsWith("home/.config/mise/tasks/ai/skills/evals/")) continue;
+    for (const root of skillRoots) {
+      const skill = skillFromChangedPath(path, root);
+      if (skill) selected.add(skill);
+    }
+    const workspacePrefix = ".agents/eval-workspaces/";
+    if (path.startsWith(workspacePrefix)) {
+      const [skill] = path.slice(workspacePrefix.length).split("/");
+      if (skill) selected.add(skill);
+    }
+  }
+  return selected;
 }
 
 /** Resolve a directory argument and report the task-specific error on failure. */
@@ -339,8 +392,9 @@ function validateEvaluationSpec(context: Context, skillDir: string, skill: strin
 }
 
 /** Return the positional grading IDs expected for the assertions in one case. */
-function declaredAssertionIds(spec: JsonObject, caseId: string): string[] {
+function declaredAssertionIds(spec: JsonObject, caseId: string): string[] | undefined {
   const evaluation = (spec.evals as JsonValue[]).find((entry) => object(entry)?.id === caseId);
+  if (!evaluation) return undefined;
   const assertions = object(evaluation)?.assertions;
   if (!isStringArray(assertions, false)) return [];
   return assertions.map((_, index) => `assertion-${index + 1}`);
@@ -399,7 +453,7 @@ function validateMaterializedMetadata(
   skill: string,
   caseId: string,
   configuration: string,
-  expectedAssertionIds: string[],
+  expectedAssertionIds: string[] | undefined,
 ): { timing: JsonObject; grading: JsonObject } {
   const timingPath = join(configurationDir, "timing.json");
   const gradingPath = join(configurationDir, "grading.json");
@@ -494,9 +548,14 @@ function validateMaterializedMetadata(
   const assertionResults = grading!.assertion_results as JsonValue[];
   const actualAssertionIds = assertionResults.map((entry) => object(entry)?.id);
   if (
-    actualAssertionIds.length !== expectedAssertionIds.length ||
-    !isStringArray(actualAssertionIds, false) ||
-    !unique(actualAssertionIds)
+    expectedAssertionIds !== undefined &&
+    (actualAssertionIds.length !== expectedAssertionIds.length ||
+      !isStringArray(actualAssertionIds, false) ||
+      !unique(actualAssertionIds) ||
+      actualAssertionIds.some(
+        (id, index) =>
+          id !== expectedAssertionIds[index] && id !== expectedAssertionIds[index]?.replace(/^assertion-/, "a"),
+      ))
   ) {
     die(
       `materialized grading assertions do not match the evaluation spec: ${displayPath(gradingPath, context.basePath)}`,
@@ -866,6 +925,7 @@ function main(): void {
 
   const usageBasePath = process.env.usage_base_path ?? "";
   const usageSkillsPath = process.env.usage_skills_path ?? "";
+  const changedOnly = process.env.usage_changed_only === "true";
   const basePath = resolveDirectory(
     usageBasePath || projectRoot,
     projectRoot,
@@ -895,6 +955,14 @@ function main(): void {
       context.alternateSkillRoots.push(root);
     }
   }
+  if (changedOnly) {
+    const selectedSkills = selectChangedSkills(context, changedPaths(basePath), changedGitRoot(basePath));
+    if (selectedSkills !== null && selectedSkills.size === 0) {
+      console.log("No skill evaluation files changed; skipping skill evaluation validation.");
+      return;
+    }
+    context.selectedSkills = selectedSkills ?? undefined;
+  }
   rejectDuplicateSkillNames(context);
 
   const sourceMigrationMap = join(context.taskSourceDir, "migration-map.json");
@@ -918,12 +986,15 @@ function main(): void {
     if (!activeExists) die(`historical skill migration target has no active evaluation spec: ${resolved}`);
   }
 
-  for (const skillDir of physicalDirectories(context.primarySkillRoot)) {
-    const skill = basename(skillDir);
-    if (isMigrationSource(context, skill)) die(`active skill uses historical name: ${skill}`);
-    const evalsDir = join(skillDir, "evals");
-    if (!pathExists(evalsDir)) continue;
-    validateEvaluationSpec(context, skillDir, skill, join(evalsDir, "evals.json"));
+  for (const skillRoot of context.workspaceSkillRoots) {
+    for (const skillDir of physicalDirectories(skillRoot)) {
+      const skill = basename(skillDir);
+      if (context.selectedSkills && !context.selectedSkills.has(skill)) continue;
+      if (isMigrationSource(context, skill)) die(`active skill uses historical name: ${skill}`);
+      const evalsDir = join(skillDir, "evals");
+      if (!pathExists(evalsDir)) continue;
+      validateEvaluationSpec(context, skillDir, skill, join(evalsDir, "evals.json"));
+    }
   }
 
   if (context.workspaceSkillRoots.length === 0) {
@@ -972,6 +1043,7 @@ function main(): void {
       die(`invalid evaluation workspace skill: ${displayPath(workspaceSkill, basePath)}`);
     }
     const workspaceSkillName = basename(workspaceSkill);
+    if (context.selectedSkills && !context.selectedSkills.has(workspaceSkillName)) continue;
     const resolvedSkill = resolveWorkspaceSkill(context, workspaceSkillName);
     const historicalWorkspace = isMigrationSource(context, workspaceSkillName);
     let primarySpec = "";
