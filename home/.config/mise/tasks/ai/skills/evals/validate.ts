@@ -266,7 +266,7 @@ function selectChangedSkills(context: Context, paths: string[], changedRoot: str
   const skillRoots = [context.primarySkillRoot, ...context.alternateSkillRoots].map((root) =>
     relative(changedRoot, root),
   );
-  const workspaceRoot = relative(changedRoot, join(context.basePath, ".agents/eval-workspaces"));
+  const workspaceRoot = relative(changedRoot, join(context.projectRoot, ".agents/eval-workspaces"));
   const workspacePrefix = workspaceRoot === "" ? "" : `${workspaceRoot}/`;
   for (const path of paths) {
     if (path === "home/.config/mise/tasks/ai/skills/evals/migration-map.json") return null;
@@ -921,17 +921,18 @@ function loadMigration(context: Context, migrationMap: string): void {
 
 /** Validate the selected base path and all repository-local evaluation artifacts. */
 function main(): void {
-  const projectRoot = runGit(["rev-parse", "--show-toplevel"]);
-  if (!projectRoot) die("this task must be run inside a git repository");
+  const commandProjectRoot = runGit(["rev-parse", "--show-toplevel"]);
+  if (!commandProjectRoot) die("this task must be run inside a git repository");
 
   const usageBasePath = process.env.usage_base_path ?? "";
   const usageSkillsPath = process.env.usage_skills_path ?? "";
   const changedOnly = process.env.usage_changed_only === "true";
   const basePath = resolveDirectory(
-    usageBasePath || projectRoot,
-    projectRoot,
+    usageBasePath || commandProjectRoot,
+    commandProjectRoot,
     `base path '${usageBasePath || "."}' does not exist`,
   );
+  const projectRoot = runGitAt(basePath, ["rev-parse", "--show-toplevel"]) || commandProjectRoot;
   const skillsPath = resolveDirectory(
     isAbsolute(usageSkillsPath) ? usageSkillsPath : join(basePath, usageSkillsPath || ".agents/skills"),
     projectRoot,
@@ -950,7 +951,7 @@ function main(): void {
     workspaceSkillRoots: [skillsPath],
   };
 
-  for (const root of findSkillRoots(basePath)) {
+  for (const root of findSkillRoots(projectRoot)) {
     if (!context.workspaceSkillRoots.includes(root)) {
       context.workspaceSkillRoots.push(root);
       context.alternateSkillRoots.push(root);
@@ -1018,7 +1019,7 @@ function main(): void {
     }
   }
 
-  const workspaceDir = join(basePath, ".agents/eval-workspaces");
+  const workspaceDir = join(projectRoot, ".agents/eval-workspaces");
   if (!pathExists(workspaceDir)) {
     console.log("Skill evaluation specs are valid. No repository-local workspaces found.");
     return;
