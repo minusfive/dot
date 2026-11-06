@@ -319,7 +319,9 @@ grep -Fxq managed-v1 "$__fixture_home/.config/config-dir-contract/managed.txt" |
     fail "bootstrap file resource was not applied"
 [[ "$(fixture_git -C "$__fixture_checkout" config --local --get-regexp '^remote\..*\.url$')" == "remote.origin.url $__fixture_origin" ]] ||
     fail "fixture checkout origin was not preserved"
-local __config_link_target="$(readlink "$__fixture_config")"
+local __config_link_target
+__config_link_target="$(readlink "$__fixture_config")" ||
+    fail "could not read the config-dir link target"
 
 # Reusing the checkout accepts the existing link and keeps its target stable.
 fixture_mise --no-hooks bootstrap \
@@ -439,7 +441,9 @@ assert_invalid_state_unchanged "missing config-dir path"
 
 local __unknown_config_dir="$__fixture_checkout/unknown-config"
 printf '%s\n' unknown >| "$__fixture_checkout/unknown-config"
-local __unknown_config_hash="$(shasum -a 256 "$__unknown_config_dir" | cut -d ' ' -f 1)"
+local __unknown_config_hash
+__unknown_config_hash="$(shasum -a 256 "$__unknown_config_dir" | cut -d ' ' -f 1)" ||
+    fail "could not hash the unknown config-dir fixture"
 snapshot_invalid_state
 expect_failure "unknown config-dir file" "not a directory" \
     fixture_mise --no-hooks bootstrap \
@@ -469,8 +473,11 @@ assert_invalid_state_unchanged "escaping config-dir symlink"
 local __dangling_config_dir="$__fixture_checkout/dangling"
 local __dangling_config_target="$__fixture_dir/missing-config-target"
 ln -s "$__dangling_config_target" "$__dangling_config_dir"
-local __dangling_config_link_target="$(readlink "$__dangling_config_dir")"
-local __dangling_config_kind="$(
+local __dangling_config_link_target
+__dangling_config_link_target="$(readlink "$__dangling_config_dir")" ||
+    fail "could not read the dangling config-dir link target"
+local __dangling_config_kind
+__dangling_config_kind="$(
     if [[ -L "$__dangling_config_dir" ]]; then
         print -r -- symlink
     elif [[ -e "$__dangling_config_dir" ]]; then
@@ -478,7 +485,7 @@ local __dangling_config_kind="$(
     else
         print -r -- absent
     fi
-)"
+)" || fail "could not classify the dangling config-dir fixture"
 snapshot_invalid_state
 expect_failure "dangling config-dir symlink" "not a directory" \
     fixture_mise --no-hooks bootstrap \
@@ -520,7 +527,9 @@ run_signal_cleanup_probe() {
         cat "$__signal_probe_log"
         fail "$__signal signal cleanup probe did not become ready"
     }
-    local __signal_probe_fixture="$(cat "$__signal_probe_ready")"
+    local __signal_probe_fixture
+    __signal_probe_fixture="$(cat "$__signal_probe_ready")" ||
+        fail "could not read the $__signal signal probe fixture"
     kill "-$__signal" "$__signal_probe_pid"
     local __signal_probe_status=0
     wait "$__signal_probe_pid" || __signal_probe_status="$?"
