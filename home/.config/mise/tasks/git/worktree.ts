@@ -595,7 +595,7 @@ function currentRepositoryPaths(entries?: PorcelainEntry[]): { current: string; 
     currentResult.status === 0 && String(currentResult.stdout ?? "").trim()
       ? canonicalPath(String(currentResult.stdout).trim())
       : "";
-  const mainEntry = inventory.find((entry) => entry.path && !entry.bare);
+  const mainEntry = inventory[0];
   const common = mainEntry?.path ? canonicalPath(mainEntry.path) : "";
   return { current, common };
 }
@@ -774,11 +774,10 @@ function queryPullRequests(
     [
       "api",
       "--paginate",
-      "--slurp",
       "--hostname",
       hostname,
       "--jq",
-      "[.[] | {number: .number, title: .title, head: {ref: .head.ref}}]",
+      ".[] | {number: .number, title: .title, head: {ref: .head.ref}}",
       `/repos/${owner}/${repo}/pulls?state=${state}&per_page=100`,
     ],
     undefined,
@@ -786,9 +785,11 @@ function queryPullRequests(
   );
   if (result.status !== 0) return { ok: false, items: [] };
   try {
-    const parsed = JSON.parse(String(result.stdout ?? "")) as unknown;
-    const pages = Array.isArray(parsed) && parsed.every((page) => Array.isArray(page)) ? parsed.flat() : parsed;
-    if (!Array.isArray(pages)) return { ok: false, items: [] };
+    const pages = String(result.stdout ?? "")
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as unknown)
+      .flatMap((page) => (Array.isArray(page) ? page : [page]));
     const items: PullRequestListItem[] = [];
     for (const item of pages) {
       if (!item || typeof item !== "object" || typeof item.number !== "number") {
@@ -1569,7 +1570,9 @@ async function runClosedPrFlow(apply: boolean, selectedKeyword = ""): Promise<vo
   if (process.stdin.isTTY !== true || process.stdout.isTTY !== true) {
     throw new TaskExitError(2, "Closed-PR worktree apply requires an interactive TTY.");
   }
-  ensureCommand("fzf", "--closed-prs apply mode");
+  if (selectedKeyword !== ALL_CLOSED_PRS_KEYWORD) {
+    ensureCommand("fzf", "--closed-prs apply mode");
+  }
   const selected = selectedKeyword === ALL_CLOSED_PRS_KEYWORD ? eligible : pickClosedPrRows(initial.rows);
   if (selected.length === 0) {
     throw new TaskExitError(130, "Cancelled; no worktrees removed.");
@@ -1646,7 +1649,9 @@ async function runStaleFlow(apply: boolean, selectedKeyword = ""): Promise<void>
   if (process.stdin.isTTY !== true || process.stdout.isTTY !== true) {
     throw new TaskExitError(2, "Stale worktree apply requires an interactive TTY.");
   }
-  ensureCommand("fzf", "--stale apply mode");
+  if (selectedKeyword !== ALL_STALE_WORKTREES_KEYWORD) {
+    ensureCommand("fzf", "--stale apply mode");
+  }
   const selected = selectedKeyword === ALL_STALE_WORKTREES_KEYWORD ? eligible : pickStaleRows(initial.rows);
   if (selected.length === 0) {
     throw new TaskExitError(130, "Cancelled; no worktrees removed.");

@@ -95,10 +95,19 @@ cat > "$__bin_dir/gh" <<'EOF'
 set -euo pipefail
 
 printf '%s\n' "$*" >> "${GH_LOG:?}"
+if [[ "$*" == *" --slurp "* && "$*" == *" --jq "* ]]; then
+    printf '%s\n' 'gh api does not support --slurp with --jq' >&2
+    exit 2
+fi
 case "${GH_MODE:-normal}:$*" in
     unavailable:*) exit 1 ;;
     malformed:*) printf '%s\n' 'not-json' ;;
     empty:*) printf '%s\n' '[]' ;;
+    *--paginate*state=open*) printf '%s\n' \
+        '{"number":10,"title":"open","head":{"ref":"open-branch"}}' ;;
+    *--paginate*state=closed*) printf '%s\n' \
+        '{"number":11,"title":"closed","head":{"ref":"closed-branch"}}' \
+        '{"number":12,"title":"closed release failure","head":{"ref":"closed-release"}}' ;;
     *state=open*) printf '%s\n' '[{"number":10,"title":"open","head":{"ref":"open-branch"}}]' ;;
     *state=closed*) printf '%s\n' '[{"number":11,"title":"closed","head":{"ref":"closed-branch"}},{"number":12,"title":"closed release failure","head":{"ref":"closed-release"}}]' ;;
     *) printf '%s\n' '[]' ;;
@@ -327,10 +336,15 @@ worktree_id() {
 }
 
 age_worktree() {
-    local __path="$1"
+    age_worktree_at "$__repository" "$1"
+}
+
+age_worktree_at() {
+    local __repository_path="$1"
+    local __path="$2"
     local __id="$(worktree_id "$__path")"
     for __field in registeredAt lastSeenAt leaseUntil; do
-        "$__real_git" -C "$__repository" config --local \
+        "$__real_git" -C "$__repository_path" config --local \
             "worktree.cleanup.v1.$__id.$__field" 2020-01-01T00:00:00.000Z
     done
 }
@@ -397,7 +411,6 @@ local __invalid_ref_id="$(worktree_id "$__fixture_dir/invalid-ref")"
 local __invalid_head_id="$(worktree_id "$__fixture_dir/invalid-head")"
 "$__real_git" -C "$__repository" config --local \
     "worktree.cleanup.v1.$__invalid_head_id.head" malformed
-"$__real_git" -C "$__repository" config --local worktree.cleanup.staleAfterDays 1
 "$__real_git" -C "$__repository" config --local --add worktree.cleanup.protectedRef refs/heads/protected
 "$__real_git" -C "$__repository" config --local --add worktree.cleanup.staleAfterDays ""
 local __empty_stale_config_status=0
@@ -510,6 +523,39 @@ set -e
     fail "closed-PR TOCTOU revalidation exited with $__closed_toctou_status"
 [[ -d "$__fixture_dir/closed-branch" ]] || fail "closed-PR TOCTOU revalidation removed a changed worktree"
 rm -f "$__fixture_dir/closed-branch/toctou.txt"
+
+local __bare_seed="$__fixture_dir/bare-seed"
+local __bare_repository="$__fixture_dir/bare.git"
+local __bare_linked="$__fixture_dir/bare-linked"
+local __bare_current="$__fixture_dir/bare-current"
+"$__real_git" -C "$__fixture_dir" init -q bare-seed
+"$__real_git" -C "$__bare_seed" config user.email test@example.com
+"$__real_git" -C "$__bare_seed" config user.name test
+"$__real_git" -C "$__bare_seed" config commit.gpgsign false
+"$__real_git" -C "$__bare_seed" commit --allow-empty -qm init
+"$__real_git" clone -q --bare "$__bare_seed" "$__bare_repository"
+"$__real_git" --git-dir="$__bare_repository" config remote.origin.url https://github.com/minusfive/dot.git
+"$__real_git" --git-dir="$__bare_repository" config --local --add worktree.cleanup.trustedGitHubHost github.com
+"$__real_git" --git-dir="$__bare_repository" worktree add -q "$__bare_linked" -b bare-linked
+"$__real_git" --git-dir="$__bare_repository" worktree add -q "$__bare_current" -b bare-current
+local __bare_linked_id="$(worktree_id "$__bare_linked")"
+local __bare_linked_head="$("$__real_git" -C "$__bare_linked" rev-parse HEAD)"
+"$__real_git" --git-dir="$__bare_repository" config --local "worktree.cleanup.v1.$__bare_linked_id.path" "$__bare_linked"
+"$__real_git" --git-dir="$__bare_repository" config --local "worktree.cleanup.v1.$__bare_linked_id.ref" refs/heads/bare-linked
+"$__real_git" --git-dir="$__bare_repository" config --local "worktree.cleanup.v1.$__bare_linked_id.head" "$__bare_linked_head"
+"$__real_git" --git-dir="$__bare_repository" config --local "worktree.cleanup.v1.$__bare_linked_id.releasedAt" ""
+"$__real_git" --git-dir="$__bare_repository" config --local "worktree.cleanup.v1.$__bare_linked_id.state" active
+for __field in registeredAt lastSeenAt leaseUntil; do
+    "$__real_git" --git-dir="$__bare_repository" config --local \
+        "worktree.cleanup.v1.$__bare_linked_id.$__field" 2020-01-01T00:00:00.000Z
+done
+local __bare_report="$(run_task_from "$__bare_current" "" false true)"
+print -r -- "$__bare_report" | grep -qF $'\t'"$__bare_repository"$'\t' ||
+    fail "bare repository root was not listed"
+print -r -- "$__bare_report" | grep -qF $'ELIGIBLE\t'"$__bare_repository"$'\t' &&
+    fail "bare repository root was eligible for cleanup"
+print -r -- "$__bare_report" | grep -qF $'ELIGIBLE\t'"$__bare_linked"$'\t' ||
+    fail "linked worktree was incorrectly protected as the bare repository root"
 
 touch "$__fixture_dir/fail-release-write"
 local __closed_release_failure_status=0
