@@ -48,17 +48,22 @@ mise run lint-skill-index >/dev/null || fail "root skill index validation failed
 mise run lint-skill-index --base-path home >/dev/null || fail "home skill index validation failed"
 grep -qF '["lint_skill_index"]' hk.pkl || fail "root skill index hook is missing"
 grep -qF '["lint_home_skill_index"]' hk.pkl || fail "home skill index hook is missing"
-local __hk_active_config
-__hk_active_config="$(
-    pkl eval --expression='hooks["check"].steps["lint"].steps' hk.pkl
-)"
-if print -r -- "$__hk_active_config" | grep -qF 'validate_skill_evals'; then
-    fail "automatic skill evaluation validation hook remains"
-fi
-if print -r -- "$__hk_active_config" |
-    grep -qF 'mise run ai:skills:evals:validate --changed-only --skills-path home/.agents/skills'; then
-    fail "automatic changed-only skill evaluation validation invocation remains"
-fi
+local __hk_active_config __hk_group __hk_hook __hk_path
+for __hk_hook in check fix pre-commit; do
+    for __hk_group in pre-lint lint; do
+        __hk_path="hooks[\"${__hk_hook}\"].steps[\"${__hk_group}\"].steps"
+        __hk_active_config="$(
+            pkl eval --expression="$__hk_path" hk.pkl
+        )" || fail "failed to resolve automatic hook path ${__hk_hook}/${__hk_group}"
+        if print -r -- "$__hk_active_config" | grep -qF 'validate_skill_evals'; then
+            fail "automatic skill evaluation validation hook remains in ${__hk_hook}/${__hk_group}"
+        fi
+        if print -r -- "$__hk_active_config" |
+            grep -qF 'mise run ai:skills:evals:validate --changed-only --skills-path home/.agents/skills'; then
+            fail "automatic changed-only skill evaluation validation invocation remains in ${__hk_hook}/${__hk_group}"
+        fi
+    done
+done
 mise run ai:skills:evals:validate --help >/dev/null ||
     fail "explicit skill evaluation validation task is unavailable"
 grep -qF '["validate_skill_name_conflicts"]' hk.pkl || fail "skill name conflict hook is missing"
