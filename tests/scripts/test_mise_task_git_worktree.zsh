@@ -28,12 +28,14 @@ mkdir -p "$__bin_dir" "$__repository"
 "$__real_git" -C "$__repository" config user.name test
 "$__real_git" -C "$__repository" config commit.gpgsign false
 "$__real_git" -C "$__repository" remote add origin https://github.com/minusfive/dot.git
+"$__real_git" -C "$__repository" config --local --add worktree.cleanup.trustedGitHubHost github.com
 "$__real_git" -C "$__repository" commit --allow-empty -qm init
 
 cat > "$__bin_dir/git" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
-printf '%s\t%s\\n' "\$PWD" "\$*" >> "$__git_log"
+__command_log="\${*//\$'\\n'/\\\\n}"
+printf '%s\t%s\\n' "\$PWD" "\$__command_log" >> "$__git_log"
 printf 'cwd\\t%s\\n' "\$PWD" >> "$__git_path_log"
 if [[ "\$PWD" != "$__fixture_dir" && "\$PWD" != "$__fixture_dir"/* ]]; then
     printf 'git working directory escaped fixture: %s\\n' "\$PWD" >&2
@@ -47,7 +49,8 @@ for __arg in "\$@"; do
             else
                 __path="\$(cd "\$(dirname "\$__arg")" && pwd -P)/\$(basename "\$__arg")"
             fi
-            printf 'path\\t%s\\n' "\$__path" >> "$__git_path_log"
+            __path_log="\${__path//\$'\\n'/\\\\n}"
+            printf 'path\\t%s\\n' "\$__path_log" >> "$__git_path_log"
             if [[ "\$__path" != "$__fixture_dir" && "\$__path" != "$__fixture_dir"/* ]]; then
                 printf 'git path escaped fixture: %s\\n' "\$__path" >&2
                 exit 97
@@ -55,10 +58,10 @@ for __arg in "\$@"; do
             ;;
     esac
 done
-if [[ "\${WORKTREE_LIST_MODE:-}" == empty && "\$*" == "worktree list --porcelain" ]]; then
+if [[ "\${WORKTREE_LIST_MODE:-}" == empty && "\$*" == "worktree list --porcelain -z" ]]; then
     exit 0
 fi
-if [[ "\${WORKTREE_LIST_MODE:-}" == empty && "\$*" == config\ --local\ --get-regexp* ]]; then
+if [[ "\${WORKTREE_LIST_MODE:-}" == empty && "\$*" == config\ --local\ --null\ --get-regexp* ]]; then
     exit 1
 fi
 if [[ "\$*" == "worktree prune"* ]]; then
@@ -75,6 +78,14 @@ if [[ -f "$__fixture_dir/fail-release-write" &&
     printf '%s\\n' 'forced fixture release write failure' >&2
     exit 1
 fi
+if [[ -f "$__fixture_dir/fail-release-field" &&
+    "\$*" == "config --local --replace-all"* ]]; then
+    __failed_field="\$(cat "$__fixture_dir/fail-release-field")"
+    if [[ "\$*" == *"\$__failed_field"* ]]; then
+        printf '%s\\n' "forced fixture failure for \$__failed_field" >&2
+        exit 1
+    fi
+fi
 exec "$__real_git" "\$@"
 EOF
 chmod +x "$__bin_dir/git"
@@ -87,6 +98,7 @@ printf '%s\n' "$*" >> "${GH_LOG:?}"
 case "${GH_MODE:-normal}:$*" in
     unavailable:*) exit 1 ;;
     malformed:*) printf '%s\n' 'not-json' ;;
+    empty:*) printf '%s\n' '[]' ;;
     *state=open*) printf '%s\n' '[{"number":10,"title":"open","head":{"ref":"open-branch"}}]' ;;
     *state=closed*) printf '%s\n' '[{"number":11,"title":"closed","head":{"ref":"closed-branch"}},{"number":12,"title":"closed release failure","head":{"ref":"closed-release"}}]' ;;
     *) printf '%s\n' '[]' ;;
@@ -121,6 +133,7 @@ expand_preview() {
     IFS=$'\t' read -r label path id ref reason <<< "$selected"
     command="${command//\{1\}/$(shell_quote "$label")}"
     command="${command//\{2\}/$(shell_quote "$path")}"
+    command="${command//\{s2\}/$(shell_quote "$path")}"
     command="${command//\{3\}/$(shell_quote "$id")}"
     command="${command//\{4\}/$(shell_quote "$ref")}"
     command="${command//\{5\}/$(shell_quote "$reason")}"
@@ -144,6 +157,9 @@ case "${FZF_MODE:-first}" in
         ;;
     closed-release-failure)
         printf '%s\n' "$input" | awk -F '\t' '$1 == "ELIGIBLE" && $2 ~ /\/closed-release$/ { print; exit }'
+        ;;
+    lossless-default)
+        printf '%s\n' "$input" | awk -F '\t' '$2 ~ /default-lossless $/ { print; exit }'
         ;;
     all)
         printf '%s\n' "$input" | awk -F '\t' '$1 == "ELIGIBLE"'
@@ -211,6 +227,25 @@ run_task() {
     local __worktree_list_mode="${5:-}"
     local __closed="${6:-false}"
     run_task_from "$__repository" "$__name" "$__delete" "$__stale" "$__release" "$__worktree_list_mode" "$__closed"
+}
+
+run_pull_request() {
+    local __pull_request="$1"
+    (
+        cd "$__repository"
+        env \
+            PATH="$__bin_dir:$PATH" \
+            MISE_CONFIG_DIR="$__root_dir/home/.config/mise" \
+            MISE_ENV_CONF_D=true \
+            usage_name="" \
+            usage_delete=false \
+            usage_stale=false \
+            usage_release="" \
+            usage_pull_request="$__pull_request" \
+            usage_closed_prs=false \
+            GH_LOG="$__gh_log" \
+            bun "$__task"
+    )
 }
 
 run_task_tty() {
@@ -330,6 +365,22 @@ local __preview_head="$("$__real_git" -C "$__preview_path" rev-parse HEAD)"
 "$__real_git" -C "$__repository" config --local "worktree.cleanup.v1.$__preview_id.state" active
 age_worktree "$__preview_path"
 
+local __newline_path="$__fixture_dir/newline"$'\n'"path"
+"$__real_git" -C "$__repository" worktree add -q "$__newline_path" -b newline-branch
+local __newline_id="$(worktree_id "$__newline_path")"
+local __newline_head="$("$__real_git" -C "$__newline_path" rev-parse HEAD)"
+"$__real_git" -C "$__repository" config --local "worktree.cleanup.v1.$__newline_id.path" "$__newline_path"
+"$__real_git" -C "$__repository" config --local "worktree.cleanup.v1.$__newline_id.ref" refs/heads/newline-branch
+"$__real_git" -C "$__repository" config --local "worktree.cleanup.v1.$__newline_id.head" "$__newline_head"
+"$__real_git" -C "$__repository" config --local "worktree.cleanup.v1.$__newline_id.releasedAt" ""
+"$__real_git" -C "$__repository" config --local "worktree.cleanup.v1.$__newline_id.state" active
+age_worktree "$__newline_path"
+run_task "" false false "$__newline_path" >/dev/null
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__newline_id.state")" == "released" ]] ||
+    fail "newline worktree path did not survive release matching"
+"$__real_git" -C "$__repository" worktree remove "$__newline_path" >/dev/null
+
 local __detached="$__fixture_dir/detached"
 "$__real_git" -C "$__repository" worktree add -q --detach "$__detached"
 
@@ -348,6 +399,18 @@ local __invalid_head_id="$(worktree_id "$__fixture_dir/invalid-head")"
     "worktree.cleanup.v1.$__invalid_head_id.head" malformed
 "$__real_git" -C "$__repository" config --local worktree.cleanup.staleAfterDays 1
 "$__real_git" -C "$__repository" config --local --add worktree.cleanup.protectedRef refs/heads/protected
+"$__real_git" -C "$__repository" config --local --add worktree.cleanup.staleAfterDays ""
+local __empty_stale_config_status=0
+set +e
+run_task "" false true >"$__fixture_dir/empty-stale.out" 2>&1
+__empty_stale_config_status=$?
+set -e
+[[ "$__empty_stale_config_status" -eq 0 ]] ||
+    fail "empty staleAfterDays config caused a hard failure"
+grep -qF "invalid staleAfterDays configuration" "$__fixture_dir/empty-stale.out" ||
+    fail "empty staleAfterDays config was not rejected"
+"$__real_git" -C "$__repository" config --local --unset-all worktree.cleanup.staleAfterDays
+"$__real_git" -C "$__repository" config --local worktree.cleanup.staleAfterDays 1
 
 assert_closed_conflict() {
     local __label="$1"
@@ -367,10 +430,10 @@ assert_closed_conflict() {
     [[ ! -e "$__prune_log" ]] || fail "$__label conflict invoked git worktree prune"
 }
 
-assert_closed_conflict stale true "" ""
-assert_closed_conflict release false "$__fixture_dir/released" ""
+assert_closed_conflict stale "" true "" ""
+assert_closed_conflict release "" false "$__fixture_dir/released" ""
 assert_closed_conflict positional worktree-name false "" ""
-assert_closed_conflict pull-request false "" "123"
+assert_closed_conflict pull-request "" false "" "123"
 
 local __linked="$__fixture_dir/linked"
 "$__real_git" -C "$__repository" worktree add -q "$__linked" -b linked-branch
@@ -496,11 +559,53 @@ print -r -- "$__internal_report" | grep -qF "unavailable pull request" ||
 [[ ! -s "$__gh_log" ]] || fail "unsupported remote host reached the GitHub API stub"
 [[ -d "$__fixture_dir/internal-host" ]] || fail "unsupported remote host changed report-only cleanup"
 "$__real_git" -C "$__repository" remote set-url origin https://github.com/minusfive/dot.git
+"$__real_git" -C "$__repository" config --local --unset-all worktree.cleanup.trustedGitHubHost
+: > "$__gh_log"
+local __untrusted_default_report="$(run_task "" false true)"
+print -r -- "$__untrusted_default_report" | grep -qF "unavailable pull request" ||
+    fail "github.com was trusted without an explicit allowlist"
+[[ ! -s "$__gh_log" ]] || fail "default GitHub host reached the API without trust"
+"$__real_git" -C "$__repository" config --local --add worktree.cleanup.trustedGitHubHost "github.com/path"
+: > "$__gh_log"
+local __invalid_trusted_report="$(run_task "" false true)"
+print -r -- "$__invalid_trusted_report" | grep -qF "unavailable pull request" ||
+    fail "invalid trusted-host configuration was accepted"
+[[ ! -s "$__gh_log" ]] || fail "invalid trusted-host configuration reached the API"
+"$__real_git" -C "$__repository" config --local --unset-all worktree.cleanup.trustedGitHubHost
+"$__real_git" -C "$__repository" config --local --add worktree.cleanup.trustedGitHubHost " GitHub.com. "
 
 local __eligible_id="$(worktree_id "$__fixture_dir/eligible")"
 local __registered_count="$("$__real_git" -C "$__repository" config --local --get-all \
     "worktree.cleanup.v1.$__eligible_id.registeredAt" | wc -l | tr -d ' ')"
 [[ "$__registered_count" == "1" ]] || fail "registration was not idempotent"
+
+local __reuse_path="$__fixture_dir/pr-10"
+"$__real_git" -C "$__repository" worktree add -q "$__reuse_path" -b pr-10
+run_pull_request 10 >/dev/null
+local __known_registered_at=2020-01-01T00:00:00.000Z
+local __known_last_seen_at=2020-01-02T00:00:00.000Z
+local __known_lease_until=2030-01-01T00:00:00.000Z
+local __reuse_id="$(worktree_id "$__reuse_path")"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.registeredAt" "$__known_registered_at"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.lastSeenAt" "$__known_last_seen_at"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.leaseUntil" "$__known_lease_until"
+run_pull_request 10 >/dev/null
+[[ "$("$__real_git" -C "$__repository" config --local --get-all \
+    "worktree.cleanup.v1.$__reuse_id.registeredAt" | wc -l | tr -d ' ')" == "1" ]] ||
+    fail "reuse duplicated registeredAt metadata"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.registeredAt")" == "$__known_registered_at" ]] ||
+    fail "reuse changed registeredAt"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.leaseUntil")" == "$__known_lease_until" ]] ||
+    fail "reuse changed leaseUntil"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.lastSeenAt")" != "$__known_last_seen_at" ]] ||
+    fail "reuse did not update lastSeenAt"
+"$__real_git" -C "$__repository" worktree remove "$__reuse_path" >/dev/null
 
 run_task "" false false "$__fixture_dir/released" >/dev/null
 [[ "$("$__real_git" -C "$__repository" config --local \
@@ -571,8 +676,8 @@ set -e
     fail "metacharacter worktree path executed as preview shell syntax"
 grep -qF "$__preview_path" "$__fzf_log" ||
     fail "preview stub did not receive the metacharacter worktree path"
-grep -qF "git -C {2} log" "$__fzf_preview_log" ||
-    fail "stale preview did not pass the path placeholder directly to fzf"
+grep -qF "printf '%bX' {s2}" "$__fzf_preview_log" ||
+    fail "stale preview did not request lossless path placeholder expansion"
 
 local __partial_status=0
 set +e
@@ -586,6 +691,7 @@ set -e
 grep -qF "Failed:" "$__fixture_dir/tty.log" ||
     fail "partial apply did not report the failed removal"
 
+rm -f "$__fixture_dir/fail-remove-path"
 run_task_tty y sentinel >/dev/null 2>&1
 [[ ! -d "$__fixture_dir/eligible" ]] || fail "sentinel selection did not remove an eligible worktree"
 [[ -d "$__fixture_dir/dirty" ]] || fail "sentinel selection removed a quarantined worktree"
@@ -622,6 +728,22 @@ grep -qF "clean --prune" "$__pitchfork_log" ||
     fail "release-write failure skipped Pitchfork cleanup after Git removal"
 rm -f "$__fixture_dir/fail-release-write"
 
+create_registered release-recovery
+printf '%s\n' '.state' > "$__fixture_dir/fail-release-field"
+local __release_recovery_status=0
+set +e
+run_task "" false false "$__fixture_dir/release-recovery" >"$__fixture_dir/release-recovery.out" 2>&1
+__release_recovery_status=$?
+set -e
+[[ "$__release_recovery_status" -eq 1 ]] ||
+    fail "failed release restore exited with $__release_recovery_status"
+rm -f "$__fixture_dir/fail-release-field"
+local __release_recovery_report="$(run_task "" false true)"
+print -r -- "$__release_recovery_report" | grep -qF $'QUARANTINE\t'"$__fixture_dir/release-recovery"$'\t' ||
+    fail "failed release restore was not quarantined"
+print -r -- "$__release_recovery_report" | grep -qF "release metadata recovery required" ||
+    fail "failed release restore did not report recovery"
+
 local __noop_report="$(run_task "" false true "" empty)"
 print -r -- "$__noop_report" | grep -qF "No stale worktrees found." ||
     fail "stale cleanup no-op did not report no stale worktrees"
@@ -654,6 +776,25 @@ local __default_confirmation_line="$(grep -nF "Apply removal to 1 eligible workt
 [[ ! -e "$__prune_log" ]] ||
     fail "default stale selection invoked git worktree prune"
 
+local __lossless_alternate="$__fixture_dir/default-lossless"
+local __lossless_path="$__fixture_dir/default-lossless "
+"$__real_git" -C "$__repository" worktree add -q "$__lossless_alternate" -b default-lossless-alternate
+"$__real_git" -C "$__repository" worktree add -q "$__lossless_path" -b default-lossless-space
+: > "$__fzf_log"
+local __lossless_output="$__fixture_dir/lossless-default.out"
+run_task_tty y lossless-default "" false
+cp "$__fixture_dir/tty.log" "$__lossless_output"
+grep -qF $'default-lossless \t'"$__lossless_path"$'\tdefault-lossless-space' "$__fzf_log" ||
+    fail "default deletion menu did not preserve the trailing-space path field"
+grep -qF "Removed: $__lossless_path" "$__lossless_output" ||
+    fail "default deletion menu did not report the exact trailing-space path"
+grep -qF "$__lossless_path" "$__git_log" ||
+    fail "default deletion menu did not pass the exact trailing-space path to Git"
+[[ ! -d "$__lossless_path" ]] ||
+    fail "default deletion menu did not remove the selected trailing-space worktree"
+[[ -d "$__lossless_alternate" ]] ||
+    fail "default deletion menu targeted the alternate path after trimming"
+
 create_registered direct-stale
 local __direct_stale_status=0
 set +e
@@ -680,20 +821,26 @@ grep -qF $'All closed PRs\tALL_CLOSED_PRS\t' "$__fzf_log" ||
 [[ "$(grep -c '^closed-sentinel$' "$__fzf_log")" -eq 1 ]] ||
     fail "closed-PR sentinel selection opened an unexpected second FZF prompt"
 
-local __closed_noop_report="$(GH_MODE=unavailable run_task "" false false "" "" true)"
+local __closed_noop_report="$(GH_MODE=empty run_task "" false false "" "" true)"
 print -r -- "$__closed_noop_report" | grep -qF "No closed-PR worktrees found." ||
     fail "closed-PR no-op did not report the required message"
 
 local __closed_unknown="$__fixture_dir/pr-11"
 "$__real_git" -C "$__repository" worktree add -q "$__closed_unknown" -b pr-11
-local __closed_quarantine_report="$(GH_MODE=unavailable run_task "" false false "" "" true)"
-print -r -- "$__closed_quarantine_report" | grep -qF "No eligible closed-PR worktrees found: 1 quarantine, 0 unknown." ||
-    fail "closed-PR quarantine-only report did not include counts"
-print -r -- "$__closed_quarantine_report" | grep -qF "unavailable pull request state" ||
-    fail "closed-PR quarantine-only report did not include the reason"
+local __closed_quarantine_report="$__fixture_dir/closed-discovery-error.out"
+local __closed_quarantine_status=0
+set +e
+GH_MODE=unavailable run_task "" false false "" "" true >"$__closed_quarantine_report" 2>&1
+__closed_quarantine_status=$?
+set -e
+[[ "$__closed_quarantine_status" -eq 1 ]] ||
+    fail "closed-PR discovery failure exited with $__closed_quarantine_status"
+grep -qF "GitHub pull request discovery failed" "$__closed_quarantine_report" ||
+    fail "closed-PR discovery failure was hidden by no-hints handling"
 
 grep -qF "clean --prune" "$__pitchfork_log" ||
     fail "successful stale removal did not clean Pitchfork registrations"
+rm -f "$__fixture_dir/fail-remove-path"
 
 while IFS= read -r __task_cwd; do
     [[ "$__task_cwd" == "$__fixture_dir" || "$__task_cwd" == "$__fixture_dir"/* ]] ||
