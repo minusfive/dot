@@ -239,6 +239,19 @@ function metadataFingerprint(record: Omit<MetadataRecord, "fingerprint">): strin
   return JSON.stringify(REQUIRED_METADATA_FIELDS.map((field) => [field, record[field]]));
 }
 
+function refuseActiveReleaseRecovery(path: string): void {
+  const canonical = canonicalPath(path);
+  const id = worktreeId(canonical);
+  const metadataPath = configGetAll(`${STALE_NAMESPACE}${id}.path`);
+  if (!metadataPath.includes(canonical)) return;
+  const recoveryFields = ["releasePendingAt", "releaseRecoveryFailed"].filter(
+    (field) => configGetAll(`${STALE_NAMESPACE}${id}.${field}`).length > 0,
+  );
+  if (recoveryFields.length > 0) {
+    throw new Error("release metadata recovery required; refusing to reuse or overwrite worktree metadata.");
+  }
+}
+
 /** Parse and validate the Git-local worktree cleanup registry. */
 function parseMetadataRecords(): {
   valid: MetadataRecord[];
@@ -363,11 +376,12 @@ function parseMetadataRecords(): {
 
 /** Register a newly created or intentionally reused worktree. */
 function registerWorktree(path: string, ref: string, head: string, reuseExisting = false): void {
+  const canonical = canonicalPath(path);
+  const id = worktreeId(canonical);
+  refuseActiveReleaseRecovery(canonical);
   if (!isValidWorktreeRef(ref) || !isValidWorktreeHead(head)) {
     throw new Error("cannot register worktree with an empty or malformed ref or HEAD.");
   }
-  const canonical = canonicalPath(path);
-  const id = worktreeId(canonical);
   const now = timestampNow();
   const records = parseMetadataRecords();
   const existing = records.valid.find((record) => record.id === id && record.path === canonical);
@@ -996,6 +1010,16 @@ function rowForEntry(
       ...quarantine(`${prState} pull request`),
       prState,
     };
+  }
+  if (prState === "not_found") {
+    const name = path.split("/").filter(Boolean).at(-1) ?? "";
+    const prNumber = parsePrNumberFromWorktreeName(name);
+    if (prNumber !== undefined && prInventory.open.some((item) => item.number === prNumber)) {
+      return {
+        ...quarantine("open pull request for worktree name"),
+        prState: "open",
+      };
+    }
   }
   return {
     label: "ELIGIBLE",
@@ -1919,6 +1943,7 @@ function runPullRequestFlow(prNumberOverride: string): void {
   const worktrees = parseWorktreeList(repoRoot);
   const worktreePath = `../pr-${selectedPr}`;
   const resolvedWorktreePath = resolveWorktreePath(worktreePath);
+  refuseActiveReleaseRecovery(resolvedWorktreePath);
   const existingWorktree = findWorktreeByPath(worktrees, resolvedWorktreePath);
 
   if (existsSync(resolvedWorktreePath)) {
@@ -1971,6 +1996,7 @@ function runCreateFlow(name: string): void {
   }
   const worktreePath = `../${name}`;
   const resolvedWorktreePath = resolveWorktreePath(worktreePath);
+  refuseActiveReleaseRecovery(resolvedWorktreePath);
   console.log(`Creating worktree: ${worktreePath} ...`);
   runInherit("git", ["worktree", "add", worktreePath]);
   const hasMiseConfig =

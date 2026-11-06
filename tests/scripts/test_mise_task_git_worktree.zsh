@@ -651,7 +651,135 @@ run_pull_request 10 >/dev/null
 [[ "$("$__real_git" -C "$__repository" config --local \
     "worktree.cleanup.v1.$__reuse_id.lastSeenAt")" != "$__known_last_seen_at" ]] ||
     fail "reuse did not update lastSeenAt"
+
+local __recovery_pending_at=2020-01-03T00:00:00.000Z
+local __recovery_failed=manual-recovery-required
+local __captured_registered_at="$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.registeredAt")"
+local __captured_last_seen_at="$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.lastSeenAt")"
+local __captured_lease_until="$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.leaseUntil")"
+local __captured_released_at="$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.releasedAt")"
+local __captured_ref="$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.ref")"
+local __captured_head="$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.head")"
+local __captured_state="$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.state")"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.releasePendingAt" "$__recovery_pending_at"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.releaseRecoveryFailed" "$__recovery_failed"
+: > "$__gh_log"
+local __reuse_recovery_output="$__fixture_dir/reuse-recovery.out"
+local __reuse_recovery_status=0
+set +e
+run_pull_request 10 >"$__reuse_recovery_output" 2>&1
+__reuse_recovery_status=$?
+set -e
+[[ "$__reuse_recovery_status" -eq 1 ]] ||
+    fail "release recovery reuse refusal exited with $__reuse_recovery_status"
+grep -qF "release metadata recovery required" "$__reuse_recovery_output" ||
+    fail "release recovery reuse refusal did not report the recovery guard"
+! grep -qF "pr checkout" "$__gh_log" ||
+    fail "release recovery reuse refusal reached PR checkout"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.releasePendingAt")" == "$__recovery_pending_at" ]] ||
+    fail "release recovery reuse refusal changed releasePendingAt"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.releaseRecoveryFailed")" == "$__recovery_failed" ]] ||
+    fail "release recovery reuse refusal changed releaseRecoveryFailed"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.registeredAt")" == "$__captured_registered_at" ]] ||
+    fail "release recovery reuse refusal changed registeredAt"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.lastSeenAt")" == "$__captured_last_seen_at" ]] ||
+    fail "release recovery reuse refusal changed lastSeenAt"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.leaseUntil")" == "$__captured_lease_until" ]] ||
+    fail "release recovery reuse refusal changed leaseUntil"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.releasedAt")" == "$__captured_released_at" ]] ||
+    fail "release recovery reuse refusal changed releasedAt"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.ref")" == "$__captured_ref" ]] ||
+    fail "release recovery reuse refusal changed ref"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.head")" == "$__captured_head" ]] ||
+    fail "release recovery reuse refusal changed HEAD"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.state")" == "$__captured_state" ]] ||
+    fail "release recovery reuse refusal changed state"
+"$__real_git" -C "$__repository" config --local \
+    --unset-all "worktree.cleanup.v1.$__reuse_id.releasePendingAt"
+: > "$__gh_log"
+local __failed_recovery_output="$__fixture_dir/failed-recovery.out"
+local __failed_recovery_status=0
+set +e
+run_pull_request 10 >"$__failed_recovery_output" 2>&1
+__failed_recovery_status=$?
+set -e
+[[ "$__failed_recovery_status" -eq 1 ]] ||
+    fail "failed release recovery reuse refusal exited with $__failed_recovery_status"
+! grep -qF "pr checkout" "$__gh_log" ||
+    fail "failed release recovery reuse refusal reached PR checkout"
+"$__real_git" -C "$__repository" config --local \
+    --unset-all "worktree.cleanup.v1.$__reuse_id.releaseRecoveryFailed"
+
+age_worktree "$__reuse_path"
+local __mismatched_pr_report="$(run_task "" false true)"
+print -r -- "$__mismatched_pr_report" | grep -qF $'QUARANTINE\t'"$__reuse_path"$'\t' ||
+    fail "open PR basename match with a mismatched branch was not quarantined"
+print -r -- "$__mismatched_pr_report" | grep -qF $'QUARANTINE\t'"$__reuse_path"$'\t'"$__reuse_id"$'\trefs/heads/pr-10\topen pull request for worktree name' ||
+    fail "open PR basename match did not report the quarantine reason"
+[[ -d "$__reuse_path" ]] || fail "open PR basename quarantine removed the worktree"
 "$__real_git" -C "$__repository" worktree remove "$__reuse_path" >/dev/null
+
+local __register_guard_path="$__fixture_dir/register-guard"
+local __register_guard_id="$(worktree_id "$__register_guard_path")"
+local __register_guard_head="$("$__real_git" -C "$__repository" rev-parse HEAD)"
+for __field_value in \
+    "path=$__register_guard_path" \
+    "registeredAt=2020-01-01T00:00:00.000Z" \
+    "lastSeenAt=2020-01-01T00:00:00.000Z" \
+    "leaseUntil=2020-01-01T00:00:00.000Z" \
+    "releasedAt=" \
+    "ref=refs/heads/register-guard" \
+    "head=$__register_guard_head" \
+    "state=active"; do
+    local __field="${__field_value%%=*}"
+    local __value="${__field_value#*=}"
+    "$__real_git" -C "$__repository" config --local \
+        "worktree.cleanup.v1.$__register_guard_id.$__field" "$__value"
+done
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__register_guard_id.releaseRecoveryFailed" "$__recovery_failed"
+local __register_guard_output="$__fixture_dir/register-guard.out"
+local __register_guard_status=0
+set +e
+run_task register-guard >"$__register_guard_output" 2>&1
+__register_guard_status=$?
+set -e
+[[ "$__register_guard_status" -eq 1 ]] ||
+    fail "registration recovery guard exited with $__register_guard_status"
+grep -qF "release metadata recovery required" "$__register_guard_output" ||
+    fail "registration recovery guard did not report the recovery guard"
+[[ ! -d "$__register_guard_path" ]] ||
+    fail "registration recovery guard created a worktree"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__register_guard_id.releaseRecoveryFailed")" == "$__recovery_failed" ]] ||
+    fail "registration recovery guard changed releaseRecoveryFailed"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__register_guard_id.ref")" == "refs/heads/register-guard" ]] ||
+    fail "registration recovery guard changed the captured ref"
+"$__real_git" -C "$__repository" config --local \
+    --unset-all "worktree.cleanup.v1.$__register_guard_id.releaseRecoveryFailed"
+for __field in path registeredAt lastSeenAt leaseUntil releasedAt ref head state; do
+    "$__real_git" -C "$__repository" config --local \
+        --unset-all "worktree.cleanup.v1.$__register_guard_id.$__field"
+done
 
 run_task "" false false "$__fixture_dir/released" >/dev/null
 [[ "$("$__real_git" -C "$__repository" config --local \
