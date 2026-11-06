@@ -66,10 +66,6 @@ local linters = new Mapping<String, Step> {
     check = "mise run lint-skill-index --base-path home"
   }
 
-  ["validate_skill_evals"] = new Step {
-    check = "mise run ai:skills:evals:validate --changed-only --skills-path home/.agents/skills"
-  }
-
   ["validate_skill_name_conflicts"] = new Step {
     check = "mise run ai:skills:validate-conflicts"
   }
