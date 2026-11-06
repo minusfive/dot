@@ -48,10 +48,15 @@ mise run lint-skill-index >/dev/null || fail "root skill index validation failed
 mise run lint-skill-index --base-path home >/dev/null || fail "home skill index validation failed"
 grep -qF '["lint_skill_index"]' hk.pkl || fail "root skill index hook is missing"
 grep -qF '["lint_home_skill_index"]' hk.pkl || fail "home skill index hook is missing"
-if grep -qF 'validate_skill_evals' hk.pkl; then
+local __hk_active_config
+__hk_active_config="$(
+    pkl eval --expression='hooks["check"].steps["lint"].steps' hk.pkl
+)"
+if print -r -- "$__hk_active_config" | grep -qF 'validate_skill_evals'; then
     fail "automatic skill evaluation validation hook remains"
 fi
-if grep -qF 'mise run ai:skills:evals:validate --changed-only --skills-path home/.agents/skills' hk.pkl; then
+if print -r -- "$__hk_active_config" |
+    grep -qF 'mise run ai:skills:evals:validate --changed-only --skills-path home/.agents/skills'; then
     fail "automatic changed-only skill evaluation validation invocation remains"
 fi
 mise run ai:skills:evals:validate --help >/dev/null ||
