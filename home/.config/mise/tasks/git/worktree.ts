@@ -2,11 +2,12 @@
 //MISE description="Create, report, or remove a git worktree"
 //MISE alias="gwt"
 //MISE dir="{{cwd}}"
-//USAGE arg "[name]" help="Branch-like name for the worktree, or ALL_CLOSED_PRS with --delete"
-//USAGE flag "-d --delete" help="Apply a removal; use with --stale for stale worktrees"
+//USAGE arg "[name]" help="Branch-like name for the worktree; --delete also offers ALL_CLOSED_PRS and ALL_STALE_WORKTREES"
+//USAGE flag "-c --closed-prs" help="Report worktrees for closed PRs; combine with --delete to apply removal"
+//USAGE flag "-d --delete" help="Apply a removal; use with --stale or --closed-prs"
 //USAGE flag "-p --pull-request <pull-request>" help="Create a worktree from an open PR, or target PR worktrees with --delete"
-//USAGE flag "--stale" help="Report stale worktrees; combine with --delete to apply removal"
-//USAGE flag "--release <path>" help="Mark a registered worktree released without removing it"
+//USAGE flag "-r --release <path>" help="Mark a registered worktree released without removing it"
+//USAGE flag "-s --stale" help="Report stale worktrees; combine with --delete to apply removal"
 
 import { spawn, spawnSync } from "child_process";
 import { createHash } from "crypto";
@@ -60,6 +61,17 @@ type PullRequestListItem = {
   number: number;
   title: string;
   branch: string;
+};
+
+type ClosedPrRow = {
+  label: "ELIGIBLE" | "QUARANTINE" | "UNKNOWN";
+  path: string;
+  id: string;
+  ref: string;
+  reason: string;
+  entry?: PorcelainEntry;
+  record?: MetadataRecord;
+  prState?: PullRequestState;
 };
 
 const ALL_CLOSED_PRS_KEYWORD = "ALL_CLOSED_PRS";
@@ -640,18 +652,19 @@ function queryPullRequests(
 } {
   const result = runCaptureResult("gh", [
     "api",
+    "--paginate",
+    "--slurp",
     "--hostname",
     hostname,
-    "--jq",
-    "[.[] | {number: .number, title: .title, head: {ref: .head.ref}}]",
     `/repos/${owner}/${repo}/pulls?state=${state}&per_page=100`,
   ]);
   if (result.status !== 0) return { ok: false, items: [] };
   try {
-    const parsed = JSON.parse(String(result.stdout ?? ""));
-    if (!Array.isArray(parsed)) return { ok: false, items: [] };
+    const parsed = JSON.parse(String(result.stdout ?? "")) as unknown;
+    const pages = Array.isArray(parsed) && parsed.every((page) => Array.isArray(page)) ? parsed.flat() : parsed;
+    if (!Array.isArray(pages)) return { ok: false, items: [] };
     const items: PullRequestListItem[] = [];
-    for (const item of parsed) {
+    for (const item of pages) {
       if (!item || typeof item !== "object" || typeof item.number !== "number") {
         return { ok: false, items: [] };
       }
@@ -854,6 +867,207 @@ function printNoEligibleSummary(rows: StaleRow[]): void {
   }
 }
 
+function closedPrRowSort(a: ClosedPrRow, b: ClosedPrRow): number {
+  const left = `${a.path}\0${a.id}\0${a.label}`;
+  const right = `${b.path}\0${b.id}\0${b.label}`;
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+function classifyClosedPrWorktrees(): { rows: ClosedPrRow[]; error?: string } {
+  const paths = currentRepositoryPaths();
+  const detailed = parseDetailedWorktrees();
+  if (detailed.error) {
+    return {
+      rows: [
+        {
+          label: "UNKNOWN",
+          path: paths.current,
+          id: worktreeId(paths.current),
+          ref: "",
+          reason: detailed.error,
+        },
+      ],
+      error: detailed.error,
+    };
+  }
+
+  let hostname = "";
+  let owner = "";
+  let repo = "";
+  try {
+    const context = resolveUpstreamContext();
+    hostname = context.hostname;
+    owner = context.owner;
+    repo = context.repo;
+  } catch {
+    // The local worktree hints below still receive a safe quarantine reason.
+  }
+
+  const open =
+    hostname && owner && repo && isApprovedGitHubHostname(hostname)
+      ? queryPullRequests(hostname, owner, repo, "open")
+      : { ok: false, items: [] };
+  const closed =
+    hostname && owner && repo && isApprovedGitHubHostname(hostname)
+      ? queryPullRequests(hostname, owner, repo, "closed")
+      : { ok: false, items: [] };
+  const records = parseMetadataRecords();
+  const rows: ClosedPrRow[] = [];
+
+  for (const entry of detailed.entries) {
+    const path = entry.path ? canonicalPath(entry.path) : "";
+    const id = path ? worktreeId(path) : "";
+    const record = records.valid.find((candidate) => candidate.path === path && candidate.id === id);
+    const invalidRecord = records.invalid.find((candidate) => candidate.path === path);
+    const branch = entry.branch.replace(/^refs\/heads\//, "");
+    const prNumber = parsePrNumberFromWorktreeName(path.split("/").filter(Boolean).at(-1) ?? "");
+    const closedByNumber = prNumber ? closed.items.filter((item) => item.number === prNumber) : [];
+    const closedByBranch = closed.items.filter((item) => item.branch === branch);
+    const openByNumber = prNumber ? open.items.filter((item) => item.number === prNumber) : [];
+    const openByBranch = open.items.filter((item) => item.branch === branch);
+    const matches = [...closedByNumber, ...closedByBranch].filter(
+      (item, index, items) => items.findIndex((candidate) => candidate.number === item.number) === index,
+    );
+    const hasHint =
+      prNumber !== undefined || closedByBranch.length > 0 || openByNumber.length > 0 || openByBranch.length > 0;
+    if (!hasHint) continue;
+
+    const quarantine = (reason: string, prState?: PullRequestState): void => {
+      rows.push({ label: "QUARANTINE", path, id, ref: entry.branch, reason, entry, record, prState });
+    };
+    const unknown = (reason: string, prState?: PullRequestState): void => {
+      rows.push({ label: "UNKNOWN", path, id, ref: entry.branch, reason, entry, record, prState });
+    };
+
+    if (!open.ok || !closed.ok) {
+      quarantine("unavailable pull request state", "unavailable");
+      continue;
+    }
+    if (openByNumber.length > 0 || openByBranch.length > 0) {
+      quarantine("open pull request", "open");
+      continue;
+    }
+    if (matches.length === 0) {
+      unknown("worktree pull request is not closed", "not_found");
+      continue;
+    }
+    if (matches.length > 1) {
+      unknown("conflicting closed pull request state", "conflict");
+      continue;
+    }
+    const closedPr = matches[0];
+    if (prNumber !== undefined && closedPr.number !== prNumber) {
+      quarantine("worktree name does not match closed pull request", "conflict");
+      continue;
+    }
+    if (branch !== closedPr.branch) {
+      quarantine("worktree branch does not match closed pull request", "conflict");
+      continue;
+    }
+    if (entry.parseError) {
+      unknown(entry.parseError, "unavailable");
+      continue;
+    }
+    if (!path) {
+      unknown("missing worktree path", "unavailable");
+      continue;
+    }
+    if (!entry.head || !isValidWorktreeHead(entry.head)) {
+      unknown("missing or malformed HEAD", "unavailable");
+      continue;
+    }
+    if (entry.detached && entry.branch) {
+      unknown("detached worktree has a branch marker", "conflict");
+      continue;
+    }
+    if (!entry.detached && !isValidWorktreeRef(entry.branch)) {
+      unknown("missing or malformed branch ref", "unavailable");
+      continue;
+    }
+    if (path === paths.common) {
+      quarantine("repository root", "closed_or_merged");
+      continue;
+    }
+    if (path === paths.current) {
+      quarantine("current worktree", "closed_or_merged");
+      continue;
+    }
+    if (invalidRecord || records.duplicateIds.has(id)) {
+      unknown(invalidRecord?.reason ?? "duplicate metadata", "unavailable");
+      continue;
+    }
+    if (!record) {
+      unknown("missing metadata", "unavailable");
+      continue;
+    }
+    if (record.head !== entry.head) {
+      quarantine("HEAD changed", "conflict");
+      continue;
+    }
+    if (record.ref !== entry.branch) {
+      quarantine("ref changed", "conflict");
+      continue;
+    }
+    if (entry.bare) {
+      quarantine("bare worktree", "closed_or_merged");
+      continue;
+    }
+    if (entry.detached) {
+      quarantine("detached worktree", "closed_or_merged");
+      continue;
+    }
+    if (entry.locked) {
+      quarantine("locked worktree", "closed_or_merged");
+      continue;
+    }
+    if (entry.prunable) {
+      quarantine("prunable worktree", "closed_or_merged");
+      continue;
+    }
+    if (!existsSync(path)) {
+      quarantine("missing worktree path", "closed_or_merged");
+      continue;
+    }
+    if (refIsProtected(record.ref, record.head)) {
+      quarantine("protected ref or commit", "closed_or_merged");
+      continue;
+    }
+
+    let clean = false;
+    try {
+      clean = isGitStatusClean(path);
+    } catch {
+      unknown("status command error", "unavailable");
+      continue;
+    }
+    if (!clean) {
+      quarantine("dirty worktree", "closed_or_merged");
+      continue;
+    }
+    rows.push({
+      label: "ELIGIBLE",
+      path,
+      id,
+      ref: entry.branch,
+      reason: `closed pull request #${closedPr.number}`,
+      entry,
+      record,
+      prState: "closed_or_merged",
+    });
+  }
+
+  return { rows: rows.sort(closedPrRowSort) };
+}
+
+function printNoClosedPrSummary(rows: ClosedPrRow[]): void {
+  const quarantineCount = rows.filter((row) => row.label === "QUARANTINE").length;
+  const unknownCount = rows.filter((row) => row.label === "UNKNOWN").length;
+  console.log(`No eligible closed-PR worktrees found: ${quarantineCount} quarantine, ${unknownCount} unknown.`);
+  for (const row of rows) {
+    console.log(`${row.label}: ${row.path}: ${row.reason}`);
+  }
+}
+
 function removeWorktree(name: string): void {
   if (!isValidName(name)) {
     throw new Error(
@@ -893,6 +1107,10 @@ function parsePrNumberFromWorktreeName(name: string): number | undefined {
 
 function isAllClosedPrsKeyword(value: string): boolean {
   return value.trim() === ALL_CLOSED_PRS_KEYWORD;
+}
+
+function isAllStaleWorktreesKeyword(value: string): boolean {
+  return value.trim() === ALL_STALE_WORKTREES_KEYWORD;
 }
 
 function removeWorktreeByPath(path: string): Promise<void> {
@@ -1028,6 +1246,65 @@ function pickStaleRows(rows: StaleRow[]): StaleRow[] {
   return rows.filter((row) => row.label === "ELIGIBLE" && selectedIds.has(row.id));
 }
 
+function pickClosedPrRows(rows: ClosedPrRow[]): ClosedPrRow[] {
+  const lines = [
+    `All closed PRs\t${ALL_CLOSED_PRS_KEYWORD}\t\t\tall eligible closed-PR worktrees`,
+    ...rows.map((row) => [row.label, row.path, row.id, row.ref, row.reason].join("\t")),
+  ];
+  const previewCommand =
+    `if [ {2} = ${shellQuote(ALL_CLOSED_PRS_KEYWORD)} ]; then ` +
+    `echo 'all eligible closed-PR worktrees'; ` +
+    `elif [ {1} != 'ELIGIBLE' ]; then echo {5}; ` +
+    `else git -C {2} log --oneline --color --graph -20 2>/dev/null; fi`;
+  const result = spawnSync(
+    "fzf",
+    [
+      "--height",
+      "~100%",
+      "--layout",
+      "reverse",
+      "--border",
+      "--prompt",
+      "Select closed-PR worktree(s) to remove: ",
+      "--delimiter",
+      "\t",
+      "--with-nth",
+      "1,2,4,5",
+      "--preview",
+      previewCommand,
+      "--multi",
+    ],
+    {
+      input: `${lines.join("\n")}\n`,
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "inherit"],
+    },
+  );
+  if (result.status !== 0 || !String(result.stdout ?? "").trim()) {
+    throw new TaskExitError(130, "Cancelled; no worktrees removed.");
+  }
+
+  const selected = String(result.stdout)
+    .trim()
+    .split("\n")
+    .map((line) => {
+      const fields = line.split("\t");
+      if (fields[1] === ALL_CLOSED_PRS_KEYWORD) {
+        return [fields[0] ?? "", ALL_CLOSED_PRS_KEYWORD, "", "", "all eligible closed-PR worktrees"];
+      }
+      return fields;
+    })
+    .filter((fields) => fields.length >= 5);
+  if (selected.some((fields) => fields[0] !== "ELIGIBLE" && fields[1] !== ALL_CLOSED_PRS_KEYWORD)) {
+    throw new TaskExitError(2, "A quarantine or unknown worktree cannot be applied.");
+  }
+  if (selected.some((fields) => fields[1] === ALL_CLOSED_PRS_KEYWORD)) {
+    return rows.filter((row) => row.label === "ELIGIBLE");
+  }
+  const selectedIds = new Set(selected.map((fields) => fields[2]).filter(Boolean));
+  return rows.filter((row) => row.label === "ELIGIBLE" && selectedIds.has(row.id));
+}
+
 function askConfirmation(count: number): Promise<boolean> {
   const readline = createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolvePromise) => {
@@ -1052,7 +1329,81 @@ function samePorcelainState(left: PorcelainEntry | undefined, right: PorcelainEn
   );
 }
 
-async function runStaleFlow(apply: boolean): Promise<void> {
+async function runClosedPrFlow(apply: boolean, selectedKeyword = ""): Promise<void> {
+  const initial = classifyClosedPrWorktrees();
+  printStaleReport(initial.rows);
+  const eligible = initial.rows.filter((row) => row.label === "ELIGIBLE");
+  if (initial.rows.length === 0) {
+    console.log("No closed-PR worktrees found.");
+    return;
+  }
+  if (eligible.length === 0) {
+    printNoClosedPrSummary(initial.rows);
+    return;
+  }
+  if (!apply) return;
+  if (process.stdin.isTTY !== true || process.stdout.isTTY !== true) {
+    throw new TaskExitError(2, "Closed-PR worktree apply requires an interactive TTY.");
+  }
+  ensureCommand("fzf", "--closed-prs apply mode");
+  const selected = selectedKeyword === ALL_CLOSED_PRS_KEYWORD ? eligible : pickClosedPrRows(initial.rows);
+  if (selected.length === 0) {
+    throw new TaskExitError(130, "Cancelled; no worktrees removed.");
+  }
+  if (!(await askConfirmation(selected.length))) return;
+
+  let failures = 0;
+  let metadataFailures = 0;
+  let removed = 0;
+  for (const candidate of selected) {
+    const fresh = classifyClosedPrWorktrees();
+    if (fresh.error) throw new Error(fresh.error);
+    const current = fresh.rows.find((row) => row.id === candidate.id && row.path === candidate.path);
+    if (
+      !current ||
+      current.label !== "ELIGIBLE" ||
+      current.ref !== candidate.ref ||
+      current.prState !== candidate.prState ||
+      current.record?.fingerprint !== candidate.record?.fingerprint ||
+      !samePorcelainState(current.entry, candidate.entry)
+    ) {
+      console.error(`Skipped: ${candidate.path} (worktree changed during apply).`);
+      continue;
+    }
+    let gitRemoved = false;
+    try {
+      stopLocalPitchforkDaemons(candidate.path);
+      await removeWorktreeByPath(candidate.path);
+      removed += 1;
+      gitRemoved = true;
+      if (!candidate.record) throw new Error("missing metadata during release");
+      writeRelease(candidate.record);
+      console.log(`Removed: ${candidate.path}`);
+    } catch (error) {
+      failures += 1;
+      if (gitRemoved) {
+        metadataFailures += 1;
+        console.error(`Removed: ${candidate.path}`);
+        console.error("Failed to release metadata.");
+      } else {
+        console.error(`Failed: ${candidate.path}`);
+      }
+      console.error(`  ${getErrorMessage(error)}`);
+    }
+  }
+  if (removed > 0) cleanPrunedPitchforkDaemons();
+  if (failures > 0) {
+    const failureSummary =
+      metadataFailures > 0
+        ? `failed to process ${failures} of ${selected.length} selected worktree(s); ` +
+          `${metadataFailures} release metadata update(s) failed.`
+        : `failed to remove ${failures} of ${selected.length} selected worktree(s).`;
+    throw new TaskExitError(1, failureSummary);
+  }
+  console.log(`Removed ${removed} worktree(s).`);
+}
+
+async function runStaleFlow(apply: boolean, selectedKeyword = ""): Promise<void> {
   const evaluationNow = timestampNow();
   const initial = classifyStaleWorktrees(evaluationNow);
   printStaleReport(initial.rows);
@@ -1070,7 +1421,7 @@ async function runStaleFlow(apply: boolean): Promise<void> {
     throw new TaskExitError(2, "Stale worktree apply requires an interactive TTY.");
   }
   ensureCommand("fzf", "--stale apply mode");
-  const selected = pickStaleRows(initial.rows);
+  const selected = selectedKeyword === ALL_STALE_WORKTREES_KEYWORD ? eligible : pickStaleRows(initial.rows);
   if (selected.length === 0) {
     throw new TaskExitError(130, "Cancelled; no worktrees removed.");
   }
@@ -1159,10 +1510,16 @@ async function runDeleteFlow(name: string): Promise<void> {
   }
 
   const lines = [
+    `All stale worktrees\t${ALL_STALE_WORKTREES_KEYWORD}\t`,
     `All closed PRs\t${ALL_CLOSED_PRS_KEYWORD}\t`,
     ...worktrees.map((entry) => `${entry.name}\t${entry.path}\t${entry.branch}`),
   ];
-  const previewCommand = `if [ ${shellQuote("{2}")} = ${shellQuote(ALL_CLOSED_PRS_KEYWORD)} ]; then echo 'Delete all worktrees for closed pull requests.'; else git -C ${shellQuote("{2}")} log --oneline --color --graph -20 2>/dev/null; fi`;
+  const previewCommand =
+    `if [ ${shellQuote("{2}")} = ${shellQuote(ALL_STALE_WORKTREES_KEYWORD)} ]; then ` +
+    `echo 'Report and remove all eligible stale worktrees.'; ` +
+    `elif [ ${shellQuote("{2}")} = ${shellQuote(ALL_CLOSED_PRS_KEYWORD)} ]; then ` +
+    `echo 'Delete all worktrees for closed pull requests.'; ` +
+    `else git -C ${shellQuote("{2}")} log --oneline --color --graph -20 2>/dev/null; fi`;
 
   const selectedLines = commandExists("fzf")
     ? pickLineWithFzf(lines, "Select worktree(s) to remove: ", previewCommand, {
@@ -1178,6 +1535,14 @@ async function runDeleteFlow(name: string): Promise<void> {
     return;
   }
 
+  const selectedAllStaleWorktrees = selectedLines.some(
+    (line) => line.split("\t")[1]?.trim() === ALL_STALE_WORKTREES_KEYWORD,
+  );
+  if (selectedAllStaleWorktrees) {
+    await runStaleFlow(true, ALL_STALE_WORKTREES_KEYWORD);
+    return;
+  }
+
   const selectedAllClosedPrs = selectedLines.some((line) => line.split("\t")[1]?.trim() === ALL_CLOSED_PRS_KEYWORD);
   if (selectedAllClosedPrs) {
     await runDeleteClosedPrWorktreesFlow();
@@ -1189,50 +1554,7 @@ async function runDeleteFlow(name: string): Promise<void> {
 }
 
 async function runDeleteClosedPrWorktreesFlow(): Promise<void> {
-  ensureCommand("gh", `${ALL_CLOSED_PRS_KEYWORD} delete mode`);
-
-  const repoRoot = runCapture("git", ["rev-parse", "--show-toplevel"]).trim();
-  const worktrees = parseWorktreeList(repoRoot);
-
-  const context = resolveUpstreamContext();
-  const { hostname, owner, repo } = context;
-  if (!hostname || !owner || !repo) {
-    throw new Error("resolve-upstream returned incomplete repository context.");
-  }
-
-  const closedPrs = getClosedPullRequests(hostname, owner, repo);
-  if (closedPrs.length === 0) {
-    console.log("No closed pull requests found.");
-    return;
-  }
-
-  const closedPrNumbers = new Set(closedPrs.map((pr) => pr.number));
-  const closedPrBranches = new Set(closedPrs.map((pr) => pr.branch).filter(Boolean));
-  const openPrBranches = new Set(
-    getOpenPullRequests(hostname, owner, repo)
-      .map((pr) => pr.branch)
-      .filter(Boolean),
-  );
-  const closedPrPaths = new Set<string>();
-  for (const worktree of worktrees) {
-    const prNumber = parsePrNumberFromWorktreeName(worktree.name);
-    if (prNumber && closedPrNumbers.has(prNumber)) {
-      closedPrPaths.add(worktree.path);
-      continue;
-    }
-    if (worktree.branch && closedPrBranches.has(worktree.branch) && !openPrBranches.has(worktree.branch)) {
-      closedPrPaths.add(worktree.path);
-    }
-  }
-
-  const selectedPaths = [...closedPrPaths];
-  if (selectedPaths.length === 0) {
-    console.log("No worktrees found for closed pull requests.");
-    return;
-  }
-
-  console.log(`Found ${selectedPaths.length} worktree(s) for closed pull requests.`);
-  await removeWorktreePaths(selectedPaths);
+  await runClosedPrFlow(true, ALL_CLOSED_PRS_KEYWORD);
 }
 
 async function runDeletePullRequestWorktreesFlow(pullRequestSelector: string): Promise<void> {
@@ -1424,6 +1746,7 @@ function runCreateFlow(name: string): void {
 
 async function runMain(): Promise<void> {
   ensureInsideGitRepo();
+  const closedPrsFlag = process.env["usage_closed_prs"] === "true";
   const deleteFlag = process.env["usage_delete"] === "true";
   const staleFlag = process.env["usage_stale"] === "true";
   const releasePath = (process.env["usage_release"] ?? "").trim();
@@ -1432,26 +1755,36 @@ async function runMain(): Promise<void> {
   const name = (process.env["usage_name"] ?? "").trim();
   const pullRequestSelector = pullRequestRaw === "true" ? "pick" : pullRequestRaw;
   const deleteAllClosedFromName = isAllClosedPrsKeyword(name);
+  const deleteAllStaleFromName = isAllStaleWorktreesKeyword(name);
   const deleteAllClosedFromPullRequest = pullRequest && isAllClosedPrsKeyword(pullRequestSelector);
 
+  if (closedPrsFlag && (staleFlag || releasePath || pullRequest || name)) {
+    throw new TaskExitError(2, "--closed-prs cannot be combined with a name, --stale, --release, or --pull-request.");
+  }
   if (releasePath && (staleFlag || deleteFlag || pullRequest || name)) {
-    throw new Error("--release cannot be combined with a name, --stale, --delete, or --pull-request.");
+    throw new TaskExitError(2, "--release cannot be combined with a name, --stale, --delete, or --pull-request.");
   }
   if (releasePath) {
     await runReleaseFlow(releasePath);
     return;
   }
   if (staleFlag && (pullRequest || name)) {
-    throw new Error("--stale cannot be combined with a name or --pull-request.");
+    throw new TaskExitError(2, "--stale cannot be combined with a name or --pull-request.");
   }
   if (pullRequest && name && !deleteFlag) {
-    throw new Error("do not provide [name] with --pull-request; pass the PR number to --pull-request.");
+    throw new TaskExitError(2, "do not provide [name] with --pull-request; pass the PR number to --pull-request.");
   }
   if (deleteFlag && pullRequest && name) {
-    throw new Error("do not provide [name] with --delete and --pull-request.");
+    throw new TaskExitError(2, "do not provide [name] with --delete and --pull-request.");
   }
-  if (!deleteFlag && (deleteAllClosedFromName || deleteAllClosedFromPullRequest)) {
-    throw new Error(`${ALL_CLOSED_PRS_KEYWORD} can only be used with --delete.`);
+  if (!deleteFlag && (deleteAllClosedFromName || deleteAllStaleFromName || deleteAllClosedFromPullRequest)) {
+    const keyword = deleteAllStaleFromName ? ALL_STALE_WORKTREES_KEYWORD : ALL_CLOSED_PRS_KEYWORD;
+    throw new TaskExitError(2, `${keyword} can only be used with --delete.`);
+  }
+
+  if (closedPrsFlag) {
+    await runClosedPrFlow(deleteFlag);
+    return;
   }
 
   if (staleFlag) {
@@ -1459,6 +1792,10 @@ async function runMain(): Promise<void> {
     return;
   }
   if (deleteFlag) {
+    if (deleteAllStaleFromName) {
+      await runStaleFlow(true, ALL_STALE_WORKTREES_KEYWORD);
+      return;
+    }
     if (deleteAllClosedFromName) {
       await runDeleteClosedPrWorktreesFlow();
       return;
@@ -1472,7 +1809,7 @@ async function runMain(): Promise<void> {
   }
   if (pullRequest) {
     if (isAllClosedPrsKeyword(pullRequestSelector)) {
-      throw new Error(`${ALL_CLOSED_PRS_KEYWORD} can only be used with --delete.`);
+      throw new TaskExitError(2, `${ALL_CLOSED_PRS_KEYWORD} can only be used with --delete.`);
     }
     const prNumber = pullRequestSelector === "pick" ? "" : normalizeOptionalPrNumber(pullRequestSelector);
     runPullRequestFlow(prNumber);

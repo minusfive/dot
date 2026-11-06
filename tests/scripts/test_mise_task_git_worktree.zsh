@@ -88,7 +88,7 @@ case "${GH_MODE:-normal}:$*" in
     unavailable:*) exit 1 ;;
     malformed:*) printf '%s\n' 'not-json' ;;
     *state=open*) printf '%s\n' '[{"number":10,"title":"open","head":{"ref":"open-branch"}}]' ;;
-    *state=closed*) printf '%s\n' '[{"number":11,"title":"closed","head":{"ref":"closed-branch"}}]' ;;
+    *state=closed*) printf '%s\n' '[{"number":11,"title":"closed","head":{"ref":"closed-branch"}},{"number":12,"title":"closed release failure","head":{"ref":"closed-release"}}]' ;;
     *) printf '%s\n' '[]' ;;
 esac
 EOF
@@ -133,8 +133,17 @@ case "${FZF_MODE:-first}" in
     sentinel)
         printf '%s\n' $'ALL_STALE_WORKTREES\tALL_STALE_WORKTREES\t\t\tall eligible stale worktrees'
         ;;
+    default-stale)
+        printf '%s\n' $'All stale worktrees\tALL_STALE_WORKTREES\t'
+        ;;
+    closed-sentinel)
+        printf '%s\n' $'All closed PRs\tALL_CLOSED_PRS\t'
+        ;;
     release-failure)
         printf '%s\n' "$input" | awk -F '\t' '$1 == "ELIGIBLE" && $2 ~ /\/release-failure$/ { print; exit }'
+        ;;
+    closed-release-failure)
+        printf '%s\n' "$input" | awk -F '\t' '$1 == "ELIGIBLE" && $2 ~ /\/closed-release$/ { print; exit }'
         ;;
     all)
         printf '%s\n' "$input" | awk -F '\t' '$1 == "ELIGIBLE"'
@@ -173,6 +182,7 @@ run_task_from() {
     local __stale="${4:-false}"
     local __release="${5:-}"
     local __worktree_list_mode="${6:-}"
+    local __closed="${7:-false}"
     (
         cd "$__cwd"
         printf '%s\n' "$PWD" >> "$__task_cwd_log"
@@ -188,6 +198,7 @@ run_task_from() {
             usage_stale="$__stale" \
             usage_release="$__release" \
             usage_pull_request="" \
+            usage_closed_prs="$__closed" \
             bun "$__task"
     )
 }
@@ -198,18 +209,23 @@ run_task() {
     local __stale="${3:-false}"
     local __release="${4:-}"
     local __worktree_list_mode="${5:-}"
-    run_task_from "$__repository" "$__name" "$__delete" "$__stale" "$__release" "$__worktree_list_mode"
+    local __closed="${6:-false}"
+    run_task_from "$__repository" "$__name" "$__delete" "$__stale" "$__release" "$__worktree_list_mode" "$__closed"
 }
 
 run_task_tty() {
     local __input="${1:-}"
     local __mode="${2:-first}"
     local __fail_remove="${3:-}"
+    local __stale="${4:-true}"
+    local __closed="${5:-false}"
     local __log="$__fixture_dir/tty.log"
     local __status_file="$__fixture_dir/tty.status"
     shift
     shift
-    [[ -z "$__fail_remove" ]] || shift
+    (($#)) && shift
+    (($#)) && shift
+    (($#)) && shift
     rm -f "$__status_file"
     if [[ -n "$__fail_remove" ]]; then
         printf '%s\n' "$__fail_remove" > "$__fixture_dir/fail-remove-path"
@@ -226,9 +242,10 @@ run_task_tty() {
                 MISE_ENV_CONF_D=true \
                 usage_name="" \
                 usage_delete=true \
-                usage_stale=true \
+                usage_stale="$__stale" \
                 usage_release="" \
                 usage_pull_request="" \
+                usage_closed_prs="$__closed" \
                 GH_LOG="$__gh_log" \
                 FZF_MODE="$__mode" \
                 FZF_LOG="$__fzf_log" \
@@ -245,6 +262,29 @@ run_task_tty() {
     )
     local __status="$(cat "$__status_file")"
     return "$__status"
+}
+
+run_usage_conflict() {
+    local __name="${1:-}"
+    local __stale="${2:-false}"
+    local __release="${3:-}"
+    local __pull_request="${4:-}"
+    (
+        cd "$__repository"
+        env \
+            PATH="$__bin_dir:$PATH" \
+            MISE_CONFIG_DIR="$__root_dir/home/.config/mise" \
+            MISE_ENV_CONF_D=true \
+            usage_name="$__name" \
+            usage_delete=false \
+            usage_stale="$__stale" \
+            usage_release="$__release" \
+            usage_pull_request="$__pull_request" \
+            usage_closed_prs=true \
+            GH_LOG="$__gh_log" \
+            FZF_LOG="$__fzf_log" \
+            bun "$__task"
+    )
 }
 
 worktree_id() {
@@ -273,6 +313,7 @@ create_registered locked
 create_registered protected
 create_registered open-branch
 create_registered closed-branch
+create_registered closed-release
 create_registered malformed
 create_registered invalid-ref
 create_registered invalid-head
@@ -308,6 +349,29 @@ local __invalid_head_id="$(worktree_id "$__fixture_dir/invalid-head")"
 "$__real_git" -C "$__repository" config --local worktree.cleanup.staleAfterDays 1
 "$__real_git" -C "$__repository" config --local --add worktree.cleanup.protectedRef refs/heads/protected
 
+assert_closed_conflict() {
+    local __label="$1"
+    shift
+    : > "$__fzf_log"
+    : > "$__gh_log"
+    rm -f "$__prune_log"
+    local __status=0
+    set +e
+    run_usage_conflict "$@" >"$__fixture_dir/$__label.out" 2>&1
+    __status=$?
+    set -e
+    [[ "$__status" -eq 2 ]] ||
+        fail "$__label conflict exited with $__status instead of 2: $(cat "$__fixture_dir/$__label.out")"
+    [[ ! -s "$__fzf_log" ]] || fail "$__label conflict invoked FZF"
+    [[ ! -s "$__gh_log" ]] || fail "$__label conflict queried GitHub"
+    [[ ! -e "$__prune_log" ]] || fail "$__label conflict invoked git worktree prune"
+}
+
+assert_closed_conflict stale true "" ""
+assert_closed_conflict release false "$__fixture_dir/released" ""
+assert_closed_conflict positional worktree-name false "" ""
+assert_closed_conflict pull-request false "" "123"
+
 local __linked="$__fixture_dir/linked"
 "$__real_git" -C "$__repository" worktree add -q "$__linked" -b linked-branch
 local __nested="$__linked/nested"
@@ -342,6 +406,65 @@ print -r -- "$__report" | grep -qF $'UNKNOWN\t'"$__fixture_dir/invalid-head"$'\t
     fail "invalid HEAD metadata was not unknown"
 print -r -- "$__report" | grep -qF $'QUARANTINE\t'"$__fixture_dir/detached"$'\t' ||
     fail "detached worktree was not quarantined"
+
+local __closed_report="$(run_task "" false false "" "" true)"
+print -r -- "$__closed_report" | grep -qF $'ELIGIBLE\t'"$__fixture_dir/closed-branch"$'\t' ||
+    fail "closed-PR report did not include the closed branch"
+[[ -d "$__fixture_dir/closed-branch" ]] || fail "closed-PR report removed a worktree"
+
+local __closed_protected_report
+"$__real_git" -C "$__repository" config --local --add worktree.cleanup.protectedRef refs/heads/closed-branch
+__closed_protected_report="$(run_task "" false false "" "" true)"
+print -r -- "$__closed_protected_report" | grep -qF $'QUARANTINE\t'"$__fixture_dir/closed-branch"$'\t' ||
+    fail "closed-PR report did not quarantine a protected ref"
+"$__real_git" -C "$__repository" config --local --unset-all worktree.cleanup.protectedRef
+"$__real_git" -C "$__repository" config --local --add worktree.cleanup.protectedRef refs/heads/protected
+
+local __closed_apply_output="$__fixture_dir/closed-apply.out"
+set +e
+run_task "" true false "" "" true >"$__closed_apply_output" 2>&1
+local __closed_apply_status=$?
+set -e
+[[ "$__closed_apply_status" -eq 2 ]] ||
+    fail "non-TTY closed-PR apply exited with $__closed_apply_status instead of 2"
+[[ -d "$__fixture_dir/closed-branch" ]] || fail "non-TTY closed-PR apply removed a worktree"
+
+local __closed_decline_status=0
+set +e
+run_task_tty n closed-sentinel "" false true >/dev/null 2>&1
+__closed_decline_status=$?
+set -e
+[[ "$__closed_decline_status" -eq 0 ]] ||
+    fail "declined closed-PR confirmation exited with $__closed_decline_status"
+[[ -d "$__fixture_dir/closed-branch" ]] || fail "declined closed-PR confirmation removed a worktree"
+
+local __closed_toctou_status=0
+set +e
+run_task_tty y mutate-dirty "" false true >/dev/null 2>&1
+__closed_toctou_status=$?
+set -e
+[[ "$__closed_toctou_status" -eq 0 ]] ||
+    fail "closed-PR TOCTOU revalidation exited with $__closed_toctou_status"
+[[ -d "$__fixture_dir/closed-branch" ]] || fail "closed-PR TOCTOU revalidation removed a changed worktree"
+rm -f "$__fixture_dir/closed-branch/toctou.txt"
+
+touch "$__fixture_dir/fail-release-write"
+local __closed_release_failure_status=0
+set +e
+run_task_tty y closed-release-failure "" false true >/dev/null 2>&1
+__closed_release_failure_status=$?
+set -e
+[[ "$__closed_release_failure_status" -eq 1 ]] ||
+    fail "closed-PR release-write failure exited with $__closed_release_failure_status"
+[[ ! -d "$__fixture_dir/closed-release" ]] ||
+    fail "closed-PR release-write failure did not preserve the successful Git removal"
+grep -qF "Failed to release metadata." "$__fixture_dir/tty.log" ||
+    fail "closed-PR release-write failure did not report the metadata failure"
+local __closed_release_failure_id="$(worktree_id "$__fixture_dir/closed-release")"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__closed_release_failure_id.state")" == "active" ]] ||
+    fail "closed-PR release-write failure claimed released metadata"
+rm -f "$__fixture_dir/fail-release-write"
 
 local __linked_report="$(run_task_from "$__linked" "" false true)"
 print -r -- "$__linked_report" | grep -qF $'QUARANTINE\t'"$__repository"$'\t' ||
@@ -497,6 +620,7 @@ local __release_failure_id="$(worktree_id "$__fixture_dir/release-failure")"
     fail "release-write failure wrote a release timestamp"
 grep -qF "clean --prune" "$__pitchfork_log" ||
     fail "release-write failure skipped Pitchfork cleanup after Git removal"
+rm -f "$__fixture_dir/fail-release-write"
 
 local __noop_report="$(run_task "" false true "" empty)"
 print -r -- "$__noop_report" | grep -qF "No stale worktrees found." ||
@@ -504,6 +628,69 @@ print -r -- "$__noop_report" | grep -qF "No stale worktrees found." ||
 if print -r -- "$__noop_report" | grep -qF "No eligible stale worktrees found:"; then
     fail "zero-row stale cleanup printed a quarantine/unknown summary"
 fi
+
+create_registered default-stale
+: > "$__fzf_log"
+local __default_stale_output="$__fixture_dir/default-stale.out"
+run_task_tty y default-stale "" false
+cp "$__fixture_dir/tty.log" "$__default_stale_output"
+grep -qF $'All stale worktrees\tALL_STALE_WORKTREES\t' "$__fzf_log" ||
+    fail "default delete menu did not contain the stale sentinel"
+grep -qF $'All closed PRs\tALL_CLOSED_PRS\t' "$__fzf_log" ||
+    fail "default delete menu dropped the closed-PR sentinel"
+grep -qF $'default-stale\t'"$__fixture_dir/default-stale"$'\tdefault-stale' "$__fzf_log" ||
+    fail "default delete menu did not contain regular worktree rows"
+[[ "$(grep -c '^default-stale$' "$__fzf_log")" -eq 1 ]] ||
+    fail "default stale selection opened a second FZF prompt"
+local __default_report_line="$(grep -nF $'ELIGIBLE\t'"$__fixture_dir/default-stale"$'\t' "$__default_stale_output" |
+    head -1 | cut -d: -f1)"
+local __default_confirmation_line="$(grep -nF "Apply removal to 1 eligible worktree(s)?" "$__default_stale_output" |
+    head -1 | cut -d: -f1)"
+[[ -n "$__default_report_line" && -n "$__default_confirmation_line" &&
+    "$__default_report_line" -lt "$__default_confirmation_line" ]] ||
+    fail "default stale selection did not report before confirmation"
+[[ ! -d "$__fixture_dir/default-stale" ]] ||
+    fail "default stale selection did not remove the eligible worktree"
+[[ ! -e "$__prune_log" ]] ||
+    fail "default stale selection invoked git worktree prune"
+
+create_registered direct-stale
+local __direct_stale_status=0
+set +e
+run_task "ALL_STALE_WORKTREES" true false "" "" false >"$__fixture_dir/direct-stale.out" 2>&1
+__direct_stale_status=$?
+set -e
+[[ "$__direct_stale_status" -eq 2 ]] ||
+    fail "direct stale sentinel apply exited with $__direct_stale_status instead of 2"
+grep -qF "Stale worktree apply requires an interactive TTY." "$__fixture_dir/direct-stale.out" ||
+    fail "direct stale sentinel did not use the stale apply flow"
+[[ -d "$__fixture_dir/direct-stale" ]] ||
+    fail "direct stale sentinel removed a worktree without an interactive TTY"
+
+local __closed_pr_path="$__fixture_dir/closed-branch"
+"$__real_git" -C "$__closed_pr_path" clean -fdq
+: > "$__fzf_log"
+run_task_tty y closed-sentinel "" false
+grep -qF $'All stale worktrees\tALL_STALE_WORKTREES\t' "$__fzf_log" ||
+    fail "closed-PR delete menu did not retain the stale sentinel"
+grep -qF $'All closed PRs\tALL_CLOSED_PRS\t' "$__fzf_log" ||
+    fail "closed-PR delete menu did not retain the closed-PR sentinel"
+[[ ! -d "$__closed_pr_path" ]] ||
+    fail "closed-PR sentinel selection did not remove the matching worktree"
+[[ "$(grep -c '^closed-sentinel$' "$__fzf_log")" -eq 1 ]] ||
+    fail "closed-PR sentinel selection opened an unexpected second FZF prompt"
+
+local __closed_noop_report="$(GH_MODE=unavailable run_task "" false false "" "" true)"
+print -r -- "$__closed_noop_report" | grep -qF "No closed-PR worktrees found." ||
+    fail "closed-PR no-op did not report the required message"
+
+local __closed_unknown="$__fixture_dir/pr-11"
+"$__real_git" -C "$__repository" worktree add -q "$__closed_unknown" -b pr-11
+local __closed_quarantine_report="$(GH_MODE=unavailable run_task "" false false "" "" true)"
+print -r -- "$__closed_quarantine_report" | grep -qF "No eligible closed-PR worktrees found: 1 quarantine, 0 unknown." ||
+    fail "closed-PR quarantine-only report did not include counts"
+print -r -- "$__closed_quarantine_report" | grep -qF "unavailable pull request state" ||
+    fail "closed-PR quarantine-only report did not include the reason"
 
 grep -qF "clean --prune" "$__pitchfork_log" ||
     fail "successful stale removal did not clean Pitchfork registrations"
