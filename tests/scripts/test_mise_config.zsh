@@ -48,9 +48,14 @@ mise run lint-skill-index >/dev/null || fail "root skill index validation failed
 mise run lint-skill-index --base-path home >/dev/null || fail "home skill index validation failed"
 grep -qF '["lint_skill_index"]' hk.pkl || fail "root skill index hook is missing"
 grep -qF '["lint_home_skill_index"]' hk.pkl || fail "home skill index hook is missing"
-grep -qF '["validate_skill_evals"]' hk.pkl || fail "skill evaluation validation hook is missing"
-grep -qF 'check = "mise run ai:skills:evals:validate --changed-only --skills-path home/.agents/skills"' hk.pkl ||
-    fail "skill evaluation validation hook is not scoped to changed skills"
+if grep -qF 'validate_skill_evals' hk.pkl; then
+    fail "automatic skill evaluation validation hook remains"
+fi
+if grep -qF 'mise run ai:skills:evals:validate --changed-only --skills-path home/.agents/skills' hk.pkl; then
+    fail "automatic changed-only skill evaluation validation invocation remains"
+fi
+mise run ai:skills:evals:validate --help >/dev/null ||
+    fail "explicit skill evaluation validation task is unavailable"
 grep -qF '["validate_skill_name_conflicts"]' hk.pkl || fail "skill name conflict hook is missing"
 grep -qF '["validate_task_name_conflicts"]' hk.pkl || fail "task name conflict hook is missing"
 
