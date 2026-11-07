@@ -13,7 +13,7 @@ import { spawn, spawnSync } from "child_process";
 import { createHash } from "crypto";
 import { existsSync, readFileSync, realpathSync } from "fs";
 import { createInterface } from "readline";
-import { resolve } from "path";
+import { basename, dirname, join, resolve } from "path";
 import { resolveUpstreamContext } from "../../utils/git.js";
 
 type WorktreeEntry = {
@@ -181,13 +181,22 @@ function shellQuote(value: string): string {
 function canonicalPath(pathLike: string): string {
   const absolutePath = resolve(pathLike);
   const normalize = (value: string): string => (process.platform === "win32" ? value.replaceAll("\\", "/") : value);
+  const missingComponents: string[] = [];
+  let existingParent = absolutePath;
+  while (!existsSync(existingParent)) {
+    const parent = dirname(existingParent);
+    if (parent === existingParent) break;
+    missingComponents.unshift(basename(existingParent));
+    existingParent = parent;
+  }
   try {
     const nativeRealpath = (
       realpathSync as typeof realpathSync & {
         native?: (path: string) => string;
       }
     ).native;
-    return normalize(nativeRealpath ? nativeRealpath(absolutePath) : realpathSync(absolutePath));
+    const resolvedParent = nativeRealpath ? nativeRealpath(existingParent) : realpathSync(existingParent);
+    return normalize(join(resolvedParent, ...missingComponents));
   } catch {
     return normalize(absolutePath);
   }
@@ -890,8 +899,11 @@ function associatedClosedPullRequest(
   const prNumber = parsePrNumberFromWorktreeName(name);
   const openByNumber = prNumber ? inventory.open.filter((item) => item.number === prNumber) : [];
   const openByBranch = inventory.open.filter((item) => item.branch === branch);
-  if (openByNumber.length > 0 || openByBranch.length > 0) {
-    return { state: "open", reason: "open pull request" };
+  if (openByNumber.length > 0) {
+    return { state: "open", reason: "open pull request for worktree name" };
+  }
+  if (openByBranch.length > 0) {
+    return { state: "open", reason: "open pull request for worktree branch" };
   }
   const closedByNumber = prNumber ? inventory.closed.filter((item) => item.number === prNumber) : [];
   const closedByBranch = inventory.closed.filter((item) => item.branch === branch);
@@ -1004,22 +1016,20 @@ function rowForEntry(
     age >= staleAfterDays * 86400000 && (Date.parse(record.leaseUntil) <= evaluationTime || record.releasedAt !== "");
   if (!stale) return quarantine("not stale");
 
+  const name = path.split("/").filter(Boolean).at(-1) ?? "";
+  const prNumber = parsePrNumberFromWorktreeName(name);
+  if (prNumber !== undefined && prInventory.open.some((item) => item.number === prNumber)) {
+    return {
+      ...quarantine("open pull request for worktree name"),
+      prState: "open",
+    };
+  }
   const prState = getPullRequestState(record.ref.replace(/^refs\/heads\//, ""), prInventory);
   if (prState === "open" || prState === "unavailable" || prState === "conflict") {
     return {
       ...quarantine(`${prState} pull request`),
       prState,
     };
-  }
-  if (prState === "not_found") {
-    const name = path.split("/").filter(Boolean).at(-1) ?? "";
-    const prNumber = parsePrNumberFromWorktreeName(name);
-    if (prNumber !== undefined && prInventory.open.some((item) => item.number === prNumber)) {
-      return {
-        ...quarantine("open pull request for worktree name"),
-        prState: "open",
-      };
-    }
   }
   return {
     label: "ELIGIBLE",
@@ -1146,8 +1156,12 @@ function classifyClosedPrWorktrees(
       rows.push({ label: "UNKNOWN", path, id, ref: entry.branch, reason, entry, record, prState });
     };
 
-    if (openByNumber.length > 0 || openByBranch.length > 0) {
-      quarantine("open pull request", "open");
+    if (openByNumber.length > 0) {
+      quarantine("open pull request for worktree name", "open");
+      continue;
+    }
+    if (openByBranch.length > 0) {
+      quarantine("open pull request for worktree branch", "open");
       continue;
     }
     const association = associatedClosedPullRequest(path, entry.branch.replace(/^refs\/heads\//, ""), inventory);

@@ -107,9 +107,10 @@ case "${GH_MODE:-normal}:$*" in
         '{"number":10,"title":"open","head":{"ref":"open-branch"}}' ;;
     *--paginate*state=closed*) printf '%s\n' \
         '{"number":11,"title":"closed","head":{"ref":"closed-branch"}}' \
-        '{"number":12,"title":"closed release failure","head":{"ref":"closed-release"}}' ;;
+        '{"number":12,"title":"closed release failure","head":{"ref":"closed-release"}}' \
+        '{"number":13,"title":"closed name mismatch","head":{"ref":"closed-name-mismatch"}}' ;;
     *state=open*) printf '%s\n' '[{"number":10,"title":"open","head":{"ref":"open-branch"}}]' ;;
-    *state=closed*) printf '%s\n' '[{"number":11,"title":"closed","head":{"ref":"closed-branch"}},{"number":12,"title":"closed release failure","head":{"ref":"closed-release"}}]' ;;
+    *state=closed*) printf '%s\n' '[{"number":11,"title":"closed","head":{"ref":"closed-branch"}},{"number":12,"title":"closed release failure","head":{"ref":"closed-release"}},{"number":13,"title":"closed name mismatch","head":{"ref":"closed-name-mismatch"}}]' ;;
     *) printf '%s\n' '[]' ;;
 esac
 EOF
@@ -368,6 +369,26 @@ create_registered invalid-ref
 create_registered invalid-head
 create_registered released
 
+local __name_mismatch_path="$__fixture_dir/pr-10"
+"$__real_git" -C "$__repository" worktree add -q "$__name_mismatch_path" -b closed-name-mismatch
+local __name_mismatch_id="$(worktree_id "$__name_mismatch_path")"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__name_mismatch_id.path" "$__name_mismatch_path"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__name_mismatch_id.registeredAt" 2020-01-01T00:00:00.000Z
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__name_mismatch_id.lastSeenAt" 2020-01-01T00:00:00.000Z
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__name_mismatch_id.leaseUntil" 2020-01-01T00:00:00.000Z
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__name_mismatch_id.releasedAt" ""
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__name_mismatch_id.ref" refs/heads/closed-name-mismatch
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__name_mismatch_id.head" "$("$__real_git" -C "$__name_mismatch_path" rev-parse HEAD)"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__name_mismatch_id.state" active
+
 local __preview_path="$__fixture_dir/preview; touch fzf-pwned"
 "$__real_git" -C "$__repository" worktree add -q "$__preview_path" -b preview-label
 local __preview_id="$(worktree_id "$__preview_path")"
@@ -472,6 +493,12 @@ print -r -- "$__report" | grep -qF $'\trefs/heads/open-branch\topen pull request
     fail "open pull request was not protected"
 print -r -- "$__report" | grep -qF $'ELIGIBLE\t'"$__fixture_dir/closed-branch"$'\t' ||
     fail "closed pull request worktree was not eligible"
+if ! print -r -- "$__report" | awk -F '\t' -v path="$__name_mismatch_path" \
+    '$1 == "QUARANTINE" && $2 == path && $5 == "open pull request for worktree name" { found = 1 }
+    END { exit found ? 0 : 1 }'; then
+    fail "stale mode did not quarantine open PR name mismatch"
+fi
+[[ -d "$__name_mismatch_path" ]] || fail "stale mode removed open PR name mismatch worktree"
 print -r -- "$__report" | grep -qF $'UNKNOWN\t'"$__fixture_dir/missing"$'\t' ||
     fail "missing metadata was not unknown"
 print -r -- "$__report" | grep -qF $'UNKNOWN\t'"$__fixture_dir/malformed"$'\t' ||
@@ -487,6 +514,15 @@ local __closed_report="$(run_task "" false false "" "" true)"
 print -r -- "$__closed_report" | grep -qF $'ELIGIBLE\t'"$__fixture_dir/closed-branch"$'\t' ||
     fail "closed-PR report did not include the closed branch"
 [[ -d "$__fixture_dir/closed-branch" ]] || fail "closed-PR report removed a worktree"
+print -r -- "$__closed_report" | grep -qF $'ELIGIBLE\t'"$__name_mismatch_path"$'\t' &&
+    fail "open PR name mismatch was eligible for closed-PR cleanup"
+if ! print -r -- "$__closed_report" | awk -F '\t' -v path="$__name_mismatch_path" \
+    '$1 == "QUARANTINE" && $2 == path && $5 == "open pull request for worktree name" { found = 1 }
+    END { exit found ? 0 : 1 }'; then
+    fail "open PR name mismatch was not quarantined by worktree name"
+fi
+[[ -d "$__name_mismatch_path" ]] || fail "open PR name mismatch worktree was removed"
+"$__real_git" -C "$__repository" worktree remove "$__name_mismatch_path" >/dev/null
 
 local __closed_protected_report
 "$__real_git" -C "$__repository" config --local --add worktree.cleanup.protectedRef refs/heads/closed-branch
@@ -723,8 +759,37 @@ __failed_recovery_status=$?
 set -e
 [[ "$__failed_recovery_status" -eq 1 ]] ||
     fail "failed release recovery reuse refusal exited with $__failed_recovery_status"
+grep -qF "release metadata recovery required" "$__failed_recovery_output" ||
+    fail "failed release recovery reuse refusal did not report the recovery guard"
 ! grep -qF "pr checkout" "$__gh_log" ||
     fail "failed release recovery reuse refusal reached PR checkout"
+! "$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.releasePendingAt" >/dev/null 2>&1 ||
+    fail "failed release recovery reuse refusal restored releasePendingAt"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.registeredAt")" == "$__captured_registered_at" ]] ||
+    fail "failed release recovery reuse refusal changed registeredAt"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.lastSeenAt")" == "$__captured_last_seen_at" ]] ||
+    fail "failed release recovery reuse refusal changed lastSeenAt"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.leaseUntil")" == "$__captured_lease_until" ]] ||
+    fail "failed release recovery reuse refusal changed leaseUntil"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.releasedAt")" == "$__captured_released_at" ]] ||
+    fail "failed release recovery reuse refusal changed releasedAt"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.ref")" == "$__captured_ref" ]] ||
+    fail "failed release recovery reuse refusal changed ref"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.head")" == "$__captured_head" ]] ||
+    fail "failed release recovery reuse refusal changed HEAD"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.state")" == "$__captured_state" ]] ||
+    fail "failed release recovery reuse refusal changed state"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__reuse_id.releaseRecoveryFailed")" == "$__recovery_failed" ]] ||
+    fail "failed release recovery reuse refusal changed releaseRecoveryFailed"
 "$__real_git" -C "$__repository" config --local \
     --unset-all "worktree.cleanup.v1.$__reuse_id.releaseRecoveryFailed"
 
@@ -780,6 +845,72 @@ for __field in path registeredAt lastSeenAt leaseUntil releasedAt ref head state
     "$__real_git" -C "$__repository" config --local \
         --unset-all "worktree.cleanup.v1.$__register_guard_id.$__field"
 done
+
+local __physical_parent="$__fixture_dir/physical-parent"
+local __symlink_parent="$__fixture_dir/symlink-parent"
+local __symlinked_target="$__physical_parent/missing-target"
+mkdir -p "$__physical_parent"
+ln -s "$__physical_parent" "$__symlink_parent"
+local __symlinked_target_id="$(worktree_id "$__symlinked_target")"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__symlinked_target_id.path" "$__symlinked_target"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__symlinked_target_id.releaseRecoveryFailed" "$__recovery_failed"
+local __symlink_recovery_output="$__fixture_dir/symlink-recovery.out"
+local __symlink_recovery_status=0
+set +e
+run_task "symlink-parent/missing-target" >"$__symlink_recovery_output" 2>&1
+__symlink_recovery_status=$?
+set -e
+[[ "$__symlink_recovery_status" -eq 1 ]] ||
+    fail "symlinked-parent recovery guard exited with $__symlink_recovery_status"
+grep -qF "release metadata recovery required" "$__symlink_recovery_output" ||
+    fail "symlinked-parent recovery guard did not report the recovery guard"
+[[ ! -e "$__symlinked_target" ]] ||
+    fail "symlinked-parent recovery guard created the missing worktree"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__symlinked_target_id.path")" == "$__symlinked_target" ]] ||
+    fail "symlinked-parent recovery guard changed the path metadata"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__symlinked_target_id.releaseRecoveryFailed")" == "$__recovery_failed" ]] ||
+    fail "symlinked-parent recovery guard changed releaseRecoveryFailed"
+"$__real_git" -C "$__repository" config --local \
+    --unset-all "worktree.cleanup.v1.$__symlinked_target_id.path"
+"$__real_git" -C "$__repository" config --local \
+    --unset-all "worktree.cleanup.v1.$__symlinked_target_id.releaseRecoveryFailed"
+
+local __pull_recovery_path="$__fixture_dir/pr-10"
+local __pull_recovery_id="$(worktree_id "$__pull_recovery_path")"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__pull_recovery_id.path" "$__pull_recovery_path"
+"$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__pull_recovery_id.releaseRecoveryFailed" "$__recovery_failed"
+: > "$__gh_log"
+: > "$__git_log"
+local __pull_recovery_output="$__fixture_dir/pull-recovery.out"
+local __pull_recovery_status=0
+set +e
+run_pull_request 10 >"$__pull_recovery_output" 2>&1
+__pull_recovery_status=$?
+set -e
+[[ "$__pull_recovery_status" -eq 1 ]] ||
+    fail "pull-request recovery guard exited with $__pull_recovery_status"
+grep -qF "release metadata recovery required" "$__pull_recovery_output" ||
+    fail "pull-request recovery guard did not report the recovery guard"
+! grep -qF "pr checkout" "$__gh_log" ||
+    fail "pull-request recovery guard reached PR checkout"
+! grep -qF "worktree add" "$__git_log" ||
+    fail "pull-request recovery guard created a worktree"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__pull_recovery_id.path")" == "$__pull_recovery_path" ]] ||
+    fail "pull-request recovery guard changed the path metadata"
+[[ "$("$__real_git" -C "$__repository" config --local \
+    "worktree.cleanup.v1.$__pull_recovery_id.releaseRecoveryFailed")" == "$__recovery_failed" ]] ||
+    fail "pull-request recovery guard changed releaseRecoveryFailed"
+"$__real_git" -C "$__repository" config --local \
+    --unset-all "worktree.cleanup.v1.$__pull_recovery_id.path"
+"$__real_git" -C "$__repository" config --local \
+    --unset-all "worktree.cleanup.v1.$__pull_recovery_id.releaseRecoveryFailed"
 
 run_task "" false false "$__fixture_dir/released" >/dev/null
 [[ "$("$__real_git" -C "$__repository" config --local \
