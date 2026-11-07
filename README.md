@@ -125,6 +125,14 @@ Run all configured checks:
 mise run check
 ```
 
+The `git:worktree` task reports stale `Git` worktrees without changing them:
+
+```sh
+mise run git:worktree --stale
+```
+
+Add `--delete` to select stale worktrees and apply removal. The task shows the complete report first, requires an interactive confirmation, and protects the repository root, the current worktree, dirty worktrees, locked worktrees, prunable worktrees, and worktrees with unsafe pull request states. Use `--release PATH` to mark registered metadata released without removing the worktree. Apply mode refuses non-TTY input with exit status `2`; FZF cancellation exits `130`, and a declined confirmation exits `0`. The separate `Git` `git worktree prune` command is not part of this cleanup policy.
+
 Workflow contracts and evidence ledgers use a structural and advisory validator:
 
 ```sh
