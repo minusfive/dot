@@ -1,5 +1,5 @@
 [tools]
-node = { version = "25", postinstall = "mise run global-install-packages-npm" }
+node = { version = "26", postinstall = "mise run global-install-packages-npm" }
 
 [settings]
 npm.bun = true
