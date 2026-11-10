@@ -265,6 +265,22 @@ jq -e '
     fail "staged add recovery did not activate the candidate cursor"
 
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 10 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "staged add for unrelated-state validation unexpectedly succeeded"
+fi
+jq '.pull_requests = [{"number":99,"addedAt":"2024-01-01T00:00:00Z"}]' "$__state_file" > "$__fixture_dir/unrelated-staged-add.json"
+mv "$__fixture_dir/unrelated-staged-add.json" "$__state_file"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_action add 10 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "authorized add accepted an unrelated staged state"
+fi
+grep -qF "invalid pending add state" "$__fixture_dir/error" ||
+    fail "unrelated staged state error was not actionable"
+[[ ! -s "$__poll_output" ]] || fail "unrelated staged state emitted output"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "unrelated staged state changed state bytes"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
 : > "$__log_file"
 if PR_REVIEW_WATCH_TEST_CRASH_AFTER_STAGE=1 run_action add 10 > "$__poll_output" 2> "$__fixture_dir/error"; then
     fail "crashed add unexpectedly succeeded"
@@ -376,7 +392,7 @@ jq -e '.pull_requests[0].new_inline_comments | length == 0' "$__poll_output" >/d
 
 write_fixture 12
 cat > "$__fixture_dir/pr-12.json" <<'EOF'
-{"number":12,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-12","reviewDecision":"APPROVED","reviews":[{"id":1201,"state":"PENDING","body":"draft review"},{"id":1202,"state":"COMMENTED","submittedAt":"2024-01-02T00:00:00Z","body":"submitted"}],"statusCheckRollup":[]}
+{"number":12,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-12","reviewDecision":"APPROVED","reviews":[{"id":1201,"state":"PENDING","submittedAt":null,"body":"draft review"},{"id":1202,"state":"COMMENTED","submittedAt":"2024-01-02T00:00:00Z","body":"submitted"}],"statusCheckRollup":[]}
 EOF
 cat > "$__fixture_dir/pulls-12.json" <<'EOF'
 [[{"id":1203,"isResolved":false,"created_at":"2024-01-02T00:00:00Z","body":"unresolved","html_url":"https://example.test/inline/1203"}]]

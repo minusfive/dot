@@ -24,7 +24,7 @@ type Review = {
   id?: number | string;
   node_id?: string;
   author?: { login?: string };
-  submittedAt?: string;
+  submittedAt?: string | null;
   state?: string;
   body?: string;
   url?: string;
@@ -939,7 +939,12 @@ function validateReconciliationResult(
   );
 }
 
-function validatePendingAdd(value: unknown, repository: string, stateFile: string): value is PendingAdd {
+function validatePendingAdd(
+  value: unknown,
+  activePullRequests: WatchEntry[],
+  repository: string,
+  stateFile: string,
+): value is PendingAdd {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
@@ -989,10 +994,14 @@ function validatePendingAdd(value: unknown, repository: string, stateFile: strin
     nextNumbers.add(entry.number);
   }
   const payloadNumbers = new Set<number>();
+  const nextEntriesByNumber = new Map<number, WatchEntry>();
   for (const entry of pending.payload.pull_requests) {
     validateWatchEntry(entry, stateFile);
     if (payloadNumbers.has(entry.number)) throw new Error(`invalid watch state: ${stateFile}`);
     payloadNumbers.add(entry.number);
+  }
+  for (const entry of pending.next_pull_requests) {
+    nextEntriesByNumber.set(entry.number, entry);
   }
   if (
     payloadNumbers.size !== nextNumbers.size ||
@@ -1000,6 +1009,21 @@ function validatePendingAdd(value: unknown, repository: string, stateFile: strin
     [...nextNumbers].some((number) => !payloadNumbers.has(number))
   ) {
     throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  for (const entry of pending.payload.pull_requests) {
+    const nextEntry = nextEntriesByNumber.get(entry.number);
+    if (!nextEntry || canonicalJson(entry) !== canonicalJson(nextEntry)) {
+      throw new Error(`invalid watch state: ${stateFile}`);
+    }
+  }
+  const activeNumbers = new Set<number>();
+  for (const entry of activePullRequests) {
+    if (activeNumbers.has(entry.number)) throw new Error(`invalid watch state: ${stateFile}`);
+    activeNumbers.add(entry.number);
+    const nextEntry = nextEntriesByNumber.get(entry.number);
+    if (!nextEntry || canonicalJson(entry) !== canonicalJson(nextEntry)) {
+      throw new Error(`invalid watch state: ${stateFile}`);
+    }
   }
   const reconciliationByNumber = new Map(
     (pending.payload.reconciliation as Array<Record<string, unknown>>).map((result) => [
@@ -1057,7 +1081,7 @@ async function loadState(repository: string, stateFile: string): Promise<WatchSt
     }
     if (parsed.pending_add !== undefined) {
       try {
-        validatePendingAdd(parsed.pending_add, repository, stateFile);
+        validatePendingAdd(parsed.pending_add, pullRequests, repository, stateFile);
       } catch (error) {
         throw new Error(`invalid pending add state: ${error instanceof Error ? error.message : String(error)}`);
       }
@@ -1101,7 +1125,7 @@ async function saveState(stateFile: string, state: WatchState): Promise<void> {
   }
   if (state.pending_add !== undefined) {
     try {
-      validatePendingAdd(state.pending_add, state.repository, stateFile);
+      validatePendingAdd(state.pending_add, state.pull_requests, state.repository, stateFile);
     } catch (error) {
       throw new Error(`invalid pending add state: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -1322,7 +1346,7 @@ function pullRequestHead(pullRequest: PullRequest): string | undefined {
 }
 
 function isPendingReview(review: Review): boolean {
-  return review.state?.toUpperCase() === "PENDING" && review.submittedAt == null;
+  return review.state?.toUpperCase() === "PENDING" && review.submittedAt === null;
 }
 
 function latestSubmittedReviews(reviews: Review[]): Review[] {
