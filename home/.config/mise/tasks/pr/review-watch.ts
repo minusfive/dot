@@ -6,6 +6,11 @@
 //USAGE arg "[pull-requests]..." help="Pull request numbers for add or remove"
 //USAGE flag "--state-file <path>" help="Watch state file path"
 //USAGE flag "--format <format>" help="Output format: json or text" default="json"
+//USAGE flag "--coordinator-id <id>" help="Immutable coordinator identity"
+//USAGE flag "--scheduler-id <id>" help="Immutable scheduler identity"
+//USAGE flag "--assignment-id <id>" help="Immutable assignment identity"
+//USAGE flag "--scope-id <id>" help="Immutable review scope identity"
+//USAGE flag "--candidate-id <id>" help="Immutable candidate identity"
 
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
@@ -24,6 +29,9 @@ type Review = {
   body?: string;
   url?: string;
   html_url?: string;
+  commit_id?: string;
+  revision_id?: string;
+  comments?: ReviewComment[];
 };
 
 type Check = {
@@ -51,6 +59,14 @@ type ReviewComment = {
   start_side?: string;
   side?: string;
   html_url?: string;
+  diff_hunk?: string;
+  position?: number | null;
+  original_position?: number | null;
+  original_line?: number | null;
+  original_start_line?: number | null;
+  original_commit_id?: string;
+  commit_id?: string;
+  subject_type?: string;
 };
 
 type PullRequest = {
@@ -63,6 +79,21 @@ type PullRequest = {
   reviewDecision?: string;
   reviews?: Review[];
   statusCheckRollup?: Check[];
+  reviewCount?: number;
+  review_comments_count?: number;
+  inline_comments_count?: number;
+  issue_comments_count?: number;
+};
+
+type Identity = {
+  repository: string;
+  coordinator_id: string;
+  scheduler_id: string;
+  assignment_id: string;
+  scope_id: string;
+  candidate_id: string;
+  pull_request?: number;
+  head?: string;
 };
 
 type WatchEntry = {
@@ -77,6 +108,7 @@ type WatchEntry = {
   head?: string;
   graceChecks?: number;
   graceComplete?: boolean;
+  identity?: Identity;
 };
 
 type PollPayload = {
@@ -87,6 +119,7 @@ type PollPayload = {
   scheduler_should_stop: boolean;
   warnings: string[];
   pull_requests: Array<Record<string, unknown>>;
+  review_findings: ReviewFindingsEnvelope;
 };
 
 type AddPayload = {
@@ -97,6 +130,7 @@ type AddPayload = {
   warnings: string[];
   pull_requests: WatchEntry[];
   reconciliation: Array<Record<string, unknown>>;
+  review_findings: ReviewFindingsEnvelope;
 };
 
 type PendingPoll = {
@@ -111,18 +145,37 @@ type PendingAdd = {
 };
 
 type WatchState = {
-  version: 1;
+  version: 1 | 2;
   repository: string;
   pull_requests: WatchEntry[];
+  identity?: Identity;
   pending_poll?: PendingPoll;
   pending_add?: PendingAdd;
 };
 
 type CommentKind = "pulls" | "issues";
+type PaginationKind = CommentKind | "reviews";
 
-type CommentCollection = {
-  comments: ReviewComment[];
+type PaginatedCollection<T> = {
+  comments: T[];
   pages: number;
+  page_lengths: number[];
+  pagination_complete: true;
+  pagination_termination: "empty-result" | "short-final-page";
+  page_size: number;
+  pagination_contract: "gh-api-paginate-slurp-v1";
+};
+
+type CommentCollection = PaginatedCollection<ReviewComment>;
+type ReviewCollection = PaginatedCollection<Review>;
+
+type ReviewFindingsEnvelope = {
+  schema_version: "review-findings.v1";
+  batch_id: string;
+  identity: Identity;
+  complete: true;
+  findings: Array<Record<string, unknown>>;
+  counts: Record<string, number>;
 };
 
 type LockOwner = {
@@ -140,11 +193,108 @@ const ACTION = (process.env.usage_action ?? "").trim();
 const PULL_REQUESTS = (process.env.usage_pull_requests ?? "").trim();
 const STATE_FILE = (process.env.usage_state_file ?? "").trim();
 const FORMAT = (process.env.usage_format ?? "json").trim();
+const COORDINATOR_ID = (process.env.usage_coordinator_id ?? process.env.PR_REVIEW_WATCH_COORDINATOR_ID ?? "").trim();
+const SCHEDULER_ID = (process.env.usage_scheduler_id ?? process.env.PR_REVIEW_WATCH_SCHEDULER_ID ?? "").trim();
+const ASSIGNMENT_ID = (process.env.usage_assignment_id ?? process.env.PR_REVIEW_WATCH_ASSIGNMENT_ID ?? "").trim();
+const SCOPE_ID = (process.env.usage_scope_id ?? process.env.PR_REVIEW_WATCH_SCOPE_ID ?? "").trim();
+const CANDIDATE_ID = (process.env.usage_candidate_id ?? process.env.PR_REVIEW_WATCH_CANDIDATE_ID ?? "").trim();
+const STRICT_IDENTITY_BINDING = Boolean(COORDINATOR_ID || SCHEDULER_ID || ASSIGNMENT_ID || SCOPE_ID || CANDIDATE_ID);
+const REVIEW_METADATA_CONTRACT = "gh-pr-view-reviews-v1";
+const PAGINATION_PAGE_SIZE = 100;
 
 function getStateFile(): string {
   if (STATE_FILE) return resolve(STATE_FILE);
   const stateHome = process.env.XDG_STATE_HOME || join(homedir(), ".local", "state");
   return join(stateHome, "dot", "pr-review-watch.json");
+}
+
+function identityFor(repository: string, number?: number, head?: string): Identity {
+  return {
+    repository,
+    coordinator_id: COORDINATOR_ID || `review-watch:${repository}`,
+    scheduler_id: SCHEDULER_ID || `review-watch-scheduler:${repository}`,
+    assignment_id: ASSIGNMENT_ID || `review-assignment:${repository}`,
+    scope_id: SCOPE_ID || `review-scope:${repository}`,
+    candidate_id: CANDIDATE_ID || (number ? `candidate:${repository}#${number}` : `candidate:${repository}`),
+    ...(number === undefined ? {} : { pull_request: number }),
+    ...(head === undefined ? {} : { head }),
+  };
+}
+
+function persistedIdentityFor(repository: string, number: number, head: string | undefined): Identity {
+  const identity = identityFor(repository, number, head);
+  if (!STRICT_IDENTITY_BINDING) delete identity.head;
+  return identity;
+}
+
+function sameIdentity(left: Identity | undefined, right: Identity): boolean {
+  return Boolean(
+    left &&
+    left.repository === right.repository &&
+    left.coordinator_id === right.coordinator_id &&
+    left.scheduler_id === right.scheduler_id &&
+    left.assignment_id === right.assignment_id &&
+    left.scope_id === right.scope_id &&
+    left.candidate_id === right.candidate_id &&
+    (left.pull_request === undefined || left.pull_request === right.pull_request) &&
+    (left.head === undefined || left.head === right.head),
+  );
+}
+
+function sameArtifactIdentity(left: Identity | undefined, right: Identity): boolean {
+  return Boolean(sameIdentity(left, right) && left?.pull_request === right.pull_request && left?.head === right.head);
+}
+
+function sameExactArtifactIdentity(left: unknown, right: unknown): boolean {
+  if (!isObject(left) || !isObject(right)) return false;
+  return Boolean(
+    sameArtifactIdentity(left as Identity, right as Identity) &&
+    sameArtifactIdentity(right as Identity, left as Identity),
+  );
+}
+
+function sameExactIdentity(left: unknown, right: unknown): boolean {
+  if (!isObject(left) || !isObject(right)) return false;
+  return Boolean(
+    sameIdentity(left as Identity, right as Identity) && sameIdentity(right as Identity, left as Identity),
+  );
+}
+
+function validateIdentity(value: unknown, description: string): asserts value is Identity {
+  if (
+    !isObject(value) ||
+    typeof value.repository !== "string" ||
+    typeof value.coordinator_id !== "string" ||
+    typeof value.scheduler_id !== "string" ||
+    typeof value.assignment_id !== "string" ||
+    typeof value.scope_id !== "string" ||
+    typeof value.candidate_id !== "string" ||
+    [
+      value.repository,
+      value.coordinator_id,
+      value.scheduler_id,
+      value.assignment_id,
+      value.scope_id,
+      value.candidate_id,
+    ].some((item) => item.trim().length === 0) ||
+    (value.pull_request !== undefined &&
+      (!Number.isSafeInteger(value.pull_request) || (value.pull_request as number) <= 0)) ||
+    (value.head !== undefined && (typeof value.head !== "string" || value.head.trim().length === 0))
+  ) {
+    throw new Error(`invalid ${description} identity`);
+  }
+}
+
+function assertStateIdentity(state: WatchState, repository: string): Identity {
+  const expected = identityFor(repository);
+  if (state.identity !== undefined) {
+    validateIdentity(state.identity, "watch state");
+    if (!sameIdentity(state.identity, expected)) {
+      throw new Error(`watch state identity mismatch: ${state.repository}`);
+    }
+    return state.identity;
+  }
+  return expected;
 }
 
 function parseNumbers(): number[] {
@@ -233,9 +383,31 @@ async function getReviewComments(
 ): Promise<CommentCollection> {
   const path = commentEndpoint(hostname, owner, repo, number, kind);
   const description = `${kind === "pulls" ? "inline" : "issue"} comments for PR #${number} (${path})`;
+  return getPaginatedCollection<ReviewComment>(hostname, path, description);
+}
+
+async function getReviews(hostname: string, owner: string, repo: string, number: number): Promise<ReviewCollection> {
+  const path = `repos/${owner}/${repo}/pulls/${number}/reviews`;
+  return getPaginatedCollection<Review>(hostname, path, `reviews for PR #${number} (${path})`);
+}
+
+async function getPaginatedCollection<T>(
+  hostname: string,
+  path: string,
+  description: string,
+): Promise<PaginatedCollection<T>> {
   let output: string;
   try {
-    output = await run("gh", ["api", "--hostname", hostname, "--paginate", "--slurp", path]);
+    output = await run("gh", [
+      "api",
+      "--hostname",
+      hostname,
+      "--paginate",
+      "--slurp",
+      "-F",
+      `per_page=${PAGINATION_PAGE_SIZE}`,
+      path,
+    ]);
   } catch (error) {
     throw new Error(`${description} failed: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -245,21 +417,37 @@ async function getReviewComments(
     throw new Error(`${description}: response is not an array of pages`);
   }
 
-  const comments: ReviewComment[] = [];
+  const comments: T[] = [];
+  const page_lengths: number[] = [];
   for (let pageIndex = 0; pageIndex < value.length; pageIndex += 1) {
     const page = value[pageIndex];
-    if (!Array.isArray(page)) {
-      throw new Error(`${description}: page ${pageIndex + 1} is not an array`);
+    if (!Array.isArray(page)) throw new Error(`${description}: page ${pageIndex + 1} is not an array`);
+    const items = page;
+    if (items.length > PAGINATION_PAGE_SIZE) {
+      throw new Error(`${description}: page ${pageIndex + 1} exceeds the requested page size`);
     }
-    for (let itemIndex = 0; itemIndex < page.length; itemIndex += 1) {
-      const item = page[itemIndex];
+    page_lengths.push(items.length);
+    for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
+      const item = items[itemIndex];
       if (!item || typeof item !== "object" || Array.isArray(item)) {
         throw new Error(`${description}: page ${pageIndex + 1} item ${itemIndex + 1} is not an object`);
       }
-      comments.push(item as ReviewComment);
+      comments.push(item as T);
     }
   }
-  return { comments, pages: value.length };
+  const finalPageLength = page_lengths.at(-1);
+  if (finalPageLength === PAGINATION_PAGE_SIZE) {
+    throw new Error(`${description}: pagination has no short terminal page`);
+  }
+  return {
+    comments,
+    pages: value.length,
+    page_lengths,
+    pagination_complete: true,
+    pagination_termination: value.length === 0 ? "empty-result" : "short-final-page",
+    page_size: PAGINATION_PAGE_SIZE,
+    pagination_contract: "gh-api-paginate-slurp-v1",
+  };
 }
 
 function isValidTimestamp(value: unknown): value is string {
@@ -311,33 +499,298 @@ function validateWatchEntry(value: unknown, stateFile: string): value is WatchEn
   if (entry.graceComplete !== undefined && typeof entry.graceComplete !== "boolean") {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
+  if (entry.identity !== undefined) {
+    try {
+      validateIdentity(entry.identity, "watch entry");
+    } catch {
+      throw new Error(`invalid watch state: ${stateFile}`);
+    }
+  }
   return true;
 }
 
-function validatePollResult(value: unknown, stateFile: string): asserts value is Record<string, unknown> {
-  if (!isObject(value)) throw new Error(`invalid watch state: ${stateFile}`);
-  if (!Number.isSafeInteger(value.number) || (value.number as number) <= 0 || typeof value.state !== "string") {
+function validateArtifactIdentity(
+  value: unknown,
+  repository: string,
+  number: number,
+  head: string | undefined,
+  stateFile: string,
+  description: string,
+): asserts value is Identity {
+  try {
+    validateIdentity(value, description);
+  } catch {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
-  for (const key of ["new_reviews", "new_inline_comments", "new_issue_comments", "checks"]) {
-    if (!Array.isArray(value[key])) throw new Error(`invalid watch state: ${stateFile}`);
-    if (!(value[key] as unknown[]).every(isObject)) throw new Error(`invalid watch state: ${stateFile}`);
+  const expected = identityFor(repository, number, head);
+  if (!sameArtifactIdentity(value, expected)) {
+    throw new Error(`invalid ${description} artifact identity: ${stateFile}`);
   }
-  for (const key of ["inline_comments_pages", "issue_comments_pages"]) {
-    if (!Number.isSafeInteger(value[key]) || (value[key] as number) < 0) {
-      throw new Error(`invalid watch state: ${stateFile}`);
+}
+
+function validatePaginationResultFields(
+  value: Record<string, unknown>,
+  prefix: "reviews" | "inline_comments" | "issue_comments",
+  stateFile: string,
+): void {
+  const pages = value[`${prefix}_pages`];
+  const pageLengths = value[`${prefix}_page_lengths`];
+  const complete = value[`${prefix}_pagination_complete`];
+  const termination = value[`${prefix}_pagination_termination`];
+  const pageSize = value[`${prefix}_page_size`];
+  if (
+    !Number.isSafeInteger(pages) ||
+    (pages as number) < 0 ||
+    !Array.isArray(pageLengths) ||
+    !pageLengths.every((length) => Number.isSafeInteger(length) && length >= 0 && length <= PAGINATION_PAGE_SIZE) ||
+    pageLengths.length !== pages ||
+    complete !== true ||
+    !["empty-result", "short-final-page"].includes(String(termination)) ||
+    pageSize !== PAGINATION_PAGE_SIZE
+  ) {
+    throw new Error(`invalid staged pagination contract: ${stateFile}`);
+  }
+  const finalPageLength = pageLengths.at(-1);
+  if (
+    (pages === 0 && termination !== "empty-result") ||
+    (pages > 0 && (termination !== "short-final-page" || finalPageLength === PAGINATION_PAGE_SIZE))
+  ) {
+    throw new Error(`invalid staged pagination termination: ${stateFile}`);
+  }
+}
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (!isObject(value)) return JSON.stringify(value);
+  return `{${Object.keys(value)
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`)
+    .join(",")}}`;
+}
+
+function withoutFindingEnvelopeFields(value: Record<string, unknown>): Record<string, unknown> {
+  const {
+    kind: _kind,
+    identity: _identity,
+    result_number: _resultNumber,
+    source_batch_id: _sourceBatchId,
+    ...source
+  } = value;
+  return source;
+}
+
+function validateSourceArtifact(kind: string, value: Record<string, unknown>): void {
+  if (typeof value.activity_id !== "string" || !isObject(value.provenance)) {
+    throw new Error(`invalid ${kind} source artifact`);
+  }
+  const provenance = value.provenance;
+  if (kind === "review") {
+    if (provenance.source !== "pull_request_review" || typeof provenance.review_id !== "string") {
+      throw new Error("invalid review source artifact");
+    }
+    return;
+  }
+  if (
+    typeof provenance.comment_id !== "string" ||
+    typeof provenance.source !== "string" ||
+    !["diff", "pathless"].includes(String(provenance.location)) ||
+    typeof provenance.outside_diff !== "boolean"
+  ) {
+    throw new Error(`invalid ${kind} source artifact`);
+  }
+  if (kind === "nested_comment" && provenance.source !== "nested_review_comment") {
+    throw new Error("invalid nested comment source artifact");
+  }
+}
+
+function resultSourceEntries(
+  result: Record<string, unknown>,
+  key: "reviews" | "inline_comments" | "issue_comments",
+): Array<Record<string, unknown>> {
+  const preferred = `new_${key}`;
+  const source = Object.prototype.hasOwnProperty.call(result, preferred) ? result[preferred] : result[key];
+  if (!Array.isArray(source) || !source.every(isObject)) {
+    throw new Error(`invalid staged result source array: ${key}`);
+  }
+  return source;
+}
+
+function findingsForResult(result: Record<string, unknown>, batchId: string): Array<Record<string, unknown>> {
+  const number = result.number;
+  const identity = result.identity;
+  if (!Number.isSafeInteger(number) || !isObject(identity)) throw new Error("invalid staged result identity");
+  const findings: Array<Record<string, unknown>> = [];
+  const sources = [
+    ["reviews", "review"],
+    ["inline_comments", "inline_comment"],
+    ["issue_comments", "issue_comment"],
+  ] as const;
+  for (const [key, kind] of sources) {
+    for (const source of resultSourceEntries(result, key)) {
+      validateSourceArtifact(kind, source);
+      findings.push({
+        ...source,
+        kind,
+        identity,
+        result_number: number,
+        source_batch_id: batchId,
+      });
+      if (key === "reviews" && Array.isArray(source.nested_comments)) {
+        for (const nested of source.nested_comments) {
+          if (!isObject(nested)) throw new Error("invalid nested comment source artifact");
+          validateSourceArtifact("nested_comment", nested);
+          findings.push({
+            ...nested,
+            kind: "nested_comment",
+            identity,
+            result_number: number,
+            source_batch_id: batchId,
+          });
+        }
+      }
     }
   }
+  return findings;
+}
+
+function sameFindingArtifact(left: Record<string, unknown>, right: Record<string, unknown>): boolean {
+  return (
+    left.kind === right.kind &&
+    left.result_number === right.result_number &&
+    left.source_batch_id === right.source_batch_id &&
+    sameExactArtifactIdentity(left.identity, right.identity) &&
+    canonicalJson(withoutFindingEnvelopeFields(left)) === canonicalJson(withoutFindingEnvelopeFields(right))
+  );
+}
+
+function validatePollResult(
+  value: unknown,
+  repository: string,
+  stateFile: string,
+  expectedEntry?: WatchEntry,
+): asserts value is Record<string, unknown> {
+  if (!isObject(value)) throw new Error(`staged poll result is not an object: ${stateFile}`);
+  if (!Number.isSafeInteger(value.number) || (value.number as number) <= 0 || typeof value.state !== "string") {
+    throw new Error(`staged poll result has invalid number or state: ${stateFile}`);
+  }
+  for (const key of ["new_reviews", "new_inline_comments", "new_issue_comments", "checks"]) {
+    if (!Array.isArray(value[key])) throw new Error(`staged poll result has invalid ${key}: ${stateFile}`);
+    if (!(value[key] as unknown[]).every(isObject))
+      throw new Error(`staged poll result has malformed ${key}: ${stateFile}`);
+  }
+  validatePaginationResultFields(value, "inline_comments", stateFile);
+  validatePaginationResultFields(value, "issue_comments", stateFile);
+  validatePaginationResultFields(value, "reviews", stateFile);
+  if (value.pagination_contract !== "gh-api-paginate-slurp-v1") {
+    throw new Error(`staged poll result has invalid pagination contract: ${stateFile}`);
+  }
+  if (value.review_metadata_contract !== REVIEW_METADATA_CONTRACT) {
+    throw new Error(`staged poll result has invalid review metadata contract: ${stateFile}`);
+  }
   for (const key of ["has_new_activity", "has_failed_checks", "action_required"]) {
-    if (typeof value[key] !== "boolean") throw new Error(`invalid watch state: ${stateFile}`);
+    if (typeof value[key] !== "boolean") throw new Error(`staged poll result has invalid ${key}: ${stateFile}`);
   }
   for (const key of ["has_pending_checks", "grace_complete", "keep_watching", "removed"]) {
     if (value[key] !== undefined && typeof value[key] !== "boolean") {
-      throw new Error(`invalid watch state: ${stateFile}`);
+      throw new Error(`staged poll result has invalid ${key}: ${stateFile}`);
     }
   }
   if (value.removed === true && typeof value.reason !== "string") {
+    throw new Error(`staged poll result has invalid removal reason: ${stateFile}`);
+  }
+  const number = value.number as number;
+  const head =
+    typeof value.head_oid === "string" ? value.head_oid : typeof value.head === "string" ? value.head : undefined;
+  validateArtifactIdentity(value.identity, repository, number, head, stateFile, "poll result");
+  if (
+    expectedEntry?.identity !== undefined &&
+    !sameArtifactIdentity(
+      {
+        ...expectedEntry.identity,
+        pull_request: expectedEntry.number,
+        head: expectedEntry.identity.head ?? (STRICT_IDENTITY_BINDING ? expectedEntry.head : value.identity.head),
+      },
+      value.identity as Identity,
+    )
+  ) {
+    throw new Error(`staged poll result has invalid artifact identity: ${stateFile}`);
+  }
+}
+
+function validateFindingsEnvelope(
+  value: unknown,
+  repository: string,
+  stateFile: string,
+  results: Array<Record<string, unknown>>,
+): asserts value is ReviewFindingsEnvelope {
+  if (
+    !isObject(value) ||
+    value.schema_version !== "review-findings.v1" ||
+    typeof value.batch_id !== "string" ||
+    value.batch_id.trim().length === 0 ||
+    value.complete !== true ||
+    !Array.isArray(value.findings) ||
+    !isObject(value.counts)
+  ) {
+    throw new Error(`invalid watch state (findings envelope): ${stateFile}`);
+  }
+  try {
+    validateIdentity(value.identity, "findings envelope");
+  } catch {
     throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  if (
+    !sameExactIdentity(value.identity, identityFor(repository)) ||
+    !results.every((result) => isObject(result) && Number.isSafeInteger(result.number)) ||
+    !(value.findings as unknown[]).every((finding) => {
+      if (!isObject(finding)) return false;
+      if (
+        !["review", "inline_comment", "issue_comment", "nested_comment"].includes(String(finding.kind)) ||
+        !isObject(finding.provenance) ||
+        !Number.isSafeInteger(finding.result_number) ||
+        typeof finding.source_batch_id !== "string" ||
+        finding.source_batch_id !== value.batch_id
+      ) {
+        return false;
+      }
+      try {
+        validateIdentity(finding.identity, "finding");
+      } catch {
+        return false;
+      }
+      return true;
+    }) ||
+    !["pull_requests", "reviews", "inline_comments", "issue_comments"].every((key) =>
+      Object.prototype.hasOwnProperty.call(value.counts, key),
+    ) ||
+    !Object.values(value.counts).every(
+      (count) => typeof count === "number" && Number.isSafeInteger(count) && count >= 0,
+    ) ||
+    value.counts.pull_requests !== results.length ||
+    value.counts.reviews !==
+      (value.findings as Array<Record<string, unknown>>).filter((finding) => finding.kind === "review").length ||
+    value.counts.inline_comments !==
+      (value.findings as Array<Record<string, unknown>>).filter((finding) => finding.kind === "inline_comment")
+        .length ||
+    value.counts.issue_comments !==
+      (value.findings as Array<Record<string, unknown>>).filter((finding) => finding.kind === "issue_comment").length
+  ) {
+    throw new Error(`invalid watch state (findings envelope): ${stateFile}`);
+  }
+  const expectedFindings = results.flatMap((result) => findingsForResult(result, value.batch_id as string));
+  if (expectedFindings.length !== value.findings.length) {
+    throw new Error(`invalid watch state (findings envelope source count): ${stateFile}`);
+  }
+  const matched = new Set<number>();
+  for (const finding of value.findings as Array<Record<string, unknown>>) {
+    const matchIndex = expectedFindings.findIndex((expected, index) => {
+      if (matched.has(index)) return false;
+      return sameFindingArtifact(finding, expected);
+    });
+    if (matchIndex < 0) {
+      throw new Error(`invalid watch state (findings envelope source binding): ${stateFile}`);
+    }
+    matched.add(matchIndex);
   }
 }
 
@@ -381,15 +834,40 @@ function validatePendingPoll(
     throw new Error(`invalid watch state: ${stateFile}`);
   }
   const resultNumbers = new Set<number>();
+  const resultIdentities: Identity[] = [];
+  const activeNumbers = new Set(activePullRequests.map((entry) => entry.number));
   for (const result of pending.payload.pull_requests) {
-    validatePollResult(result, stateFile);
-    const number = (result as Record<string, unknown>).number as number;
-    if (resultNumbers.has(number)) throw new Error(`invalid watch state: ${stateFile}`);
-    resultNumbers.add(number);
+    const number = isObject(result) && Number.isSafeInteger(result.number) ? result.number : undefined;
+    const expectedEntry =
+      number === undefined ? undefined : activePullRequests.find((entry) => entry.number === number);
+    if (expectedEntry === undefined) {
+      throw new Error(`invalid staged poll result for an unwatched PR: ${stateFile}`);
+    }
+    try {
+      validatePollResult(result, repository, stateFile, expectedEntry);
+    } catch (error) {
+      throw new Error(`invalid staged poll result: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    resultIdentities.push((result as Record<string, unknown>).identity as Identity);
+    const resultNumber = (result as Record<string, unknown>).number as number;
+    if (resultNumbers.has(resultNumber)) throw new Error(`invalid watch state: ${stateFile}`);
+    resultNumbers.add(resultNumber);
+  }
+  if (pending.payload.review_findings !== undefined) {
+    validateFindingsEnvelope(
+      pending.payload.review_findings,
+      repository,
+      stateFile,
+      pending.payload.pull_requests as Array<Record<string, unknown>>,
+    );
   }
   const nextNumbers = new Set<number>();
   for (const entry of pending.next_pull_requests) {
-    validateWatchEntry(entry, stateFile);
+    try {
+      validateWatchEntry(entry, stateFile);
+    } catch (error) {
+      throw new Error(`invalid staged poll next entry: ${error instanceof Error ? error.message : String(error)}`);
+    }
     if (nextNumbers.has(entry.number)) throw new Error(`invalid watch state: ${stateFile}`);
     nextNumbers.add(entry.number);
   }
@@ -405,7 +883,6 @@ function validatePendingPoll(
       Record<string, unknown> | undefined;
     if (!result || result.removed === true) throw new Error(`invalid watch state: ${stateFile}`);
   }
-  const activeNumbers = new Set(activePullRequests.map((entry) => entry.number));
   for (const number of activeNumbers) {
     const result = pending.payload.pull_requests.find((item) => (item as Record<string, unknown>).number === number) as
       Record<string, unknown> | undefined;
@@ -426,6 +903,38 @@ function validatePendingPoll(
     throw new Error(`invalid watch state: ${stateFile}`);
   }
   return true;
+}
+
+function validateReconciliationResult(
+  value: unknown,
+  repository: string,
+  stateFile: string,
+): asserts value is Record<string, unknown> {
+  if (!isObject(value) || !Number.isSafeInteger(value.number) || (value.number as number) <= 0) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  for (const key of ["reviews", "inline_comments", "issue_comments", "checks"]) {
+    if (!Array.isArray(value[key])) throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  validatePaginationResultFields(value, "inline_comments", stateFile);
+  validatePaginationResultFields(value, "issue_comments", stateFile);
+  validatePaginationResultFields(value, "reviews", stateFile);
+  if (value.pagination_contract !== "gh-api-paginate-slurp-v1") {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  if (value.review_metadata_contract !== REVIEW_METADATA_CONTRACT) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  const head =
+    typeof value.head_oid === "string" ? value.head_oid : typeof value.head === "string" ? value.head : undefined;
+  validateArtifactIdentity(
+    value.identity,
+    repository,
+    value.number as number,
+    head,
+    stateFile,
+    "reconciliation result",
+  );
 }
 
 function validatePendingAdd(value: unknown, repository: string, stateFile: string): value is PendingAdd {
@@ -457,8 +966,18 @@ function validatePendingAdd(value: unknown, repository: string, stateFile: strin
   if (!Array.isArray(pending.payload.pull_requests) || !Array.isArray(pending.payload.reconciliation)) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
-  if (!(pending.payload.reconciliation as unknown[]).every(isObject)) {
-    throw new Error(`invalid watch state: ${stateFile}`);
+  const resultIdentities: Identity[] = [];
+  for (const result of pending.payload.reconciliation) {
+    validateReconciliationResult(result, repository, stateFile);
+    resultIdentities.push((result as Record<string, unknown>).identity as Identity);
+  }
+  if (pending.payload.review_findings !== undefined) {
+    validateFindingsEnvelope(
+      pending.payload.review_findings,
+      repository,
+      stateFile,
+      pending.payload.reconciliation as Array<Record<string, unknown>>,
+    );
   }
   const requestedNumbers = new Set(pending.requested_numbers);
   const nextNumbers = new Set<number>();
@@ -480,6 +999,27 @@ function validatePendingAdd(value: unknown, repository: string, stateFile: strin
   ) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
+  const reconciliationByNumber = new Map(
+    (pending.payload.reconciliation as Array<Record<string, unknown>>).map((result) => [
+      result.number as number,
+      result,
+    ]),
+  );
+  if (
+    reconciliationByNumber.size !== payloadNumbers.size ||
+    [...reconciliationByNumber.keys()].some((number) => !payloadNumbers.has(number))
+  ) {
+    throw new Error(`invalid watch state: ${stateFile}`);
+  }
+  for (const entry of pending.payload.pull_requests) {
+    const result = reconciliationByNumber.get(entry.number);
+    if (
+      !result ||
+      !sameArtifactIdentity(result.identity as Identity, identityFor(repository, entry.number, entry.head))
+    ) {
+      throw new Error(`invalid watch state: ${stateFile}`);
+    }
+  }
   for (const number of requestedNumbers) {
     if (!nextNumbers.has(number)) throw new Error(`invalid watch state: ${stateFile}`);
   }
@@ -492,7 +1032,11 @@ function validatePendingAdd(value: unknown, repository: string, stateFile: strin
 async function loadState(repository: string, stateFile: string): Promise<WatchState> {
   try {
     const parsed = parseJson<Partial<WatchState>>(await readFile(stateFile, "utf8"), `watch state ${stateFile}`);
-    if (parsed.version !== 1 || parsed.repository !== repository || !Array.isArray(parsed.pull_requests)) {
+    if (
+      ![1, 2].includes(parsed.version as number) ||
+      parsed.repository !== repository ||
+      !Array.isArray(parsed.pull_requests)
+    ) {
       throw new Error(`invalid watch state: ${stateFile}`);
     }
     const pullRequests: WatchEntry[] = [];
@@ -503,10 +1047,18 @@ async function loadState(repository: string, stateFile: string): Promise<WatchSt
       pullRequests.push(entry);
     }
     if (parsed.pending_poll !== undefined) {
-      validatePendingPoll(parsed.pending_poll, pullRequests, repository, stateFile);
+      try {
+        validatePendingPoll(parsed.pending_poll, pullRequests, repository, stateFile);
+      } catch (error) {
+        throw new Error(`invalid pending poll state: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
     if (parsed.pending_add !== undefined) {
-      validatePendingAdd(parsed.pending_add, repository, stateFile);
+      try {
+        validatePendingAdd(parsed.pending_add, repository, stateFile);
+      } catch (error) {
+        throw new Error(`invalid pending add state: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
     if (parsed.pending_poll !== undefined && parsed.pending_add !== undefined) {
       throw new Error(`invalid watch state: ${stateFile}`);
@@ -515,6 +1067,7 @@ async function loadState(repository: string, stateFile: string): Promise<WatchSt
       version: 1,
       repository,
       pull_requests: pullRequests,
+      identity: parsed.identity,
       pending_poll: parsed.pending_poll,
       pending_add: parsed.pending_add,
     };
@@ -527,19 +1080,29 @@ async function loadState(repository: string, stateFile: string): Promise<WatchSt
 }
 
 async function saveState(stateFile: string, state: WatchState): Promise<void> {
-  if (state.version !== 1 || !state.repository || !Array.isArray(state.pull_requests)) {
+  if (![1, 2].includes(state.version) || !state.repository || !Array.isArray(state.pull_requests)) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
+  if (state.identity !== undefined) validateIdentity(state.identity, "watch state");
+  state.identity ??= identityFor(state.repository);
   for (const entry of state.pull_requests) {
     if (!validateWatchEntry(entry, stateFile)) {
       throw new Error(`invalid watch state: ${stateFile}`);
     }
   }
   if (state.pending_poll !== undefined) {
-    validatePendingPoll(state.pending_poll, state.pull_requests, state.repository, stateFile);
+    try {
+      validatePendingPoll(state.pending_poll, state.pull_requests, state.repository, stateFile);
+    } catch (error) {
+      throw new Error(`invalid pending poll state: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
   if (state.pending_add !== undefined) {
-    validatePendingAdd(state.pending_add, state.repository, stateFile);
+    try {
+      validatePendingAdd(state.pending_add, state.repository, stateFile);
+    } catch (error) {
+      throw new Error(`invalid pending add state: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
   if (state.pending_poll !== undefined && state.pending_add !== undefined) {
     throw new Error(`invalid watch state: ${stateFile}`);
@@ -547,7 +1110,10 @@ async function saveState(stateFile: string, state: WatchState): Promise<void> {
   await mkdir(dirname(stateFile), { recursive: true });
   const temporaryFile = `${stateFile}.tmp.${process.pid}.${randomUUID()}`;
   try {
-    await writeFile(temporaryFile, `${JSON.stringify(state, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
+    await writeFile(temporaryFile, `${JSON.stringify({ ...state, version: 2 }, null, 2)}\n`, {
+      encoding: "utf8",
+      flag: "wx",
+    });
     await rename(temporaryFile, stateFile);
   } catch (error) {
     await rm(temporaryFile, { force: true });
@@ -732,17 +1298,21 @@ function activityId(value: { id?: number | string; node_id?: string }, fallback:
 }
 
 function reviewId(review: Review, index: number): string {
-  return activityId(
+  const base = activityId(
     review,
     `review:${review.submittedAt ?? "unknown"}:${review.author?.login ?? "unknown"}:${review.body ?? ""}:${index}`,
   );
+  const revision = review.revision_id ?? review.commit_id;
+  return revision ? `${base}@${revision}` : base;
 }
 
 function commentId(comment: ReviewComment, index: number): string {
-  return activityId(
+  const base = activityId(
     comment,
     `comment:${comment.created_at ?? "unknown"}:${comment.user?.login ?? "unknown"}:${comment.body ?? ""}:${index}`,
   );
+  const revision = comment.commit_id ?? comment.original_commit_id;
+  return revision ? `${base}@${revision}` : base;
 }
 
 function pullRequestHead(pullRequest: PullRequest): string | undefined {
@@ -776,7 +1346,21 @@ function hasUnresolvedReviewState(reviews: Review[]): boolean {
 }
 
 function formatReview(review: Review, index: number): Record<string, unknown> {
+  const nestedComments = (review.comments ?? []).map((comment, nestedIndex) => {
+    const formatted = formatComment(comment, nestedIndex, "pulls", comment.isResolved ?? comment.resolved ?? null);
+    return {
+      ...formatted,
+      provenance: {
+        ...(formatted.provenance as Record<string, unknown>),
+        source: "nested_review_comment",
+        review_id: reviewId(review, index),
+        comment_id: commentId(comment, nestedIndex),
+        revision_id: comment.commit_id ?? comment.original_commit_id ?? review.commit_id ?? null,
+      },
+    };
+  });
   return {
+    kind: "review",
     id: review.id,
     node_id: review.node_id,
     author: review.author?.login,
@@ -786,6 +1370,18 @@ function formatReview(review: Review, index: number): Record<string, unknown> {
     url: review.url ?? review.html_url,
     summary: (review.body ?? "").split("\n").find(Boolean) ?? "",
     activity_id: reviewId(review, index),
+    revision_id: review.revision_id ?? review.commit_id,
+    details: {
+      body: review.body ?? "",
+      revision_id: review.revision_id ?? review.commit_id ?? null,
+      nested_comments: nestedComments,
+    },
+    nested_comments: nestedComments,
+    provenance: {
+      source: "pull_request_review",
+      review_id: reviewId(review, index),
+      revision_id: review.revision_id ?? review.commit_id ?? null,
+    },
   };
 }
 
@@ -1022,7 +1618,13 @@ function formatComment(
   kind: CommentKind,
   resolution: boolean | null,
 ): Record<string, unknown> {
+  const hasDiffLocation =
+    typeof comment.path === "string" &&
+    comment.path.trim().length > 0 &&
+    Number.isSafeInteger(comment.position) &&
+    (comment.position as number) > 0;
   return {
+    kind: kind === "pulls" ? "inline_comment" : "issue_comment",
     id: comment.id,
     node_id: comment.node_id,
     pull_request_review_id: comment.pull_request_review_id,
@@ -1036,9 +1638,26 @@ function formatComment(
     start_line: comment.start_line,
     start_side: comment.start_side,
     side: comment.side,
+    diff_hunk: comment.diff_hunk,
+    position: comment.position,
+    original_position: comment.original_position,
+    original_line: comment.original_line,
+    original_start_line: comment.original_start_line,
+    original_commit_id: comment.original_commit_id,
+    commit_id: comment.commit_id,
     body: comment.body ?? "",
     url: comment.html_url,
     activity_id: `${kind}:${commentId(comment, index)}`,
+    provenance: {
+      source: kind === "pulls" ? "pull_request_review_comment" : "issue_comment",
+      comment_id: commentId(comment, index),
+      review_id: comment.pull_request_review_id ?? null,
+      reply_to: comment.in_reply_to_id ?? null,
+      thread_id: comment.thread_id ?? null,
+      revision_id: comment.commit_id ?? comment.original_commit_id ?? null,
+      location: hasDiffLocation ? "diff" : "pathless",
+      outside_diff: !hasDiffLocation,
+    },
   };
 }
 
@@ -1049,6 +1668,12 @@ function validateReview(review: unknown, number: number, index: number): boolean
   const value = review as Review;
   if (value.body !== undefined && typeof value.body !== "string") {
     throw new Error(`PR #${number} review ${index + 1} has a malformed body`);
+  }
+  if (value.comments !== undefined && !Array.isArray(value.comments)) {
+    throw new Error(`PR #${number} review ${index + 1} has malformed nested comments`);
+  }
+  for (const [commentIndex, comment] of (value.comments ?? []).entries()) {
+    validateComment(comment, number, "pulls", commentIndex);
   }
   if (isPendingReview(value)) return false;
   if (!isValidTimestamp(value.submittedAt)) {
@@ -1136,6 +1761,38 @@ function hasPendingChecks(checks: Array<Record<string, unknown>>): boolean {
   });
 }
 
+function reconcileDeclaredCount(
+  pullRequest: PullRequest,
+  inline: CommentCollection,
+  issue: CommentCollection,
+  number: number,
+): void {
+  const checks: Array<[number | undefined, number, string]> = [
+    [pullRequest.reviewCount, (pullRequest.reviews ?? []).length, "reviews"],
+    [pullRequest.review_comments_count ?? pullRequest.inline_comments_count, inline.comments.length, "inline comments"],
+    [pullRequest.issue_comments_count, issue.comments.length, "issue comments"],
+  ];
+  for (const [declared, actual, label] of checks) {
+    if (declared !== undefined && (!Number.isSafeInteger(declared) || declared !== actual)) {
+      throw new Error(`PR #${number} ${label} count mismatch (expected ${declared}, got ${actual})`);
+    }
+  }
+}
+
+function validatePaginationContract(
+  collection: PaginatedCollection<unknown>,
+  number: number,
+  kind: PaginationKind,
+): void {
+  if (collection.pagination_contract !== "gh-api-paginate-slurp-v1") {
+    throw new Error(
+      `PR #${number} ${
+        kind === "pulls" ? "inline" : kind === "issues" ? "issue" : "review"
+      } comments use an unsupported pagination contract`,
+    );
+  }
+}
+
 function seenFor(
   reviews: Review[],
   inlineComments: ReviewComment[],
@@ -1161,13 +1818,18 @@ async function reconciliationFor(
   owner: string,
   repo: string,
   pullRequest: PullRequest,
+  reviewCollection: ReviewCollection,
   inlineCollection: CommentCollection,
   issueCollection: CommentCollection,
   number: number,
 ): Promise<Record<string, unknown>> {
-  const reviews = pullRequest.reviews ?? [];
+  const reviews = reviewCollection.comments;
   const inlineComments = inlineCollection.comments;
   const issueComments = issueCollection.comments;
+  validatePaginationContract(reviewCollection, number, "reviews");
+  validatePaginationContract(inlineCollection, number, "pulls");
+  validatePaginationContract(issueCollection, number, "issues");
+  reconcileDeclaredCount(pullRequest, inlineCollection, issueCollection, number);
   const formattedReviews = reviews.flatMap((review, index) => {
     return validateReview(review, number, index) ? [formatReview(review, index)] : [];
   });
@@ -1191,6 +1853,7 @@ async function reconciliationFor(
     hasUnresolvedReviewState(reviews) || inlineResolutions.some((resolution) => resolution !== true);
   return {
     number,
+    identity: identityFor(`${hostname}/${owner}/${repo}`, number, pullRequestHead(pullRequest)),
     state: pullRequest.state,
     head: pullRequest.headRefName,
     head_oid: pullRequest.headRefOid,
@@ -1199,14 +1862,93 @@ async function reconciliationFor(
     inline_comments: formattedInlineComments,
     issue_comments: formattedIssueComments,
     checks,
+    reviews_pages: reviewCollection.pages,
     inline_comments_pages: inlineCollection.pages,
     issue_comments_pages: issueCollection.pages,
+    reviews_page_lengths: reviewCollection.page_lengths,
+    inline_comments_page_lengths: inlineCollection.page_lengths,
+    issue_comments_page_lengths: issueCollection.page_lengths,
+    reviews_pagination_complete: reviewCollection.pagination_complete,
+    inline_comments_pagination_complete: inlineCollection.pagination_complete,
+    issue_comments_pagination_complete: issueCollection.pagination_complete,
+    reviews_pagination_termination: reviewCollection.pagination_termination,
+    inline_comments_pagination_termination: inlineCollection.pagination_termination,
+    issue_comments_pagination_termination: issueCollection.pagination_termination,
+    reviews_page_size: reviewCollection.page_size,
+    inline_comments_page_size: inlineCollection.page_size,
+    issue_comments_page_size: issueCollection.page_size,
+    pagination_contract: "gh-api-paginate-slurp-v1",
+    review_metadata_contract: REVIEW_METADATA_CONTRACT,
+    counts: {
+      reviews: reviews.length,
+      inline_comments: inlineComments.length,
+      issue_comments: issueComments.length,
+    },
     has_failed_checks: failedChecks,
     has_pending_checks: pendingChecks,
     has_new_activity: hasNewActivity,
     resolution_warnings: inlineResolution.warnings,
     action_required:
       hasNewActivity || hasUnresolvedActivity || failedChecks || pendingChecks || hasUnresolvedReviewState(reviews),
+  };
+}
+
+function envelopeFor(
+  repository: string,
+  batchId: string,
+  results: Array<Record<string, unknown>>,
+): ReviewFindingsEnvelope {
+  const findings: Array<Record<string, unknown>> = [];
+  const counts: Record<string, number> = {
+    pull_requests: results.length,
+    reviews: 0,
+    inline_comments: 0,
+    issue_comments: 0,
+  };
+  for (const result of results) {
+    const identity = result.identity;
+    for (const [legacyKey, kind] of [
+      ["reviews", "review"],
+      ["inline_comments", "inline_comment"],
+      ["issue_comments", "issue_comment"],
+    ] as const) {
+      const pollKey = `new_${legacyKey}`;
+      const entries = Array.isArray(result[pollKey]) ? result[pollKey] : result[legacyKey];
+      if (!Array.isArray(entries)) continue;
+      counts[legacyKey] += entries.length;
+      for (const entry of entries) {
+        if (isObject(entry)) {
+          findings.push({
+            ...entry,
+            kind,
+            identity,
+            result_number: result.number,
+            source_batch_id: batchId,
+          });
+          if (Array.isArray(entry.nested_comments)) {
+            for (const nested of entry.nested_comments) {
+              if (isObject(nested)) {
+                findings.push({
+                  ...nested,
+                  kind: "nested_comment",
+                  identity,
+                  result_number: result.number,
+                  source_batch_id: batchId,
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return {
+    schema_version: "review-findings.v1",
+    batch_id: batchId,
+    identity: identityFor(repository),
+    complete: true,
+    findings,
+    counts,
   };
 }
 
@@ -1246,6 +1988,15 @@ async function main(): Promise<void> {
   try {
     releaseLock = await acquireLock(stateFile);
     const state = await loadState(repository, stateFile);
+    const stateIdentity = assertStateIdentity(state, repository);
+    for (const entry of state.pull_requests) {
+      if (
+        entry.identity !== undefined &&
+        !sameIdentity(entry.identity, identityFor(repository, entry.number, entry.head))
+      ) {
+        throw new Error(`watch entry identity mismatch for PR #${entry.number}`);
+      }
+    }
     const numbers = parseNumbers();
 
     if (ACTION === "add" || ACTION === "remove") {
@@ -1257,6 +2008,7 @@ async function main(): Promise<void> {
         await saveState(stateFile, {
           version: 1,
           repository,
+          identity: stateIdentity,
           pull_requests: state.pending_add.next_pull_requests,
         });
         return;
@@ -1269,6 +2021,7 @@ async function main(): Promise<void> {
         version: 1,
         repository,
         pull_requests: [...state.pull_requests],
+        identity: stateIdentity,
       };
       const reconciliation: Array<Record<string, unknown>> = [];
       const warnings: string[] = [];
@@ -1278,16 +2031,31 @@ async function main(): Promise<void> {
           if (nextState.pull_requests.some((entry) => entry.number === number)) continue;
           const pullRequest = await getPullRequest(repository, number);
           if (pullRequest.state !== "OPEN") throw new Error(`pull request #${number} is not open`);
-          const [inlineCollection, issueCollection] = await Promise.all([
+          const [reviewCollection, inlineCollection, issueCollection] = await Promise.all([
+            getReviews(hostname, owner, repo, number),
             getReviewComments(hostname, owner, repo, number, "pulls"),
             getReviewComments(hostname, owner, repo, number, "issues"),
           ]);
+          pullRequest.reviews = reviewCollection.comments;
+          reconcileDeclaredCount(pullRequest, inlineCollection, issueCollection, number);
           reconciliation.push(
-            await reconciliationFor(hostname, owner, repo, pullRequest, inlineCollection, issueCollection, number),
+            await reconciliationFor(
+              hostname,
+              owner,
+              repo,
+              pullRequest,
+              reviewCollection,
+              inlineCollection,
+              issueCollection,
+              number,
+            ),
           );
           const resolutionWarnings = reconciliation.at(-1)?.resolution_warnings;
           if (Array.isArray(resolutionWarnings))
             warnings.push(...resolutionWarnings.filter((warning) => typeof warning === "string"));
+          if (STRICT_IDENTITY_BINDING && Array.isArray(resolutionWarnings) && resolutionWarnings.length > 0) {
+            throw new Error(`PR #${number} review resolution batch incomplete`);
+          }
           nextState.pull_requests.push({
             number,
             addedAt: watchStartedAt,
@@ -1296,6 +2064,7 @@ async function main(): Promise<void> {
             seen: seenFor(pullRequest.reviews ?? [], inlineCollection.comments, issueCollection.comments),
             graceChecks: 0,
             graceComplete: false,
+            identity: persistedIdentityFor(repository, number, pullRequestHead(pullRequest)),
           });
         }
       } else {
@@ -1310,11 +2079,13 @@ async function main(): Promise<void> {
         warnings,
         pull_requests: nextState.pull_requests,
         reconciliation,
+        review_findings: envelopeFor(repository, randomUUID(), reconciliation),
       };
       if (ACTION === "add") {
         await saveState(stateFile, {
           version: 1,
           repository,
+          identity: stateIdentity,
           pull_requests: state.pull_requests,
           pending_add: {
             payload,
@@ -1362,6 +2133,7 @@ async function main(): Promise<void> {
       await saveState(stateFile, {
         version: 1,
         repository,
+        identity: stateIdentity,
         pull_requests: state.pending_poll.next_pull_requests,
       });
       return;
@@ -1381,6 +2153,7 @@ async function main(): Promise<void> {
       if (isMerged || isClosed) {
         results.push({
           number: entry.number,
+          identity: identityFor(repository, entry.number, pullRequestHead(pullRequest)),
           state: pullRequest.state,
           head: pullRequest.headRefName,
           review_decision: pullRequest.reviewDecision,
@@ -1390,8 +2163,23 @@ async function main(): Promise<void> {
           new_inline_comments: [],
           new_issue_comments: [],
           checks: [],
+          reviews_pages: 0,
           inline_comments_pages: 0,
           issue_comments_pages: 0,
+          reviews_page_lengths: [],
+          inline_comments_page_lengths: [],
+          issue_comments_page_lengths: [],
+          reviews_pagination_complete: true,
+          inline_comments_pagination_complete: true,
+          issue_comments_pagination_complete: true,
+          reviews_pagination_termination: "empty-result",
+          inline_comments_pagination_termination: "empty-result",
+          issue_comments_pagination_termination: "empty-result",
+          reviews_page_size: PAGINATION_PAGE_SIZE,
+          inline_comments_page_size: PAGINATION_PAGE_SIZE,
+          issue_comments_page_size: PAGINATION_PAGE_SIZE,
+          pagination_contract: "gh-api-paginate-slurp-v1",
+          review_metadata_contract: REVIEW_METADATA_CONTRACT,
           has_new_activity: false,
           has_failed_checks: false,
           action_required: false,
@@ -1400,10 +2188,12 @@ async function main(): Promise<void> {
       }
 
       const cutoff = entry.lastSeenAt ?? entry.addedAt;
-      const [inlineCollection, issueCollection] = await Promise.all([
+      const [reviewCollection, inlineCollection, issueCollection] = await Promise.all([
+        getReviews(hostname, owner, repo, entry.number),
         getReviewComments(hostname, owner, repo, entry.number, "pulls"),
         getReviewComments(hostname, owner, repo, entry.number, "issues"),
       ]);
+      pullRequest.reviews = reviewCollection.comments;
       const seenReviews = new Set(entry.seen?.reviews ?? []);
       const seenInlineComments = new Set(entry.seen?.inline_comments ?? []);
       const seenIssueComments = new Set(entry.seen?.issue_comments ?? []);
@@ -1411,7 +2201,10 @@ async function main(): Promise<void> {
       const inlineResolutions = inlineResolution.values;
       const issueResolutions = issueCollection.comments.map(() => null as boolean | null);
       warnings.push(...inlineResolution.warnings);
-      const reviews = newReviews(pullRequest.reviews ?? [], cutoff, entry.number, seenReviews);
+      if (STRICT_IDENTITY_BINDING && inlineResolution.warnings.length > 0) {
+        throw new Error(`PR #${entry.number} review resolution batch incomplete`);
+      }
+      const reviews = newReviews(reviewCollection.comments, cutoff, entry.number, seenReviews);
       const inlineComments = newComments(
         inlineCollection.comments,
         cutoff,
@@ -1433,9 +2226,12 @@ async function main(): Promise<void> {
       const pendingChecks = hasPendingChecks(checks);
       const hasNewActivity = reviews.length > 0 || inlineComments.length > 0 || issueComments.length > 0;
       const hasUnresolvedActivity =
-        hasUnresolvedReviewState(pullRequest.reviews ?? []) ||
+        hasUnresolvedReviewState(reviewCollection.comments) ||
         inlineResolutions.some((resolution) => resolution !== true);
       const currentHead = pullRequestHead(pullRequest);
+      if (entry.identity?.head !== undefined && entry.identity.head !== currentHead) {
+        throw new Error(`PR #${entry.number} head identity mismatch`);
+      }
       const headChanged = entry.head !== undefined && entry.head !== currentHead;
       const clean =
         pullRequest.reviewDecision === "APPROVED" &&
@@ -1444,13 +2240,14 @@ async function main(): Promise<void> {
         !failedChecks &&
         !pendingChecks &&
         !headChanged;
-      const currentSeen = seenFor(pullRequest.reviews ?? [], inlineCollection.comments, issueCollection.comments);
+      const currentSeen = seenFor(reviewCollection.comments, inlineCollection.comments, issueCollection.comments);
       const nextEntry = graceState(
         {
           ...entry,
           lastSeenAt: now,
           head: currentHead,
           seen: mergeSeen(entry.seen, currentSeen),
+          identity: persistedIdentityFor(repository, entry.number, currentHead),
         },
         clean,
         headChanged,
@@ -1458,6 +2255,7 @@ async function main(): Promise<void> {
       openEntries.push(nextEntry);
       results.push({
         number: entry.number,
+        identity: identityFor(repository, entry.number, currentHead),
         state: pullRequest.state,
         head: pullRequest.headRefName,
         head_oid: pullRequest.headRefOid,
@@ -1466,8 +2264,23 @@ async function main(): Promise<void> {
         new_inline_comments: inlineComments,
         new_issue_comments: issueComments,
         checks,
+        reviews_pages: reviewCollection.pages,
         inline_comments_pages: inlineCollection.pages,
         issue_comments_pages: issueCollection.pages,
+        reviews_page_lengths: reviewCollection.page_lengths,
+        inline_comments_page_lengths: inlineCollection.page_lengths,
+        issue_comments_page_lengths: issueCollection.page_lengths,
+        reviews_pagination_complete: reviewCollection.pagination_complete,
+        inline_comments_pagination_complete: inlineCollection.pagination_complete,
+        issue_comments_pagination_complete: issueCollection.pagination_complete,
+        reviews_pagination_termination: reviewCollection.pagination_termination,
+        inline_comments_pagination_termination: inlineCollection.pagination_termination,
+        issue_comments_pagination_termination: issueCollection.pagination_termination,
+        reviews_page_size: reviewCollection.page_size,
+        inline_comments_page_size: inlineCollection.page_size,
+        issue_comments_page_size: issueCollection.page_size,
+        pagination_contract: "gh-api-paginate-slurp-v1",
+        review_metadata_contract: REVIEW_METADATA_CONTRACT,
         has_new_activity: hasNewActivity,
         has_failed_checks: failedChecks,
         has_pending_checks: pendingChecks,
@@ -1483,7 +2296,7 @@ async function main(): Promise<void> {
           headChanged ||
           failedChecks ||
           pendingChecks ||
-          hasUnresolvedReviewState(pullRequest.reviews ?? []),
+          hasUnresolvedReviewState(reviewCollection.comments),
       });
     }
 
@@ -1491,6 +2304,7 @@ async function main(): Promise<void> {
       version: 1,
       repository,
       pull_requests: openEntries,
+      identity: stateIdentity,
     };
     const payload: PollPayload = {
       action: "poll",
@@ -1500,10 +2314,12 @@ async function main(): Promise<void> {
       scheduler_should_stop: openEntries.every((entry) => entry.graceComplete === true),
       warnings,
       pull_requests: results,
+      review_findings: envelopeFor(repository, randomUUID(), results),
     };
     await saveState(stateFile, {
       version: 1,
       repository,
+      identity: stateIdentity,
       pull_requests: state.pull_requests,
       pending_poll: {
         payload,

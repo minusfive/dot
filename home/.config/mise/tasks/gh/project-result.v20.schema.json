@@ -1,0 +1,254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://minusfive.dev/schemas/gh-project-result.v20.json",
+  "title": "GitHub Project control-plane result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "live_vs_fixture",
+    "mutation_authorized",
+    "target",
+    "comparison_digest",
+    "create_intent",
+    "durable_create_identity",
+    "second_read",
+    "missing_children",
+    "failures",
+    "partial_failure",
+    "partial_project_ids",
+    "retry_count",
+    "journal_entries",
+    "retry_authorized",
+    "retry_authorization",
+    "lane_state",
+    "secret_status",
+    "redaction_status",
+    "secret_redaction_status",
+    "second_read_consistency",
+    "inventory"
+  ],
+  "properties": {
+    "schema_version": { "const": "project-result.v1" },
+    "status": { "enum": ["ready", "bootstrap_required", "incomplete", "hard_failure"] },
+    "live_vs_fixture": { "enum": ["live", "fixture"] },
+    "mutation_authorized": { "type": "boolean" },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "owner", "repository", "title", "key"],
+      "properties": {
+        "host": { "const": "github.com" },
+        "owner": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "key": { "type": "string", "minLength": 1 }
+      }
+    },
+    "comparison_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "create_intent": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["schema_version", "plan_digest", "target", "client_mutation_id", "intent_timestamp"],
+      "properties": {
+        "schema_version": { "const": "project-create-intent.v1" },
+        "plan_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "target": { "$ref": "#/properties/target" },
+        "client_mutation_id": { "type": "string", "minLength": 1 },
+        "intent_timestamp": { "type": "string", "minLength": 1 }
+      }
+    },
+    "durable_create_identity": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "plan_digest",
+        "client_mutation_id",
+        "intent_timestamp",
+        "response_timestamp",
+        "project_node_id",
+        "project_number",
+        "response_digest"
+      ],
+      "properties": {
+        "plan_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "client_mutation_id": { "type": "string", "minLength": 1 },
+        "intent_timestamp": { "type": "string", "minLength": 1 },
+        "response_timestamp": { "type": "string", "minLength": 1 },
+        "provider_request_id": { "type": "string", "minLength": 1 },
+        "provider_response_id": { "type": "string", "minLength": 1 },
+        "project_node_id": { "type": "string", "minLength": 1 },
+        "project_number": { "type": "integer", "minimum": 1 },
+        "response_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      },
+      "anyOf": [{ "required": ["provider_request_id"] }, { "required": ["provider_response_id"] }],
+      "$comment": "At least one provider_request_id or provider_response_id is required by the validator."
+    },
+    "second_read": {
+      "type": ["object", "null"],
+      "required": ["classification", "comparison_digest", "converged"],
+      "properties": {
+        "classification": { "enum": ["ready", "bootstrap_required", "incomplete", "hard_failure"] },
+        "comparison_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "converged": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "missing_children": { "type": "array", "items": { "type": "string" } },
+    "failures": { "type": "array", "items": { "type": "string" } },
+    "partial_failure": { "type": ["string", "null"] },
+    "partial_project_ids": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "number"],
+        "properties": {
+          "id": { "type": ["string", "number"] },
+          "number": { "type": ["integer", "null"], "minimum": 1 }
+        }
+      }
+    },
+    "retry_count": { "type": "integer", "minimum": 0 },
+    "journal_entries": { "type": "integer", "minimum": 0 },
+    "retry_authorized": { "type": "boolean" },
+    "retry_authorization": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["schema_version", "authorized", "current_turn_only", "owner", "expires", "plan_digest"],
+      "properties": {
+        "schema_version": { "const": "retry-authorization.v1" },
+        "authorized": { "const": true },
+        "current_turn_only": { "const": true },
+        "owner": { "type": "string", "minLength": 1 },
+        "expires": { "const": "end of current turn" },
+        "plan_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "lane_state": { "type": "string", "minLength": 1 },
+    "secret_status": { "enum": ["clean", "detected"] },
+    "redaction_status": { "enum": ["clean", "redacted", "failed"] },
+    "second_read_consistency": { "type": "boolean" },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "open_pages",
+        "closed_pages",
+        "open_complete",
+        "closed_complete",
+        "open_cursors",
+        "closed_cursors",
+        "open_termination",
+        "closed_termination"
+      ],
+      "properties": {
+        "open_pages": { "type": "integer", "minimum": 1 },
+        "closed_pages": { "type": "integer", "minimum": 1 },
+        "open_complete": { "type": "boolean" },
+        "closed_complete": { "type": "boolean" },
+        "open_cursors": { "type": "array", "items": { "type": "string" } },
+        "closed_cursors": { "type": "array", "items": { "type": "string" } },
+        "open_termination": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["has_next_page", "end_cursor"],
+          "properties": { "has_next_page": { "const": false }, "end_cursor": { "type": "null" } }
+        },
+        "closed_termination": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["has_next_page", "end_cursor"],
+          "properties": { "has_next_page": { "const": false }, "end_cursor": { "type": "null" } }
+        }
+      }
+    },
+    "accepted_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "authorized", "expires", "delivery_authorized"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "authorized": { "type": "boolean" },
+        "expires": { "type": "string", "minLength": 1 },
+        "delivery_authorized": { "type": "boolean" }
+      }
+    },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "remaining_scope": { "type": "array", "items": { "type": "string" } },
+    "branch_worktree_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch", "dirty_paths_preserved", "excluded_files_unchanged"],
+      "properties": {
+        "branch": { "type": "string", "minLength": 1 },
+        "dirty_paths_preserved": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "excluded_files_unchanged": { "type": "boolean" }
+      }
+    },
+    "secret_redaction_status": { "enum": ["clean", "redacted", "failed"] },
+    "live_vs_fixture_classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["live", "fixture"],
+      "properties": {
+        "live": { "type": "string", "minLength": 1 },
+        "fixture": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "$comment": "JSON Schema validates structural result shape. The canonical semantic validator additionally enforces target-key equality, dependency references, retry/null coupling, ready and second-read invariants, and provider identity relationships because these cross-field relationships are not expressible in this contract.",
+  "allOf": [
+    {
+      "if": { "properties": { "retry_authorized": { "const": true } } },
+      "then": {
+        "properties": {
+          "retry_count": { "minimum": 1 },
+          "retry_authorization": { "type": "object" }
+        }
+      },
+      "else": { "properties": { "retry_authorization": { "const": null } } }
+    },
+    {
+      "if": { "properties": { "retry_count": { "const": 0 } } },
+      "then": {
+        "properties": {
+          "retry_authorized": { "const": false },
+          "retry_authorization": { "const": null }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "ready" } } },
+      "then": {
+        "properties": {
+          "failures": { "maxItems": 0 },
+          "missing_children": { "maxItems": 0 },
+          "second_read_consistency": { "const": true },
+          "second_read": {
+            "type": "object",
+            "properties": { "classification": { "const": "ready" }, "converged": { "const": true } }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "incomplete" } } },
+      "then": { "properties": { "partial_failure": { "type": "string", "minLength": 1 } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "hard_failure" } } },
+      "then": { "properties": { "mutation_authorized": { "const": false }, "failures": { "minItems": 1 } } }
+    }
+  ]
+}

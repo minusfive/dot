@@ -171,6 +171,9 @@ case "${FZF_MODE:-first}" in
     lossless-default)
         printf '%s\n' "$input" | awk -F '\t' '$2 ~ /default-lossless $/ { print; exit }'
         ;;
+    force-eligible)
+        printf '%s\n' "$input" | awk -F '\t' '$2 ~ /force-eligible$/ { print; exit }'
+        ;;
     all)
         printf '%s\n' "$input" | awk -F '\t' '$1 == "ELIGIBLE"'
         ;;
@@ -225,7 +228,9 @@ run_task_from() {
             usage_release="$__release" \
             usage_pull_request="" \
             usage_closed_prs="$__closed" \
-            bun "$__task"
+            usage_force=false \
+            usage_new=false \
+            bun "$__task" 2>&1
     )
 }
 
@@ -253,8 +258,10 @@ run_pull_request() {
             usage_release="" \
             usage_pull_request="$__pull_request" \
             usage_closed_prs=false \
+            usage_force=false \
+            usage_new=false \
             GH_LOG="$__gh_log" \
-            bun "$__task"
+            bun "$__task" 2>&1
     )
 }
 
@@ -293,6 +300,7 @@ run_task_tty() {
                 usage_closed_prs="$__closed" \
                 GH_LOG="$__gh_log" \
                 FZF_MODE="$__mode" \
+                usage_force="${WORKTREE_FORCE:-false}" \
                 FZF_LOG="$__fzf_log" \
                 FZF_PREVIEW_LOG="$__fzf_preview_log" \
                 TEST_STATUS_FILE="$__status_file" \
@@ -326,9 +334,11 @@ run_usage_conflict() {
             usage_release="$__release" \
             usage_pull_request="$__pull_request" \
             usage_closed_prs=true \
+            usage_force=false \
+            usage_new=false \
             GH_LOG="$__gh_log" \
             FZF_LOG="$__fzf_log" \
-            bun "$__task"
+            bun "$__task" 2>&1
     )
 }
 
@@ -353,6 +363,27 @@ age_worktree_at() {
 create_registered() {
     run_task "$1" >/dev/null
     age_worktree "$__fixture_dir/$1"
+}
+
+register_existing() {
+    local __path="$1"
+    local __id="$(worktree_id "$__path")"
+    local __head="$("$__real_git" -C "$__path" rev-parse HEAD)"
+    local __ref="$("$__real_git" -C "$__path" symbolic-ref -q HEAD)"
+    for __field_value in \
+        "path=$__path" \
+        "registeredAt=2020-01-01T00:00:00.000Z" \
+        "lastSeenAt=2020-01-01T00:00:00.000Z" \
+        "leaseUntil=2020-01-01T00:00:00.000Z" \
+        "releasedAt=" \
+        "ref=$__ref" \
+        "head=$__head" \
+        "state=active"; do
+        local __field="${__field_value%%=*}"
+        local __value="${__field_value#*=}"
+        "$__real_git" -C "$__repository" config --local \
+            "worktree.cleanup.v1.$__id.$__field" "$__value"
+    done
 }
 
 create_registered eligible
@@ -418,6 +449,10 @@ run_task "" false false "$__newline_path" >/dev/null
 
 local __detached="$__fixture_dir/detached"
 "$__real_git" -C "$__repository" worktree add -q --detach "$__detached"
+
+local __prunable="$__fixture_dir/prunable"
+create_registered prunable
+rm -rf -- "$__prunable"
 
 local __missing="$__fixture_dir/missing"
 "$__real_git" -C "$__repository" worktree add -q "$__missing" -b missing-branch
@@ -509,6 +544,8 @@ print -r -- "$__report" | grep -qF $'UNKNOWN\t'"$__fixture_dir/invalid-head"$'\t
     fail "invalid HEAD metadata was not unknown"
 print -r -- "$__report" | grep -qF $'QUARANTINE\t'"$__fixture_dir/detached"$'\t' ||
     fail "detached worktree was not quarantined"
+print -r -- "$__report" | grep -qF $'ELIGIBLE\t'"$__prunable"$'\t' ||
+    fail "prunable worktree was not eligible when other safety gates passed"
 
 local __closed_report="$(run_task "" false false "" "" true)"
 print -r -- "$__closed_report" | grep -qF $'ELIGIBLE\t'"$__fixture_dir/closed-branch"$'\t' ||
@@ -1081,10 +1118,25 @@ local __default_confirmation_line="$(grep -nF "Apply removal to 1 eligible workt
 [[ ! -e "$__prune_log" ]] ||
     fail "default stale selection invoked git worktree prune"
 
+create_registered force-eligible
+: > "$__fzf_log"
+local __force_output="$__fixture_dir/force.out"
+WORKTREE_FORCE=true run_task_tty y force-eligible "" false >"$__force_output" 2>&1
+grep -qF $'QUARANTINE\t'"$__fixture_dir/dirty"$'\t' "$__fixture_dir/tty.log" ||
+    fail "interactive --force report omitted the dirty-worktree quarantine"
+! grep -qF "$__fixture_dir/dirty" "$__fzf_log" ||
+    fail "interactive --force offered a dirty worktree to the picker"
+[[ ! -d "$__fixture_dir/force-eligible" ]] ||
+    fail "interactive --force did not remove the safe selected worktree"
+[[ -d "$__fixture_dir/dirty" ]] ||
+    fail "interactive --force removed the quarantined dirty worktree"
+
 local __lossless_alternate="$__fixture_dir/default-lossless"
 local __lossless_path="$__fixture_dir/default-lossless "
 "$__real_git" -C "$__repository" worktree add -q "$__lossless_alternate" -b default-lossless-alternate
 "$__real_git" -C "$__repository" worktree add -q "$__lossless_path" -b default-lossless-space
+register_existing "$__lossless_alternate"
+register_existing "$__lossless_path"
 : > "$__fzf_log"
 local __lossless_output="$__fixture_dir/lossless-default.out"
 run_task_tty y lossless-default "" false
@@ -1146,6 +1198,32 @@ grep -qF "GitHub pull request discovery failed" "$__closed_quarantine_report" ||
 grep -qF "clean --prune" "$__pitchfork_log" ||
     fail "successful stale removal did not clean Pitchfork registrations"
 rm -f "$__fixture_dir/fail-remove-path"
+
+local __new_stdout="$__fixture_dir/new.stdout"
+local __new_stderr="$__fixture_dir/new.stderr"
+(
+    cd "$__repository"
+    env \
+        PATH="$__bin_dir:$PATH" \
+        MISE_CONFIG_DIR="$__root_dir/home/.config/mise" \
+        MISE_ENV_CONF_D=true \
+        usage_name="named-contract" \
+        usage_new=true \
+        usage_delete=false \
+        usage_stale=false \
+        usage_release="" \
+        usage_pull_request="" \
+        usage_closed_prs=false \
+        usage_force=false \
+        bun "$__task" >"$__new_stdout" 2>"$__new_stderr"
+)
+[[ "$(cat "$__new_stdout")" == "cd -- '$__fixture_dir/named-contract'" ]] ||
+    fail "named creation did not emit exactly one quoted cd handoff: $(od -An -tx1 -c "$__new_stdout")"
+[[ "$(wc -l <"$__new_stdout" | tr -d ' ')" == "1" ]] ||
+    fail "named creation emitted more than one stdout line"
+grep -qF "Creating worktree:" "$__new_stderr" ||
+    fail "named creation diagnostics did not stay on stderr"
+"$__real_git" -C "$__repository" worktree remove "$__fixture_dir/named-contract" >/dev/null
 
 while IFS= read -r __task_cwd; do
     [[ "$__task_cwd" == "$__fixture_dir" || "$__task_cwd" == "$__fixture_dir"/* ]] ||

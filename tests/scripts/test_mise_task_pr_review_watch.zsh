@@ -16,6 +16,7 @@ local __bin_dir="$__fixture_dir/bin"
 local __state_file="$__fixture_dir/watch.json"
 local __log_file="$__fixture_dir/gh.log"
 local __poll_output="$__fixture_dir/poll.json"
+local __schema="$__root_dir/home/.config/mise/tasks/pr/review-findings.v1.schema.json"
 local __repository="$(
     env \
         usage_action=list \
@@ -75,6 +76,12 @@ if [[ "$1" == api ]]; then
         exit 0
     fi
     path="${@: -1}"
+    kind="$(printf '%s' "$path" | cut -d/ -f4)"
+    number="$(printf '%s' "$path" | cut -d/ -f5)"
+    if [[ "$path" == */reviews ]]; then
+        jq -c '[.reviews // []]' "$GH_REVIEW_WATCH_FIXTURES/pr-$number.json"
+        exit 0
+    fi
     if [[ "${GH_REVIEW_WATCH_FAIL_ENDPOINT:-}" == "$path" ]]; then
         printf 'simulated API failure\n' >&2
         exit 1
@@ -82,8 +89,6 @@ if [[ "$1" == api ]]; then
     if [[ "${GH_REVIEW_WATCH_RENAME_FAIL:-}" == "1" ]]; then
         chflags uchg "$GH_REVIEW_WATCH_STATE"
     fi
-    kind="$(printf '%s' "$path" | cut -d/ -f4)"
-    number="$(printf '%s' "$path" | cut -d/ -f5)"
     cat "$GH_REVIEW_WATCH_FIXTURES/$kind-$number.json"
     exit 0
 fi
@@ -133,6 +138,20 @@ run_action() {
         usage_state_file="$__state_file" \
         usage_format="$__format" \
         bun "$__task"
+}
+
+validate_findings_schema() {
+    bun -e '
+      import Ajv2020 from "ajv/dist/2020.js";
+      import { readFileSync } from "node:fs";
+      const schema = JSON.parse(readFileSync(process.argv[1], "utf8"));
+      const output = JSON.parse(readFileSync(process.argv[2], "utf8"));
+      const validate = new Ajv2020({ allErrors: true }).compile(schema);
+      if (!validate(output.review_findings)) {
+          console.error(JSON.stringify(validate.errors));
+          process.exit(1);
+      }
+    ' "$__schema" "$1"
 }
 
 write_fixture 10
@@ -271,12 +290,40 @@ jq -e '
   .pull_requests[0].has_new_activity == true and
   .pull_requests[0].has_failed_checks == false and
   .pull_requests[0].action_required == true and
+  .pull_requests[0].pagination_contract == "gh-api-paginate-slurp-v1" and
+  .pull_requests[0].review_metadata_contract == "gh-pr-view-reviews-v1" and
   .pull_requests[0].inline_comments_pages == 2 and
   .pull_requests[0].issue_comments_pages == 1 and
+  .pull_requests[0].inline_comments_page_lengths == [1,1] and
+  .pull_requests[0].issue_comments_page_lengths == [1] and
+  .pull_requests[0].inline_comments_pagination_complete == true and
+  .pull_requests[0].issue_comments_pagination_complete == true and
+  .pull_requests[0].inline_comments_pagination_termination == "short-final-page" and
+  .pull_requests[0].issue_comments_pagination_termination == "short-final-page" and
   (.pull_requests[0].new_inline_comments | length == 1) and
   (.pull_requests[0].new_issue_comments | length == 1) and
-  (.pull_requests[0].new_reviews | length == 1)
+  (.pull_requests[0].new_reviews | length == 1) and
+  (.review_findings.findings | map(.kind) | sort == ["inline_comment","issue_comment","review"])
 ' --arg repo "$__repository" "$__poll_output" >/dev/null || fail "multi-page poll output shape or cutoff is incorrect"
+validate_findings_schema "$__poll_output" || fail "poll findings envelope failed JSON Schema validation"
+
+cat > "$__fixture_dir/pr-2.json" <<'EOF'
+{"number":2,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-2","headRefOid":"head-2","reviewDecision":"CHANGES_REQUESTED","reviews":[{"id":201,"author":{"login":"reviewer-2"},"submittedAt":"2024-01-03T00:00:00Z","state":"CHANGES_REQUESTED","body":"second PR"}],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-2.json" <<'EOF'
+[[{"id":202,"created_at":"2024-01-03T00:01:00Z","body":"second inline","path":"src/second.ts","position":4}]]
+EOF
+cat > "$__fixture_dir/issues-2.json" <<'EOF'
+[[{"id":203,"created_at":"2024-01-03T00:02:00Z","body":"second issue"}]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":1,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":2,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+run_poll > "$__poll_output"
+jq -e '
+  (.pull_requests | length == 2) and
+  (.review_findings.counts.pull_requests == 2) and
+  ([.review_findings.findings[].identity.pull_request] | unique | sort == [1,2])
+' "$__poll_output" >/dev/null || fail "multi-PR poll findings lost per-PR identities"
+validate_findings_schema "$__poll_output" || fail "multi-PR findings envelope failed JSON Schema validation"
 if grep -q -- '--jq' "$__log_file"; then
     fail "review-watch combined --slurp with incompatible --jq"
 fi
@@ -460,13 +507,30 @@ cat > "$__state_file" <<EOF
       "warnings": [],
       "pull_requests": [{
         "number": 1,
+        "identity": {"repository": "$__repository", "coordinator_id": "review-watch:$__repository", "scheduler_id": "review-watch-scheduler:$__repository", "assignment_id": "review-assignment:$__repository", "scope_id": "review-scope:$__repository", "candidate_id": "candidate:$__repository#1", "pull_request": 1, "head": "review-1"},
         "state": "OPEN",
+        "head": "review-1",
         "new_reviews": [{"body": "recover me"}],
         "new_inline_comments": [],
         "new_issue_comments": [],
         "checks": [],
+        "reviews_pages": 0,
         "inline_comments_pages": 0,
         "issue_comments_pages": 0,
+        "reviews_page_lengths": [],
+        "inline_comments_page_lengths": [],
+        "issue_comments_page_lengths": [],
+        "reviews_pagination_complete": true,
+        "inline_comments_pagination_complete": true,
+        "issue_comments_pagination_complete": true,
+        "reviews_pagination_termination": "empty-result",
+        "inline_comments_pagination_termination": "empty-result",
+        "issue_comments_pagination_termination": "empty-result",
+        "reviews_page_size": 100,
+        "inline_comments_page_size": 100,
+        "issue_comments_page_size": 100,
+        "pagination_contract": "gh-api-paginate-slurp-v1",
+        "review_metadata_contract": "gh-pr-view-reviews-v1",
         "has_new_activity": true,
         "has_failed_checks": false,
         "has_pending_checks": false,
@@ -491,7 +555,7 @@ cat > "$__state_file" <<EOF
 {
   "version": 1,
   "repository": "$__repository",
-  "pull_requests": [],
+  "pull_requests": [{"number": 11, "addedAt": "2024-01-01T00:00:00Z", "head": "review-11-new"}],
   "pending_poll": {
     "payload": {
       "action": "not-poll",
@@ -679,7 +743,7 @@ cat > "$__state_file" <<EOF
 {
   "version": 1,
   "repository": "$__repository",
-  "pull_requests": [],
+  "pull_requests": [{"number": 11, "addedAt": "2024-01-01T00:00:00Z", "head": "review-11-new"}],
   "pending_poll": {
     "payload": {
       "action": "poll",
@@ -690,13 +754,30 @@ cat > "$__state_file" <<EOF
       "warnings": [],
       "pull_requests": [{
         "number": 11,
+        "identity": {"repository": "$__repository", "coordinator_id": "review-watch:$__repository", "scheduler_id": "review-watch-scheduler:$__repository", "assignment_id": "review-assignment:$__repository", "scope_id": "review-scope:$__repository", "candidate_id": "candidate:$__repository#11", "pull_request": 11, "head": "review-11-new"},
         "state": "OPEN",
+        "head": "review-11-new",
         "new_reviews": [],
         "new_inline_comments": [],
         "new_issue_comments": [],
         "checks": [],
+        "reviews_pages": 0,
         "inline_comments_pages": 0,
         "issue_comments_pages": 0,
+        "reviews_page_lengths": [],
+        "inline_comments_page_lengths": [],
+        "issue_comments_page_lengths": [],
+        "reviews_pagination_complete": true,
+        "inline_comments_pagination_complete": true,
+        "issue_comments_pagination_complete": true,
+        "reviews_pagination_termination": "empty-result",
+        "inline_comments_pagination_termination": "empty-result",
+        "issue_comments_pagination_termination": "empty-result",
+        "reviews_page_size": 100,
+        "inline_comments_page_size": 100,
+        "issue_comments_page_size": 100,
+        "pagination_contract": "gh-api-paginate-slurp-v1",
+        "review_metadata_contract": "gh-pr-view-reviews-v1",
         "has_new_activity": false,
         "has_failed_checks": false,
         "has_pending_checks": false,
@@ -1112,13 +1193,30 @@ cat > "$__state_file" <<EOF
       "warnings": [],
       "pull_requests": [{
         "number": 20,
+        "identity": {"repository": "$__repository", "coordinator_id": "review-watch:$__repository", "scheduler_id": "review-watch-scheduler:$__repository", "assignment_id": "review-assignment:$__repository", "scope_id": "review-scope:$__repository", "candidate_id": "candidate:$__repository#20", "pull_request": 20, "head": "review-20"},
         "state": "OPEN",
+        "head": "review-20",
         "new_reviews": [],
         "new_inline_comments": [],
         "new_issue_comments": [],
         "checks": [],
+        "reviews_pages": 0,
         "inline_comments_pages": 0,
         "issue_comments_pages": 0,
+        "reviews_page_lengths": [],
+        "inline_comments_page_lengths": [],
+        "issue_comments_page_lengths": [],
+        "reviews_pagination_complete": true,
+        "inline_comments_pagination_complete": true,
+        "issue_comments_pagination_complete": true,
+        "reviews_pagination_termination": "empty-result",
+        "inline_comments_pagination_termination": "empty-result",
+        "issue_comments_pagination_termination": "empty-result",
+        "reviews_page_size": 100,
+        "inline_comments_page_size": 100,
+        "issue_comments_page_size": 100,
+        "pagination_contract": "gh-api-paginate-slurp-v1",
+        "review_metadata_contract": "gh-pr-view-reviews-v1",
         "has_new_activity": false,
         "has_failed_checks": false,
         "has_pending_checks": false,
@@ -1160,13 +1258,30 @@ cat > "$__state_file" <<EOF
       "warnings": [],
       "pull_requests": [{
         "number": 22,
+        "identity": {"repository": "$__repository", "coordinator_id": "review-watch:$__repository", "scheduler_id": "review-watch-scheduler:$__repository", "assignment_id": "review-assignment:$__repository", "scope_id": "review-scope:$__repository", "candidate_id": "candidate:$__repository#22", "pull_request": 22, "head": "review-22"},
         "state": "MERGED",
+        "head": "review-22",
         "new_reviews": [],
         "new_inline_comments": [],
         "new_issue_comments": [],
         "checks": [],
+        "reviews_pages": 0,
         "inline_comments_pages": 0,
         "issue_comments_pages": 0,
+        "reviews_page_lengths": [],
+        "inline_comments_page_lengths": [],
+        "issue_comments_page_lengths": [],
+        "reviews_pagination_complete": true,
+        "inline_comments_pagination_complete": true,
+        "issue_comments_pagination_complete": true,
+        "reviews_pagination_termination": "empty-result",
+        "inline_comments_pagination_termination": "empty-result",
+        "issue_comments_pagination_termination": "empty-result",
+        "reviews_page_size": 100,
+        "inline_comments_page_size": 100,
+        "issue_comments_page_size": 100,
+        "pagination_contract": "gh-api-paginate-slurp-v1",
+        "review_metadata_contract": "gh-pr-view-reviews-v1",
         "has_new_activity": false,
         "has_failed_checks": false,
         "has_pending_checks": false,
@@ -1184,5 +1299,199 @@ jq -e '.pull_requests[0].number == 22 and .pull_requests[0].removed == true' "$_
     fail "explicit staged removal result did not replay"
 jq -e '(.pull_requests | length == 0) and (.pending_poll | not)' "$__state_file" >/dev/null ||
     fail "staged removal replay did not clear the active watch"
+
+export PR_REVIEW_WATCH_COORDINATOR_ID="coord-test"
+export PR_REVIEW_WATCH_SCHEDULER_ID="scheduler-test"
+export PR_REVIEW_WATCH_ASSIGNMENT_ID="assignment-test"
+export PR_REVIEW_WATCH_SCOPE_ID="scope-test"
+export PR_REVIEW_WATCH_CANDIDATE_ID="candidate-test"
+write_fixture 31
+cat > "$__fixture_dir/pr-31.json" <<'EOF'
+{"number":31,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-31","headRefOid":"head-31","reviewDecision":"CHANGES_REQUESTED","reviews":[{"id":3101,"author":{"login":"reviewer"},"submittedAt":"2024-01-05T00:00:00Z","state":"CHANGES_REQUESTED","body":"body-only review","commit_id":"rev-31","comments":[{"id":3102,"created_at":"2024-01-05T00:01:00Z","body":"nested detail","path":"src/main.ts","position":12,"thread_id":"thread-31","in_reply_to_id":3099,"commit_id":"rev-31"}]}],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-31.json" <<'EOF'
+[[{"id":3103,"node_id":"RC_3103","pull_request_review_id":3101,"in_reply_to_id":3100,"created_at":"2024-01-05T00:02:00Z","body":"reply outside diff","path":null,"position":null,"commit_id":"rev-31"}]]
+EOF
+cat > "$__fixture_dir/issues-31.json" <<'EOF'
+[[{"id":3104,"created_at":"2024-01-05T00:03:00Z","body":"pathless issue finding"}]]
+EOF
+cat > "$__fixture_dir/graphql-31.json" <<'EOF'
+{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"id":"RT_3103","isResolved":false,"comments":{"nodes":[{"id":"RC_3103","fullDatabaseId":"3103"}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-31.json"
+run_action add 31 > "$__poll_output"
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE
+jq -e '
+  .review_findings.schema_version == "review-findings.v1" and
+  .review_findings.identity.coordinator_id == "coord-test" and
+  (.review_findings.findings | any(.kind == "nested_comment" and .result_number == 31 and .source_batch_id != "")) and
+  (.review_findings.findings | any(.provenance.reply_to == 3100)) and
+  (.review_findings.findings | any(.provenance.location == "diff" and .provenance.outside_diff == false and .provenance.thread_id == "thread-31" and .provenance.revision_id == "rev-31")) and
+  (.review_findings.findings | any(.kind == "inline_comment" and .provenance.location == "pathless" and .provenance.outside_diff == true))
+' "$__poll_output" >/dev/null || fail "identity-bound nested review envelope was incomplete"
+validate_findings_schema "$__poll_output" || fail "nested review findings envelope failed JSON Schema validation"
+jq -e '
+  .identity.coordinator_id == "coord-test" and
+  .pull_requests[0].identity.pull_request == 31 and
+  .pull_requests[0].identity.head == "head-31"
+' "$__state_file" >/dev/null || fail "identity-bound watch state was not persisted"
+
+write_fixture 33
+cat > "$__fixture_dir/pr-33.json" <<'EOF'
+{"number":33,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-33","headRefOid":"head-33","reviewDecision":"APPROVED","reviews":[{"id":3301,"author":{"login":"reviewer"},"submittedAt":"2024-01-06T00:00:00Z","state":"COMMENTED","body":"malformed nested","comments":[{"id":3302,"created_at":"2024-01-06T00:01:00Z","body":5}]}],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-33.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-33.json" <<'EOF'
+[[]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_action add 33 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "malformed nested review unexpectedly succeeded"
+fi
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "malformed nested review advanced state"
+
+write_fixture 34
+cat > "$__fixture_dir/pulls-34.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-34.json" <<'EOF'
+[[]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 34 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "identity-mismatch staging unexpectedly succeeded"
+fi
+cp "$__state_file" "$__fixture_dir/identity-stage-backup.json"
+jq '.pending_add.payload.reconciliation[0].identity.head = "foreign-head"' "$__state_file" > "$__fixture_dir/identity-stage-rewritten.json"
+mv "$__fixture_dir/identity-stage-rewritten.json" "$__state_file"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_action list > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "foreign per-result identity unexpectedly replayed"
+fi
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "foreign per-result identity changed staged state"
+mv "$__fixture_dir/identity-stage-backup.json" "$__state_file"
+
+write_fixture 32
+cat > "$__fixture_dir/pr-32.json" <<'EOF'
+{"number":32,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-32","headRefOid":"head-32","reviewDecision":"APPROVED","reviewCount":1,"reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-32.json" <<'EOF'
+[[{"id":3201,"created_at":"2024-01-05T00:00:00Z","body":"count mismatch"}]]
+EOF
+cat > "$__fixture_dir/issues-32.json" <<'EOF'
+[[]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_action add 32 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "review count mismatch unexpectedly succeeded"
+fi
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "count mismatch advanced state"
+
+cat > "$__fixture_dir/pulls-32.json" <<'EOF'
+[{"items":[],"complete":false}]
+EOF
+if run_action add 32 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "incomplete pagination unexpectedly succeeded"
+fi
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "incomplete pagination advanced state"
+
+jq -n '[[range(0;100) | {"id": (3200 + .), "created_at": "2024-01-05T00:00:00Z", "body": "full page"}]]' \
+    > "$__fixture_dir/pulls-32.json"
+cat > "$__fixture_dir/issues-32.json" <<'EOF'
+[[]]
+EOF
+if run_action add 32 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "full terminal pagination page unexpectedly succeeded"
+fi
+grep -qF 'pagination has no short terminal page' "$__fixture_dir/error" ||
+    fail "full terminal pagination error was not actionable"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "full terminal pagination advanced state"
+
+cat > "$__fixture_dir/pulls-32.json" <<'EOF'
+[[]]
+EOF
+jq -n '[[range(0;100) | {"id": (3300 + .), "created_at": "2024-01-05T00:00:00Z", "body": "full issue page"}]]' \
+    > "$__fixture_dir/issues-32.json"
+if run_action add 32 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "full terminal issue-comment page unexpectedly succeeded"
+fi
+grep -qF 'pagination has no short terminal page' "$__fixture_dir/error" ||
+    fail "full terminal issue-comment error was not actionable"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "full terminal issue-comment pagination advanced state"
+
+cat > "$__fixture_dir/pulls-35.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-35.json" <<'EOF'
+[[]]
+EOF
+jq -n '{number:35,state:"OPEN",mergedAt:null,closedAt:null,headRefName:"review-35",headRefOid:"head-35",reviewDecision:"APPROVED",reviews:[range(0;100) | {id:(3500 + .),submittedAt:"2024-01-05T00:00:00Z",state:"COMMENTED",body:"full review page"}],statusCheckRollup:[]}' \
+    > "$__fixture_dir/pr-35.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_action add 35 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "full terminal review page unexpectedly succeeded"
+fi
+grep -qF 'reviews for PR #35' "$__fixture_dir/error" ||
+    fail "full terminal review error omitted PR identity"
+grep -qF 'pagination has no short terminal page' "$__fixture_dir/error" ||
+    fail "full terminal review error was not actionable"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "full terminal review pagination advanced state"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-31.json"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 31 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "review source-binding staging unexpectedly succeeded"
+fi
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE
+jq '(.pending_add.payload.review_findings.findings |= map(if .kind == "review" then .provenance.review_id = "foreign-review" else . end))' \
+    "$__state_file" > "$__fixture_dir/foreign-review.json"
+mv "$__fixture_dir/foreign-review.json" "$__state_file"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_action list > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "foreign review provenance unexpectedly replayed"
+fi
+grep -qF 'findings envelope source binding' "$__fixture_dir/error" ||
+    fail "foreign review provenance error was not actionable"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "foreign review provenance rejection changed state bytes"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-31.json"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 31 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "comment source-binding staging unexpectedly succeeded"
+fi
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE
+jq '(.pending_add.payload.review_findings.findings |= map(if .kind == "inline_comment" then .provenance.comment_id = "foreign-comment" else . end))' \
+    "$__state_file" > "$__fixture_dir/foreign-comment.json"
+mv "$__fixture_dir/foreign-comment.json" "$__state_file"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_action list > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "foreign comment provenance unexpectedly replayed"
+fi
+grep -qF 'findings envelope source binding' "$__fixture_dir/error" ||
+    fail "foreign comment provenance error was not actionable"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "foreign comment provenance rejection changed state bytes"
+
+write_state '{"version":2,"repository":"'"$__repository"'","identity":{"repository":"'"$__repository"'","coordinator_id":"coord-test","scheduler_id":"scheduler-test","assignment_id":"assignment-test","scope_id":"scope-test","candidate_id":"candidate-test"},"pull_requests":[]}'
+export PR_REVIEW_WATCH_COORDINATOR_ID="different-coordinator"
+if run_action list > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "cross-coordinator replay unexpectedly succeeded"
+fi
+unset PR_REVIEW_WATCH_COORDINATOR_ID PR_REVIEW_WATCH_SCHEDULER_ID PR_REVIEW_WATCH_ASSIGNMENT_ID \
+    PR_REVIEW_WATCH_SCOPE_ID PR_REVIEW_WATCH_CANDIDATE_ID
 
 echo "pr:review-watch task passed."
