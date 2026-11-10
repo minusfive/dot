@@ -402,9 +402,11 @@ async function getPaginatedCollection<T>(
       "api",
       "--hostname",
       hostname,
+      "--method",
+      "GET",
       "--paginate",
       "--slurp",
-      "-F",
+      "-f",
       `per_page=${PAGINATION_PAGE_SIZE}`,
       path,
     ]);

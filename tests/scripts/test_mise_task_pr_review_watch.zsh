@@ -32,6 +32,25 @@ cat > "$__bin_dir/gh" <<'EOF'
 set -euo pipefail
 
 printf '%s\n' "$*" >> "$GH_REVIEW_WATCH_LOG"
+if [[ "$1" == api && "$*" == *" --paginate --slurp "* ]]; then
+    [[ "$2" == "--hostname" && "$3" == "github.com" ]] ||
+        { printf 'unexpected REST hostname argv: %s\n' "$*" >&2; exit 1; }
+    [[ "$4" == "--method" && "$5" == "GET" ]] ||
+        { printf 'REST pagination request did not use GET: %s\n' "$*" >&2; exit 1; }
+    [[ "$6" == "--paginate" && "$7" == "--slurp" ]] ||
+        { printf 'REST pagination flags changed: %s\n' "$*" >&2; exit 1; }
+    [[ "$8" == "-f" && "$9" == "per_page=100" ]] ||
+        { printf 'REST page size was not a raw query field: %s\n' "$*" >&2; exit 1; }
+    [[ "${10}" == repos/* ]] ||
+        { printf 'REST endpoint was not the final argv value: %s\n' "$*" >&2; exit 1; }
+    [[ "$*" != *" -F "* && "$*" != *" --input "* && "$*" != *" POST "* ]] ||
+        { printf 'REST pagination request included a POST body: %s\n' "$*" >&2; exit 1; }
+    {
+        printf 'REST_ARGV'
+        printf ' %q' "$@"
+        printf '\n'
+    } >> "$GH_REVIEW_WATCH_LOG"
+fi
 if [[ -n "${GH_REVIEW_WATCH_DELAY:-}" ]]; then
     sleep "$GH_REVIEW_WATCH_DELAY"
 fi
@@ -328,6 +347,11 @@ if grep -q -- '--jq' "$__log_file"; then
     fail "review-watch combined --slurp with incompatible --jq"
 fi
 grep -q -- '--paginate --slurp' "$__log_file" || fail "review-watch did not use gh api pagination"
+grep -qF 'REST_ARGV api --hostname github.com --method GET --paginate --slurp -f per_page=100 repos/' "$__log_file" ||
+    fail "review-watch did not use the exact GET query-parameter argv"
+if grep -qF 'REST_ARGV' "$__log_file" && grep -qE 'REST_ARGV.*(-F|--input| POST )' "$__log_file"; then
+    fail "review-watch emitted a REST POST body argument"
+fi
 [[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "successful poll left a temporary file"
 [[ ! -d "$__state_file.lock" ]] || fail "successful poll left the lock"
 
