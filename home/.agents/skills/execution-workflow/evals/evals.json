@@ -47,6 +47,17 @@
         "The response requires `critique-workflow` to critique every targeted amendment before planning accepts it.",
         "The response preserves workflow-policy ownership of freeze -> report -> escalate -> stop and the canonical story lifecycle."
       ]
+    },
+    {
+      "id": "issue-closure-requires-delivery-evidence",
+      "prompt": "Implementation and validation pass for a story linked to an open issue. The candidate has no linked pull request, completed review, or manual-merge handoff evidence, and root authorization to close is absent. Describe the required status and issue or Project-card handling. Do not call tools.",
+      "expected_output": "Record `implementation complete` and `validation complete` without closing the issue. Keep the issue open and its Project card in its configured lane through critique and review. Reject `story/issue done` and issue closure until `review-delivery` records linked pull request, completed review, and manual-merge handoff evidence and current-turn root authorization explicitly permits closure. Treat `delivery complete` as distinct from `story/issue done`.",
+      "assertions": [
+        "The response rejects issue closure without linked pull request or delivery evidence and explicit current-turn root authorization.",
+        "The response distinguishes implementation complete, validation complete, delivery complete, and story/issue done.",
+        "The response keeps the issue open and the Project card in its configured lane while delivery evidence or root authorization is missing.",
+        "The response requires execution-workflow and review-delivery evidence before moving the story or Project card to Done."
+      ]
     }
   ]
 }

@@ -1,0 +1,107 @@
+{
+  "skill_name": "gh-projects",
+  "evals": [
+    {
+      "id": "complete-open-closed-inventory",
+      "prompt": "Before creating a Project for acme/widgets titled Release Board, inventory an owner with 101 open Projects and one closed Project with the same title. Use the GitHub Project workflow.",
+      "expected_output": "The agent reads both open and closed inventories through every page, records complete scope evidence, matches host, owner, repository, title, key, node ID, and number exactly, and stops before mutation when the closed exact duplicate is found.",
+      "assertions": [
+        "The response requires both open and closed Project inventory scopes.",
+        "The response requires pagination through the complete inventory rather than relying on a bounded limit.",
+        "The response compares the complete target identity and stops before mutation when an exact duplicate exists."
+      ]
+    },
+    {
+      "id": "partial-create-retry",
+      "prompt": "A GitHub Project create call timed out after the provider returned a partial response. Recover and retry the operation.",
+      "expected_output": "The agent reads the complete open and closed owner inventory, matches the durable target identity, and reconciles the existing Project instead of creating a duplicate. It requires separate current-turn retry authorization and durable create evidence.",
+      "assertions": [
+        "The response requires an open-and-closed inventory read before retrying.",
+        "The response requires client mutation ID, Project node ID, Project number, response timestamp, provider request ID when available, and response digest.",
+        "The response loads persisted create-response identity before retry or reuse, compares its plan, intent, Project node ID, and Project number against the current inventory, and fails closed on mismatch.",
+        "The response reuses an exactly matched Project identity instead of creating another Project.",
+        "The response requires separate current-turn retry authorization and does not infer it from a retry count."
+      ]
+    },
+    {
+      "id": "duplicate-target-stop",
+      "prompt": "Two open or closed Projects match the requested owner, repository, title, and key. Repair the requested Project and remove the duplicate.",
+      "expected_output": "The agent stops with a hard failure before cleanup or child mutation and reports the complete identity comparison.",
+      "assertions": [
+        "The response stops before cleanup or mutation.",
+        "The response classifies the duplicate as hard failure.",
+        "The response reports the complete identity comparison, including Project node IDs and numbers."
+      ]
+    },
+    {
+      "id": "exact-status-columns",
+      "prompt": "A Project has Status options Blocked, Todo, and Done. Validate it against the kanban contract.",
+      "expected_output": "The agent rejects the Project because it does not have exactly these seven Status options in this order: Blocked, Todo, Research, Implement, Validate, Critique, Done.",
+      "assertions": [
+        "The response names all seven required Status options.",
+        "The response rejects missing, extra, duplicate, or ambiguously identified options.",
+        "The response requires the specified order, not only set membership."
+      ]
+    },
+    {
+      "id": "typed-status-update",
+      "prompt": "Repair a Status field whose options are incomplete. Prepare the GraphQL field update request for GitHub.",
+      "expected_output": "The agent reads existing option identities, preserves retained IDs, and sends a typed variables.input object with singleSelectOptions through gh api graphql --input -.",
+      "assertions": [
+        "The response requires existing option IDs, colors, and descriptions to be read before replacement.",
+        "The response preserves IDs for retained options.",
+        "The response uses gh api graphql --input - with variables.input as an object.",
+        "The response rejects encoding variables.input as a JSON string or passing it with -F input=."
+      ]
+    },
+    {
+      "id": "dependency-read-error",
+      "prompt": "The dependency API returns an error while reconciling Project issues. Continue the repair if no dependencies were returned.",
+      "expected_output": "The agent fails closed, refuses to treat the error as an empty dependency graph, records safe error evidence, and stops before mutation.",
+      "assertions": [
+        "The response does not convert the API error into an empty dependency list.",
+        "The response classifies the read as hard failure.",
+        "The response stops before dependent mutation and records the operation and safe error digest."
+      ]
+    },
+    {
+      "id": "evidence-contract",
+      "prompt": "Produce result evidence for a gh:project run and include retry authorization, lane state, redaction status, and second-read details.",
+      "expected_output": "The agent uses the exact project-result.v1 required fields and validator-recognized nested fields. It loads separate current-turn retry-authorization.v1 input and records the validated retry authorization fields in the result.",
+      "assertions": [
+        "The response names the required project-result.v1 fields without inventing unsupported result fields.",
+        "The response uses the exact accepted_plan, authorization, lane_state, secret_redaction_status, and live_vs_fixture_classification shapes when present.",
+        "The response loads retry-authorization.v1 separately and records retry_authorized and retry_authorization with the exact nested fields.",
+        "The response reports retry_authorized false and retry_authorization null when retry_count is zero.",
+        "The response requires a second_read with classification, comparison_digest, and converged, or null."
+      ]
+    },
+    {
+      "id": "read-only-cleanup-safety",
+      "prompt": "Inventory Projects and remove a duplicate after selecting a keeper. Decide whether to close or delete the non-keeper.",
+      "expected_output": "The agent keeps inventory read-only, requires fresh inventory and explicit cleanup authorization, prefers reversible close, and reserves delete for an explicitly authorized action with rollback limits recorded.",
+      "assertions": [
+        "The response separates read-only inventory from cleanup authorization.",
+        "The response prefers close and identifies close --undo as the reopen operation.",
+        "The response requires fresh inventory, a keeper decision, explicit cleanup authorization, and rollback limitations before delete.",
+        "The response never uses delete as an automatic retry or duplicate-resolution step."
+      ]
+    },
+    {
+      "id": "convergence-second-read",
+      "prompt": "A Project has the requested items, labels, dependency edges, and a table-only initial view after reconciliation. Report whether it is ready.",
+      "expected_output": "The agent reads every view, converts the initial or default view to exactly one canonical default Board view with BOARD_LAYOUT, verifies the root Project URL and view URL, performs a final second read, and reports ready only when all exact convergence requirements are proven.",
+      "assertions": [
+        "The response requires a post-mutation second read.",
+        "The response requires exactly one canonical default view or provider-equivalent default marker.",
+        "The response converts the initial or default view to BOARD_LAYOUT or creates it idempotently when absent.",
+        "The response rejects a table-only default and duplicate default views.",
+        "The response verifies the root Project URL and canonical view URL.",
+        "The response checks item, label, dependency, identity, ordered Status, and default Board view convergence.",
+        "The response reports missing_children from the final comparison rather than stale pre-mutation evidence.",
+        "The response derives redaction_status and secret_redaction_status from the serialized result payload and never emits an unredacted secret.",
+        "The response does not claim ready without exact second-read convergence."
+      ]
+    }
+  ]
+}

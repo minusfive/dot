@@ -45,6 +45,8 @@ Remove a merged or closed pull request with `mise run pr:review-watch -- remove 
 
 Record delivery evidence for each candidate: the review poll output, finding ledger, validation results, authorized ref update, pushed ref, review response, and later poll confirmation. Keep the candidate fixed across these records.
 
+Report `delivery complete` only after recording linked pull request, completed review, and manual-merge handoff evidence. This status does not close an issue. Use `execution-workflow` for `story/issue done` and current-turn root authorization.
+
 ## Finding disposition
 
 Maintain a finding ledger with the source, candidate identity, validation evidence, disposition, and state.
