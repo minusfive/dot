@@ -397,6 +397,7 @@ async function getPaginatedCollection<T>(
   description: string,
 ): Promise<PaginatedCollection<T>> {
   let output: string;
+  const paginatedPath = `${path}${path.includes("?") ? "&" : "?"}per_page=${PAGINATION_PAGE_SIZE}`;
   try {
     output = await run("gh", [
       "api",
@@ -406,9 +407,7 @@ async function getPaginatedCollection<T>(
       "GET",
       "--paginate",
       "--slurp",
-      "-f",
-      `per_page=${PAGINATION_PAGE_SIZE}`,
-      path,
+      paginatedPath,
     ]);
   } catch (error) {
     throw new Error(`${description} failed: ${error instanceof Error ? error.message : String(error)}`);
