@@ -393,7 +393,7 @@ jq -e '.pull_requests[0].new_inline_comments | length == 0' "$__poll_output" >/d
 
 write_fixture 12
 cat > "$__fixture_dir/pr-12.json" <<'EOF'
-{"number":12,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-12","reviewDecision":"APPROVED","reviews":[{"id":1201,"state":"PENDING","submittedAt":null,"body":"draft review"},{"id":1202,"state":"COMMENTED","submittedAt":"2024-01-02T00:00:00Z","body":"submitted"}],"statusCheckRollup":[]}
+{"number":12,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-12","reviewDecision":"APPROVED","reviews":[{"id":1201,"state":"PENDING","submittedAt":null,"body":"draft review with null timestamp"},{"id":1202,"state":"PENDING","submittedAt":"","body":"draft review with empty timestamp"},{"id":1203,"state":"PENDING","body":"draft review with missing timestamp"},{"id":1204,"state":"COMMENTED","submittedAt":"2024-01-02T00:00:00Z","body":"submitted"}],"statusCheckRollup":[]}
 EOF
 cat > "$__fixture_dir/pulls-12.json" <<'EOF'
 [[{"id":1203,"isResolved":false,"created_at":"2024-01-02T00:00:00Z","body":"unresolved","html_url":"https://example.test/inline/1203"}]]
@@ -401,7 +401,7 @@ EOF
 cat > "$__fixture_dir/issues-12.json" <<'EOF'
 [[{"id":1204,"created_at":"2024-01-02T00:00:00Z","body":"unknown resolution"}]]
 EOF
-write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":12,\"addedAt\":\"2024-01-01T00:00:00Z\",\"lastSeenAt\":\"2024-01-03T00:00:00Z\",\"seen\":{\"reviews\":[\"1202\"],\"inline_comments\":[\"pulls:1203\"],\"issue_comments\":[\"issues:1204\"]},\"graceChecks\":3}]}"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":12,\"addedAt\":\"2024-01-01T00:00:00Z\",\"lastSeenAt\":\"2024-01-03T00:00:00Z\",\"seen\":{\"reviews\":[\"1204\"],\"inline_comments\":[\"pulls:1203\"],\"issue_comments\":[\"issues:1204\"]},\"graceChecks\":3}]}"
 run_poll > "$__poll_output"
 jq -e '
   (.pull_requests[0].new_reviews | length == 0) and
@@ -516,6 +516,24 @@ grep -qF 'PR #1 review 1 has a missing or malformed submittedAt timestamp' "$__f
 [[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
     fail "malformed review changed state bytes"
 [[ ! -d "$__state_file.lock" ]] || fail "malformed review left the lock"
+
+write_fixture 3
+cat > "$__fixture_dir/pulls-3.json" <<'EOF'
+[]
+EOF
+cat > "$__fixture_dir/issues-3.json" <<'EOF'
+[]
+EOF
+cat > "$__fixture_dir/pr-3.json" <<'EOF'
+{"number":3,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-3","reviewDecision":"APPROVED","reviews":[{"author":{"login":"pending"},"state":"PENDING","submittedAt":"not-a-timestamp","body":"malformed pending review"}],"statusCheckRollup":[]}
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":3,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "malformed pending review timestamp unexpectedly succeeded"
+fi
+grep -qF 'PR #3 review 1 has a missing or malformed submittedAt timestamp' "$__fixture_dir/error" ||
+    fail "malformed pending review error was not actionable"
+[[ ! -d "$__state_file.lock" ]] || fail "malformed pending review left the lock"
 
 printf '{\n  "version": 1,\n  "repository": "%s",\n  "pull_requests": [{"number": 1, "addedAt": "2024-01-01T00:00:00Z"}]\n}\n' \
     "$__repository" > "$__state_file"

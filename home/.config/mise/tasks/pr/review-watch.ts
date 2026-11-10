@@ -1345,7 +1345,10 @@ function pullRequestHead(pullRequest: PullRequest): string | undefined {
 }
 
 function isPendingReview(review: Review): boolean {
-  return review.state?.toUpperCase() === "PENDING" && review.submittedAt === null;
+  return (
+    review.state?.toUpperCase() === "PENDING" &&
+    (review.submittedAt === null || review.submittedAt === undefined || review.submittedAt === "")
+  );
 }
 
 function latestSubmittedReviews(reviews: Review[]): Review[] {
