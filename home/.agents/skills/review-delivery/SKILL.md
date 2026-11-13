@@ -17,7 +17,14 @@ Treat the accepted plan and its exact artifact path as the candidate's source. A
 
 If a candidate path, ref, worktree, owned path, acceptance check, or artifact changes, stop the review. Record candidate drift and route the story through `execution-workflow` and `planning`. Do not silently review a different candidate.
 
-Give each issue its own candidate, worktree, and pull request unless I explicitly approve a merged-story plan. Keep unrelated candidates isolated. Serialize only a shared-file mutation, rebase, integration, or delivery boundary recorded as a dependency.
+Use the accepted Project/issue graph to define logical candidate boundaries. Apply these rules:
+
+- One graph can produce one or more grouped or split pull request candidates.
+- One issue can span candidates.
+- One candidate can span issues.
+- Use subissues to track decomposition and dependencies.
+
+Assign each candidate its own worktree and pull request unless I explicitly approve another delivery boundary. Keep unrelated candidates isolated. Serialize only a shared-file mutation, rebase, integration, or delivery boundary recorded as a dependency.
 
 ## Fixed-candidate review
 
@@ -44,6 +51,8 @@ Inspect new reviews, inline comments, issue comments, failed checks, and pending
 Remove a merged or closed pull request with `mise run pr:review-watch -- remove <pull-request-number>`. Stop the external schedule only when the poll output sets `scheduler_should_stop: true`: every watched open pull request completed its four-check clean grace period, or closed/merged and was removed. An empty actionable queue is not sufficient.
 
 Record delivery evidence for each candidate: the review poll output, finding ledger, validation results, authorized ref update, pushed ref, review response, and later poll confirmation. Keep the candidate fixed across these records.
+
+Report `delivery complete` only after recording linked pull request, completed review, and manual-merge handoff evidence. This status does not close an issue. Use `execution-workflow` for `story/issue done` and current-turn root authorization.
 
 ## Finding disposition
 

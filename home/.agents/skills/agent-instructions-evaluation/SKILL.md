@@ -31,6 +31,8 @@ Use the grouped mise tasks for every structural evaluation-file change:
 
 Do not create, move, or hand-edit manifests, reports, timing files, grading files, or workspace directories. Use the tasks to preserve the required names, keys, locations, and configuration directories.
 
+To retire an interrupted historical run, use `mise run ai:skills:evals:retire --skill <skill-name> --iteration <number>`. The task validates every manifest case, both `with_skill` and `old_skill` configurations, their timing and grading schemas, and referenced evidence before changing only that iteration's manifest. It accepts only an incomplete materialized iteration that is older than the current/latest iteration, writes `state: "historical"` with `history_reason: "retired-materialized-incomplete"`, preserves raw evidence, rejects complete or current iterations and unsafe state transitions, and is idempotent for an iteration already carrying the exact retirement marker.
+
 ## Evaluation specification
 
 The `ai:skills:evals:init` task creates `evals/evals.json` with this top-level shape:

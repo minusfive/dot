@@ -47,6 +47,30 @@
         "The response requires `critique-workflow` to critique every targeted amendment before planning accepts it.",
         "The response preserves workflow-policy ownership of freeze -> report -> escalate -> stop and the canonical story lifecycle."
       ]
+    },
+    {
+      "id": "issue-closure-requires-delivery-evidence",
+      "prompt": "Implementation and validation pass for a story linked to an open issue. The candidate has no linked pull request, completed review, or manual-merge handoff evidence, and root authorization to close is absent. Describe the required status and issue or Project-card handling. Do not call tools.",
+      "expected_output": "Record `implementation complete` and `validation complete` without closing the issue. Keep the issue open and its Project card in its configured lane through critique and review. Reject `story/issue done` and issue closure until `review-delivery` records linked pull request, completed review, and manual-merge handoff evidence and current-turn root authorization explicitly permits closure. Treat `delivery complete` as distinct from `story/issue done`.",
+      "assertions": [
+        "The response rejects issue closure without linked pull request or delivery evidence and explicit current-turn root authorization.",
+        "The response distinguishes implementation complete, validation complete, delivery complete, and story/issue done.",
+        "The response keeps the issue open and the Project card in its configured lane while delivery evidence or root authorization is missing.",
+        "The response requires execution-workflow and review-delivery evidence before moving the story or Project card to Done."
+      ]
+    },
+    {
+      "id": "flexible-candidates-card-progression",
+      "prompt": "An accepted Project/issue graph decomposes issue #101 with subissues, groups work from issues #101 and #102 into one pull request candidate, and splits remaining work from issue #101 into a second candidate. The first candidate has review and manual-merge handoff evidence, but the second candidate is still in review. Describe the candidate mapping, card progression, and issue-closure decision. Do not call tools.",
+      "expected_output": "Allow one Project/issue graph to produce grouped and split pull request candidates. Let issue #101 span both candidates and let the first candidate cover issues #101 and #102. Use subissues to track decomposition. Keep each candidate fixed in its own worktree and review lane. Mirror each issue card through `Blocked`, `Todo`, `Research`, `Implement`, `Validate`, and `Critique`; keep both issues open and out of `Done` while the second candidate lacks completed review and manual-merge handoff evidence. Close an issue and move its card to `Done` only after every linked candidate has pull request, delivery, review, and manual-merge evidence and current-turn root authorization permits closure.",
+      "assertions": [
+        "The response allows grouped and split pull request candidates from one Project/issue graph.",
+        "The response allows one issue to span candidates and one candidate to span issues.",
+        "The response uses subissues to track decomposition.",
+        "The response keeps each candidate fixed in its own worktree and review lane.",
+        "The response mirrors cards through the configured lifecycle and keeps them out of `Done` while a linked candidate lacks review or manual-merge evidence.",
+        "The response requires complete linked candidate delivery evidence and current-turn root authorization before issue closure."
+      ]
     }
   ]
 }

@@ -109,6 +109,8 @@ The root `AGENTS.md` and `.agents/` directory are repository-only. They guide wo
 
 `mise` tasks keep the root and `home/` skill indexes synchronized. They validate the global skill evaluation files and check for name conflicts between repository-only and global skills. The `hk` check and pre-commit hooks run these validations with the other repository checks.
 
+Skill evaluation workspaces keep separate `with_skill` and `old_skill` baselines. The `mise` evaluation tasks can retire an incomplete older iteration without changing its raw evidence.
+
 ## Development
 
 The repository manages the tools used for development. When you enter the repository, `mise` activates its project tools.

@@ -91,6 +91,7 @@ The skills below are available under [`.agents/skills/`](.agents/skills/). **MUS
 - `commit-guidelines` — Create branches and commits from local diffs using project commit-message conventions (Conventional Commits, commitlint).
 - `execution-workflow` — Execute an existing multi-story plan artifact from start to finish. Use when a plan already exists and needs coordinated delivery.
 - `github-cli` — Use the `gh` CLI for GitHub tasks. Use when working with pull requests, issues, workflow runs, releases, or repository metadata.
+- `gh-projects` — Manage GitHub Projects, items, fields, labels, dependencies, reconciliation, retries, cleanup safety, and evidence.
 - `hammerspoon` — Apply Hammerspoon macOS automation and window management rules when working with scripts, Spoons, hotkeys, or Lua code.
 - `linting` — Run linters and fix lint failures across project languages. Use when running checks, fixing lint/format issues, or recovering from hook failures.
 - `lua` — Apply Lua authoring conventions for Neovim, Hammerspoon, WezTerm, and Yazi configurations (module structure, returns, EmmyLua annotations).

@@ -29,7 +29,23 @@ Track the story state, blocker reason, unblock condition, failed critique-cycle 
 
 Freeze a story by recording its current state and moving it to `blocked` with the blocker and unblock condition.
 
-Move a story from `todo` to `research` only when its hard dependencies are ready. Move it to `implement` after the research and ownership checks pass. Move it to `validate` after the implementation matches the accepted story. Move it to `critique` after focused validation and acceptance evidence are complete. Move it to `done` only after the critique gate passes.
+Move a story from `todo` to `research` only when its hard dependencies are ready. Move it to `implement` after the research and ownership checks pass. Move it to `validate` after the implementation matches the accepted story. Move it to `critique` after focused validation and acceptance evidence are complete. Keep the story in `critique` while delivery evidence is incomplete. Move it to `done` only after `review-delivery` records `delivery complete` and root authorization permits issue closure.
+
+Use these status terms precisely:
+
+- `implementation complete` means that accepted implementation evidence exists. It does not close the issue.
+- `validation complete` means that required validation evidence passes. It does not close the issue.
+- `delivery complete` means that `review-delivery` records a linked pull request, completed review, and manual-merge handoff evidence. It does not close the issue.
+- `story/issue done` means that `execution-workflow` has the required delivery evidence and explicit current-turn root authorization to close the issue.
+
+Keep the issue open and move its Project card through every configured lane as the story advances. Do not move the card to `Done` during implementation, validation, critique, review, or manual-merge handoff. Do not close the issue from implementation complete, validation complete, critique success, pull request approval, or delivery complete alone. Require `review-delivery` evidence for every linked candidate:
+
+- a linked pull request;
+- delivery evidence;
+- a completed review; and
+- a manual-merge handoff.
+
+Require explicit current-turn root authorization before closing any issue. Then record `story/issue done` and move the Project card to `Done`.
 
 After `workflow-policy` completes the canonical `freeze -> report -> escalate -> stop` sequence, planning records either a plan-preserving recovery decision or an accepted recovery amendment. Resume the blocked story at `research` only after that planning decision. Represent this as the recovery edge `blocked -> research` in the same lifecycle. Do not require an amendment only when all required plan fields are present, consistent, and actionable, and the accepted plan, acceptance, scope, ownership, dependencies, security, feasibility, and delivery boundaries remain valid and unchanged. Require an accepted amendment with a new plan version when any required plan field is missing, inconsistent, or non-actionable, or when any one of those boundaries changes.
 
@@ -50,7 +66,7 @@ When a dependency becomes ready, name the result, notify the dependent lane, app
 
 ## Story tracking
 
-If a story uses an issue or project card, mirror every lifecycle transition, blocker, dependency, and acceptance result. Use the repository's configured lanes for `Blocked`, `Todo`, `Research`, `Implement`, `Validate`, `Critique`, and `Done`. Reopen a closed story when it moves backward and record the reason and unblock condition. Do not move a story to `Done` from approval alone.
+If a story uses an issue or Project card, mirror every lifecycle transition, blocker, dependency, and acceptance result. Use the repository's configured lanes for `Blocked`, `Todo`, `Research`, `Implement`, `Validate`, `Critique`, and `Done`. Use `review-delivery` for the flexible mapping between the Project/issue graph and pull request candidates. Reopen a closed story when it moves backward and record the reason and unblock condition. Do not move a story to `Done` from approval alone or without the delivery gate above.
 
 ## Acceptance and critique
 
