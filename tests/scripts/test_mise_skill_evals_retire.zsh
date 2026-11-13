@@ -8,10 +8,11 @@ materialize_iteration() {
     local fixture="$1"
     local iteration="$2"
     local complete="$3"
+    local state="${4:-materialized}"
     local iteration_dir="$fixture/.agents/eval-workspaces/demo/iteration-${iteration}"
     local configuration run_id
 
-    jq '.state = "materialized"' "$iteration_dir/manifest.json" >"$fixture/manifest-${iteration}.json"
+    jq --arg state "$state" '.state = $state' "$iteration_dir/manifest.json" >"$fixture/manifest-${iteration}.json"
     mv "$fixture/manifest-${iteration}.json" "$iteration_dir/manifest.json"
     for configuration in with_skill old_skill; do
         run_id="run-${iteration}-${configuration}"
@@ -89,12 +90,14 @@ main() {
     MISE_CONFIG_DIR="$mise_config" mise -C "$task_root" run ai:skills:evals:prepare \
         --base-path "$fixture" --skill demo --iteration 2 >/dev/null ||
         fail "could not prepare iteration 2"
-    materialize_iteration "$fixture" 1 false
+    materialize_iteration "$fixture" 1 false preparation
+    jq -e '.state == "preparation"' "$workspace_root/iteration-1/manifest.json" >/dev/null ||
+        fail "retirement fixture did not preserve preparation state"
     output_before="$(cat "$workspace_root/iteration-1/example-case/old_skill/evidence/run.txt")"
 
     MISE_CONFIG_DIR="$mise_config" mise -C "$task_root" run ai:skills:evals:retire \
         --base-path "$fixture" --skill demo --iteration 1 >/dev/null ||
-        fail "retire task rejected an incomplete historical iteration"
+        fail "retire task rejected an incomplete preparation iteration after a newer iteration"
     jq -e '
         .state == "historical" and
         .history_reason == "retired-materialized-incomplete"
@@ -129,7 +132,7 @@ main() {
             --base-path "$fixture" --skill demo --iteration 4 2>&1
     )" && fail "retire task accepted the current/latest iteration"
     print -r -- "$validation_output" | grep -qF "current/latest" ||
-        fail "current-iteration rejection was not explained"
+        fail "latest preparation rejection was not explained"
 
     jq '.state = "historical" | .history_reason = "unsafe-transition"' \
         "$workspace_root/iteration-3/manifest.json" >"$fixture/unsafe-manifest.json"

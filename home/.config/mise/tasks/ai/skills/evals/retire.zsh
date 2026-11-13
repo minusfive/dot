@@ -243,12 +243,9 @@ main() {
         .version == 1 and .skill_name == $skill and .iteration == $iteration and
         (.case_ids | type == "array" and length > 0 and all(.[]; type == "string" and test("^[a-z][a-z0-9-]*$"))) and
         ([.case_ids[]] | length == (unique | length)) and
-        (.state == null or .state == "materialized" or
+        (.state == null or .state == "preparation" or .state == "materialized" or
             (.state == "historical" and .history_reason == "retired-materialized-incomplete"))
     ' "$manifest" >/dev/null || die "invalid evaluation manifest: ${manifest}"
-
-    [[ "$already_retired" == true || "$manifest_state" != preparation ]] ||
-        die "cannot retire a preparation evaluation iteration: ${iteration_dir}"
 
     manifest_ids="$(jq -c '.case_ids' "$manifest")"
     jq -e --argjson ids "$manifest_ids" '
