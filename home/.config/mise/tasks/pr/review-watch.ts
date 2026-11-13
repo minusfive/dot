@@ -12,7 +12,7 @@
 //USAGE flag "--scope-id <id>" help="Immutable review scope identity"
 //USAGE flag "--candidate-id <id>" help="Immutable candidate identity"
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { homedir } from "node:os";
@@ -24,7 +24,8 @@ type Review = {
   id?: number | string;
   node_id?: string;
   author?: { login?: string };
-  submittedAt?: string | null;
+  submittedAt?: unknown;
+  submitted_at?: unknown;
   state?: string;
   body?: string;
   url?: string;
@@ -111,6 +112,15 @@ type WatchEntry = {
   identity?: Identity;
 };
 
+type QuarantineEntry = {
+  kind: "watch-entry" | "pending-add" | "pending-poll";
+  number?: number;
+  reason: string;
+  quarantinedAt: string;
+  digest: string;
+  raw: unknown;
+};
+
 type PollPayload = {
   action: "poll";
   repository: string;
@@ -148,6 +158,7 @@ type WatchState = {
   version: 1 | 2;
   repository: string;
   pull_requests: WatchEntry[];
+  quarantine?: QuarantineEntry[];
   identity?: Identity;
   pending_poll?: PendingPoll;
   pending_add?: PendingAdd;
@@ -364,6 +375,9 @@ async function getPullRequest(repository: string, number: number): Promise<PullR
   if (!Array.isArray(pullRequest.reviews)) {
     throw new Error(`${description}: reviews is not an array`);
   }
+  pullRequest.reviews = pullRequest.reviews.map((review, index) =>
+    normalizeReview(review, `${description} review ${index + 1}`),
+  );
   if (!Array.isArray(pullRequest.statusCheckRollup)) {
     throw new Error(`${description}: statusCheckRollup is not an array`);
   }
@@ -388,7 +402,13 @@ async function getReviewComments(
 
 async function getReviews(hostname: string, owner: string, repo: string, number: number): Promise<ReviewCollection> {
   const path = `repos/${owner}/${repo}/pulls/${number}/reviews`;
-  return getPaginatedCollection<Review>(hostname, path, `reviews for PR #${number} (${path})`);
+  const collection = await getPaginatedCollection<Review>(hostname, path, `reviews for PR #${number} (${path})`);
+  return {
+    ...collection,
+    comments: collection.comments.map((review, index) =>
+      normalizeReview(review, `reviews for PR #${number} (${path}) review ${index + 1}`),
+    ),
+  };
 }
 
 async function getPaginatedCollection<T>(
@@ -457,6 +477,22 @@ function isValidTimestamp(value: unknown): value is string {
 
 function timestampValue(value: string): number {
   return Date.parse(value);
+}
+
+function normalizeReview(value: unknown, description: string): Review {
+  if (!isObject(value)) {
+    throw new Error(`${description}: review is not an object`);
+  }
+  const hasCamel = Object.prototype.hasOwnProperty.call(value, "submittedAt");
+  const hasSnake = Object.prototype.hasOwnProperty.call(value, "submitted_at");
+  if (hasCamel && hasSnake && !Object.is(value.submittedAt, value.submitted_at)) {
+    throw new Error(`${description}: submittedAt and submitted_at conflict`);
+  }
+  const { submitted_at: _submittedAt, ...rest } = value;
+  if (hasCamel || hasSnake) {
+    return { ...rest, submittedAt: hasCamel ? value.submittedAt : value.submitted_at } as Review;
+  }
+  return rest as Review;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -569,6 +605,52 @@ function canonicalJson(value: unknown): string {
     .join(",")}}`;
 }
 
+function digestFor(value: unknown): string {
+  return createHash("sha256").update(canonicalJson(value)).digest("hex");
+}
+
+function quarantineEntry(
+  kind: QuarantineEntry["kind"],
+  raw: unknown,
+  reason: string,
+  number?: number,
+): QuarantineEntry {
+  return {
+    kind,
+    ...(number === undefined ? {} : { number }),
+    reason,
+    quarantinedAt: new Date().toISOString(),
+    digest: digestFor(raw),
+    raw,
+  };
+}
+
+function validateQuarantine(value: unknown, stateFile: string): asserts value is QuarantineEntry[] {
+  if (!Array.isArray(value)) throw new Error(`invalid watch quarantine: ${stateFile}`);
+  for (const item of value) {
+    if (
+      !isObject(item) ||
+      !["watch-entry", "pending-add", "pending-poll"].includes(String(item.kind)) ||
+      typeof item.reason !== "string" ||
+      item.reason.trim().length === 0 ||
+      !isValidTimestamp(item.quarantinedAt) ||
+      typeof item.digest !== "string" ||
+      !/^[a-f0-9]{64}$/.test(item.digest) ||
+      !Object.prototype.hasOwnProperty.call(item, "raw") ||
+      (item.number !== undefined && (!Number.isSafeInteger(item.number) || (item.number as number) <= 0))
+    ) {
+      throw new Error(`invalid watch quarantine: ${stateFile}`);
+    }
+  }
+}
+
+function quarantineWarnings(quarantine: QuarantineEntry[] | undefined): string[] {
+  return (quarantine ?? []).map(
+    (item) =>
+      `quarantined ${item.kind}${item.number === undefined ? "" : ` for PR #${item.number}`}: ${item.reason} (${item.digest})`,
+  );
+}
+
 function withoutFindingEnvelopeFields(value: Record<string, unknown>): Record<string, unknown> {
   const {
     kind: _kind,
@@ -586,7 +668,12 @@ function validateSourceArtifact(kind: string, value: Record<string, unknown>): v
   }
   const provenance = value.provenance;
   if (kind === "review") {
-    if (provenance.source !== "pull_request_review" || typeof provenance.review_id !== "string") {
+    if (
+      provenance.source !== "pull_request_review" ||
+      typeof provenance.review_id !== "string" ||
+      Object.prototype.hasOwnProperty.call(value, "submittedAt") ||
+      !isValidTimestamp(value.submitted_at)
+    ) {
       throw new Error("invalid review source artifact");
     }
     return;
@@ -601,6 +688,16 @@ function validateSourceArtifact(kind: string, value: Record<string, unknown>): v
   }
   if (kind === "nested_comment" && provenance.source !== "nested_review_comment") {
     throw new Error("invalid nested comment source artifact");
+  }
+}
+
+function validateNormalizedReview(value: unknown, description: string): asserts value is Record<string, unknown> {
+  if (
+    !isObject(value) ||
+    Object.prototype.hasOwnProperty.call(value, "submittedAt") ||
+    !isValidTimestamp(value.submitted_at)
+  ) {
+    throw new Error(`invalid normalized review artifact: ${description}`);
   }
 }
 
@@ -679,6 +776,9 @@ function validatePollResult(
     if (!(value[key] as unknown[]).every(isObject))
       throw new Error(`staged poll result has malformed ${key}: ${stateFile}`);
   }
+  for (const [index, review] of (value.new_reviews as unknown[]).entries()) {
+    validateNormalizedReview(review, `poll result review ${index + 1}`);
+  }
   validatePaginationResultFields(value, "inline_comments", stateFile);
   validatePaginationResultFields(value, "issue_comments", stateFile);
   validatePaginationResultFields(value, "reviews", stateFile);
@@ -695,6 +795,12 @@ function validatePollResult(
     if (value[key] !== undefined && typeof value[key] !== "boolean") {
       throw new Error(`staged poll result has invalid ${key}: ${stateFile}`);
     }
+  }
+  if (value.poll_failed !== undefined && typeof value.poll_failed !== "boolean") {
+    throw new Error(`staged poll result has invalid poll_failed: ${stateFile}`);
+  }
+  if (value.poll_failed === true && (typeof value.poll_error !== "string" || value.poll_error.trim().length === 0)) {
+    throw new Error(`staged poll result has invalid poll_error: ${stateFile}`);
   }
   if (value.removed === true && typeof value.reason !== "string") {
     throw new Error(`staged poll result has invalid removal reason: ${stateFile}`);
@@ -917,6 +1023,9 @@ function validateReconciliationResult(
   for (const key of ["reviews", "inline_comments", "issue_comments", "checks"]) {
     if (!Array.isArray(value[key])) throw new Error(`invalid watch state: ${stateFile}`);
   }
+  for (const [index, review] of (value.reviews as unknown[]).entries()) {
+    validateNormalizedReview(review, `reconciliation review ${index + 1}`);
+  }
   validatePaginationResultFields(value, "inline_comments", stateFile);
   validatePaginationResultFields(value, "issue_comments", stateFile);
   validatePaginationResultFields(value, "reviews", stateFile);
@@ -1031,14 +1140,16 @@ function validatePendingAdd(
     ]),
   );
   if (
-    reconciliationByNumber.size !== payloadNumbers.size ||
-    [...reconciliationByNumber.keys()].some((number) => !payloadNumbers.has(number))
+    reconciliationByNumber.size !== requestedNumbers.size ||
+    [...reconciliationByNumber.keys()].some((number) => !requestedNumbers.has(number))
   ) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
-  for (const entry of pending.payload.pull_requests) {
-    const result = reconciliationByNumber.get(entry.number);
+  for (const number of requestedNumbers) {
+    const entry = pending.payload.pull_requests.find((candidate) => candidate.number === number);
+    const result = reconciliationByNumber.get(number);
     if (
+      !entry ||
       !result ||
       !sameArtifactIdentity(result.identity as Identity, identityFor(repository, entry.number, entry.head))
     ) {
@@ -1064,38 +1175,66 @@ async function loadState(repository: string, stateFile: string): Promise<WatchSt
     ) {
       throw new Error(`invalid watch state: ${stateFile}`);
     }
+    const quarantine: QuarantineEntry[] = [];
+    if (parsed.quarantine !== undefined) validateQuarantine(parsed.quarantine, stateFile);
+    quarantine.push(...(parsed.quarantine ?? []));
+    let migrated = false;
     const pullRequests: WatchEntry[] = [];
     for (const entry of parsed.pull_requests) {
-      if (!validateWatchEntry(entry, stateFile)) {
-        throw new Error(`invalid watch state: ${stateFile}`);
-      }
-      pullRequests.push(entry);
-    }
-    if (parsed.pending_poll !== undefined) {
       try {
-        validatePendingPoll(parsed.pending_poll, pullRequests, repository, stateFile);
+        validateWatchEntry(entry, stateFile);
+        pullRequests.push(entry);
       } catch (error) {
-        throw new Error(`invalid pending poll state: ${error instanceof Error ? error.message : String(error)}`);
+        const number =
+          isObject(entry) && Number.isSafeInteger(entry.number) && entry.number > 0 ? entry.number : undefined;
+        quarantine.push(
+          quarantineEntry("watch-entry", entry, error instanceof Error ? error.message : String(error), number),
+        );
+        migrated = true;
       }
     }
-    if (parsed.pending_add !== undefined) {
+    let pendingPoll = parsed.pending_poll;
+    let pendingAdd = parsed.pending_add;
+    if (pendingPoll !== undefined && pendingAdd !== undefined) {
+      quarantine.push(quarantineEntry("pending-poll", pendingPoll, "watch state contained both pending transactions"));
+      quarantine.push(quarantineEntry("pending-add", pendingAdd, "watch state contained both pending transactions"));
+      pendingPoll = undefined;
+      pendingAdd = undefined;
+      migrated = true;
+    }
+    if (pendingPoll !== undefined) {
       try {
-        validatePendingAdd(parsed.pending_add, pullRequests, repository, stateFile);
+        validatePendingPoll(pendingPoll, pullRequests, repository, stateFile);
       } catch (error) {
-        throw new Error(`invalid pending add state: ${error instanceof Error ? error.message : String(error)}`);
+        quarantine.push(
+          quarantineEntry("pending-poll", pendingPoll, error instanceof Error ? error.message : String(error)),
+        );
+        pendingPoll = undefined;
+        migrated = true;
       }
     }
-    if (parsed.pending_poll !== undefined && parsed.pending_add !== undefined) {
-      throw new Error(`invalid watch state: ${stateFile}`);
+    if (pendingAdd !== undefined) {
+      try {
+        validatePendingAdd(pendingAdd, pullRequests, repository, stateFile);
+      } catch (error) {
+        quarantine.push(
+          quarantineEntry("pending-add", pendingAdd, error instanceof Error ? error.message : String(error)),
+        );
+        pendingAdd = undefined;
+        migrated = true;
+      }
     }
-    return {
+    const state: WatchState = {
       version: 1,
       repository,
       pull_requests: pullRequests,
+      quarantine,
       identity: parsed.identity,
-      pending_poll: parsed.pending_poll,
-      pending_add: parsed.pending_add,
+      pending_poll: pendingPoll,
+      pending_add: pendingAdd,
     };
+    if (migrated) await saveState(stateFile, state);
+    return state;
   } catch (error) {
     if (error instanceof Error && "code" in error && (error as NodeJS.ErrnoException).code === "ENOENT") {
       return { version: 1, repository, pull_requests: [] };
@@ -1110,6 +1249,8 @@ async function saveState(stateFile: string, state: WatchState): Promise<void> {
   }
   if (state.identity !== undefined) validateIdentity(state.identity, "watch state");
   state.identity ??= identityFor(state.repository);
+  state.quarantine ??= [];
+  validateQuarantine(state.quarantine, stateFile);
   for (const entry of state.pull_requests) {
     if (!validateWatchEntry(entry, stateFile)) {
       throw new Error(`invalid watch state: ${stateFile}`);
@@ -1998,6 +2139,48 @@ function replayPollPayload(payload: PollPayload): PollPayload {
   };
 }
 
+function failedPollResult(repository: string, entry: WatchEntry, error: string): Record<string, unknown> {
+  return {
+    number: entry.number,
+    identity: identityFor(repository, entry.number, entry.head),
+    state: "UNKNOWN",
+    head: entry.head,
+    new_reviews: [],
+    new_inline_comments: [],
+    new_issue_comments: [],
+    checks: [],
+    reviews_pages: 0,
+    inline_comments_pages: 0,
+    issue_comments_pages: 0,
+    reviews_page_lengths: [],
+    inline_comments_page_lengths: [],
+    issue_comments_page_lengths: [],
+    reviews_pagination_complete: true,
+    inline_comments_pagination_complete: true,
+    issue_comments_pagination_complete: true,
+    reviews_pagination_termination: "empty-result",
+    inline_comments_pagination_termination: "empty-result",
+    issue_comments_pagination_termination: "empty-result",
+    reviews_page_size: PAGINATION_PAGE_SIZE,
+    inline_comments_page_size: PAGINATION_PAGE_SIZE,
+    issue_comments_page_size: PAGINATION_PAGE_SIZE,
+    pagination_contract: "gh-api-paginate-slurp-v1",
+    review_metadata_contract: REVIEW_METADATA_CONTRACT,
+    has_new_activity: false,
+    has_failed_checks: false,
+    has_pending_checks: false,
+    resolution_warnings: [],
+    head_changed: false,
+    has_unresolved_activity: false,
+    grace_checks: entry.graceChecks ?? 0,
+    grace_complete: entry.graceComplete === true,
+    keep_watching: true,
+    action_required: true,
+    poll_failed: true,
+    poll_error: error,
+  };
+}
+
 function sameNumbers(left: number[], right: number[]): boolean {
   const sortedLeft = [...left].sort((a, b) => a - b);
   const sortedRight = [...right].sort((a, b) => a - b);
@@ -2037,6 +2220,7 @@ async function main(): Promise<void> {
           version: 1,
           repository,
           identity: stateIdentity,
+          quarantine: state.quarantine,
           pull_requests: state.pending_add.next_pull_requests,
         });
         return;
@@ -2049,10 +2233,11 @@ async function main(): Promise<void> {
         version: 1,
         repository,
         pull_requests: [...state.pull_requests],
+        quarantine: state.quarantine,
         identity: stateIdentity,
       };
       const reconciliation: Array<Record<string, unknown>> = [];
-      const warnings: string[] = [];
+      const warnings: string[] = quarantineWarnings(state.quarantine);
       const watchStartedAt = new Date().toISOString();
       if (ACTION === "add") {
         for (const number of numbers) {
@@ -2114,6 +2299,7 @@ async function main(): Promise<void> {
           version: 1,
           repository,
           identity: stateIdentity,
+          quarantine: state.quarantine,
           pull_requests: state.pull_requests,
           pending_add: {
             payload,
@@ -2145,7 +2331,7 @@ async function main(): Promise<void> {
         repository,
         state_file: stateFile,
         watch_empty: visiblePullRequests.length === 0,
-        warnings: [],
+        warnings: quarantineWarnings(state.quarantine),
         pull_requests: visiblePullRequests,
         pending_acknowledgment: state.pending_add
           ? { action: "add", requested_numbers: state.pending_add.requested_numbers }
@@ -2162,6 +2348,7 @@ async function main(): Promise<void> {
         version: 1,
         repository,
         identity: stateIdentity,
+        quarantine: state.quarantine,
         pull_requests: state.pending_poll.next_pull_requests,
       });
       return;
@@ -2171,167 +2358,183 @@ async function main(): Promise<void> {
     }
 
     const now = new Date().toISOString();
-    const warnings: string[] = [];
+    const warnings: string[] = quarantineWarnings(state.quarantine);
     const openEntries: WatchEntry[] = [];
     const results: Array<Record<string, unknown>> = [];
+    let pollFailed = false;
     for (const entry of state.pull_requests) {
-      const pullRequest = await getPullRequest(repository, entry.number);
-      const isMerged = Boolean(pullRequest.mergedAt) || pullRequest.state === "MERGED";
-      const isClosed = !isMerged && (pullRequest.state !== "OPEN" || Boolean(pullRequest.closedAt));
-      if (isMerged || isClosed) {
+      try {
+        const pullRequest = await getPullRequest(repository, entry.number);
+        const isMerged = Boolean(pullRequest.mergedAt) || pullRequest.state === "MERGED";
+        const isClosed = !isMerged && (pullRequest.state !== "OPEN" || Boolean(pullRequest.closedAt));
+        if (isMerged || isClosed) {
+          results.push({
+            number: entry.number,
+            identity: identityFor(repository, entry.number, pullRequestHead(pullRequest)),
+            state: pullRequest.state,
+            head: pullRequest.headRefName,
+            review_decision: pullRequest.reviewDecision,
+            removed: true,
+            reason: isMerged ? "merged" : "closed",
+            new_reviews: [],
+            new_inline_comments: [],
+            new_issue_comments: [],
+            checks: [],
+            reviews_pages: 0,
+            inline_comments_pages: 0,
+            issue_comments_pages: 0,
+            reviews_page_lengths: [],
+            inline_comments_page_lengths: [],
+            issue_comments_page_lengths: [],
+            reviews_pagination_complete: true,
+            inline_comments_pagination_complete: true,
+            issue_comments_pagination_complete: true,
+            reviews_pagination_termination: "empty-result",
+            inline_comments_pagination_termination: "empty-result",
+            issue_comments_pagination_termination: "empty-result",
+            reviews_page_size: PAGINATION_PAGE_SIZE,
+            inline_comments_page_size: PAGINATION_PAGE_SIZE,
+            issue_comments_page_size: PAGINATION_PAGE_SIZE,
+            pagination_contract: "gh-api-paginate-slurp-v1",
+            review_metadata_contract: REVIEW_METADATA_CONTRACT,
+            has_new_activity: false,
+            has_failed_checks: false,
+            action_required: false,
+          });
+          continue;
+        }
+
+        const cutoff = entry.lastSeenAt ?? entry.addedAt;
+        const [reviewCollection, inlineCollection, issueCollection] = await Promise.all([
+          getReviews(hostname, owner, repo, entry.number),
+          getReviewComments(hostname, owner, repo, entry.number, "pulls"),
+          getReviewComments(hostname, owner, repo, entry.number, "issues"),
+        ]);
+        pullRequest.reviews = reviewCollection.comments;
+        const seenReviews = new Set(entry.seen?.reviews ?? []);
+        const seenInlineComments = new Set(entry.seen?.inline_comments ?? []);
+        const seenIssueComments = new Set(entry.seen?.issue_comments ?? []);
+        const inlineResolution = await commentResolutions(
+          hostname,
+          owner,
+          repo,
+          inlineCollection.comments,
+          entry.number,
+        );
+        const inlineResolutions = inlineResolution.values;
+        const issueResolutions = issueCollection.comments.map(() => null as boolean | null);
+        warnings.push(...inlineResolution.warnings);
+        if (STRICT_IDENTITY_BINDING && inlineResolution.warnings.length > 0) {
+          throw new Error(`PR #${entry.number} review resolution batch incomplete`);
+        }
+        const reviews = newReviews(reviewCollection.comments, cutoff, entry.number, seenReviews);
+        const inlineComments = newComments(
+          inlineCollection.comments,
+          cutoff,
+          entry.number,
+          "pulls",
+          seenInlineComments,
+          inlineResolutions,
+        );
+        const issueComments = newComments(
+          issueCollection.comments,
+          cutoff,
+          entry.number,
+          "issues",
+          seenIssueComments,
+          issueResolutions,
+        );
+        const checks = checksFor(pullRequest);
+        const failedChecks = hasFailedChecks(checks);
+        const pendingChecks = hasPendingChecks(checks);
+        const hasNewActivity = reviews.length > 0 || inlineComments.length > 0 || issueComments.length > 0;
+        const hasUnresolvedActivity =
+          hasUnresolvedReviewState(reviewCollection.comments) ||
+          inlineResolutions.some((resolution) => resolution !== true);
+        const currentHead = pullRequestHead(pullRequest);
+        if (entry.identity?.head !== undefined && entry.identity.head !== currentHead) {
+          throw new Error(`PR #${entry.number} head identity mismatch`);
+        }
+        const headChanged = entry.head !== undefined && entry.head !== currentHead;
+        const clean =
+          pullRequest.reviewDecision === "APPROVED" &&
+          !hasNewActivity &&
+          !hasUnresolvedActivity &&
+          !failedChecks &&
+          !pendingChecks &&
+          !headChanged;
+        const currentSeen = seenFor(reviewCollection.comments, inlineCollection.comments, issueCollection.comments);
+        const nextEntry = graceState(
+          {
+            ...entry,
+            lastSeenAt: now,
+            head: currentHead,
+            seen: mergeSeen(entry.seen, currentSeen),
+            identity: persistedIdentityFor(repository, entry.number, currentHead),
+          },
+          clean,
+          headChanged,
+        );
+        openEntries.push(nextEntry);
         results.push({
           number: entry.number,
-          identity: identityFor(repository, entry.number, pullRequestHead(pullRequest)),
+          identity: identityFor(repository, entry.number, currentHead),
           state: pullRequest.state,
           head: pullRequest.headRefName,
+          head_oid: pullRequest.headRefOid,
           review_decision: pullRequest.reviewDecision,
-          removed: true,
-          reason: isMerged ? "merged" : "closed",
-          new_reviews: [],
-          new_inline_comments: [],
-          new_issue_comments: [],
-          checks: [],
-          reviews_pages: 0,
-          inline_comments_pages: 0,
-          issue_comments_pages: 0,
-          reviews_page_lengths: [],
-          inline_comments_page_lengths: [],
-          issue_comments_page_lengths: [],
-          reviews_pagination_complete: true,
-          inline_comments_pagination_complete: true,
-          issue_comments_pagination_complete: true,
-          reviews_pagination_termination: "empty-result",
-          inline_comments_pagination_termination: "empty-result",
-          issue_comments_pagination_termination: "empty-result",
-          reviews_page_size: PAGINATION_PAGE_SIZE,
-          inline_comments_page_size: PAGINATION_PAGE_SIZE,
-          issue_comments_page_size: PAGINATION_PAGE_SIZE,
+          new_reviews: reviews,
+          new_inline_comments: inlineComments,
+          new_issue_comments: issueComments,
+          checks,
+          reviews_pages: reviewCollection.pages,
+          inline_comments_pages: inlineCollection.pages,
+          issue_comments_pages: issueCollection.pages,
+          reviews_page_lengths: reviewCollection.page_lengths,
+          inline_comments_page_lengths: inlineCollection.page_lengths,
+          issue_comments_page_lengths: issueCollection.page_lengths,
+          reviews_pagination_complete: reviewCollection.pagination_complete,
+          inline_comments_pagination_complete: inlineCollection.pagination_complete,
+          issue_comments_pagination_complete: issueCollection.pagination_complete,
+          reviews_pagination_termination: reviewCollection.pagination_termination,
+          inline_comments_pagination_termination: inlineCollection.pagination_termination,
+          issue_comments_pagination_termination: issueCollection.pagination_termination,
+          reviews_page_size: reviewCollection.page_size,
+          inline_comments_page_size: inlineCollection.page_size,
+          issue_comments_page_size: issueCollection.page_size,
           pagination_contract: "gh-api-paginate-slurp-v1",
           review_metadata_contract: REVIEW_METADATA_CONTRACT,
-          has_new_activity: false,
-          has_failed_checks: false,
-          action_required: false,
+          has_new_activity: hasNewActivity,
+          has_failed_checks: failedChecks,
+          has_pending_checks: pendingChecks,
+          resolution_warnings: inlineResolution.warnings,
+          head_changed: headChanged,
+          has_unresolved_activity: hasUnresolvedActivity,
+          grace_checks: nextEntry.graceChecks ?? 0,
+          grace_complete: nextEntry.graceComplete === true,
+          keep_watching: nextEntry.graceComplete !== true,
+          action_required:
+            hasNewActivity ||
+            hasUnresolvedActivity ||
+            headChanged ||
+            failedChecks ||
+            pendingChecks ||
+            hasUnresolvedReviewState(reviewCollection.comments),
         });
-        continue;
+      } catch (error) {
+        pollFailed = true;
+        const message = error instanceof Error ? error.message : String(error);
+        warnings.push(`PR #${entry.number} poll failed: ${message}`);
+        openEntries.push(entry);
+        results.push(failedPollResult(repository, entry, message));
       }
-
-      const cutoff = entry.lastSeenAt ?? entry.addedAt;
-      const [reviewCollection, inlineCollection, issueCollection] = await Promise.all([
-        getReviews(hostname, owner, repo, entry.number),
-        getReviewComments(hostname, owner, repo, entry.number, "pulls"),
-        getReviewComments(hostname, owner, repo, entry.number, "issues"),
-      ]);
-      pullRequest.reviews = reviewCollection.comments;
-      const seenReviews = new Set(entry.seen?.reviews ?? []);
-      const seenInlineComments = new Set(entry.seen?.inline_comments ?? []);
-      const seenIssueComments = new Set(entry.seen?.issue_comments ?? []);
-      const inlineResolution = await commentResolutions(hostname, owner, repo, inlineCollection.comments, entry.number);
-      const inlineResolutions = inlineResolution.values;
-      const issueResolutions = issueCollection.comments.map(() => null as boolean | null);
-      warnings.push(...inlineResolution.warnings);
-      if (STRICT_IDENTITY_BINDING && inlineResolution.warnings.length > 0) {
-        throw new Error(`PR #${entry.number} review resolution batch incomplete`);
-      }
-      const reviews = newReviews(reviewCollection.comments, cutoff, entry.number, seenReviews);
-      const inlineComments = newComments(
-        inlineCollection.comments,
-        cutoff,
-        entry.number,
-        "pulls",
-        seenInlineComments,
-        inlineResolutions,
-      );
-      const issueComments = newComments(
-        issueCollection.comments,
-        cutoff,
-        entry.number,
-        "issues",
-        seenIssueComments,
-        issueResolutions,
-      );
-      const checks = checksFor(pullRequest);
-      const failedChecks = hasFailedChecks(checks);
-      const pendingChecks = hasPendingChecks(checks);
-      const hasNewActivity = reviews.length > 0 || inlineComments.length > 0 || issueComments.length > 0;
-      const hasUnresolvedActivity =
-        hasUnresolvedReviewState(reviewCollection.comments) ||
-        inlineResolutions.some((resolution) => resolution !== true);
-      const currentHead = pullRequestHead(pullRequest);
-      if (entry.identity?.head !== undefined && entry.identity.head !== currentHead) {
-        throw new Error(`PR #${entry.number} head identity mismatch`);
-      }
-      const headChanged = entry.head !== undefined && entry.head !== currentHead;
-      const clean =
-        pullRequest.reviewDecision === "APPROVED" &&
-        !hasNewActivity &&
-        !hasUnresolvedActivity &&
-        !failedChecks &&
-        !pendingChecks &&
-        !headChanged;
-      const currentSeen = seenFor(reviewCollection.comments, inlineCollection.comments, issueCollection.comments);
-      const nextEntry = graceState(
-        {
-          ...entry,
-          lastSeenAt: now,
-          head: currentHead,
-          seen: mergeSeen(entry.seen, currentSeen),
-          identity: persistedIdentityFor(repository, entry.number, currentHead),
-        },
-        clean,
-        headChanged,
-      );
-      openEntries.push(nextEntry);
-      results.push({
-        number: entry.number,
-        identity: identityFor(repository, entry.number, currentHead),
-        state: pullRequest.state,
-        head: pullRequest.headRefName,
-        head_oid: pullRequest.headRefOid,
-        review_decision: pullRequest.reviewDecision,
-        new_reviews: reviews,
-        new_inline_comments: inlineComments,
-        new_issue_comments: issueComments,
-        checks,
-        reviews_pages: reviewCollection.pages,
-        inline_comments_pages: inlineCollection.pages,
-        issue_comments_pages: issueCollection.pages,
-        reviews_page_lengths: reviewCollection.page_lengths,
-        inline_comments_page_lengths: inlineCollection.page_lengths,
-        issue_comments_page_lengths: issueCollection.page_lengths,
-        reviews_pagination_complete: reviewCollection.pagination_complete,
-        inline_comments_pagination_complete: inlineCollection.pagination_complete,
-        issue_comments_pagination_complete: issueCollection.pagination_complete,
-        reviews_pagination_termination: reviewCollection.pagination_termination,
-        inline_comments_pagination_termination: inlineCollection.pagination_termination,
-        issue_comments_pagination_termination: issueCollection.pagination_termination,
-        reviews_page_size: reviewCollection.page_size,
-        inline_comments_page_size: inlineCollection.page_size,
-        issue_comments_page_size: issueCollection.page_size,
-        pagination_contract: "gh-api-paginate-slurp-v1",
-        review_metadata_contract: REVIEW_METADATA_CONTRACT,
-        has_new_activity: hasNewActivity,
-        has_failed_checks: failedChecks,
-        has_pending_checks: pendingChecks,
-        resolution_warnings: inlineResolution.warnings,
-        head_changed: headChanged,
-        has_unresolved_activity: hasUnresolvedActivity,
-        grace_checks: nextEntry.graceChecks ?? 0,
-        grace_complete: nextEntry.graceComplete === true,
-        keep_watching: nextEntry.graceComplete !== true,
-        action_required:
-          hasNewActivity ||
-          hasUnresolvedActivity ||
-          headChanged ||
-          failedChecks ||
-          pendingChecks ||
-          hasUnresolvedReviewState(reviewCollection.comments),
-      });
     }
 
     const nextState: WatchState = {
       version: 1,
       repository,
       pull_requests: openEntries,
+      quarantine: state.quarantine,
       identity: stateIdentity,
     };
     const payload: PollPayload = {
@@ -2339,15 +2542,20 @@ async function main(): Promise<void> {
       repository,
       state_file: stateFile,
       watch_empty: openEntries.length === 0,
-      scheduler_should_stop: openEntries.every((entry) => entry.graceComplete === true),
+      scheduler_should_stop: !pollFailed && openEntries.every((entry) => entry.graceComplete === true),
       warnings,
       pull_requests: results,
       review_findings: envelopeFor(repository, randomUUID(), results),
     };
+    if (pollFailed) {
+      if (results.some((result) => result.poll_failed !== true)) emit(payload);
+      throw new Error(warnings.filter((warning) => warning.includes("poll failed")).join("; "));
+    }
     await saveState(stateFile, {
       version: 1,
       repository,
       identity: stateIdentity,
+      quarantine: state.quarantine,
       pull_requests: state.pull_requests,
       pending_poll: {
         payload,

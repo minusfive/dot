@@ -99,7 +99,12 @@ if [[ "$1" == api ]]; then
     kind="$(printf '%s' "$request_path" | cut -d/ -f4)"
     number="$(printf '%s' "$request_path" | cut -d/ -f5)"
     if [[ "$request_path" == */reviews ]]; then
-        jq -c '[.reviews // []]' "$GH_REVIEW_WATCH_FIXTURES/pr-$number.json"
+        if [[ "${GH_REVIEW_WATCH_REST_RAW:-}" == "1" ]]; then
+            jq -c '[.reviews // []]' "$GH_REVIEW_WATCH_FIXTURES/pr-$number.json"
+        else
+            jq -c '[[ (.reviews // [])[] | if has("submittedAt") then .submitted_at = .submittedAt | del(.submittedAt) else . end ]]' \
+                "$GH_REVIEW_WATCH_FIXTURES/pr-$number.json"
+        fi
         exit 0
     fi
     if [[ "${GH_REVIEW_WATCH_FAIL_ENDPOINT:-}" == "$request_path" ]]; then
@@ -226,12 +231,16 @@ jq -e '
 cp "$__state_file" "$__fixture_dir/staged-add-backup.json"
 jq '.pending_add.payload.pull_requests = []' "$__state_file" > "$__fixture_dir/staged-add-rewritten.json"
 mv "$__fixture_dir/staged-add-rewritten.json" "$__state_file"
-if run_action list > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "staged-add payload omission unexpectedly succeeded"
-fi
-grep -qF "invalid watch state: $__state_file" "$__fixture_dir/error" ||
-    fail "staged-add payload omission error was not actionable"
-[[ ! -s "$__poll_output" ]] || fail "staged-add payload omission emitted output"
+run_action list > "$__poll_output"
+jq -e '
+  .pending_acknowledgment == null and
+  .watch_empty == true and
+  (.warnings | any(contains("quarantined pending-add")))
+' "$__poll_output" >/dev/null || fail "staged-add payload omission was not quarantined"
+jq -e '
+  (.pending_add | not) and
+  (.quarantine | any(.kind == "pending-add" and .raw.payload.pull_requests == []))
+' "$__state_file" >/dev/null || fail "staged-add quarantine did not preserve the malformed payload"
 mv "$__fixture_dir/staged-add-backup.json" "$__state_file"
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
 if run_action add > "$__poll_output" 2> "$__fixture_dir/error"; then
@@ -272,14 +281,15 @@ fi
 jq '.pull_requests = [{"number":99,"addedAt":"2024-01-01T00:00:00Z"}]' "$__state_file" > "$__fixture_dir/unrelated-staged-add.json"
 mv "$__fixture_dir/unrelated-staged-add.json" "$__state_file"
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
-if run_action add 10 > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "authorized add accepted an unrelated staged state"
-fi
-grep -qF "invalid pending add state" "$__fixture_dir/error" ||
-    fail "unrelated staged state error was not actionable"
-[[ ! -s "$__poll_output" ]] || fail "unrelated staged state emitted output"
-[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
-    fail "unrelated staged state changed state bytes"
+run_action add 10 > "$__poll_output"
+jq -e '
+  (.warnings | any(contains("quarantined pending-add"))) and
+  (.pull_requests | map(.number) | sort == [10,99])
+' "$__poll_output" >/dev/null || fail "unrelated staged state was not quarantined before add"
+jq -e '
+  (.quarantine | any(.kind == "pending-add")) and
+  (.pull_requests | map(.number) | sort == [10,99])
+' "$__state_file" >/dev/null || fail "unrelated staged state quarantine did not preserve the valid watch"
 
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
 : > "$__log_file"
@@ -569,7 +579,7 @@ cat > "$__state_file" <<EOF
         "identity": {"repository": "$__repository", "coordinator_id": "review-watch:$__repository", "scheduler_id": "review-watch-scheduler:$__repository", "assignment_id": "review-assignment:$__repository", "scope_id": "review-scope:$__repository", "candidate_id": "candidate:$__repository#1", "pull_request": 1, "head": "review-1"},
         "state": "OPEN",
         "head": "review-1",
-        "new_reviews": [{"body": "recover me"}],
+        "new_reviews": [{"body": "recover me", "submitted_at": "2024-01-02T00:00:00Z"}],
         "new_inline_comments": [],
         "new_issue_comments": [],
         "checks": [],
@@ -630,14 +640,15 @@ cat > "$__state_file" <<EOF
 }
 EOF
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
-if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "invalid pending poll action unexpectedly succeeded"
-fi
-grep -qF "invalid watch state: $__state_file" "$__fixture_dir/error" ||
-    fail "invalid pending poll error was not actionable"
-[[ ! -s "$__poll_output" ]] || fail "invalid pending poll emitted output"
-[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
-    fail "invalid pending poll changed state bytes"
+run_action list > "$__poll_output"
+jq -e '
+  (.warnings | any(contains("quarantined pending-poll"))) and
+  (.pull_requests | map(.number) == [11])
+' "$__poll_output" >/dev/null || fail "invalid pending poll was not quarantined"
+jq -e '
+  (.pending_poll | not) and
+  (.quarantine | any(.kind == "pending-poll" and .raw.payload.action == "not-poll"))
+' "$__state_file" >/dev/null || fail "invalid pending poll quarantine did not preserve raw evidence"
 
 write_fixture 7 UNKNOWN
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":7,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
@@ -683,15 +694,14 @@ grep -qF 'pull request #9 metadata: statusCheckRollup is not an array' "$__fixtu
 [[ ! -d "$__state_file.lock" ]] || fail "missing statusCheckRollup left the lock"
 
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[null]}"
-__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
-if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "malformed watch entry unexpectedly succeeded"
-fi
-grep -qF "invalid watch state: $__state_file" "$__fixture_dir/error" ||
-    fail "malformed watch entry error was not actionable"
-[[ ! -s "$__poll_output" ]] || fail "malformed watch entry emitted success JSON"
-[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
-    fail "malformed watch entry changed state bytes"
+run_action list > "$__poll_output"
+jq -e '
+  (.warnings | any(contains("quarantined watch-entry"))) and
+  (.pull_requests | length == 0)
+' "$__poll_output" >/dev/null || fail "malformed watch entry was not quarantined"
+jq -e '
+  (.quarantine | any(.kind == "watch-entry" and .raw == null))
+' "$__state_file" >/dev/null || fail "malformed watch entry quarantine did not preserve raw evidence"
 [[ ! -d "$__state_file.lock" ]] || fail "malformed watch entry left the lock"
 [[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "malformed watch entry left a temporary file"
 
@@ -1293,14 +1303,15 @@ cat > "$__state_file" <<EOF
 }
 EOF
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
-if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "staged poll omission of an active watch unexpectedly succeeded"
-fi
-grep -qF "invalid watch state: $__state_file" "$__fixture_dir/error" ||
-    fail "staged poll omission error was not actionable"
-[[ ! -s "$__poll_output" ]] || fail "staged poll omission emitted output"
-[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
-    fail "staged poll omission changed state bytes"
+run_action list > "$__poll_output"
+jq -e '
+  (.warnings | any(contains("quarantined pending-poll"))) and
+  (.pending_acknowledgment == null)
+' "$__poll_output" >/dev/null || fail "staged poll omission was not quarantined"
+jq -e '
+  (.pending_poll | not) and
+  (.quarantine | any(.kind == "pending-poll"))
+' "$__state_file" >/dev/null || fail "staged poll omission quarantine did not preserve raw evidence"
 
 cat > "$__state_file" <<EOF
 {
@@ -1429,11 +1440,11 @@ cp "$__state_file" "$__fixture_dir/identity-stage-backup.json"
 jq '.pending_add.payload.reconciliation[0].identity.head = "foreign-head"' "$__state_file" > "$__fixture_dir/identity-stage-rewritten.json"
 mv "$__fixture_dir/identity-stage-rewritten.json" "$__state_file"
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
-if run_action list > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "foreign per-result identity unexpectedly replayed"
-fi
-[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
-    fail "foreign per-result identity changed staged state"
+run_action list > "$__poll_output"
+jq -e '(.warnings | any(contains("quarantined pending-add"))) and (.pending_acknowledgment == null)' \
+    "$__poll_output" >/dev/null || fail "foreign per-result identity was not quarantined"
+jq -e '(.quarantine | any(.kind == "pending-add"))' "$__state_file" >/dev/null ||
+    fail "foreign per-result identity quarantine was not persisted"
 mv "$__fixture_dir/identity-stage-backup.json" "$__state_file"
 
 write_fixture 32
@@ -1519,13 +1530,11 @@ jq '(.pending_add.payload.review_findings.findings |= map(if .kind == "review" t
     "$__state_file" > "$__fixture_dir/foreign-review.json"
 mv "$__fixture_dir/foreign-review.json" "$__state_file"
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
-if run_action list > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "foreign review provenance unexpectedly replayed"
-fi
-grep -qF 'findings envelope source binding' "$__fixture_dir/error" ||
-    fail "foreign review provenance error was not actionable"
-[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
-    fail "foreign review provenance rejection changed state bytes"
+run_action list > "$__poll_output"
+jq -e '(.warnings | any(contains("quarantined pending-add"))) and (.pending_acknowledgment == null)' \
+    "$__poll_output" >/dev/null || fail "foreign review provenance was not quarantined"
+jq -e '(.quarantine | any(.kind == "pending-add"))' "$__state_file" >/dev/null ||
+    fail "foreign review provenance quarantine was not persisted"
 
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
 export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-31.json"
@@ -1537,13 +1546,11 @@ jq '(.pending_add.payload.review_findings.findings |= map(if .kind == "inline_co
     "$__state_file" > "$__fixture_dir/foreign-comment.json"
 mv "$__fixture_dir/foreign-comment.json" "$__state_file"
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
-if run_action list > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "foreign comment provenance unexpectedly replayed"
-fi
-grep -qF 'findings envelope source binding' "$__fixture_dir/error" ||
-    fail "foreign comment provenance error was not actionable"
-[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
-    fail "foreign comment provenance rejection changed state bytes"
+run_action list > "$__poll_output"
+jq -e '(.warnings | any(contains("quarantined pending-add"))) and (.pending_acknowledgment == null)' \
+    "$__poll_output" >/dev/null || fail "foreign comment provenance was not quarantined"
+jq -e '(.quarantine | any(.kind == "pending-add"))' "$__state_file" >/dev/null ||
+    fail "foreign comment provenance quarantine was not persisted"
 
 write_state '{"version":2,"repository":"'"$__repository"'","identity":{"repository":"'"$__repository"'","coordinator_id":"coord-test","scheduler_id":"scheduler-test","assignment_id":"assignment-test","scope_id":"scope-test","candidate_id":"candidate-test"},"pull_requests":[]}'
 export PR_REVIEW_WATCH_COORDINATOR_ID="different-coordinator"
@@ -1552,5 +1559,97 @@ if run_action list > "$__poll_output" 2> "$__fixture_dir/error"; then
 fi
 unset PR_REVIEW_WATCH_COORDINATOR_ID PR_REVIEW_WATCH_SCHEDULER_ID PR_REVIEW_WATCH_ASSIGNMENT_ID \
     PR_REVIEW_WATCH_SCOPE_ID PR_REVIEW_WATCH_CANDIDATE_ID
+
+write_fixture 41
+cat > "$__fixture_dir/pr-41.json" <<'EOF'
+{"number":41,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-41","reviewDecision":"APPROVED","reviews":[{"id":4101,"author":{"login":"rest-reviewer"},"submittedAt":"2024-01-07T00:00:00Z","state":"COMMENTED","body":"REST timestamp"}],"statusCheckRollup":[]}
+EOF
+printf '[[]]\n' > "$__fixture_dir/pulls-41.json"
+printf '[[]]\n' > "$__fixture_dir/issues-41.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+run_action add 41 > "$__poll_output"
+jq -e '
+  .reconciliation[0].reviews[0].submitted_at == "2024-01-07T00:00:00Z" and
+  (.reconciliation[0].reviews[0] | has("submittedAt") | not) and
+  ([.. | objects | keys[]] | any(. == "submittedAt") | not)
+' "$__poll_output" >/dev/null || fail "REST submitted_at was not normalized to the canonical review output"
+if grep -qE 'submittedAt[^a-z_]|submitted_at' "$__state_file"; then
+    fail "raw provider timestamp fields were persisted in watch state"
+fi
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 41 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "malformed staged review unexpectedly succeeded"
+fi
+jq '.pending_add.payload.reconciliation[0].reviews[0].submitted_at = "not-a-timestamp"' "$__state_file" \
+    > "$__fixture_dir/malformed-staged-review.json"
+mv "$__fixture_dir/malformed-staged-review.json" "$__state_file"
+run_action list > "$__poll_output"
+jq -e '(.warnings | any(contains("quarantined pending-add"))) and (.pending_acknowledgment == null)' \
+    "$__poll_output" >/dev/null || fail "malformed staged review was not quarantined"
+jq -e '
+  (.quarantine | any(.kind == "pending-add" and .raw.pending_add == null and
+    .raw.payload.reconciliation[0].reviews[0].submitted_at == "not-a-timestamp"))
+' "$__state_file" >/dev/null || fail "malformed staged review quarantine lost raw evidence"
+
+write_fixture 42
+cat > "$__fixture_dir/pr-42.json" <<'EOF'
+{"number":42,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-42","reviewDecision":"APPROVED","reviews":[{"id":4201,"author":{"login":"conflict"},"submittedAt":"2024-01-07T00:00:00Z","submitted_at":"2024-01-08T00:00:00Z","state":"COMMENTED","body":"conflict"}],"statusCheckRollup":[]}
+EOF
+printf '[[]]\n' > "$__fixture_dir/pulls-42.json"
+printf '[[]]\n' > "$__fixture_dir/issues-42.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if GH_REVIEW_WATCH_REST_RAW=1 run_action add 42 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "conflicting REST and GraphQL review timestamps unexpectedly succeeded"
+fi
+grep -qF 'submittedAt and submitted_at conflict' "$__fixture_dir/error" ||
+    fail "conflicting provider timestamp error was not actionable"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "conflicting provider timestamp changed state"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":118,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":113}]}"
+run_action list > "$__poll_output"
+jq -e '
+  (.pull_requests | map(.number) == [118]) and
+  (.warnings | any(contains("quarantined watch-entry for PR #113")))
+' "$__poll_output" >/dev/null || fail "malformed watch entry was not quarantined without hiding valid watches"
+jq -e '
+  (.pull_requests | map(.number) == [118]) and
+  (.quarantine | length == 1) and
+  .quarantine[0].kind == "watch-entry" and
+  .quarantine[0].number == 113 and
+  .quarantine[0].raw.number == 113 and
+  (.quarantine[0].digest | test("^[a-f0-9]{64}$"))
+' "$__state_file" >/dev/null || fail "quarantine did not preserve malformed raw evidence"
+
+write_fixture 113
+cat > "$__fixture_dir/pr-113.json" <<'EOF'
+{"number":113,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-113","reviewDecision":"APPROVED","reviews":[{"id":11301,"author":{"login":"bad"},"submittedAt":"not-a-timestamp","state":"COMMENTED","body":"bad metadata"}],"statusCheckRollup":[]}
+EOF
+write_fixture 124
+cat > "$__fixture_dir/pr-124.json" <<'EOF'
+{"number":124,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-124","reviewDecision":"APPROVED","reviews":[{"id":12401,"author":{"login":"good"},"submittedAt":"2024-01-07T00:00:00Z","state":"COMMENTED","body":"valid metadata"}],"statusCheckRollup":[]}
+EOF
+printf '[[]]\n' > "$__fixture_dir/pulls-113.json"
+printf '[[]]\n' > "$__fixture_dir/issues-113.json"
+printf '[[]]\n' > "$__fixture_dir/pulls-124.json"
+printf '[[]]\n' > "$__fixture_dir/issues-124.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":113,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":124,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "isolated malformed watch poll unexpectedly succeeded"
+fi
+grep -qF 'PR #113 poll failed' "$__fixture_dir/error" ||
+    fail "isolated poll did not report the malformed watch"
+grep -qF 'pr view 124' "$__log_file" ||
+    fail "malformed PR #113 blocked polling of valid PR #124"
+jq -e '
+  ([.pull_requests[].number] | sort == [113,124]) and
+  (.pull_requests[] | select(.number == 113) | .poll_failed == true) and
+  (.pull_requests[] | select(.number == 124) | .new_reviews[0].submitted_at == "2024-01-07T00:00:00Z")
+' "$__poll_output" >/dev/null || fail "isolated poll did not emit the valid watch result"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "failed isolated poll persisted state changes"
 
 echo "pr:review-watch task passed."
