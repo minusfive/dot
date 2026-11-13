@@ -16,6 +16,7 @@ local __bin_dir="$__fixture_dir/bin"
 local __state_file="$__fixture_dir/watch.json"
 local __log_file="$__fixture_dir/gh.log"
 local __poll_output="$__fixture_dir/poll.json"
+local __schema="$__root_dir/home/.config/mise/tasks/pr/review-findings.v1.schema.json"
 local __repository="$(
     env \
         usage_action=list \
@@ -31,6 +32,25 @@ cat > "$__bin_dir/gh" <<'EOF'
 set -euo pipefail
 
 printf '%s\n' "$*" >> "$GH_REVIEW_WATCH_LOG"
+if [[ "$1" == api && "$*" == *" --paginate --slurp "* ]]; then
+    [[ "$2" == "--hostname" && "$3" == "github.com" ]] ||
+        { printf 'unexpected REST hostname argv: %s\n' "$*" >&2; exit 1; }
+    [[ "$4" == "--method" && "$5" == "GET" ]] ||
+        { printf 'REST pagination request did not use GET: %s\n' "$*" >&2; exit 1; }
+    [[ "$6" == "--paginate" && "$7" == "--slurp" ]] ||
+        { printf 'REST pagination flags changed: %s\n' "$*" >&2; exit 1; }
+    [[ "$#" -eq 8 ]] ||
+        { printf 'REST pagination argv shape changed: %s\n' "$*" >&2; exit 1; }
+    [[ "$8" == repos/*"?per_page=100" ]] ||
+        { printf 'REST page size was not encoded in the GET URL: %s\n' "$*" >&2; exit 1; }
+    [[ "$*" != *" -f "* && "$*" != *" -F "* && "$*" != *" --input "* && "$*" != *" POST "* ]] ||
+        { printf 'REST pagination request included a form or POST body argument: %s\n' "$*" >&2; exit 1; }
+    {
+        printf 'REST_ARGV'
+        printf ' %s' "$@"
+        printf '\n'
+    } >> "$GH_REVIEW_WATCH_LOG"
+fi
 if [[ -n "${GH_REVIEW_WATCH_DELAY:-}" ]]; then
     sleep "$GH_REVIEW_WATCH_DELAY"
 fi
@@ -75,15 +95,25 @@ if [[ "$1" == api ]]; then
         exit 0
     fi
     path="${@: -1}"
-    if [[ "${GH_REVIEW_WATCH_FAIL_ENDPOINT:-}" == "$path" ]]; then
+    request_path="${path%%\?*}"
+    kind="$(printf '%s' "$request_path" | cut -d/ -f4)"
+    number="$(printf '%s' "$request_path" | cut -d/ -f5)"
+    if [[ "$request_path" == */reviews ]]; then
+        if [[ "${GH_REVIEW_WATCH_REST_RAW:-}" == "1" ]]; then
+            jq -c '[.reviews // []]' "$GH_REVIEW_WATCH_FIXTURES/pr-$number.json"
+        else
+            jq -c '[[ (.reviews // [])[] | if has("submittedAt") then .submitted_at = .submittedAt | del(.submittedAt) else . end ]]' \
+                "$GH_REVIEW_WATCH_FIXTURES/pr-$number.json"
+        fi
+        exit 0
+    fi
+    if [[ "${GH_REVIEW_WATCH_FAIL_ENDPOINT:-}" == "$request_path" ]]; then
         printf 'simulated API failure\n' >&2
         exit 1
     fi
     if [[ "${GH_REVIEW_WATCH_RENAME_FAIL:-}" == "1" ]]; then
         chflags uchg "$GH_REVIEW_WATCH_STATE"
     fi
-    kind="$(printf '%s' "$path" | cut -d/ -f4)"
-    number="$(printf '%s' "$path" | cut -d/ -f5)"
     cat "$GH_REVIEW_WATCH_FIXTURES/$kind-$number.json"
     exit 0
 fi
@@ -133,6 +163,20 @@ run_action() {
         usage_state_file="$__state_file" \
         usage_format="$__format" \
         bun "$__task"
+}
+
+validate_findings_schema() {
+    bun -e '
+      import Ajv2020 from "ajv/dist/2020.js";
+      import { readFileSync } from "node:fs";
+      const schema = JSON.parse(readFileSync(process.argv[1], "utf8"));
+      const output = JSON.parse(readFileSync(process.argv[2], "utf8"));
+      const validate = new Ajv2020({ allErrors: true }).compile(schema);
+      if (!validate(output.review_findings)) {
+          console.error(JSON.stringify(validate.errors));
+          process.exit(1);
+      }
+    ' "$__schema" "$1"
 }
 
 write_fixture 10
@@ -187,12 +231,16 @@ jq -e '
 cp "$__state_file" "$__fixture_dir/staged-add-backup.json"
 jq '.pending_add.payload.pull_requests = []' "$__state_file" > "$__fixture_dir/staged-add-rewritten.json"
 mv "$__fixture_dir/staged-add-rewritten.json" "$__state_file"
-if run_action list > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "staged-add payload omission unexpectedly succeeded"
-fi
-grep -qF "invalid watch state: $__state_file" "$__fixture_dir/error" ||
-    fail "staged-add payload omission error was not actionable"
-[[ ! -s "$__poll_output" ]] || fail "staged-add payload omission emitted output"
+run_action list > "$__poll_output"
+jq -e '
+  .pending_acknowledgment == null and
+  .watch_empty == true and
+  (.warnings | any(contains("quarantined pending-add")))
+' "$__poll_output" >/dev/null || fail "staged-add payload omission was not quarantined"
+jq -e '
+  (.pending_add | not) and
+  (.quarantine | any(.kind == "pending-add" and .raw.payload.pull_requests == []))
+' "$__state_file" >/dev/null || fail "staged-add quarantine did not preserve the malformed payload"
 mv "$__fixture_dir/staged-add-backup.json" "$__state_file"
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
 if run_action add > "$__poll_output" 2> "$__fixture_dir/error"; then
@@ -225,6 +273,23 @@ jq -e '
   .pull_requests[0].seen.issue_comments == ["issues:301"]
 ' "$__state_file" >/dev/null ||
     fail "staged add recovery did not activate the candidate cursor"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 10 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "staged add for unrelated-state validation unexpectedly succeeded"
+fi
+jq '.pull_requests = [{"number":99,"addedAt":"2024-01-01T00:00:00Z"}]' "$__state_file" > "$__fixture_dir/unrelated-staged-add.json"
+mv "$__fixture_dir/unrelated-staged-add.json" "$__state_file"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+run_action add 10 > "$__poll_output"
+jq -e '
+  (.warnings | any(contains("quarantined pending-add"))) and
+  (.pull_requests | map(.number) | sort == [10,99])
+' "$__poll_output" >/dev/null || fail "unrelated staged state was not quarantined before add"
+jq -e '
+  (.quarantine | any(.kind == "pending-add")) and
+  (.pull_requests | map(.number) | sort == [10,99])
+' "$__state_file" >/dev/null || fail "unrelated staged state quarantine did not preserve the valid watch"
 
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
 : > "$__log_file"
@@ -271,16 +336,49 @@ jq -e '
   .pull_requests[0].has_new_activity == true and
   .pull_requests[0].has_failed_checks == false and
   .pull_requests[0].action_required == true and
+  .pull_requests[0].pagination_contract == "gh-api-paginate-slurp-v1" and
+  .pull_requests[0].review_metadata_contract == "gh-pr-view-reviews-v1" and
   .pull_requests[0].inline_comments_pages == 2 and
   .pull_requests[0].issue_comments_pages == 1 and
+  .pull_requests[0].inline_comments_page_lengths == [1,1] and
+  .pull_requests[0].issue_comments_page_lengths == [1] and
+  .pull_requests[0].inline_comments_pagination_complete == true and
+  .pull_requests[0].issue_comments_pagination_complete == true and
+  .pull_requests[0].inline_comments_pagination_termination == "short-final-page" and
+  .pull_requests[0].issue_comments_pagination_termination == "short-final-page" and
   (.pull_requests[0].new_inline_comments | length == 1) and
   (.pull_requests[0].new_issue_comments | length == 1) and
-  (.pull_requests[0].new_reviews | length == 1)
+  (.pull_requests[0].new_reviews | length == 1) and
+  (.review_findings.findings | map(.kind) | sort == ["inline_comment","issue_comment","review"])
 ' --arg repo "$__repository" "$__poll_output" >/dev/null || fail "multi-page poll output shape or cutoff is incorrect"
+validate_findings_schema "$__poll_output" || fail "poll findings envelope failed JSON Schema validation"
+
+cat > "$__fixture_dir/pr-2.json" <<'EOF'
+{"number":2,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-2","headRefOid":"head-2","reviewDecision":"CHANGES_REQUESTED","reviews":[{"id":201,"author":{"login":"reviewer-2"},"submittedAt":"2024-01-03T00:00:00Z","state":"CHANGES_REQUESTED","body":"second PR"}],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-2.json" <<'EOF'
+[[{"id":202,"created_at":"2024-01-03T00:01:00Z","body":"second inline","path":"src/second.ts","position":4}]]
+EOF
+cat > "$__fixture_dir/issues-2.json" <<'EOF'
+[[{"id":203,"created_at":"2024-01-03T00:02:00Z","body":"second issue"}]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":1,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":2,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+run_poll > "$__poll_output"
+jq -e '
+  (.pull_requests | length == 2) and
+  (.review_findings.counts.pull_requests == 2) and
+  ([.review_findings.findings[].identity.pull_request] | unique | sort == [1,2])
+' "$__poll_output" >/dev/null || fail "multi-PR poll findings lost per-PR identities"
+validate_findings_schema "$__poll_output" || fail "multi-PR findings envelope failed JSON Schema validation"
 if grep -q -- '--jq' "$__log_file"; then
     fail "review-watch combined --slurp with incompatible --jq"
 fi
 grep -q -- '--paginate --slurp' "$__log_file" || fail "review-watch did not use gh api pagination"
+grep -qE '^REST_ARGV api --hostname github.com --method GET --paginate --slurp repos/[^ ]+\\?per_page=100$' "$__log_file" ||
+    fail "review-watch did not use the exact GET URL query argv"
+if grep -qF 'REST_ARGV' "$__log_file" && grep -qE 'REST_ARGV.*( -f | -F |--input| POST )' "$__log_file"; then
+    fail "review-watch emitted a REST form or POST body argument"
+fi
 [[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "successful poll left a temporary file"
 [[ ! -d "$__state_file.lock" ]] || fail "successful poll left the lock"
 
@@ -305,7 +403,7 @@ jq -e '.pull_requests[0].new_inline_comments | length == 0' "$__poll_output" >/d
 
 write_fixture 12
 cat > "$__fixture_dir/pr-12.json" <<'EOF'
-{"number":12,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-12","reviewDecision":"APPROVED","reviews":[{"id":1201,"state":"PENDING","body":"draft review"},{"id":1202,"state":"COMMENTED","submittedAt":"2024-01-02T00:00:00Z","body":"submitted"}],"statusCheckRollup":[]}
+{"number":12,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-12","reviewDecision":"APPROVED","reviews":[{"id":1201,"state":"PENDING","submittedAt":null,"body":"draft review with null timestamp"},{"id":1202,"state":"PENDING","submittedAt":"","body":"draft review with empty timestamp"},{"id":1203,"state":"PENDING","body":"draft review with missing timestamp"},{"id":1204,"state":"COMMENTED","submittedAt":"2024-01-02T00:00:00Z","body":"submitted"}],"statusCheckRollup":[]}
 EOF
 cat > "$__fixture_dir/pulls-12.json" <<'EOF'
 [[{"id":1203,"isResolved":false,"created_at":"2024-01-02T00:00:00Z","body":"unresolved","html_url":"https://example.test/inline/1203"}]]
@@ -313,7 +411,7 @@ EOF
 cat > "$__fixture_dir/issues-12.json" <<'EOF'
 [[{"id":1204,"created_at":"2024-01-02T00:00:00Z","body":"unknown resolution"}]]
 EOF
-write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":12,\"addedAt\":\"2024-01-01T00:00:00Z\",\"lastSeenAt\":\"2024-01-03T00:00:00Z\",\"seen\":{\"reviews\":[\"1202\"],\"inline_comments\":[\"pulls:1203\"],\"issue_comments\":[\"issues:1204\"]},\"graceChecks\":3}]}"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":12,\"addedAt\":\"2024-01-01T00:00:00Z\",\"lastSeenAt\":\"2024-01-03T00:00:00Z\",\"seen\":{\"reviews\":[\"1204\"],\"inline_comments\":[\"pulls:1203\"],\"issue_comments\":[\"issues:1204\"]},\"graceChecks\":3}]}"
 run_poll > "$__poll_output"
 jq -e '
   (.pull_requests[0].new_reviews | length == 0) and
@@ -429,6 +527,24 @@ grep -qF 'PR #1 review 1 has a missing or malformed submittedAt timestamp' "$__f
     fail "malformed review changed state bytes"
 [[ ! -d "$__state_file.lock" ]] || fail "malformed review left the lock"
 
+write_fixture 3
+cat > "$__fixture_dir/pulls-3.json" <<'EOF'
+[]
+EOF
+cat > "$__fixture_dir/issues-3.json" <<'EOF'
+[]
+EOF
+cat > "$__fixture_dir/pr-3.json" <<'EOF'
+{"number":3,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-3","reviewDecision":"APPROVED","reviews":[{"author":{"login":"pending"},"state":"PENDING","submittedAt":"not-a-timestamp","body":"malformed pending review"}],"statusCheckRollup":[]}
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":3,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "malformed pending review timestamp unexpectedly succeeded"
+fi
+grep -qF 'PR #3 review 1 has a missing or malformed submittedAt timestamp' "$__fixture_dir/error" ||
+    fail "malformed pending review error was not actionable"
+[[ ! -d "$__state_file.lock" ]] || fail "malformed pending review left the lock"
+
 printf '{\n  "version": 1,\n  "repository": "%s",\n  "pull_requests": [{"number": 1, "addedAt": "2024-01-01T00:00:00Z"}]\n}\n' \
     "$__repository" > "$__state_file"
 local __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
@@ -460,13 +576,30 @@ cat > "$__state_file" <<EOF
       "warnings": [],
       "pull_requests": [{
         "number": 1,
+        "identity": {"repository": "$__repository", "coordinator_id": "review-watch:$__repository", "scheduler_id": "review-watch-scheduler:$__repository", "assignment_id": "review-assignment:$__repository", "scope_id": "review-scope:$__repository", "candidate_id": "candidate:$__repository#1", "pull_request": 1, "head": "review-1"},
         "state": "OPEN",
-        "new_reviews": [{"body": "recover me"}],
+        "head": "review-1",
+        "new_reviews": [{"body": "recover me", "submitted_at": "2024-01-02T00:00:00Z"}],
         "new_inline_comments": [],
         "new_issue_comments": [],
         "checks": [],
+        "reviews_pages": 0,
         "inline_comments_pages": 0,
         "issue_comments_pages": 0,
+        "reviews_page_lengths": [],
+        "inline_comments_page_lengths": [],
+        "issue_comments_page_lengths": [],
+        "reviews_pagination_complete": true,
+        "inline_comments_pagination_complete": true,
+        "issue_comments_pagination_complete": true,
+        "reviews_pagination_termination": "empty-result",
+        "inline_comments_pagination_termination": "empty-result",
+        "issue_comments_pagination_termination": "empty-result",
+        "reviews_page_size": 100,
+        "inline_comments_page_size": 100,
+        "issue_comments_page_size": 100,
+        "pagination_contract": "gh-api-paginate-slurp-v1",
+        "review_metadata_contract": "gh-pr-view-reviews-v1",
         "has_new_activity": true,
         "has_failed_checks": false,
         "has_pending_checks": false,
@@ -491,7 +624,7 @@ cat > "$__state_file" <<EOF
 {
   "version": 1,
   "repository": "$__repository",
-  "pull_requests": [],
+  "pull_requests": [{"number": 11, "addedAt": "2024-01-01T00:00:00Z", "head": "review-11-new"}],
   "pending_poll": {
     "payload": {
       "action": "not-poll",
@@ -507,14 +640,15 @@ cat > "$__state_file" <<EOF
 }
 EOF
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
-if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "invalid pending poll action unexpectedly succeeded"
-fi
-grep -qF "invalid watch state: $__state_file" "$__fixture_dir/error" ||
-    fail "invalid pending poll error was not actionable"
-[[ ! -s "$__poll_output" ]] || fail "invalid pending poll emitted output"
-[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
-    fail "invalid pending poll changed state bytes"
+run_action list > "$__poll_output"
+jq -e '
+  (.warnings | any(contains("quarantined pending-poll"))) and
+  (.pull_requests | map(.number) == [11])
+' "$__poll_output" >/dev/null || fail "invalid pending poll was not quarantined"
+jq -e '
+  (.pending_poll | not) and
+  (.quarantine | any(.kind == "pending-poll" and .raw.payload.action == "not-poll"))
+' "$__state_file" >/dev/null || fail "invalid pending poll quarantine did not preserve raw evidence"
 
 write_fixture 7 UNKNOWN
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":7,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
@@ -560,15 +694,14 @@ grep -qF 'pull request #9 metadata: statusCheckRollup is not an array' "$__fixtu
 [[ ! -d "$__state_file.lock" ]] || fail "missing statusCheckRollup left the lock"
 
 write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[null]}"
-__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
-if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "malformed watch entry unexpectedly succeeded"
-fi
-grep -qF "invalid watch state: $__state_file" "$__fixture_dir/error" ||
-    fail "malformed watch entry error was not actionable"
-[[ ! -s "$__poll_output" ]] || fail "malformed watch entry emitted success JSON"
-[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
-    fail "malformed watch entry changed state bytes"
+run_action list > "$__poll_output"
+jq -e '
+  (.warnings | any(contains("quarantined watch-entry"))) and
+  (.pull_requests | length == 0)
+' "$__poll_output" >/dev/null || fail "malformed watch entry was not quarantined"
+jq -e '
+  (.quarantine | any(.kind == "watch-entry" and .raw == null))
+' "$__state_file" >/dev/null || fail "malformed watch entry quarantine did not preserve raw evidence"
 [[ ! -d "$__state_file.lock" ]] || fail "malformed watch entry left the lock"
 [[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "malformed watch entry left a temporary file"
 
@@ -679,7 +812,7 @@ cat > "$__state_file" <<EOF
 {
   "version": 1,
   "repository": "$__repository",
-  "pull_requests": [],
+  "pull_requests": [{"number": 11, "addedAt": "2024-01-01T00:00:00Z", "head": "review-11-new"}],
   "pending_poll": {
     "payload": {
       "action": "poll",
@@ -690,13 +823,30 @@ cat > "$__state_file" <<EOF
       "warnings": [],
       "pull_requests": [{
         "number": 11,
+        "identity": {"repository": "$__repository", "coordinator_id": "review-watch:$__repository", "scheduler_id": "review-watch-scheduler:$__repository", "assignment_id": "review-assignment:$__repository", "scope_id": "review-scope:$__repository", "candidate_id": "candidate:$__repository#11", "pull_request": 11, "head": "review-11-new"},
         "state": "OPEN",
+        "head": "review-11-new",
         "new_reviews": [],
         "new_inline_comments": [],
         "new_issue_comments": [],
         "checks": [],
+        "reviews_pages": 0,
         "inline_comments_pages": 0,
         "issue_comments_pages": 0,
+        "reviews_page_lengths": [],
+        "inline_comments_page_lengths": [],
+        "issue_comments_page_lengths": [],
+        "reviews_pagination_complete": true,
+        "inline_comments_pagination_complete": true,
+        "issue_comments_pagination_complete": true,
+        "reviews_pagination_termination": "empty-result",
+        "inline_comments_pagination_termination": "empty-result",
+        "issue_comments_pagination_termination": "empty-result",
+        "reviews_page_size": 100,
+        "inline_comments_page_size": 100,
+        "issue_comments_page_size": 100,
+        "pagination_contract": "gh-api-paginate-slurp-v1",
+        "review_metadata_contract": "gh-pr-view-reviews-v1",
         "has_new_activity": false,
         "has_failed_checks": false,
         "has_pending_checks": false,
@@ -747,6 +897,36 @@ if grep -q '^api ' "$__log_file"; then
     fail "closed and merged PRs queried comment endpoints"
 fi
 
+cat > "$__fixture_dir/pr-118.json" <<'EOF'
+{"number":118,"state":"MERGED","mergedAt":"2024-01-05T00:00:00Z","closedAt":null,"headRefName":"review-118","headRefOid":"oid-118","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pr-124.json" <<'EOF'
+{"number":124,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-124","headRefOid":"oid-124","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+printf '[[]]\n' > "$__fixture_dir/pulls-124.json"
+printf '[[]]\n' > "$__fixture_dir/issues-124.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":118,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":124,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+: > "$__log_file"
+run_poll > "$__poll_output"
+jq -e '
+  (.pull_requests | length == 2) and
+  (.pull_requests[] | select(.number == 118) |
+    .removed == true and
+    .reason == "merged" and
+    .head == "review-118" and
+    .head_oid == "oid-118" and
+    .identity.pull_request == 118 and
+    .identity.head == .head_oid) and
+  (.pull_requests[] | select(.number == 124) |
+    (.removed | not) and
+    .head_oid == "oid-124" and
+    .identity.pull_request == 124 and
+    .identity.head == .head_oid) and
+  (.pull_requests | map(select(.number == 118)) | length == 1)
+' "$__poll_output" >/dev/null || fail "merged terminal result was not identity-safe alongside an open PR"
+jq -e '.pull_requests | map(.number) == [124]' "$__state_file" >/dev/null ||
+    fail "merged terminal result did not remove only the merged PR after pending poll staging"
+
 write_fixture 6
 cat > "$__fixture_dir/pulls-1.json" <<'EOF'
 [[]]
@@ -770,6 +950,72 @@ grep -qF 'pull request #6 metadata failed' "$__fixture_dir/error" || fail "mid-p
     fail "mid-poll failure changed state bytes"
 [[ ! -d "$__state_file.lock" ]] || fail "mid-poll failure left the lock"
 [[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "mid-poll failure left a temporary file"
+
+write_fixture 43
+write_fixture 44
+printf '[[]]\n' > "$__fixture_dir/pulls-43.json"
+printf '[[]]\n' > "$__fixture_dir/issues-43.json"
+printf '[[]]\n' > "$__fixture_dir/pulls-44.json"
+printf '[[]]\n' > "$__fixture_dir/issues-44.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":113,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":118,\"addedAt\":\"2024-01-01T00:00:01Z\"}]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if GH_REVIEW_WATCH_FAIL_PR=44 run_action add "43 44" > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "partial add failure unexpectedly succeeded"
+fi
+grep -qF 'pull request #44 metadata failed' "$__fixture_dir/error" ||
+    fail "partial add failure did not reach the second candidate"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "partial add failure changed state bytes"
+jq -e '.pull_requests | map(.number) == [113,118]' "$__state_file" >/dev/null ||
+    fail "partial add failure changed existing watches"
+
+write_fixture 124
+printf '[[]]\n' > "$__fixture_dir/pulls-124.json"
+printf '[[]]\n' > "$__fixture_dir/issues-124.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":113,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":118,\"addedAt\":\"2024-01-01T00:00:01Z\"},{\"number\":124,\"addedAt\":\"2024-01-01T00:00:02Z\",\"head\":\"review-124\"}]}"
+: > "$__log_file"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 124 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "existing-candidate staging unexpectedly succeeded"
+fi
+jq -e '
+  .pending_add.requested_numbers == [124] and
+  (.pending_add.payload.reconciliation | length == 0) and
+  (.pending_add.next_pull_requests | map(.number) == [113,118,124])
+' "$__state_file" >/dev/null || fail "existing candidate did not stage a valid pending add"
+run_action add 124 > "$__poll_output"
+jq -e '
+  (.pending_add | not) and
+  (.pull_requests | map(.number) == [113,118,124]) and
+  (.reconciliation | length == 0)
+' "$__poll_output" >/dev/null || fail "existing candidate pending add was not recovered"
+if grep -q '^pr view\|^api ' "$__log_file"; then
+    fail "existing candidate recovery fetched provider activity"
+fi
+
+write_fixture 113
+write_fixture 118
+write_fixture 124
+printf '[[]]\n' > "$__fixture_dir/pulls-113.json"
+printf '[[]]\n' > "$__fixture_dir/issues-113.json"
+printf '[[]]\n' > "$__fixture_dir/pulls-118.json"
+printf '[[]]\n' > "$__fixture_dir/issues-118.json"
+printf '[[]]\n' > "$__fixture_dir/pulls-124.json"
+printf '[[]]\n' > "$__fixture_dir/issues-124.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":113,\"addedAt\":\"2024-01-01T00:00:00Z\",\"lastSeenAt\":\"2024-01-02T00:00:00Z\",\"head\":\"review-113\"},{\"number\":118,\"addedAt\":\"2024-01-01T00:00:01Z\",\"lastSeenAt\":\"2024-01-02T00:00:01Z\",\"head\":\"review-118\"},{\"number\":124,\"addedAt\":\"2024-01-01T00:00:02Z\",\"lastSeenAt\":\"2024-01-02T00:00:02Z\",\"head\":\"review-124\"}]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if GH_REVIEW_WATCH_FAIL_PR=124 run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "watch preservation poll unexpectedly succeeded"
+fi
+grep -qF 'PR #124 poll failed' "$__fixture_dir/error" ||
+    fail "watch preservation poll did not report the failed watch"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "watch preservation poll changed state before complete success"
+jq -e '
+  (.pull_requests | map(.number) == [113,118,124]) and
+  .pull_requests[0].lastSeenAt == "2024-01-02T00:00:00Z" and
+  .pull_requests[1].lastSeenAt == "2024-01-02T00:00:01Z" and
+  .pull_requests[2].lastSeenAt == "2024-01-02T00:00:02Z"
+' "$__state_file" >/dev/null || fail "watch preservation poll mutated another watch"
 
 mkdir "$__state_file.lock"
 if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
@@ -1112,13 +1358,30 @@ cat > "$__state_file" <<EOF
       "warnings": [],
       "pull_requests": [{
         "number": 20,
+        "identity": {"repository": "$__repository", "coordinator_id": "review-watch:$__repository", "scheduler_id": "review-watch-scheduler:$__repository", "assignment_id": "review-assignment:$__repository", "scope_id": "review-scope:$__repository", "candidate_id": "candidate:$__repository#20", "pull_request": 20, "head": "review-20"},
         "state": "OPEN",
+        "head": "review-20",
         "new_reviews": [],
         "new_inline_comments": [],
         "new_issue_comments": [],
         "checks": [],
+        "reviews_pages": 0,
         "inline_comments_pages": 0,
         "issue_comments_pages": 0,
+        "reviews_page_lengths": [],
+        "inline_comments_page_lengths": [],
+        "issue_comments_page_lengths": [],
+        "reviews_pagination_complete": true,
+        "inline_comments_pagination_complete": true,
+        "issue_comments_pagination_complete": true,
+        "reviews_pagination_termination": "empty-result",
+        "inline_comments_pagination_termination": "empty-result",
+        "issue_comments_pagination_termination": "empty-result",
+        "reviews_page_size": 100,
+        "inline_comments_page_size": 100,
+        "issue_comments_page_size": 100,
+        "pagination_contract": "gh-api-paginate-slurp-v1",
+        "review_metadata_contract": "gh-pr-view-reviews-v1",
         "has_new_activity": false,
         "has_failed_checks": false,
         "has_pending_checks": false,
@@ -1136,14 +1399,15 @@ cat > "$__state_file" <<EOF
 }
 EOF
 __before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
-if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
-    fail "staged poll omission of an active watch unexpectedly succeeded"
-fi
-grep -qF "invalid watch state: $__state_file" "$__fixture_dir/error" ||
-    fail "staged poll omission error was not actionable"
-[[ ! -s "$__poll_output" ]] || fail "staged poll omission emitted output"
-[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
-    fail "staged poll omission changed state bytes"
+run_action list > "$__poll_output"
+jq -e '
+  (.warnings | any(contains("quarantined pending-poll"))) and
+  (.pending_acknowledgment == null)
+' "$__poll_output" >/dev/null || fail "staged poll omission was not quarantined"
+jq -e '
+  (.pending_poll | not) and
+  (.quarantine | any(.kind == "pending-poll"))
+' "$__state_file" >/dev/null || fail "staged poll omission quarantine did not preserve raw evidence"
 
 cat > "$__state_file" <<EOF
 {
@@ -1160,13 +1424,30 @@ cat > "$__state_file" <<EOF
       "warnings": [],
       "pull_requests": [{
         "number": 22,
+        "identity": {"repository": "$__repository", "coordinator_id": "review-watch:$__repository", "scheduler_id": "review-watch-scheduler:$__repository", "assignment_id": "review-assignment:$__repository", "scope_id": "review-scope:$__repository", "candidate_id": "candidate:$__repository#22", "pull_request": 22, "head": "review-22"},
         "state": "MERGED",
+        "head": "review-22",
         "new_reviews": [],
         "new_inline_comments": [],
         "new_issue_comments": [],
         "checks": [],
+        "reviews_pages": 0,
         "inline_comments_pages": 0,
         "issue_comments_pages": 0,
+        "reviews_page_lengths": [],
+        "inline_comments_page_lengths": [],
+        "issue_comments_page_lengths": [],
+        "reviews_pagination_complete": true,
+        "inline_comments_pagination_complete": true,
+        "issue_comments_pagination_complete": true,
+        "reviews_pagination_termination": "empty-result",
+        "inline_comments_pagination_termination": "empty-result",
+        "issue_comments_pagination_termination": "empty-result",
+        "reviews_page_size": 100,
+        "inline_comments_page_size": 100,
+        "issue_comments_page_size": 100,
+        "pagination_contract": "gh-api-paginate-slurp-v1",
+        "review_metadata_contract": "gh-pr-view-reviews-v1",
         "has_new_activity": false,
         "has_failed_checks": false,
         "has_pending_checks": false,
@@ -1184,5 +1465,287 @@ jq -e '.pull_requests[0].number == 22 and .pull_requests[0].removed == true' "$_
     fail "explicit staged removal result did not replay"
 jq -e '(.pull_requests | length == 0) and (.pending_poll | not)' "$__state_file" >/dev/null ||
     fail "staged removal replay did not clear the active watch"
+
+export PR_REVIEW_WATCH_COORDINATOR_ID="coord-test"
+export PR_REVIEW_WATCH_SCHEDULER_ID="scheduler-test"
+export PR_REVIEW_WATCH_ASSIGNMENT_ID="assignment-test"
+export PR_REVIEW_WATCH_SCOPE_ID="scope-test"
+export PR_REVIEW_WATCH_CANDIDATE_ID="candidate-test"
+write_fixture 31
+cat > "$__fixture_dir/pr-31.json" <<'EOF'
+{"number":31,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-31","headRefOid":"head-31","reviewDecision":"CHANGES_REQUESTED","reviews":[{"id":3101,"author":{"login":"reviewer"},"submittedAt":"2024-01-05T00:00:00Z","state":"CHANGES_REQUESTED","body":"body-only review","commit_id":"rev-31","comments":[{"id":3102,"created_at":"2024-01-05T00:01:00Z","body":"nested detail","path":"src/main.ts","position":12,"thread_id":"thread-31","in_reply_to_id":3099,"commit_id":"rev-31"}]}],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-31.json" <<'EOF'
+[[{"id":3103,"node_id":"RC_3103","pull_request_review_id":3101,"in_reply_to_id":3100,"created_at":"2024-01-05T00:02:00Z","body":"reply outside diff","path":null,"position":null,"commit_id":"rev-31"}]]
+EOF
+cat > "$__fixture_dir/issues-31.json" <<'EOF'
+[[{"id":3104,"created_at":"2024-01-05T00:03:00Z","body":"pathless issue finding"}]]
+EOF
+cat > "$__fixture_dir/graphql-31.json" <<'EOF'
+{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"id":"RT_3103","isResolved":false,"comments":{"nodes":[{"id":"RC_3103","fullDatabaseId":"3103"}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-31.json"
+run_action add 31 > "$__poll_output"
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE
+jq -e '
+  .review_findings.schema_version == "review-findings.v1" and
+  .review_findings.identity.coordinator_id == "coord-test" and
+  (.review_findings.findings | any(.kind == "nested_comment" and .result_number == 31 and .source_batch_id != "")) and
+  (.review_findings.findings | any(.provenance.reply_to == 3100)) and
+  (.review_findings.findings | any(.provenance.location == "diff" and .provenance.outside_diff == false and .provenance.thread_id == "thread-31" and .provenance.revision_id == "rev-31")) and
+  (.review_findings.findings | any(.kind == "inline_comment" and .provenance.location == "pathless" and .provenance.outside_diff == true))
+' "$__poll_output" >/dev/null || fail "identity-bound nested review envelope was incomplete"
+validate_findings_schema "$__poll_output" || fail "nested review findings envelope failed JSON Schema validation"
+jq -e '
+  .identity.coordinator_id == "coord-test" and
+  .pull_requests[0].identity.pull_request == 31 and
+  .pull_requests[0].identity.head == "head-31"
+' "$__state_file" >/dev/null || fail "identity-bound watch state was not persisted"
+
+write_fixture 33
+cat > "$__fixture_dir/pr-33.json" <<'EOF'
+{"number":33,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-33","headRefOid":"head-33","reviewDecision":"APPROVED","reviews":[{"id":3301,"author":{"login":"reviewer"},"submittedAt":"2024-01-06T00:00:00Z","state":"COMMENTED","body":"malformed nested","comments":[{"id":3302,"created_at":"2024-01-06T00:01:00Z","body":5}]}],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-33.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-33.json" <<'EOF'
+[[]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_action add 33 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "malformed nested review unexpectedly succeeded"
+fi
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "malformed nested review advanced state"
+
+write_fixture 34
+cat > "$__fixture_dir/pulls-34.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-34.json" <<'EOF'
+[[]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 34 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "identity-mismatch staging unexpectedly succeeded"
+fi
+cp "$__state_file" "$__fixture_dir/identity-stage-backup.json"
+jq '.pending_add.payload.reconciliation[0].identity.head = "foreign-head"' "$__state_file" > "$__fixture_dir/identity-stage-rewritten.json"
+mv "$__fixture_dir/identity-stage-rewritten.json" "$__state_file"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+run_action list > "$__poll_output"
+jq -e '(.warnings | any(contains("quarantined pending-add"))) and (.pending_acknowledgment == null)' \
+    "$__poll_output" >/dev/null || fail "foreign per-result identity was not quarantined"
+jq -e '(.quarantine | any(.kind == "pending-add"))' "$__state_file" >/dev/null ||
+    fail "foreign per-result identity quarantine was not persisted"
+mv "$__fixture_dir/identity-stage-backup.json" "$__state_file"
+
+write_fixture 32
+cat > "$__fixture_dir/pr-32.json" <<'EOF'
+{"number":32,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-32","headRefOid":"head-32","reviewDecision":"APPROVED","reviewCount":1,"reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pulls-32.json" <<'EOF'
+[[{"id":3201,"created_at":"2024-01-05T00:00:00Z","body":"count mismatch"}]]
+EOF
+cat > "$__fixture_dir/issues-32.json" <<'EOF'
+[[]]
+EOF
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_action add 32 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "review count mismatch unexpectedly succeeded"
+fi
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "count mismatch advanced state"
+
+cat > "$__fixture_dir/pulls-32.json" <<'EOF'
+[{"items":[],"complete":false}]
+EOF
+if run_action add 32 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "incomplete pagination unexpectedly succeeded"
+fi
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "incomplete pagination advanced state"
+
+jq -n '[[range(0;100) | {"id": (3200 + .), "created_at": "2024-01-05T00:00:00Z", "body": "full page"}]]' \
+    > "$__fixture_dir/pulls-32.json"
+cat > "$__fixture_dir/issues-32.json" <<'EOF'
+[[]]
+EOF
+if run_action add 32 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "full terminal pagination page unexpectedly succeeded"
+fi
+grep -qF 'pagination has no short terminal page' "$__fixture_dir/error" ||
+    fail "full terminal pagination error was not actionable"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "full terminal pagination advanced state"
+
+cat > "$__fixture_dir/pulls-32.json" <<'EOF'
+[[]]
+EOF
+jq -n '[[range(0;100) | {"id": (3300 + .), "created_at": "2024-01-05T00:00:00Z", "body": "full issue page"}]]' \
+    > "$__fixture_dir/issues-32.json"
+if run_action add 32 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "full terminal issue-comment page unexpectedly succeeded"
+fi
+grep -qF 'pagination has no short terminal page' "$__fixture_dir/error" ||
+    fail "full terminal issue-comment error was not actionable"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "full terminal issue-comment pagination advanced state"
+
+cat > "$__fixture_dir/pulls-35.json" <<'EOF'
+[[]]
+EOF
+cat > "$__fixture_dir/issues-35.json" <<'EOF'
+[[]]
+EOF
+jq -n '{number:35,state:"OPEN",mergedAt:null,closedAt:null,headRefName:"review-35",headRefOid:"head-35",reviewDecision:"APPROVED",reviews:[range(0;100) | {id:(3500 + .),submittedAt:"2024-01-05T00:00:00Z",state:"COMMENTED",body:"full review page"}],statusCheckRollup:[]}' \
+    > "$__fixture_dir/pr-35.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_action add 35 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "full terminal review page unexpectedly succeeded"
+fi
+grep -qF 'reviews for PR #35' "$__fixture_dir/error" ||
+    fail "full terminal review error omitted PR identity"
+grep -qF 'pagination has no short terminal page' "$__fixture_dir/error" ||
+    fail "full terminal review error was not actionable"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "full terminal review pagination advanced state"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-31.json"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 31 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "review source-binding staging unexpectedly succeeded"
+fi
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE
+jq '(.pending_add.payload.review_findings.findings |= map(if .kind == "review" then .provenance.review_id = "foreign-review" else . end))' \
+    "$__state_file" > "$__fixture_dir/foreign-review.json"
+mv "$__fixture_dir/foreign-review.json" "$__state_file"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+run_action list > "$__poll_output"
+jq -e '(.warnings | any(contains("quarantined pending-add"))) and (.pending_acknowledgment == null)' \
+    "$__poll_output" >/dev/null || fail "foreign review provenance was not quarantined"
+jq -e '(.quarantine | any(.kind == "pending-add"))' "$__state_file" >/dev/null ||
+    fail "foreign review provenance quarantine was not persisted"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+export GH_REVIEW_WATCH_GRAPHQL_FIXTURE="$__fixture_dir/graphql-31.json"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 31 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "comment source-binding staging unexpectedly succeeded"
+fi
+unset GH_REVIEW_WATCH_GRAPHQL_FIXTURE
+jq '(.pending_add.payload.review_findings.findings |= map(if .kind == "inline_comment" then .provenance.comment_id = "foreign-comment" else . end))' \
+    "$__state_file" > "$__fixture_dir/foreign-comment.json"
+mv "$__fixture_dir/foreign-comment.json" "$__state_file"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+run_action list > "$__poll_output"
+jq -e '(.warnings | any(contains("quarantined pending-add"))) and (.pending_acknowledgment == null)' \
+    "$__poll_output" >/dev/null || fail "foreign comment provenance was not quarantined"
+jq -e '(.quarantine | any(.kind == "pending-add"))' "$__state_file" >/dev/null ||
+    fail "foreign comment provenance quarantine was not persisted"
+
+write_state '{"version":2,"repository":"'"$__repository"'","identity":{"repository":"'"$__repository"'","coordinator_id":"coord-test","scheduler_id":"scheduler-test","assignment_id":"assignment-test","scope_id":"scope-test","candidate_id":"candidate-test"},"pull_requests":[]}'
+export PR_REVIEW_WATCH_COORDINATOR_ID="different-coordinator"
+if run_action list > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "cross-coordinator replay unexpectedly succeeded"
+fi
+unset PR_REVIEW_WATCH_COORDINATOR_ID PR_REVIEW_WATCH_SCHEDULER_ID PR_REVIEW_WATCH_ASSIGNMENT_ID \
+    PR_REVIEW_WATCH_SCOPE_ID PR_REVIEW_WATCH_CANDIDATE_ID
+
+write_fixture 41
+cat > "$__fixture_dir/pr-41.json" <<'EOF'
+{"number":41,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-41","reviewDecision":"APPROVED","reviews":[{"id":4101,"author":{"login":"rest-reviewer"},"submittedAt":"2024-01-07T00:00:00Z","state":"COMMENTED","body":"REST timestamp"}],"statusCheckRollup":[]}
+EOF
+printf '[[]]\n' > "$__fixture_dir/pulls-41.json"
+printf '[[]]\n' > "$__fixture_dir/issues-41.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+run_action add 41 > "$__poll_output"
+jq -e '
+  .reconciliation[0].reviews[0].submitted_at == "2024-01-07T00:00:00Z" and
+  (.reconciliation[0].reviews[0] | has("submittedAt") | not) and
+  ([.. | objects | keys[]] | any(. == "submittedAt") | not)
+' "$__poll_output" >/dev/null || fail "REST submitted_at was not normalized to the canonical review output"
+if grep -qE 'submittedAt[^a-z_]|submitted_at' "$__state_file"; then
+    fail "raw provider timestamp fields were persisted in watch state"
+fi
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 41 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "malformed staged review unexpectedly succeeded"
+fi
+jq '.pending_add.payload.reconciliation[0].reviews[0].submitted_at = "not-a-timestamp"' "$__state_file" \
+    > "$__fixture_dir/malformed-staged-review.json"
+mv "$__fixture_dir/malformed-staged-review.json" "$__state_file"
+run_action list > "$__poll_output"
+jq -e '(.warnings | any(contains("quarantined pending-add"))) and (.pending_acknowledgment == null)' \
+    "$__poll_output" >/dev/null || fail "malformed staged review was not quarantined"
+jq -e '
+  (.quarantine | any(.kind == "pending-add" and .raw.pending_add == null and
+    .raw.payload.reconciliation[0].reviews[0].submitted_at == "not-a-timestamp"))
+' "$__state_file" >/dev/null || fail "malformed staged review quarantine lost raw evidence"
+
+write_fixture 42
+cat > "$__fixture_dir/pr-42.json" <<'EOF'
+{"number":42,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-42","reviewDecision":"APPROVED","reviews":[{"id":4201,"author":{"login":"conflict"},"submittedAt":"2024-01-07T00:00:00Z","submitted_at":"2024-01-08T00:00:00Z","state":"COMMENTED","body":"conflict"}],"statusCheckRollup":[]}
+EOF
+printf '[[]]\n' > "$__fixture_dir/pulls-42.json"
+printf '[[]]\n' > "$__fixture_dir/issues-42.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if GH_REVIEW_WATCH_REST_RAW=1 run_action add 42 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "conflicting REST and GraphQL review timestamps unexpectedly succeeded"
+fi
+grep -qF 'submittedAt and submitted_at conflict' "$__fixture_dir/error" ||
+    fail "conflicting provider timestamp error was not actionable"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "conflicting provider timestamp changed state"
+
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":118,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":113}]}"
+run_action list > "$__poll_output"
+jq -e '
+  (.pull_requests | map(.number) == [118]) and
+  (.warnings | any(contains("quarantined watch-entry for PR #113")))
+' "$__poll_output" >/dev/null || fail "malformed watch entry was not quarantined without hiding valid watches"
+jq -e '
+  (.pull_requests | map(.number) == [118]) and
+  (.quarantine | length == 1) and
+  .quarantine[0].kind == "watch-entry" and
+  .quarantine[0].number == 113 and
+  .quarantine[0].raw.number == 113 and
+  (.quarantine[0].digest | test("^[a-f0-9]{64}$"))
+' "$__state_file" >/dev/null || fail "quarantine did not preserve malformed raw evidence"
+
+write_fixture 113
+cat > "$__fixture_dir/pr-113.json" <<'EOF'
+{"number":113,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-113","reviewDecision":"APPROVED","reviews":[{"id":11301,"author":{"login":"bad"},"submittedAt":"not-a-timestamp","state":"COMMENTED","body":"bad metadata"}],"statusCheckRollup":[]}
+EOF
+write_fixture 124
+cat > "$__fixture_dir/pr-124.json" <<'EOF'
+{"number":124,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-124","reviewDecision":"APPROVED","reviews":[{"id":12401,"author":{"login":"good"},"submittedAt":"2024-01-07T00:00:00Z","state":"COMMENTED","body":"valid metadata"}],"statusCheckRollup":[]}
+EOF
+printf '[[]]\n' > "$__fixture_dir/pulls-113.json"
+printf '[[]]\n' > "$__fixture_dir/issues-113.json"
+printf '[[]]\n' > "$__fixture_dir/pulls-124.json"
+printf '[[]]\n' > "$__fixture_dir/issues-124.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":113,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":124,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "isolated malformed watch poll unexpectedly succeeded"
+fi
+grep -qF 'PR #113 poll failed' "$__fixture_dir/error" ||
+    fail "isolated poll did not report the malformed watch"
+grep -qF 'pr view 124' "$__log_file" ||
+    fail "malformed PR #113 blocked polling of valid PR #124"
+jq -e '
+  ([.pull_requests[].number] | sort == [113,124]) and
+  (.pull_requests[] | select(.number == 113) | .poll_failed == true) and
+  (.pull_requests[] | select(.number == 124) | .new_reviews[0].submitted_at == "2024-01-07T00:00:00Z")
+' "$__poll_output" >/dev/null || fail "isolated poll did not emit the valid watch result"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "failed isolated poll persisted state changes"
 
 echo "pr:review-watch task passed."

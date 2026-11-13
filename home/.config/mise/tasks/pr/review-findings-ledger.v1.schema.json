@@ -1,0 +1,337 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "review-findings-ledger.v1",
+  "title": "Durable review findings consumer ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "protocol", "identity", "findings", "acknowledged_batches", "cursor", "pending"],
+  "properties": {
+    "schema_version": { "const": "review-findings-ledger.v1" },
+    "protocol": { "const": "persist-before-ack-v1" },
+    "identity": {
+      "anyOf": [{ "$ref": "#/$defs/identity" }, { "type": "null" }]
+    },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ledger_finding" }
+    },
+    "acknowledged_batches": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/acknowledged_batch" }
+    },
+    "cursor": { "$ref": "#/$defs/cursor" },
+    "pending": {
+      "anyOf": [{ "$ref": "#/$defs/pending" }, { "type": "null" }]
+    }
+  },
+  "$defs": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "coordinator_id", "scheduler_id", "assignment_id", "scope_id", "candidate_id"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "coordinator_id": { "type": "string", "minLength": 1 },
+        "scheduler_id": { "type": "string", "minLength": 1 },
+        "assignment_id": { "type": "string", "minLength": 1 },
+        "scope_id": { "type": "string", "minLength": 1 },
+        "candidate_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "artifact_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "coordinator_id",
+        "scheduler_id",
+        "assignment_id",
+        "scope_id",
+        "candidate_id",
+        "pull_request",
+        "head"
+      ],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "coordinator_id": { "type": "string", "minLength": 1 },
+        "scheduler_id": { "type": "string", "minLength": 1 },
+        "assignment_id": { "type": "string", "minLength": 1 },
+        "scope_id": { "type": "string", "minLength": 1 },
+        "candidate_id": { "type": "string", "minLength": 1 },
+        "pull_request": { "type": "integer", "minimum": 1 },
+        "head": { "type": "string", "minLength": 1 }
+      }
+    },
+    "provenance": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": ["source", "review_id", "revision_id"],
+          "properties": {
+            "source": { "type": "string", "minLength": 1 },
+            "review_id": { "type": ["string", "number"] },
+            "revision_id": { "type": ["string", "null"] }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": ["source", "comment_id", "location", "outside_diff"],
+          "properties": {
+            "source": { "type": "string", "minLength": 1 },
+            "comment_id": { "type": ["string", "number"] },
+            "review_id": { "type": ["string", "number", "null"] },
+            "reply_to": { "type": ["string", "number", "null"] },
+            "thread_id": { "type": ["string", "number", "null"] },
+            "revision_id": { "type": ["string", "null"] },
+            "location": { "enum": ["diff", "pathless"] },
+            "outside_diff": { "type": "boolean" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "disposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "owner"],
+      "properties": {
+        "status": { "const": "pending" },
+        "owner": { "type": "string", "minLength": 1 }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_batch_id", "source_artifact_digest", "captured_at", "source"],
+      "properties": {
+        "source_batch_id": { "type": "string", "minLength": 1 },
+        "source_artifact_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "captured_at": { "type": "string", "minLength": 1 },
+        "source": { "const": "review-findings.v1" }
+      }
+    },
+    "protocol_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "persistence_order", "transport"],
+      "properties": {
+        "schema_version": { "const": "persist-before-ack-v1" },
+        "persistence_order": { "const": "finding-before-ack" },
+        "transport": { "const": "fixture" }
+      }
+    },
+    "delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "candidate_id", "pull_request", "head", "live_vs_fixture", "review_state"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "candidate_id": { "type": "string", "minLength": 1 },
+        "pull_request": { "type": "integer", "minimum": 1 },
+        "head": { "type": "string", "minLength": 1 },
+        "live_vs_fixture": { "const": "fixture" },
+        "review_state": { "const": "pending" }
+      }
+    },
+    "digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["finding_sha256", "envelope_sha256", "findings_sha256"],
+      "properties": {
+        "finding_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "envelope_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "findings_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "ledger_digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["finding_sha256", "envelope_sha256", "payload_sha256", "findings_sha256"],
+      "properties": {
+        "finding_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "envelope_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "payload_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "findings_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "ledger_finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "payload",
+        "identity",
+        "provenance",
+        "disposition",
+        "evidence",
+        "protocol",
+        "delivery",
+        "digest"
+      ],
+      "properties": {
+        "finding_id": { "type": "string", "minLength": 1 },
+        "payload": { "type": "object" },
+        "identity": { "$ref": "#/$defs/artifact_identity" },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "disposition": { "$ref": "#/$defs/disposition" },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "protocol": { "$ref": "#/$defs/protocol_metadata" },
+        "delivery": { "$ref": "#/$defs/delivery" },
+        "digest": { "$ref": "#/$defs/ledger_digest" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "required": ["kind"],
+                "properties": { "kind": { "const": "review" } }
+              }
+            },
+            "required": ["payload"]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "type": "object",
+                "properties": { "source": { "const": "pull_request_review" } }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "required": ["kind"],
+                "properties": { "kind": { "const": "inline_comment" } }
+              }
+            },
+            "required": ["payload"]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "type": "object",
+                "properties": { "source": { "const": "pull_request_review_comment" } }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "required": ["kind"],
+                "properties": { "kind": { "const": "issue_comment" } }
+              }
+            },
+            "required": ["payload"]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "type": "object",
+                "properties": { "source": { "const": "issue_comment" } }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "required": ["kind"],
+                "properties": { "kind": { "const": "nested_comment" } }
+              }
+            },
+            "required": ["payload"]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "type": "object",
+                "properties": { "source": { "const": "nested_review_comment" } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "acknowledged_batch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "batch_id",
+        "identity",
+        "envelope_sha256",
+        "payload_sha256",
+        "findings_sha256",
+        "finding_ids",
+        "acknowledged_at"
+      ],
+      "properties": {
+        "batch_id": { "type": "string", "minLength": 1 },
+        "identity": { "$ref": "#/$defs/identity" },
+        "envelope_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "payload_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "findings_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "finding_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "acknowledged_at": { "type": "string", "minLength": 1 }
+      }
+    },
+    "seen": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviews", "inline_comments", "issue_comments"],
+      "properties": {
+        "reviews": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "inline_comments": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "issue_comments": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "cursor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["last_acknowledged_batch_id", "seen"],
+      "properties": {
+        "last_acknowledged_batch_id": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "seen": { "$ref": "#/$defs/seen" }
+      }
+    },
+    "pending": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "batch_id",
+        "identity",
+        "envelope_bytes",
+        "envelope_sha256",
+        "payload_sha256",
+        "findings_sha256",
+        "findings",
+        "next_seen",
+        "staged_at"
+      ],
+      "properties": {
+        "batch_id": { "type": "string", "minLength": 1 },
+        "identity": { "$ref": "#/$defs/identity" },
+        "envelope_bytes": { "type": "string", "minLength": 2 },
+        "envelope_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "payload_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "findings_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "findings": { "type": "array", "items": { "$ref": "#/$defs/ledger_finding" } },
+        "next_seen": { "$ref": "#/$defs/seen" },
+        "staged_at": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

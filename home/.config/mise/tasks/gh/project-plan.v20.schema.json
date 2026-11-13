@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://minusfive.dev/schemas/gh-project-plan.v20.json",
+  "title": "GitHub Project control-plane plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "target", "lanes", "issues", "dependencies", "required_labels"],
+  "properties": {
+    "schema_version": { "const": "gh-project-plan.v20" },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "owner", "repository", "title", "key"],
+      "properties": {
+        "host": { "const": "github.com" },
+        "owner": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "key": { "type": "string", "minLength": 1 }
+      },
+      "$comment": "JSON Schema validates the target shape. The canonical semantic validator additionally requires key == owner/repository:title after normalization because cross-field equality is not expressible in this contract."
+    },
+    "lanes": {
+      "type": "array",
+      "const": ["Blocked", "Todo", "Research", "Implement", "Validate", "Critique", "Done"]
+    },
+    "issues": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["number", "key", "labels"],
+        "properties": {
+          "number": { "type": "integer", "minimum": 1 },
+          "key": { "type": "string", "minLength": 1 },
+          "labels": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "node_id": { "type": "string", "minLength": 1 },
+          "label_node_ids": {
+            "type": "object",
+            "additionalProperties": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "uniqueItems": true,
+      "$comment": "JSON Schema validates dependency shape and uniqueness. The canonical semantic validator additionally requires both endpoints to reference distinct declared issue numbers because array-item references are not expressible in this contract.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "target", "kind"],
+        "properties": {
+          "source": { "type": "integer", "minimum": 1 },
+          "target": { "type": "integer", "minimum": 1 },
+          "kind": { "const": "blocked_by" }
+        }
+      }
+    },
+    "required_labels": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 },
+      "$comment": "The validator additionally requires every label to be declared by an issue."
+    }
+  }
+}
