@@ -5,8 +5,6 @@ set -euo pipefail
 function {
     local __show_help=false
     local __options
-    local __scripts_dir
-    local __root_dir
     local __mise_path="$HOME/.local/bin/mise"
     local __code_color=$'\e[36m'
     local __reset_color=$'\e[0m'
@@ -38,17 +36,10 @@ function {
         print -r -- ""
         print -r -- "Installs ${__code_color}mise${__reset_color} if it is not available."
         print -r -- ""
-        print -r -- "After installation, source ${__code_color}scripts/mise-env.zsh${__reset_color}, then run ${__code_color}mise bootstrap --help${__reset_color}."
+        print -r -- "After installation, review and run the native ${__code_color}mise bootstrap${__reset_color} command shown in the README."
         print -r -- ""
         exit 0
     fi
-
-    __scripts_dir="$(realpath "$(dirname "$ZSH_ARGZERO")")"
-    __root_dir="$(realpath "$__scripts_dir/..")" ||
-        {
-            print -u2 -- "error: could not resolve the dotfiles repository root"
-            exit 1
-        }
 
     if [[ ! -x "$__mise_path" ]]; then
         if command -v mise >/dev/null 2>&1; then
@@ -75,19 +66,7 @@ function {
         exit 1
     fi
 
-    path=("$HOME/.local/bin" $path)
-    export PATH
-    rehash
-
-    local __mise_check_output
-    if ! __mise_check_output="$("$__mise_path" -C "$__root_dir" bootstrap --help 2>&1)"; then
-        print -u2 -- "$__mise_check_output"
-        print -u2 -- "error: the installed mise cannot run this repository's native bootstrap"
-        exit 1
-    fi
-
     print -r -- ""
-    print -r -- "Run ${__code_color}source scripts/mise-env.zsh${__reset_color} to add mise to the current shell PATH."
-    print -r -- "Then run ${__code_color}mise bootstrap --help${__reset_color} for next steps."
+    print -r -- "Run ${__code_color}PATH=\"$HOME/.local/bin:\$PATH\" \"$HOME/.local/bin/mise\" bootstrap --from https://github.com/minusfive/dot.git --from-dir ~/dev/personal/dot --config-dir home/.config/mise --dry-run${__reset_color} to review changes."
     print -r -- ""
 } "$@"
