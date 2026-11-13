@@ -134,6 +134,10 @@ Use a separate `test_mise_bootstrap_<module>.zsh` file when a module needs behav
 
 Tests the grouped evaluation init, prepare, and validate tasks, canonical specifications, repository-local workspaces, ignore rules, and symlink rejection.
 
+#### `test_mise_skill_evals_retire.zsh`
+
+Tests safe retirement of incomplete historical evaluation iterations, including complete/current iteration rejection, metadata validation, evidence preservation, unsafe transition rejection, and idempotency.
+
 #### `test_mise_task_ai_workflow_validate.zsh`
 
 Tests workflow contract and ledger validation, including schema artifacts, trusted-status rejection, worktree references, path aliasing and sensitive paths, advisory budgets, delivery gates, and historical runtime evidence.
@@ -157,6 +161,7 @@ for test in tests/scripts/test_mise_bootstrap_*.zsh tests/scripts/test_mise_task
     zsh "$test"
 done
 ./tests/scripts/test_mise_skill_evals.zsh
+./tests/scripts/test_mise_skill_evals_retire.zsh
 ./tests/scripts/test_agentic_projects.zsh
 ```
 
