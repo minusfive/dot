@@ -951,6 +951,72 @@ grep -qF 'pull request #6 metadata failed' "$__fixture_dir/error" || fail "mid-p
 [[ ! -d "$__state_file.lock" ]] || fail "mid-poll failure left the lock"
 [[ -z "$(find "$__fixture_dir" -name '*.tmp.*' -print -quit)" ]] || fail "mid-poll failure left a temporary file"
 
+write_fixture 43
+write_fixture 44
+printf '[[]]\n' > "$__fixture_dir/pulls-43.json"
+printf '[[]]\n' > "$__fixture_dir/issues-43.json"
+printf '[[]]\n' > "$__fixture_dir/pulls-44.json"
+printf '[[]]\n' > "$__fixture_dir/issues-44.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":113,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":118,\"addedAt\":\"2024-01-01T00:00:01Z\"}]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if GH_REVIEW_WATCH_FAIL_PR=44 run_action add "43 44" > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "partial add failure unexpectedly succeeded"
+fi
+grep -qF 'pull request #44 metadata failed' "$__fixture_dir/error" ||
+    fail "partial add failure did not reach the second candidate"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "partial add failure changed state bytes"
+jq -e '.pull_requests | map(.number) == [113,118]' "$__state_file" >/dev/null ||
+    fail "partial add failure changed existing watches"
+
+write_fixture 124
+printf '[[]]\n' > "$__fixture_dir/pulls-124.json"
+printf '[[]]\n' > "$__fixture_dir/issues-124.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":113,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":118,\"addedAt\":\"2024-01-01T00:00:01Z\"},{\"number\":124,\"addedAt\":\"2024-01-01T00:00:02Z\",\"head\":\"review-124\"}]}"
+: > "$__log_file"
+if PR_REVIEW_WATCH_TEST_INTERRUPT_AFTER_STAGE=1 run_action add 124 > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "existing-candidate staging unexpectedly succeeded"
+fi
+jq -e '
+  .pending_add.requested_numbers == [124] and
+  (.pending_add.payload.reconciliation | length == 0) and
+  (.pending_add.next_pull_requests | map(.number) == [113,118,124])
+' "$__state_file" >/dev/null || fail "existing candidate did not stage a valid pending add"
+run_action add 124 > "$__poll_output"
+jq -e '
+  (.pending_add | not) and
+  (.pull_requests | map(.number) == [113,118,124]) and
+  (.reconciliation | length == 0)
+' "$__poll_output" >/dev/null || fail "existing candidate pending add was not recovered"
+if grep -q '^pr view\|^api ' "$__log_file"; then
+    fail "existing candidate recovery fetched provider activity"
+fi
+
+write_fixture 113
+write_fixture 118
+write_fixture 124
+printf '[[]]\n' > "$__fixture_dir/pulls-113.json"
+printf '[[]]\n' > "$__fixture_dir/issues-113.json"
+printf '[[]]\n' > "$__fixture_dir/pulls-118.json"
+printf '[[]]\n' > "$__fixture_dir/issues-118.json"
+printf '[[]]\n' > "$__fixture_dir/pulls-124.json"
+printf '[[]]\n' > "$__fixture_dir/issues-124.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":113,\"addedAt\":\"2024-01-01T00:00:00Z\",\"lastSeenAt\":\"2024-01-02T00:00:00Z\",\"head\":\"review-113\"},{\"number\":118,\"addedAt\":\"2024-01-01T00:00:01Z\",\"lastSeenAt\":\"2024-01-02T00:00:01Z\",\"head\":\"review-118\"},{\"number\":124,\"addedAt\":\"2024-01-01T00:00:02Z\",\"lastSeenAt\":\"2024-01-02T00:00:02Z\",\"head\":\"review-124\"}]}"
+__before_hash="$(shasum -a 256 "$__state_file" | cut -d' ' -f1)"
+if GH_REVIEW_WATCH_FAIL_PR=124 run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
+    fail "watch preservation poll unexpectedly succeeded"
+fi
+grep -qF 'PR #124 poll failed' "$__fixture_dir/error" ||
+    fail "watch preservation poll did not report the failed watch"
+[[ "$(shasum -a 256 "$__state_file" | cut -d' ' -f1)" == "$__before_hash" ]] ||
+    fail "watch preservation poll changed state before complete success"
+jq -e '
+  (.pull_requests | map(.number) == [113,118,124]) and
+  .pull_requests[0].lastSeenAt == "2024-01-02T00:00:00Z" and
+  .pull_requests[1].lastSeenAt == "2024-01-02T00:00:01Z" and
+  .pull_requests[2].lastSeenAt == "2024-01-02T00:00:02Z"
+' "$__state_file" >/dev/null || fail "watch preservation poll mutated another watch"
+
 mkdir "$__state_file.lock"
 if run_poll > "$__poll_output" 2> "$__fixture_dir/error"; then
     fail "lock contention unexpectedly succeeded"

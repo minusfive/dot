@@ -200,6 +200,11 @@ type LockSnapshot = {
   stale: boolean;
 };
 
+type StateSnapshot = {
+  exists: boolean;
+  raw: string;
+};
+
 const ACTION = (process.env.usage_action ?? "").trim();
 const PULL_REQUESTS = (process.env.usage_pull_requests ?? "").trim();
 const STATE_FILE = (process.env.usage_state_file ?? "").trim();
@@ -236,6 +241,17 @@ function persistedIdentityFor(repository: string, number: number, head: string |
   const identity = identityFor(repository, number, head);
   if (!STRICT_IDENTITY_BINDING) delete identity.head;
   return identity;
+}
+
+function isRegisteredCandidate(entry: WatchEntry, repository: string, number: number): boolean {
+  if (entry.number !== number) return false;
+  if (entry.identity === undefined) return !STRICT_IDENTITY_BINDING;
+  const identity = {
+    ...entry.identity,
+    ...(entry.identity.pull_request === undefined ? { pull_request: entry.number } : {}),
+    ...(entry.head === undefined || entry.identity.head !== undefined ? {} : { head: entry.head }),
+  };
+  return sameExactArtifactIdentity(identity, identityFor(repository, number, entry.head));
 }
 
 function sameIdentity(left: Identity | undefined, right: Identity): boolean {
@@ -1140,7 +1156,7 @@ function validatePendingAdd(
     ]),
   );
   if (
-    reconciliationByNumber.size !== requestedNumbers.size ||
+    reconciliationByNumber.size > requestedNumbers.size ||
     [...reconciliationByNumber.keys()].some((number) => !requestedNumbers.has(number))
   ) {
     throw new Error(`invalid watch state: ${stateFile}`);
@@ -1148,21 +1164,49 @@ function validatePendingAdd(
   for (const number of requestedNumbers) {
     const entry = pending.payload.pull_requests.find((candidate) => candidate.number === number);
     const result = reconciliationByNumber.get(number);
-    if (
-      !entry ||
-      !result ||
-      !sameArtifactIdentity(result.identity as Identity, identityFor(repository, entry.number, entry.head))
-    ) {
+    const activeEntry = activePullRequests.find((candidate) => candidate.number === number);
+    if (!entry || !nextNumbers.has(number)) {
       throw new Error(`invalid watch state: ${stateFile}`);
     }
-  }
-  for (const number of requestedNumbers) {
-    if (!nextNumbers.has(number)) throw new Error(`invalid watch state: ${stateFile}`);
+    if (!result) {
+      if (
+        !activeEntry ||
+        !isRegisteredCandidate(activeEntry, repository, number) ||
+        canonicalJson(activeEntry) !== canonicalJson(entry)
+      ) {
+        throw new Error(`invalid watch state: ${stateFile}`);
+      }
+      continue;
+    }
+    if (!sameArtifactIdentity(result.identity as Identity, identityFor(repository, entry.number, entry.head))) {
+      throw new Error(`invalid watch state: ${stateFile}`);
+    }
   }
   if (pending.payload.watch_empty !== (pending.next_pull_requests.length === 0)) {
     throw new Error(`invalid watch state: ${stateFile}`);
   }
   return true;
+}
+
+async function stateSnapshot(stateFile: string): Promise<StateSnapshot> {
+  try {
+    return { exists: true, raw: await readFile(stateFile, "utf8") };
+  } catch (error) {
+    if (isErrno(error, "ENOENT")) return { exists: false, raw: "" };
+    throw error;
+  }
+}
+
+async function restoreStateSnapshot(stateFile: string, snapshot: StateSnapshot): Promise<void> {
+  if (!snapshot.exists) {
+    await rm(stateFile, { force: true });
+    return;
+  }
+  await writeFile(stateFile, snapshot.raw, { encoding: "utf8" });
+}
+
+function isStagedAddInterruption(error: unknown): boolean {
+  return error instanceof Error && error.message === "simulated interruption after staged add";
 }
 
 async function loadState(repository: string, stateFile: string): Promise<WatchState> {
@@ -2196,8 +2240,10 @@ async function main(): Promise<void> {
   const repository = `${hostname}/${owner}/${repo}`;
   const stateFile = getStateFile();
   let releaseLock: (() => Promise<void>) | undefined;
+  let priorState: StateSnapshot | undefined;
   try {
     releaseLock = await acquireLock(stateFile);
+    priorState = await stateSnapshot(stateFile);
     const state = await loadState(repository, stateFile);
     const stateIdentity = assertStateIdentity(state, repository);
     for (const entry of state.pull_requests) {
@@ -2241,7 +2287,13 @@ async function main(): Promise<void> {
       const watchStartedAt = new Date().toISOString();
       if (ACTION === "add") {
         for (const number of numbers) {
-          if (nextState.pull_requests.some((entry) => entry.number === number)) continue;
+          const existingEntry = nextState.pull_requests.find((entry) => entry.number === number);
+          if (existingEntry) {
+            if (!isRegisteredCandidate(existingEntry, repository, number)) {
+              throw new Error(`pull request #${number} is already watched for a different candidate`);
+            }
+            continue;
+          }
           const pullRequest = await getPullRequest(repository, number);
           if (pullRequest.state !== "OPEN") throw new Error(`pull request #${number} is not open`);
           const [reviewCollection, inlineCollection, issueCollection] = await Promise.all([
@@ -2565,6 +2617,19 @@ async function main(): Promise<void> {
     });
     emit(payload);
     await saveState(stateFile, nextState);
+  } catch (error) {
+    if (priorState !== undefined && !isStagedAddInterruption(error)) {
+      try {
+        await restoreStateSnapshot(stateFile, priorState);
+      } catch (restoreError) {
+        throw new Error(
+          `${error instanceof Error ? error.message : String(error)}; failed to restore prior watch state: ${
+            restoreError instanceof Error ? restoreError.message : String(restoreError)
+          }`,
+        );
+      }
+    }
+    throw error;
   } finally {
     if (releaseLock) await releaseLock();
   }
