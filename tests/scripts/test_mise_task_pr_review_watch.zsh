@@ -897,6 +897,36 @@ if grep -q '^api ' "$__log_file"; then
     fail "closed and merged PRs queried comment endpoints"
 fi
 
+cat > "$__fixture_dir/pr-118.json" <<'EOF'
+{"number":118,"state":"MERGED","mergedAt":"2024-01-05T00:00:00Z","closedAt":null,"headRefName":"review-118","headRefOid":"oid-118","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+cat > "$__fixture_dir/pr-124.json" <<'EOF'
+{"number":124,"state":"OPEN","mergedAt":null,"closedAt":null,"headRefName":"review-124","headRefOid":"oid-124","reviewDecision":"APPROVED","reviews":[],"statusCheckRollup":[]}
+EOF
+printf '[[]]\n' > "$__fixture_dir/pulls-124.json"
+printf '[[]]\n' > "$__fixture_dir/issues-124.json"
+write_state "{\"version\":1,\"repository\":\"$__repository\",\"pull_requests\":[{\"number\":118,\"addedAt\":\"2024-01-01T00:00:00Z\"},{\"number\":124,\"addedAt\":\"2024-01-01T00:00:00Z\"}]}"
+: > "$__log_file"
+run_poll > "$__poll_output"
+jq -e '
+  (.pull_requests | length == 2) and
+  (.pull_requests[] | select(.number == 118) |
+    .removed == true and
+    .reason == "merged" and
+    .head == "review-118" and
+    .head_oid == "oid-118" and
+    .identity.pull_request == 118 and
+    .identity.head == .head_oid) and
+  (.pull_requests[] | select(.number == 124) |
+    (.removed | not) and
+    .head_oid == "oid-124" and
+    .identity.pull_request == 124 and
+    .identity.head == .head_oid) and
+  (.pull_requests | map(select(.number == 118)) | length == 1)
+' "$__poll_output" >/dev/null || fail "merged terminal result was not identity-safe alongside an open PR"
+jq -e '.pull_requests | map(.number) == [124]' "$__state_file" >/dev/null ||
+    fail "merged terminal result did not remove only the merged PR after pending poll staging"
+
 write_fixture 6
 cat > "$__fixture_dir/pulls-1.json" <<'EOF'
 [[]]

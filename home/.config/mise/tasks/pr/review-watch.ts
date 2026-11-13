@@ -2373,6 +2373,7 @@ async function main(): Promise<void> {
             identity: identityFor(repository, entry.number, pullRequestHead(pullRequest)),
             state: pullRequest.state,
             head: pullRequest.headRefName,
+            head_oid: pullRequest.headRefOid,
             review_decision: pullRequest.reviewDecision,
             removed: true,
             reason: isMerged ? "merged" : "closed",
