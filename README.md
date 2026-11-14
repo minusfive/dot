@@ -107,8 +107,6 @@ The repository keeps global agent instructions, profiles, and skills in `home/`.
 
 The root `AGENTS.md` and `.agents/` directory are repository-only. They guide work in this repository and are not deployed as global files.
 
-`mise` tasks keep the root and `home/` skill indexes synchronized. They validate the global skill evaluation files and check for name conflicts between repository-only and global skills. The `hk` check and pre-commit hooks run these validations with the other repository checks.
-
 ## Development
 
 The repository manages the tools used for development. When you enter the repository, `mise` activates its project tools.
@@ -132,31 +130,6 @@ mise run git:worktree --stale
 ```
 
 Add `--delete` to select stale worktrees and apply removal. The task shows the complete report first, requires an interactive confirmation, and protects the repository root, the current worktree, dirty worktrees, locked worktrees, prunable worktrees, and worktrees with unsafe pull request states. Use `--release PATH` to mark registered metadata released without removing the worktree. Apply mode refuses non-TTY input with exit status `2`; FZF cancellation exits `130`, and a declined confirmation exits `0`. The separate `Git` `git worktree prune` command is not part of this cleanup policy.
-
-The structured GitHub Project task plans and reconciles repository-linked projects:
-
-```sh
-mise run gh:project --plan path/to/gh-project-plan.json --dry-run
-mise run gh:project --plan path/to/gh-project-plan.json --confirm APPLY
-```
-
-The task uses versioned JSON contracts. It rejects wrong identity, duplicate identity, malformed data, and missing capability before mutation. It records incomplete mutations and verifies the result with a second read. The validator checks plan and result files:
-
-```sh
-mise run gh:project-validate -- --schema plan-v20 --input PATH
-mise run gh:project-validate -- --schema result-v20 --input PATH
-```
-
-Workflow contracts and evidence ledgers use a structural and advisory validator:
-
-```sh
-mise run ai:workflow:validate -- \
- --file path/to/ledger.json
-```
-
-The `JSON Schema` files are reference artifacts. `jq` checks structure because the repository does not include a `JSON Schema` runtime. Active delivery records report external authorization and runtime requirements. External orchestration owns those gates, cancellation, and measured budget enforcement. The validator does not grant trust or prove runtime behavior. Use `--initialize` or `--dry-run` for an explicitly empty ledger.
-
-Delivery records use opaque worktree references. External orchestration resolves the reference and checks the actual worktree for symlink and alias safety.
 
 The [`hk` configuration](./hk.pkl) defines the checks and fixes in one place. Markdown checks preserve the existing line wrapping and reformat paragraphs that use hard line breaks. The repository also permits selected inline HTML.
 
