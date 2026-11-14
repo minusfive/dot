@@ -7,6 +7,8 @@ description: Evaluate agent-instruction skills with deterministic specs, isolate
 
 Use this skill when you evaluate a changed agent-instruction entrypoint. This includes a skill, `AGENTS.md`, `CLAUDE.md`, or an agent definition.
 
+Evaluation maintenance is a scoped quality gate. It must not block unrelated work because an older workspace is incomplete.
+
 ## Storage
 
 - Keep the durable specification at `<skill-root>/evals/evals.json`.
@@ -25,9 +27,23 @@ Use the grouped mise tasks for every structural evaluation-file change:
 1. Run `mise run ai:skills:evals:init --skill <skill-name>` to create a new specification.
 2. Edit only the case content: prompts, expected results, input files, and assertions.
 3. Run `mise run ai:skills:evals:prepare --skill <skill-name> --iteration <new-number>` to create a new workspace iteration.
-4. Run `mise run ai:skills:evals:validate` before reviewing or grading results.
+4. Run `mise run ai:skills:evals:validate --skill <skill>` before reviewing or grading results.
 5. Run `mise run ai:skills:validate-conflicts` to check local and global skill names.
 6. Run `mise run mise:tasks:validate-conflicts` to check local and global task names.
+
+Use `--iteration <number>` with `--skill` to validate one iteration. Use `--strict` for release gates.
+
+## Validation modes
+
+Ordinary validation is advisory for unrelated historical or incomplete workspaces. It emits one JSON warning per skipped workspace problem and exits successfully when the selected skill target is valid.
+
+Targeted validation checks the current iteration for the selected skill. A selected iteration checks only that iteration. A failure in the selected target remains an error.
+
+Strict validation treats every workspace problem as an error. Use it before release, review handoff, or any decision that requires complete historical evidence.
+
+The validator canonicalizes physical skill-root paths before it compares them. It ignores repeated paths that resolve to the same directory. It rejects the same skill name in distinct physical roots because the source is ambiguous.
+
+To retire an interrupted older run, use `mise run ai:skills:evals:retire --skill <skill-name> --iteration <number>`. The task validates the manifest and workspace structure. It validates metadata and evidence for materialized configurations before it changes only the manifest. It accepts incomplete older iterations, including preparation-state workspaces, preserves raw evidence, and is safe to run again. It rejects complete iterations, current iterations, unsafe historical markers, and malformed or missing timing metadata in materialized iterations.
 
 Do not create, move, or hand-edit manifests, reports, timing files, grading files, or workspace directories. Use the tasks to preserve the required names, keys, locations, and configuration directories.
 

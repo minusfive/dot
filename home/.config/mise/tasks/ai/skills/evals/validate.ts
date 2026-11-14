@@ -5,6 +5,9 @@
 //USAGE flag "--base-path <path>" help="Directory to validate; defaults to the current project root"
 //USAGE flag "--skills-path <path>" help="Skill source directory; defaults to .agents/skills"
 //USAGE flag "--changed-only" help="Validate only skills affected by the current Git worktree changes"
+//USAGE flag "--skill <skill>" help="Validate one skill and its current evaluation target"
+//USAGE flag "--iteration <number>" help="Validate one evaluation iteration; requires --skill"
+//USAGE flag "--strict" help="Treat historical and incomplete workspace warnings as errors"
 
 import { readdirSync, lstatSync, readFileSync, realpathSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
@@ -25,6 +28,10 @@ type Context = {
   alternateSkillRoots: string[];
   workspaceSkillRoots: string[];
   selectedSkills?: Set<string>;
+  requestedSkill?: string;
+  requestedIteration?: string;
+  strict: boolean;
+  warnings: Array<{ code: string; path: string; message: string }>;
 };
 
 class ValidationError extends Error {}
@@ -37,6 +44,25 @@ function isMissingError(error: unknown): boolean {
 /** Stop validation with a user-facing error. */
 function die(message: string): never {
   throw new ValidationError(message);
+}
+
+/** Record a structured advisory warning for an unrelated workspace problem. */
+function warn(context: Context, code: string, path: string, message: string): void {
+  context.warnings.push({ code, path, message });
+}
+
+/** Print structured advisory warnings after validation completes. */
+function printWarnings(context: Context): void {
+  for (const warning of context.warnings) {
+    console.error(
+      JSON.stringify({
+        level: "warning",
+        code: warning.code,
+        path: warning.path,
+        message: warning.message,
+      }),
+    );
+  }
 }
 
 /** Convert an unknown thrown value to displayable text. */
@@ -306,7 +332,7 @@ function findSkillRoots(basePath: string): string[] {
     }
   };
   visit(basePath);
-  return found.sort();
+  return [...new Set(found.map((path) => realpathSync(path)))].sort();
 }
 
 /** Return whether a skill name is a migration source. */
@@ -346,6 +372,13 @@ function rejectDuplicateSkillNames(context: Context): void {
       }
     }
   }
+}
+
+/** Handle a workspace validation error according to advisory or strict policy. */
+function handleWorkspaceError(context: Context, error: unknown, workspacePath: string, target: boolean): void {
+  const message = errorMessage(error);
+  if (context.strict || target) throw error;
+  warn(context, "workspace-incomplete", workspacePath, message);
 }
 
 /** Validate one skill evaluation specification and return its parsed object. */
@@ -926,7 +959,19 @@ function main(): void {
 
   const usageBasePath = process.env.usage_base_path ?? "";
   const usageSkillsPath = process.env.usage_skills_path ?? "";
+  const usageSkill = process.env.usage_skill ?? "";
+  const usageIteration = process.env.usage_iteration ?? "";
   const changedOnly = process.env.usage_changed_only === "true";
+  const strict = process.env.usage_strict === "true";
+  if (usageSkill && !/^[a-z][a-z0-9-]*$/.test(usageSkill)) {
+    die("--skill must be a descriptive kebab-case skill name");
+  }
+  if (usageIteration && !/^[1-9][0-9]*$/.test(usageIteration)) {
+    die("--iteration must be a positive integer");
+  }
+  if (usageIteration && !usageSkill) {
+    die("--iteration requires --skill");
+  }
   const basePath = resolveDirectory(
     usageBasePath || commandProjectRoot,
     commandProjectRoot,
@@ -949,15 +994,22 @@ function main(): void {
     primarySkillRoot: skillsPath,
     alternateSkillRoots: [],
     workspaceSkillRoots: [skillsPath],
+    requestedSkill: usageSkill || undefined,
+    requestedIteration: usageIteration || undefined,
+    strict,
+    warnings: [],
   };
 
   for (const root of findSkillRoots(projectRoot)) {
-    if (!context.workspaceSkillRoots.includes(root)) {
-      context.workspaceSkillRoots.push(root);
-      context.alternateSkillRoots.push(root);
+    const canonicalRoot = realpathSync(root);
+    if (!context.workspaceSkillRoots.includes(canonicalRoot)) {
+      context.workspaceSkillRoots.push(canonicalRoot);
+      context.alternateSkillRoots.push(canonicalRoot);
     }
   }
-  if (changedOnly) {
+  if (usageSkill) {
+    context.selectedSkills = new Set([usageSkill]);
+  } else if (changedOnly) {
     const selectedSkills = selectChangedSkills(context, changedPaths(basePath), changedGitRoot(basePath));
     if (selectedSkills !== null && selectedSkills.size === 0) {
       console.log("No skill evaluation files changed; skipping skill evaluation validation.");
@@ -1022,6 +1074,7 @@ function main(): void {
   const workspaceDir = join(projectRoot, ".agents/eval-workspaces");
   if (!pathExists(workspaceDir)) {
     console.log("Skill evaluation specs are valid. No repository-local workspaces found.");
+    printWarnings(context);
     return;
   }
   if (!isPhysicalDirectory(workspaceDir)) {
@@ -1050,210 +1103,248 @@ function main(): void {
       context.selectedSkills &&
       !context.selectedSkills.has(workspaceSkillName) &&
       !context.selectedSkills.has(resolvedSkill)
-    )
+    ) {
+      warn(
+        context,
+        "workspace-out-of-scope",
+        displayPath(workspaceSkill, basePath),
+        "workspace was not selected by the requested validation target",
+      );
       continue;
-    const historicalWorkspace = isMigrationSource(context, workspaceSkillName);
-    let primarySpec = "";
-    let alternateSpec = "";
-    let matchedWorkspaceSkill = false;
-    for (const skillRoot of [context.primarySkillRoot, ...context.alternateSkillRoots]) {
-      const candidate = join(skillRoot, resolvedSkill, "evals/evals.json");
-      if (!pathExists(candidate)) continue;
-      matchedWorkspaceSkill = true;
-      validateEvaluationSpec(context, join(skillRoot, resolvedSkill), resolvedSkill, candidate);
-      if (skillRoot === context.primarySkillRoot) primarySpec = candidate;
-      else if (!alternateSpec) alternateSpec = candidate;
     }
-    if (!matchedWorkspaceSkill) {
-      die(`workspace has no matching skill spec; historical skill migration map is required: ${workspaceSkillName}`);
-    }
-    const spec = primarySpec || alternateSpec;
-    if (!spec) die(`workspace has no selectable skill spec: ${workspaceSkillName}`);
-    const specValue = validateEvaluationSpec(context, dirname(dirname(spec)), resolvedSkill, spec);
-    const expectedIds = (specValue.evals as JsonValue[]).map((entry) => String(object(entry)?.id));
-
-    for (const workspaceEntry of entries(workspaceSkill)) {
-      const entryName = basename(workspaceEntry);
-      if (!isPhysicalDirectory(workspaceEntry))
-        die(`invalid evaluation workspace entry: ${displayPath(workspaceEntry, basePath)}`);
-      if (entryName === "discoverability") {
-        for (const extra of ["queries.json", "results.json"]) {
-          const path = join(workspaceEntry, extra);
-          if (!isRegularFile(path)) die(`missing ${displayPath(path, basePath)}`);
-          readJson(path, context);
-        }
-        for (const extra of entries(workspaceEntry)) {
-          if (!["queries.json", "results.json"].includes(basename(extra))) {
-            die(`invalid discoverability entry: ${displayPath(extra, basePath)}`);
-          }
-        }
-      } else if (!entryName.startsWith("iteration-")) {
-        die(`invalid evaluation workspace entry: ${displayPath(workspaceEntry, basePath)}`);
-      }
-    }
-
     let currentIteration = 0;
-    for (const workspaceEntry of entries(workspaceSkill)) {
-      const caseName = basename(workspaceEntry);
-      if (!caseName.startsWith("iteration-")) continue;
-      if (!isPhysicalDirectory(workspaceEntry))
-        die(`invalid workspace directory: ${displayPath(workspaceSkill, basePath)}/${caseName}`);
-      if (!/^iteration-[1-9][0-9]*$/.test(caseName))
-        die(`invalid workspace directory: ${displayPath(workspaceSkill, basePath)}/${caseName}`);
-      const manifestPath = join(workspaceEntry, "manifest.json");
-      if (!isRegularFile(manifestPath)) die(`missing ${displayPath(manifestPath, basePath)}`);
-      const manifest = object(readJson(manifestPath, context));
-      if (manifest?.state === "historical" && manifest.history_reason === "retired-materialized-incomplete") continue;
-      currentIteration = Math.max(currentIteration, Number(caseName.slice("iteration-".length)));
-    }
+    const preparationIterations = new Set<string>();
+    try {
+      const historicalWorkspace = isMigrationSource(context, workspaceSkillName);
+      let primarySpec = "";
+      let alternateSpec = "";
+      let matchedWorkspaceSkill = false;
+      for (const skillRoot of [context.primarySkillRoot, ...context.alternateSkillRoots]) {
+        const candidate = join(skillRoot, resolvedSkill, "evals/evals.json");
+        if (!pathExists(candidate)) continue;
+        matchedWorkspaceSkill = true;
+        validateEvaluationSpec(context, join(skillRoot, resolvedSkill), resolvedSkill, candidate);
+        if (skillRoot === context.primarySkillRoot) primarySpec = candidate;
+        else if (!alternateSpec) alternateSpec = candidate;
+      }
+      if (!matchedWorkspaceSkill) {
+        die(`workspace has no matching skill spec; historical skill migration map is required: ${workspaceSkillName}`);
+      }
+      const spec = primarySpec || alternateSpec;
+      if (!spec) die(`workspace has no selectable skill spec: ${workspaceSkillName}`);
+      const specValue = validateEvaluationSpec(context, dirname(dirname(spec)), resolvedSkill, spec);
+      const expectedIds = (specValue.evals as JsonValue[]).map((entry) => String(object(entry)?.id));
 
-    for (const iterationDir of entries(workspaceSkill)) {
-      if (!basename(iterationDir).startsWith("iteration-")) continue;
-      const iterationName = basename(iterationDir);
-      if (!isPhysicalDirectory(iterationDir))
-        die(`invalid workspace directory: ${displayPath(workspaceSkill, basePath)}/${iterationName}`);
-      if (!/^iteration-[1-9][0-9]*$/.test(iterationName))
-        die(`invalid workspace directory: ${displayPath(workspaceSkill, basePath)}/${iterationName}`);
-      const iterationNumber = iterationName.slice("iteration-".length);
-      const manifestPath = join(iterationDir, "manifest.json");
-      if (!isRegularFile(manifestPath)) die(`missing ${displayPath(manifestPath, basePath)}`);
-      const manifest = object(readJson(manifestPath, context));
-      const manifestIds = manifest?.case_ids;
-      const manifestValid =
-        manifest?.version === 1 &&
-        manifest?.skill_name === workspaceSkillName &&
-        valueAsString(manifest?.iteration) === iterationNumber &&
-        isAllowedStringArray(manifestIds, /^[a-z][a-z0-9-]*$/, true) &&
-        unique(manifestIds) &&
-        (manifest?.state === undefined ||
-          (isString(manifest.state) && ["historical", "preparation", "materialized"].includes(manifest.state))) &&
-        (manifest?.history_reason === undefined ||
-          (manifest.history_reason === "retired-materialized-incomplete" && manifest.state === "historical"));
-      if (!manifestValid) die(`invalid evaluation manifest: ${displayPath(manifestPath, basePath)}`);
-      const ids = manifestIds as string[];
-      const iterationState = isString(manifest?.state) ? manifest.state : "";
-      const historyReason = isString(manifest?.history_reason) ? manifest.history_reason : "";
-      const isCurrentIteration = Number(iterationNumber) === currentIteration;
-      const isPreparationIteration = iterationState === "preparation";
-      const isMaterializedIteration = iterationState === "materialized";
-      let caseArtifactPresent = false;
-      let historicalIteration = false;
-      let retiredHistoricalIteration = false;
-      let legacyPreparationIteration = false;
-
-      for (const extra of ["benchmark.json", "feedback.json", "grading-summary.json"]) {
-        const reportPath = join(iterationDir, extra);
-        if (!isRegularFile(reportPath)) die(`missing ${displayPath(reportPath, basePath)}`);
-        const report = object(readJson(reportPath, context));
-        if (report?.skill_name !== workspaceSkillName || valueAsString(report?.iteration) !== iterationNumber) {
-          die(`invalid report identity: ${displayPath(reportPath, basePath)}`);
+      for (const workspaceEntry of entries(workspaceSkill)) {
+        const entryName = basename(workspaceEntry);
+        if (!isPhysicalDirectory(workspaceEntry))
+          die(`invalid evaluation workspace entry: ${displayPath(workspaceEntry, basePath)}`);
+        if (entryName === "discoverability") {
+          for (const extra of ["queries.json", "results.json"]) {
+            const path = join(workspaceEntry, extra);
+            if (!isRegularFile(path)) die(`missing ${displayPath(path, basePath)}`);
+            readJson(path, context);
+          }
+          for (const extra of entries(workspaceEntry)) {
+            if (!["queries.json", "results.json"].includes(basename(extra))) {
+              die(`invalid discoverability entry: ${displayPath(extra, basePath)}`);
+            }
+          }
+        } else if (!entryName.startsWith("iteration-")) {
+          die(`invalid evaluation workspace entry: ${displayPath(workspaceEntry, basePath)}`);
         }
       }
 
-      for (const caseEntry of entries(iterationDir)) {
-        const caseName = basename(caseEntry);
-        if (["manifest.json", "benchmark.json", "feedback.json", "grading-summary.json"].includes(caseName)) continue;
-        if (!isPhysicalDirectory(caseEntry))
-          die(`evaluation case is not a physical directory: ${displayPath(caseEntry, basePath)}`);
-        caseArtifactPresent = true;
-        if (!ids.includes(caseName))
-          die(`workspace case is not in the evaluation manifest: ${displayPath(caseEntry, basePath)}`);
-        for (const configurationDir of entries(caseEntry)) {
-          if (!isPhysicalDirectory(configurationDir))
-            die(`evaluation configuration is not a physical directory: ${displayPath(configurationDir, basePath)}`);
-          if (!["with_skill", "old_skill"].includes(basename(configurationDir))) {
-            die(`invalid evaluation configuration: ${displayPath(configurationDir, basePath)}`);
+      for (const workspaceEntry of entries(workspaceSkill)) {
+        const caseName = basename(workspaceEntry);
+        if (!caseName.startsWith("iteration-")) continue;
+        if (context.requestedIteration && caseName !== `iteration-${context.requestedIteration}`) continue;
+        if (!isPhysicalDirectory(workspaceEntry))
+          die(`invalid workspace directory: ${displayPath(workspaceSkill, basePath)}/${caseName}`);
+        if (!/^iteration-[1-9][0-9]*$/.test(caseName))
+          die(`invalid workspace directory: ${displayPath(workspaceSkill, basePath)}/${caseName}`);
+        const manifestPath = join(workspaceEntry, "manifest.json");
+        if (!isRegularFile(manifestPath)) die(`missing ${displayPath(manifestPath, basePath)}`);
+        const manifest = object(readJson(manifestPath, context));
+        if (manifest?.state === "historical" && manifest.history_reason === "retired-materialized-incomplete") continue;
+        if (manifest?.state === "preparation") preparationIterations.add(caseName.slice("iteration-".length));
+        currentIteration = Math.max(currentIteration, Number(caseName.slice("iteration-".length)));
+      }
+
+      for (const iterationDir of entries(workspaceSkill)) {
+        if (!basename(iterationDir).startsWith("iteration-")) continue;
+        const iterationName = basename(iterationDir);
+        if (context.requestedIteration && iterationName !== `iteration-${context.requestedIteration}`) continue;
+        if (!isPhysicalDirectory(iterationDir))
+          die(`invalid workspace directory: ${displayPath(workspaceSkill, basePath)}/${iterationName}`);
+        if (!/^iteration-[1-9][0-9]*$/.test(iterationName))
+          die(`invalid workspace directory: ${displayPath(workspaceSkill, basePath)}/${iterationName}`);
+        const iterationNumber = iterationName.slice("iteration-".length);
+        const manifestPath = join(iterationDir, "manifest.json");
+        if (!isRegularFile(manifestPath)) die(`missing ${displayPath(manifestPath, basePath)}`);
+        const manifest = object(readJson(manifestPath, context));
+        const manifestIds = manifest?.case_ids;
+        const manifestValid =
+          manifest?.version === 1 &&
+          manifest?.skill_name === workspaceSkillName &&
+          valueAsString(manifest?.iteration) === iterationNumber &&
+          isAllowedStringArray(manifestIds, /^[a-z][a-z0-9-]*$/, true) &&
+          unique(manifestIds) &&
+          (manifest?.state === undefined ||
+            (isString(manifest.state) && ["historical", "preparation", "materialized"].includes(manifest.state))) &&
+          (manifest?.history_reason === undefined ||
+            (manifest.history_reason === "retired-materialized-incomplete" && manifest.state === "historical"));
+        if (!manifestValid) die(`invalid evaluation manifest: ${displayPath(manifestPath, basePath)}`);
+        const ids = manifestIds as string[];
+        const iterationState = isString(manifest?.state) ? manifest.state : "";
+        const historyReason = isString(manifest?.history_reason) ? manifest.history_reason : "";
+        const isCurrentIteration = Number(iterationNumber) === currentIteration;
+        const isPreparationIteration = iterationState === "preparation";
+        const isMaterializedIteration = iterationState === "materialized";
+        let caseArtifactPresent = false;
+        let historicalIteration = false;
+        let retiredHistoricalIteration = false;
+        let legacyPreparationIteration = false;
+
+        for (const extra of ["benchmark.json", "feedback.json", "grading-summary.json"]) {
+          const reportPath = join(iterationDir, extra);
+          if (!isRegularFile(reportPath)) die(`missing ${displayPath(reportPath, basePath)}`);
+          const report = object(readJson(reportPath, context));
+          if (report?.skill_name !== workspaceSkillName || valueAsString(report?.iteration) !== iterationNumber) {
+            die(`invalid report identity: ${displayPath(reportPath, basePath)}`);
           }
         }
-      }
 
-      if (iterationState === "historical") {
-        if (historyReason === "retired-materialized-incomplete" && !historicalWorkspace) {
-          retiredHistoricalIteration = true;
-          historicalIteration = true;
-        } else {
-          if (!historicalWorkspace)
-            die(
-              `historical evaluation state requires explicit migration metadata: ${displayPath(manifestPath, basePath)}`,
-            );
-          historicalIteration = true;
-        }
-      } else if (!iterationState && historicalWorkspace) {
-        historicalIteration = true;
-      } else if (
-        !iterationState &&
-        !caseArtifactPresent &&
-        isLegacyPreparationSkill(context, workspaceSkillName) &&
-        isLegacyPreparationSummary(context, iterationDir)
-      ) {
-        legacyPreparationIteration = true;
-        historicalIteration = true;
-      }
-
-      if (!historicalIteration && isCurrentIteration && JSON.stringify(ids) !== JSON.stringify(expectedIds)) {
-        die(`current evaluation manifest does not match the evaluation spec: ${displayPath(manifestPath, basePath)}`);
-      }
-      if (!caseArtifactPresent && historicalIteration) {
-        if (retiredHistoricalIteration) {
-          console.log(
-            `Validating retired incomplete historical evaluation iteration: ${displayPath(iterationDir, basePath)}`,
-          );
-        } else {
-          console.log(`Accepted legacy historical evaluation iteration: ${displayPath(iterationDir, basePath)}`);
-        }
-      }
-      if (!caseArtifactPresent && !historicalIteration) {
-        die(
-          `evaluation iteration has no case artifacts or explicit historical state: ${displayPath(iterationDir, basePath)}`,
-        );
-      }
-
-      if (retiredHistoricalIteration) {
-        validateRetiredHistoricalIteration(context, iterationDir, ids, workspaceSkillName, iterationNumber, specValue);
-      } else if (
-        (!historicalIteration &&
-          (isCurrentIteration || isPreparationIteration || isMaterializedIteration || caseArtifactPresent)) ||
-        (historicalIteration && caseArtifactPresent)
-      ) {
-        let materializedExecution = false;
-        for (const caseName of ids) {
-          const caseEntry = join(iterationDir, caseName);
+        for (const caseEntry of entries(iterationDir)) {
+          const caseName = basename(caseEntry);
+          if (["manifest.json", "benchmark.json", "feedback.json", "grading-summary.json"].includes(caseName)) continue;
           if (!isPhysicalDirectory(caseEntry))
-            die(`missing evaluation case directory: ${displayPath(caseEntry, basePath)}`);
-          for (const configuration of ["with_skill", "old_skill"]) {
-            const configurationDir = join(caseEntry, configuration);
+            die(`evaluation case is not a physical directory: ${displayPath(caseEntry, basePath)}`);
+          caseArtifactPresent = true;
+          if (!ids.includes(caseName))
+            die(`workspace case is not in the evaluation manifest: ${displayPath(caseEntry, basePath)}`);
+          for (const configurationDir of entries(caseEntry)) {
             if (!isPhysicalDirectory(configurationDir))
-              die(`missing evaluation configuration: ${displayPath(configurationDir, basePath)}`);
-            const outputsDir = join(configurationDir, "outputs");
-            if (!isPhysicalDirectory(outputsDir)) die(`missing output directory: ${displayPath(outputsDir, basePath)}`);
-            for (const extra of ["timing.json", "grading.json"]) {
-              const path = join(configurationDir, extra);
-              if (!isRegularFile(path)) die(`missing ${displayPath(path, basePath)}`);
-              readJson(path, context);
-            }
-            if (isPreparationIteration) {
-              validatePreparationConfig(context, configurationDir);
-            } else {
-              materializedExecution = true;
-              validateMaterializedConfig(
-                context,
-                configurationDir,
-                workspaceSkillName,
-                caseName,
-                configuration,
-                declaredAssertionIds(specValue, caseName),
-              );
+              die(`evaluation configuration is not a physical directory: ${displayPath(configurationDir, basePath)}`);
+            if (!["with_skill", "old_skill"].includes(basename(configurationDir))) {
+              die(`invalid evaluation configuration: ${displayPath(configurationDir, basePath)}`);
             }
           }
         }
-        if (materializedExecution)
-          validateMaterializedReports(context, iterationDir, workspaceSkillName, iterationNumber);
-        if (isPreparationIteration)
-          validatePreparationReports(context, iterationDir, workspaceSkillName, iterationNumber);
+
+        if (iterationState === "historical") {
+          if (historyReason === "retired-materialized-incomplete" && !historicalWorkspace) {
+            retiredHistoricalIteration = true;
+            historicalIteration = true;
+          } else {
+            if (!historicalWorkspace)
+              die(
+                `historical evaluation state requires explicit migration metadata: ${displayPath(manifestPath, basePath)}`,
+              );
+            historicalIteration = true;
+          }
+        } else if (!iterationState && historicalWorkspace) {
+          historicalIteration = true;
+        } else if (
+          !iterationState &&
+          !caseArtifactPresent &&
+          isLegacyPreparationSkill(context, workspaceSkillName) &&
+          isLegacyPreparationSummary(context, iterationDir)
+        ) {
+          legacyPreparationIteration = true;
+          historicalIteration = true;
+        }
+
+        if (!historicalIteration && isCurrentIteration && JSON.stringify(ids) !== JSON.stringify(expectedIds)) {
+          die(`current evaluation manifest does not match the evaluation spec: ${displayPath(manifestPath, basePath)}`);
+        }
+        if (!caseArtifactPresent && historicalIteration) {
+          if (retiredHistoricalIteration) {
+            console.log(
+              `Validating retired incomplete historical evaluation iteration: ${displayPath(iterationDir, basePath)}`,
+            );
+          } else {
+            console.log(`Accepted legacy historical evaluation iteration: ${displayPath(iterationDir, basePath)}`);
+          }
+        }
+        if (!caseArtifactPresent && !historicalIteration) {
+          die(
+            `evaluation iteration has no case artifacts or explicit historical state: ${displayPath(iterationDir, basePath)}`,
+          );
+        }
+
+        if (retiredHistoricalIteration) {
+          validateRetiredHistoricalIteration(
+            context,
+            iterationDir,
+            ids,
+            workspaceSkillName,
+            iterationNumber,
+            specValue,
+          );
+        } else if (
+          (!historicalIteration &&
+            (isCurrentIteration || isPreparationIteration || isMaterializedIteration || caseArtifactPresent)) ||
+          (historicalIteration && caseArtifactPresent)
+        ) {
+          let materializedExecution = false;
+          for (const caseName of ids) {
+            const caseEntry = join(iterationDir, caseName);
+            if (!isPhysicalDirectory(caseEntry))
+              die(`missing evaluation case directory: ${displayPath(caseEntry, basePath)}`);
+            for (const configuration of ["with_skill", "old_skill"]) {
+              const configurationDir = join(caseEntry, configuration);
+              if (!isPhysicalDirectory(configurationDir))
+                die(`missing evaluation configuration: ${displayPath(configurationDir, basePath)}`);
+              const outputsDir = join(configurationDir, "outputs");
+              if (!isPhysicalDirectory(outputsDir))
+                die(`missing output directory: ${displayPath(outputsDir, basePath)}`);
+              for (const extra of ["timing.json", "grading.json"]) {
+                const path = join(configurationDir, extra);
+                if (!isRegularFile(path)) die(`missing ${displayPath(path, basePath)}`);
+                readJson(path, context);
+              }
+              if (isPreparationIteration) {
+                validatePreparationConfig(context, configurationDir);
+              } else {
+                materializedExecution = true;
+                validateMaterializedConfig(
+                  context,
+                  configurationDir,
+                  workspaceSkillName,
+                  caseName,
+                  configuration,
+                  declaredAssertionIds(specValue, caseName),
+                );
+              }
+            }
+          }
+          if (materializedExecution)
+            validateMaterializedReports(context, iterationDir, workspaceSkillName, iterationNumber);
+          if (isPreparationIteration)
+            validatePreparationReports(context, iterationDir, workspaceSkillName, iterationNumber);
+        }
       }
+    } catch (error) {
+      const message = errorMessage(error);
+      const failedIteration = message.match(/iteration-([1-9][0-9]*)/)?.[1];
+      const skillMatches = context.requestedSkill === workspaceSkillName || context.requestedSkill === resolvedSkill;
+      const target =
+        context.strict ||
+        (skillMatches &&
+          (context.requestedIteration
+            ? failedIteration === context.requestedIteration
+            : failedIteration === undefined ||
+              (failedIteration === String(currentIteration) && !preparationIterations.has(failedIteration)))) ||
+        (!context.requestedSkill &&
+          failedIteration !== undefined &&
+          failedIteration === String(currentIteration) &&
+          !preparationIterations.has(failedIteration));
+      handleWorkspaceError(context, error, displayPath(workspaceSkill, basePath), target);
     }
   }
 
+  printWarnings(context);
   console.log("Skill evaluation specs and repository-local workspaces are valid.");
 }
 
