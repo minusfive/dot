@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "review-findings.v1",
+  "title": "Identity-bound review findings envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "batch_id", "identity", "complete", "findings", "counts"],
+  "properties": {
+    "schema_version": { "const": "review-findings.v1" },
+    "batch_id": { "type": "string", "minLength": 1 },
+    "complete": { "const": true },
+    "identity": { "$ref": "#/$defs/identity" },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pull_requests", "reviews", "inline_comments", "issue_comments"],
+      "properties": {
+        "pull_requests": { "type": "integer", "minimum": 0 },
+        "reviews": { "type": "integer", "minimum": 0 },
+        "inline_comments": { "type": "integer", "minimum": 0 },
+        "issue_comments": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "coordinator_id", "scheduler_id", "assignment_id", "scope_id", "candidate_id"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "coordinator_id": { "type": "string", "minLength": 1 },
+        "scheduler_id": { "type": "string", "minLength": 1 },
+        "assignment_id": { "type": "string", "minLength": 1 },
+        "scope_id": { "type": "string", "minLength": 1 },
+        "candidate_id": { "type": "string", "minLength": 1 },
+        "pull_request": { "type": "integer", "minimum": 1 },
+        "head": { "type": "string", "minLength": 1 }
+      }
+    },
+    "artifact_identity": {
+      "allOf": [
+        { "$ref": "#/$defs/identity" },
+        {
+          "type": "object",
+          "required": ["pull_request", "head"],
+          "properties": {
+            "pull_request": { "type": "integer", "minimum": 1 },
+            "head": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["source", "comment_id", "location", "outside_diff"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "comment_id": { "type": "string", "minLength": 1 },
+        "review_id": { "anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "null" }] },
+        "reply_to": { "anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "null" }] },
+        "thread_id": { "anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "null" }] },
+        "revision_id": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "location": { "enum": ["diff", "pathless"] },
+        "outside_diff": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "review_provenance": {
+      "type": "object",
+      "required": ["source", "review_id", "revision_id"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "review_id": { "type": "string", "minLength": 1 },
+        "revision_id": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+      },
+      "additionalProperties": true
+    },
+    "finding": {
+      "type": "object",
+      "required": ["kind", "identity", "provenance"],
+      "properties": {
+        "kind": {
+          "enum": ["review", "inline_comment", "issue_comment", "nested_comment"]
+        },
+        "identity": { "$ref": "#/$defs/artifact_identity" },
+        "provenance": {
+          "anyOf": [{ "$ref": "#/$defs/review_provenance" }, { "$ref": "#/$defs/provenance" }]
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "review-findings-ack.v1",
+  "title": "Durable review findings acknowledgement",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol",
+    "live_vs_fixture",
+    "status",
+    "batch_id",
+    "identity",
+    "digest_set",
+    "finding_count",
+    "ledger",
+    "pending",
+    "cursor",
+    "ack",
+    "failures"
+  ],
+  "properties": {
+    "schema_version": { "const": "ledger-ack.v1" },
+    "protocol": { "const": "persist-before-ack-v1" },
+    "live_vs_fixture": { "const": "fixture" },
+    "status": { "enum": ["acknowledged", "duplicate"] },
+    "batch_id": { "type": "string", "minLength": 1 },
+    "identity": { "$ref": "review-findings-ledger.v1#/$defs/identity" },
+    "digest_set": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["envelope_sha256", "payload_sha256", "findings_sha256"],
+      "properties": {
+        "envelope_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "payload_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "findings_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "finding_count": { "type": "integer", "minimum": 0 },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "before_sha256", "after_sha256", "durable", "persisted_before_ack"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "before_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "after_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "durable": { "const": true },
+        "persisted_before_ack": { "const": true }
+      }
+    },
+    "pending": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["present", "bytes_preserved", "envelope_sha256"],
+      "properties": {
+        "present": { "const": false },
+        "bytes_preserved": { "const": true },
+        "envelope_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "cursor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["advanced", "seen_count"],
+      "properties": {
+        "advanced": { "type": "boolean" },
+        "seen_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exact", "durable", "no_op"],
+      "properties": {
+        "exact": { "const": true },
+        "durable": { "const": true },
+        "no_op": { "type": "boolean" }
+      }
+    },
+    "failures": { "const": [] }
+  }
+}

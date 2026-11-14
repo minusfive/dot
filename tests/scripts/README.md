@@ -46,6 +46,10 @@ Tests `scripts/install-mise.zsh` help, official installation checks, clean-home 
 
 Tests hostname forwarding, idempotent authentication, failed login handling, control-plane ownership, and the authentication dependency boundary.
 
+#### `test_mise_task_gh_project.zsh`
+
+Tests the structured Project task with isolated JSON fixtures. The matrix covers dry runs, bootstrap, reuse, second-read convergence, wrong linkage, duplicate identity, missing capability, retry, and partial failure recovery.
+
 #### `test_mise_task_git_auth_setup.zsh`
 
 Tests profile and hostname selection, separate authentication stores, helper reset behavior, explicit failure paths, and control-plane ownership.
